@@ -12,7 +12,7 @@ import {
 } from '../../shared/messaging';
 import type { Message } from '../../shared/messaging';
 import type { AnnotationData, DocumentInfo } from '../../types/annotator';
-import type { Annotation } from '../../types/api';
+import type { Annotation, UserEventData } from '../../types/api';
 import type {
   SidebarToHostEvent,
   HostToSidebarEvent,
@@ -384,6 +384,17 @@ export class FrameSyncService {
 
       guestRPC.destroy();
       this._guestRPC.delete(sourceId);
+    });
+
+    guestRPC.on('createUserEvent', (evet: UserEventData) => {
+      // console.log("createUserEvent",
+      // evet.event_type,
+      // evet.node_name,
+      // evet.base_url,
+      // evet.id,
+      // evet.inner_text
+      // )
+      this._annotationsService.tempCreateUserEvent(evet)
     });
 
     // A new annotation, note or highlight was created in the frame

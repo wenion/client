@@ -1,3 +1,4 @@
+import { createElement } from 'preact';
 import { TinyEmitter } from 'tiny-emitter';
 
 import { ListenerCollection } from '../shared/listener-collection';
@@ -14,7 +15,7 @@ import type {
   Integration,
   SidebarLayout,
 } from '../types/annotator';
-import type { Target } from '../types/api';
+import type { Target, UserEventData } from '../types/api';
 import type {
   HostToGuestEvent,
   GuestToHostEvent,
@@ -172,6 +173,9 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
   private _sideBySideActive: boolean;
   private _listeners: ListenerCollection;
 
+  private _inputElement: HTMLInputElement;
+  private _lastScrollTop: number;
+
   /**
    * Tags of currently hovered annotations. This is used to set the hovered
    * state correctly for new highlights if the associated annotation is already
@@ -273,6 +277,9 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     this._listeners = new ListenerCollection();
     this._setupElementEvents();
 
+    this._inputElement = document.querySelectorAll("input[type='search']")[0] as HTMLInputElement || document.createElement('input');
+    this._lastScrollTop =  window.pageYOffset || document.documentElement.scrollTop;
+
     this._hoveredAnnotations = new Set();
   }
 
@@ -293,6 +300,60 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       }
       this._sidebarRPC.call('closeSidebar');
     };
+
+    this._listeners.add(this.element, 'click', event => {
+      const target = event.target as Element;
+      const userEvent: UserEventData = {
+        event_type: event.type,
+        time_stamp: event.timeStamp,
+        base_url: target.baseURI,
+        id: target.id,
+        node_name: target.nodeName,
+        inner_text: event.target instanceof HTMLElement? event.target.innerText : '',
+      }
+      this._sidebarRPC.call('createUserEvent', userEvent);
+    });
+
+    this._listeners.add(this.element, 'input', event => {
+      this._inputElement = event.target as HTMLInputElement;
+    });
+
+    this._listeners.add(window, 'scroll', event => {
+      var direction = "down";
+      var st = window.pageYOffset || document.documentElement.scrollTop;
+      if (st > this._lastScrollTop) {
+        direction = "down";
+      } else if (st < this._lastScrollTop) {
+        direction = "up";
+      } // else was horizontal scroll
+      this._lastScrollTop = st <= 0 ? 0 : st; // For Mobile or negative scrolling
+
+      const target = event.target as Document;
+      const userEvent: UserEventData = {
+        event_type: event.type,
+        time_stamp: event.timeStamp,
+        base_url: target.URL,
+        id: "",
+        node_name: "",
+        inner_text: direction,
+      }
+      /* TODO */
+      // this._sidebarRPC.call('createUserEvent', userEvent);
+    });
+
+    this._listeners.add(this.element, 'submit', event => {
+      // event.preventDefault();
+      const target = this._inputElement;
+      const userEvent: UserEventData = {
+        event_type: event.type,
+        time_stamp: event.timeStamp,
+        base_url: target.baseURI,
+        id: target.id,
+        node_name: target.nodeName,
+        inner_text: target.value,
+      }
+      this._sidebarRPC.call('createUserEvent', userEvent);
+    });
 
     this._listeners.add(this.element, 'mouseup', event => {
       const { target, metaKey, ctrlKey } = event;

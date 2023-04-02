@@ -299,3 +299,16 @@ export type SearchResponse = {
   /** Undocumented property that is populated if `_separate_replies` query param was specified. */
   replies?: Annotation[];
 };
+
+/**
+ * Response to an `/api/event` API call.
+ *
+ */
+export type UserEventData = {
+  event_type: string;
+  time_stamp?: number;
+  base_url: string;
+  id?: string;
+  node_name: string;
+  inner_text?: string;
+};

@@ -30,6 +30,10 @@ export type GuestToHostEvent =
  */
 export type GuestToSidebarEvent =
   /**
+   * The guest is asking the sidebar to create an event.
+   */
+  | 'createUserEvent'
+  /**
    * The guest is asking the sidebar to create an annotation.
    */
   | 'createAnnotation'

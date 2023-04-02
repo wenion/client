@@ -291,6 +291,10 @@ export class APIService {
         apiCall('profile.update')
       ),
     };
+
+    this.event = (
+      apiCall('event')
+    );
   }
 
   /**
