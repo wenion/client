@@ -118,4 +118,8 @@ export default [
     name: 'ui-playground',
     entry: 'dev-server/ui-playground/index.js',
   }),
+  bundleConfig({
+    name: 'site',
+    entry: 'src/site/index.js',
+  }),
 ];

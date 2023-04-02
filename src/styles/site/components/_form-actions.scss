@@ -1,0 +1,26 @@
+@use "../core/layout";
+
+// Form footer
+// -----------
+// Styles for the bar at the bottom of forms defining the overall actions
+// (eg. Save, Cancel) for the form and help messages (eg. "Forgot your password?"
+// on a login form).
+
+.form-actions {
+  margin-top: 20px;
+  margin-bottom: 30px;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  position: relative;
+  z-index: layout.$zindex-modal-content;
+
+  &.is-hidden {
+    display: none;
+  }
+}
+
+.form-actions.is-saving {
+  opacity: .5;
+}

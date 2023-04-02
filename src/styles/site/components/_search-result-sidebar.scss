@@ -1,0 +1,142 @@
+@use "../core/color";
+@use "../core/layout";
+@use "../core/reset";
+@use "../core/typography";
+@use "../core/utilities";
+
+.search-result-sidebar {
+  width: layout.$search-result-sidebar-width;
+  flex-shrink: 2;
+  margin-bottom: 40px;
+  margin-left: 20px;
+}
+
+.search-result-sidebar__title {
+  font-size: 20px;
+  line-height: 1;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.search-result-sidebar__subtitle {
+  margin-bottom: 9px;
+  font-size: typography.$subtitle-font-size;
+}
+
+.search-result-sidebar__title,
+.search-result-sidebar__subtitle {
+  color: color.$brand;
+}
+
+.search-result-sidebar__subtitle-count {
+  font-size: typography.$normal-font-size;
+  font-weight: normal;
+}
+
+.search-result-sidebar__section {
+  margin-bottom: 26px;
+  @include utilities.pie-clearfix;
+}
+
+.search-result-sidebar__share-link {
+  margin-top: auto;
+  margin-bottom: 0;
+  padding-top: 2px;
+}
+
+.search-result-sidebar__subsection {
+  margin-top: 17px;
+}
+
+.search-result-sidebar__subsection-p {
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.search-result-sidebar__subsection-key {
+  color: color.$grey-6;
+  font-weight: bold;
+}
+
+.search-result-sidebar__subsection-val {
+  color: color.$grey-6;
+}
+
+.search-result-sidebar__annotations-count {
+  color: color.$grey-4;
+}
+
+.search-result-sidebar__creator {
+  color: color.$grey-5;
+}
+
+.search-result-sidebar-tags {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 350px;
+}
+
+.search-result-sidebar__tag {
+  @include reset.reset-button;
+  background-color: color.$grey-2;
+  border-radius: 2px;
+  margin-bottom: 5px;
+  margin-right: 7px;
+  padding-bottom: 1px;
+  padding-top: 1px;
+  padding-left: 3px;
+  padding-right: 3px;
+  border-radius: 3px 3px;
+  font-weight: bold;
+}
+
+.search-result-sidebar__tag-container {
+  display: flex;
+  color: color.$grey-6;
+  align-items: center;
+}
+
+.search-result-sidebar__tag-count {
+  color: color.$grey-4;
+  margin-left: 5px;
+  font-weight: normal;
+}
+
+.search-result-sidebar__username {
+  @include reset.reset-button;
+  font-weight: bold;
+  margin-right: 3px;
+  margin-bottom: 7px;
+  color: color.$grey-6;
+}
+
+.search-result-sidebar__organization {
+  display: flex;
+  align-items: center;
+  margin-bottom: 26px;
+  font-weight: bold;
+}
+
+.search-result-sidebar__org-logo {
+  margin-right: 5px;
+}
+
+.search-result-sidebar__org-name {
+  text-transform: uppercase;
+  color: color.$group-organization-color;
+}
+
+.search-result-sidebar__logo {
+  height: 20px;
+  width: 20px;
+}
+
+@media screen and (max-width: layout.$tablet-width + 250px) {
+  // On tablet-sized screens and below the "sidebar" is displayed in the center
+  // of the screen instead of on the side (this is achieved by media queries
+  // on the sidebar's parent element), so make it full the whole width of the
+  // screen.
+  .search-result-sidebar {
+    width: 100%;
+  }
+}

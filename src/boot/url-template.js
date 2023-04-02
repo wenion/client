@@ -8,7 +8,7 @@
  * @param {string} url
  */
 function extractOrigin(url) {
-  const match = url.match(/(https?):\/\/([^:/]+)/);
+  const match = url.match(/(https?|chrome-extension):\/\/([^:/]+)/);
   if (!match) {
     return null;
   }

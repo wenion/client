@@ -1,0 +1,49 @@
+@use "../core/color";
+@use "../core/layout";
+@use "../core/typography";
+
+// Form buttons
+// ------------
+
+.btn {
+  @include typography.font-normal;
+
+  min-height: 30px;
+
+  background-color: color.$grey-6;
+  border: none;
+  border-radius: 2px;
+  color: color.$white;
+  font-weight: bold;
+  padding-left: 15px;
+  padding-right: 15px;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: color.$brand;
+  }
+}
+
+.btn.is-hidden {
+  display: none;
+}
+
+.btn--cancel {
+  color: color.$grey-6;
+  background-color: white;
+
+  &:hover {
+    background-color: white;
+    color: color.$brand;
+  }
+}
+
+.btn--danger {
+  background-color: color.$brand;
+}
+
+@include layout.touch-input {
+  .btn {
+    min-height: layout.$touch-target-size;
+  }
+}

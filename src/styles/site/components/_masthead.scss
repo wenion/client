@@ -1,0 +1,15 @@
+@use "../core/color";
+
+// The header at the top of the page displaying the
+// Hypothesis logo
+
+.masthead {
+  padding-bottom: 0;
+  padding-left: 15px;
+  padding-right: 15px;
+  padding-top: 15px;
+}
+
+.masthead-logo {
+  color: color.$grey-6;
+}

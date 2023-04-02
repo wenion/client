@@ -1,0 +1,68 @@
+@use "../core/color";
+
+.pager {
+  display: flex;
+  flex-direction: row;
+  margin-top: 0;
+
+  /* margin-bottom here doesn't seem to work on some mobile devices
+     (e.g. mobile Safari on an iPhone 5S) so use padding-bottom instead. */
+  margin-bottom: 0;
+  padding-bottom: 40px;
+
+  margin-left: auto;
+  margin-right: auto;
+  font-weight: bold;
+  justify-content: center;
+}
+
+.pager__item {
+  display: inline-block;
+  border-radius: 2px;
+  color: color.$grey-6;
+  padding: 7px 10px 7px 10px;
+}
+
+.pager__item:not(.is-disabled):hover {
+  background-color: color.$grey-3;
+}
+
+.pager__item--more {
+  color: color.$grey-4;
+}
+
+.pager__item--begin,
+.pager__item--end {
+  padding-top: 8px;
+  padding-bottom: 6px;
+  fill: currentColor;
+}
+
+
+.pager__item--begin {
+  background-color: color.$grey-3;
+  margin-right: 10px;
+}
+
+.pager__item--end {
+  background-color: color.$grey-3;
+  margin-left: 10px;
+}
+
+.pager__item--end:not(.is-disabled):hover,
+.pager__item--begin:not(.is-disabled):hover {
+  background-color: color.$brand;
+  color: color.$white;
+}
+
+.pager__item--link {
+  color: inherit;
+}
+
+.pager__item.is-highlighted {
+  background-color: color.$grey-3;
+}
+
+.pager__item.is-disabled {
+  color: color.$grey-4;
+}

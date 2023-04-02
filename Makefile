@@ -102,6 +102,7 @@ python:
 .PHONY: build
 build: node_modules/.uptodate
 	yarn run build
+	cp src/site/static/kmass.html build/
 
 node_modules/.uptodate: package.json yarn.lock
 	yarn install

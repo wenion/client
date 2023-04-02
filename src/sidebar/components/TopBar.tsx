@@ -3,6 +3,7 @@ import {
   LinkButton,
   HelpIcon,
   ShareIcon,
+  SearchIcon,
 } from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
 
@@ -80,6 +81,11 @@ function TopBar({
     }
   };
 
+  const requestQuery = () => {
+    const pageLink = window.location.origin + '/client/kmass.html'
+    window.open(pageLink);
+  }
+
   return (
     <div
       className={classnames(
@@ -117,6 +123,13 @@ function TopBar({
               )}
             </>
           )}
+          <IconButton
+            icon={SearchIcon}
+            expanded={isHelpPanelOpen}
+            onClick={requestQuery}
+            size="xs"
+            title="Go to the querying page"
+          />
           <IconButton
             icon={HelpIcon}
             expanded={isHelpPanelOpen}

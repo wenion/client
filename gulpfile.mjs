@@ -44,6 +44,8 @@ gulp.task('build-standalone-css', () =>
       // other styles used by annotator (standalone)
       './src/styles/annotator/pdfjs-overrides.scss',
 
+      './src/styles/site/site.scss',
+
       // Vendor
       './node_modules/katex/dist/katex.min.css',
     ],
