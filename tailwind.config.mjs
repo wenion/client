@@ -13,6 +13,7 @@ export default {
     './node_modules/@hypothesis/frontend-shared/lib/**/*.{js,ts,tsx}',
     // This module references `sidebar-frame` and related classes
     './src/annotator/sidebar.{js,ts,tsx}',
+    './src/site/components/**/*.{js,ts,tsx}',
   ],
   theme: {
     extend: {
@@ -75,6 +76,8 @@ export default {
           '"Lucida Grande"',
           'sans-serif',
         ],
+        robo: ["Roboto Condensed", "sans-serif"],
+        open: ["Open Sans", "sans-serif"],
       },
       // The following text sizes describe the current font sizes being used
       // in the app (descriptive), but should not be interpreted as defining

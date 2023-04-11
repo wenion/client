@@ -45,6 +45,7 @@ checkdocs: python
 clean:
 	rm -f node_modules/.uptodate
 	rm -rf build
+	rm -rf dev-server/build
 
 .PHONY: format
 format: node_modules/.uptodate
@@ -102,7 +103,6 @@ python:
 .PHONY: build
 build: node_modules/.uptodate
 	yarn run build
-	cp src/site/static/kmass.html build/
 
 node_modules/.uptodate: package.json yarn.lock
 	yarn install

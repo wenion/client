@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="preload" as="fetch" href="http://localhost:5000/api/" crossorigin="anonymous" data-hypothesis-asset="">
+    <link rel="preload" as="fetch" href="http://localhost:5000/api/links" crossorigin="anonymous" data-hypothesis-asset="">
+    <link rel="stylesheet" type="text/css" href="/client/build/styles/katex.min.css?e9b69c" data-hypothesis-asset="">
+    <!-- <link rel="stylesheet" type="text/css" href="/client/build/styles/sidebar.css?a9757b" data-hypothesis-asset=""> -->
+    <link rel="stylesheet" type="text/css" href="/client/build/styles/site.css?790507" data-hypothesis-asset="">
+    <script type="module" src="/client/build/scripts/site.bundle.js" data-hypothesis-asset=""></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <hypothesis-app>
+      <!-- <div class="h-full min-h-full overflow-scroll lg:pb-16 bg-grey-2 js-thread-list-scroll-root pt-[49px]"></div> -->
+    </hypothesis-app>
+
+    <script class="js-hypothesis-config" type="application/json">
+    {"apiUrl":"http://localhost:5000/api/","assetRoot":"/client/","authDomain":"localhost","serviceUrl":"http://localhost:5000/","release":"1.12.1.0","appType":"chrome-extension","oauthClientId":"43cebc7e-d282-11ed-b4ad-239f7459dff7"}
+    </script>
+
+    <script type="module" src="/client/build/scripts/site.bundle.js"></script>
+  </body>
+</html>

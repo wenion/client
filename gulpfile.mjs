@@ -13,6 +13,7 @@ import servePackage from './dev-server/serve-package.js';
 import tailwindConfig from './tailwind.config.mjs';
 import annotatorTailwindConfig from './tailwind-annotator.config.mjs';
 import sidebarTailwindConfig from './tailwind-sidebar.config.mjs';
+import siteTailwindConfig from './tailwind-site.config.mjs';
 
 gulp.task('build-js', () => buildJS('./rollup.config.mjs'));
 gulp.task('watch-js', () => watchJS('./rollup.config.mjs'));
@@ -44,12 +45,18 @@ gulp.task('build-standalone-css', () =>
       // other styles used by annotator (standalone)
       './src/styles/annotator/pdfjs-overrides.scss',
 
-      './src/styles/site/site.scss',
-
       // Vendor
       './node_modules/katex/dist/katex.min.css',
     ],
     { tailwindConfig }
+  )
+);
+
+gulp.task('build-site-css', () =>
+  buildCSS([
+      './src/styles/site/site.scss',
+  ],
+  { tailwindConfig: siteTailwindConfig }
   )
 );
 
@@ -58,7 +65,8 @@ gulp.task(
   gulp.parallel(
     'build-annotator-tailwind-css',
     'build-sidebar-tailwind-css',
-    'build-standalone-css'
+    'build-standalone-css',
+    'build-site-css'
   )
 );
 
@@ -70,6 +78,7 @@ gulp.task(
         'node_modules/katex/dist/katex.min.css',
         'src/styles/**/*.scss',
         'src/sidebar/components/**/*.js',
+        'src/site/components/**/*.js',
         'src/annotator/components/**/*.js',
         'dev-server/ui-playground/components/**/*.js',
       ],
@@ -93,6 +102,38 @@ gulp.task(
     gulp.watch(fontFiles, gulp.task('build-fonts'));
   })
 );
+
+const staticAsset = ['src/site/static/*.html'];
+
+gulp.task('build-static-asset', () => {
+  const staticBuild = 'build';
+  return gulp.src(staticAsset).pipe(changed(staticBuild)).pipe(gulp.dest(staticBuild));
+});
+
+gulp.task('watch-static-asset', () =>{
+  gulp.watch(
+    ['src/site/static/*.html',],
+    gulp.task('build-static-asset')
+  );
+});
+
+const clientDir = ['build/**/*'];
+
+gulp.task('build-client', gulp.series('build-static-asset', () => {
+  const clientBuild = 'dev-server/build';
+  return gulp.src(clientDir).pipe(changed(clientBuild)).pipe(gulp.dest(clientBuild));
+}));
+
+gulp.task('watch-client', () =>{
+  gulp.watch(
+    [
+      'src/styles/site/**/*.scss',
+      'src/site/**/*.(js|ts|tsx|html)',
+    ],
+    { delay: 500 },
+    gulp.task('build-client')
+  );
+});
 
 // Files to reference in `build/manifest.json`, used by `build/boot.js`.
 const manifestSourceFiles = 'build/{scripts,styles}/*.{css,js,map}';
@@ -131,7 +172,7 @@ gulp.task('serve-test-pages', () => {
 gulp.task(
   'build',
   gulp.series(
-    gulp.parallel('build-js', 'build-css', 'build-fonts'),
+    gulp.parallel('build-js', 'build-css', 'build-fonts', 'build-static-asset'),
     'build-boot-script'
   )
 );
@@ -144,7 +185,9 @@ gulp.task(
     'watch-boot-script',
     'watch-css',
     'watch-fonts',
-    'watch-js'
+    'watch-js',
+    'watch-static-asset',
+    'watch-client'
   )
 );
 

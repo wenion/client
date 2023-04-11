@@ -312,3 +312,16 @@ export type UserEventData = {
   node_name: string;
   inner_text?: string;
 };
+
+/**
+ * Response to an `/api/query` API call.
+ *
+ */
+export type QueryResult = {
+  id : string;
+  data_type: string;
+  title: string;
+  context: string;
+  author: string;
+  url: string;
+};

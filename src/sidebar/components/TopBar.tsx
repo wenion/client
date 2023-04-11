@@ -82,7 +82,7 @@ function TopBar({
   };
 
   const requestQuery = () => {
-    const pageLink = window.location.origin + '/client/kmass.html'
+    const pageLink = window.location.origin + '/client/home.html'
     window.open(pageLink);
   }
 

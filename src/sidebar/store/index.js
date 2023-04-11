@@ -17,6 +17,7 @@ import { sessionModule } from './modules/session';
 import { sidebarPanelsModule } from './modules/sidebar-panels';
 import { toastMessagesModule } from './modules/toast-messages';
 import { viewerModule } from './modules/viewer';
+import { resultModule } from './modules/results'
 import { useStore } from './use-store';
 
 /** @typedef {ReturnType<createSidebarStore>} SidebarStore */
@@ -55,6 +56,7 @@ export function createSidebarStore(settings) {
     sidebarPanelsModule,
     toastMessagesModule,
     viewerModule,
+    resultModule,
   ]);
   return createStore(modules, [settings], middleware);
 }

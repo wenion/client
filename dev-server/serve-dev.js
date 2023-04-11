@@ -109,6 +109,8 @@ function serveDev(port, config) {
 
   app.use(express.static(path.join(__dirname, 'static')));
 
+  app.use('/client/build', express.static(path.join(__dirname, 'build')));
+
   // Serve static PDF files out of the PDF directory, but serve under
   // `/pdf-source/` — these are needed by PDF JS viewer
   app.use('/pdf-source', express.static(PDF_PATH));
@@ -181,6 +183,10 @@ function serveDev(port, config) {
       resourceRoot:
         'http://localhost:3001/hypothesis/1.0.0-dummy-version/build',
     });
+  });
+
+  app.get('/home', (req, res) => {
+    res.sendFile(path.join(__dirname, './build/home.html'));
   });
 
   // Nothing else matches: this is a 404
