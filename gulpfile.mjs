@@ -112,26 +112,8 @@ gulp.task('build-static-asset', () => {
 
 gulp.task('watch-static-asset', () =>{
   gulp.watch(
-    ['src/site/static/*.html',],
+    staticAsset,
     gulp.task('build-static-asset')
-  );
-});
-
-const clientDir = ['build/**/*'];
-
-gulp.task('build-client', gulp.series('build-static-asset', () => {
-  const clientBuild = 'dev-server/build';
-  return gulp.src(clientDir).pipe(changed(clientBuild)).pipe(gulp.dest(clientBuild));
-}));
-
-gulp.task('watch-client', () =>{
-  gulp.watch(
-    [
-      'src/styles/site/**/*.scss',
-      'src/site/**/*.(js|ts|tsx|html)',
-    ],
-    { delay: 500 },
-    gulp.task('build-client')
   );
 });
 
@@ -159,6 +141,25 @@ gulp.task('watch-boot-script', () => {
   );
 });
 
+// Files to test Dev
+const clientDir = ['build/**/*'];
+
+gulp.task('build-client', gulp.series('build-static-asset', 'build-boot-script', () => {
+  const clientBuild = 'dev-server/build';
+  return gulp.src(clientDir).pipe(changed(clientBuild)).pipe(gulp.dest(clientBuild));
+}));
+
+gulp.task('watch-client', () =>{
+  gulp.watch(
+    [
+      'src/styles/site/**/*.scss',
+      'src/site/**/*.(js|ts|tsx|html)',
+    ],
+    { delay: 500 },
+    gulp.task('build-client')
+  );
+});
+
 gulp.task('serve-package', () => {
   servePackage(3001);
 });
@@ -172,8 +173,9 @@ gulp.task('serve-test-pages', () => {
 gulp.task(
   'build',
   gulp.series(
-    gulp.parallel('build-js', 'build-css', 'build-fonts', 'build-static-asset'),
-    'build-boot-script'
+    gulp.parallel('build-js', 'build-css', 'build-fonts', 'build-static-asset', 'build-client'),
+    'build-boot-script',
+    'build-client'
   )
 );
 
