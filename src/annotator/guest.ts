@@ -263,6 +263,8 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     this._hostRPC = new PortRPC();
     this._connectHost(hostFrame);
 
+    console.log("hostFrame", hostFrame)
+
     this._sidebarRPC = new PortRPC();
     this._connectSidebar();
 

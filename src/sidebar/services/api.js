@@ -160,6 +160,8 @@ function createAPICall(
         }
       }
 
+      console.log("apiURL", apiURL)
+
       // nb. Don't "simplify" the lines below to `return fetchJSON(...)` as this
       // would cause `onRequestFinished` to be called before the API response
       // is received.
@@ -294,6 +296,10 @@ export class APIService {
 
     this.event = (
       apiCall('event')
+    );
+
+    this.query = (
+      apiCall('query')
     );
   }
 

@@ -34,6 +34,7 @@ import { StreamerService } from '../sidebar/services/streamer';
 import { TagsService } from '../sidebar/services/tags';
 import { ThreadsService } from '../sidebar/services/threads';
 import { ToastMessengerService } from '../sidebar/services/toast-messenger';
+import { QueryService } from '../sidebar/services/query';
 import { createSidebarStore } from '../sidebar/store';
 import { disableOpenerForExternalLinks } from '../sidebar/util/disable-opener-for-external-links';
 import * as sentry from '../sidebar/util/sentry';
@@ -141,6 +142,7 @@ function startApp(settings, appEl) {
     .register('tags', TagsService)
     .register('threadsService', ThreadsService)
     .register('toastMessenger', ToastMessengerService)
+    .register('queryService', QueryService)
     .register('store', { factory: createSidebarStore });
 
   // Register utility values/classes.

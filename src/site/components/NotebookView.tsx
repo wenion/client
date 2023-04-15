@@ -5,6 +5,7 @@ import scrollIntoView from 'scroll-into-view';
 import { ResultSizeError } from '../../sidebar/search-client';
 import { withServices } from '../../sidebar/service-context';
 import type { LoadAnnotationsService } from '../../sidebar/services/load-annotations';
+import type { QueryService } from '../../sidebar/services/query';
 import type { StreamerService } from '../../sidebar/services/streamer';
 import { useSidebarStore } from '../../sidebar/store';
 import PaginatedThreadList from './PaginatedThreadList';
@@ -13,6 +14,7 @@ import { useQueryThread, useQueryWord } from '../helpers/use-query-thread';
 export type NotebookViewProps = {
   // injected
   loadAnnotationsService: LoadAnnotationsService;
+  queryService: QueryService;
   streamer: StreamerService;
 };
 /**
@@ -20,7 +22,7 @@ export type NotebookViewProps = {
  *
  * @param {NotebookViewProps} props
  */
-function NotebookView({ loadAnnotationsService, streamer }: NotebookViewProps) {
+function NotebookView({ loadAnnotationsService, queryService, streamer }: NotebookViewProps) {
   const store = useSidebarStore();
 
   const filters = store.getFilterValues();
@@ -121,7 +123,7 @@ function NotebookView({ loadAnnotationsService, streamer }: NotebookViewProps) {
      {/* <div class="mb-4" data-testid="notebook-container"> */}
       <header className="leading-none lg:col-span-2" ref={threadListScrollTop}>
         <h1 className="text-4xl font-robo my-12" data-testid="notebook-group-name">
-          Search results for: {queryWord}
+          Search results for: {queryService.getQueryWord()}
         </h1>
         <p className="text-xl font-open mb-8">
         {rootThread.children.length} results found
@@ -163,5 +165,6 @@ function NotebookView({ loadAnnotationsService, streamer }: NotebookViewProps) {
 
 export default withServices(NotebookView, [
   'loadAnnotationsService',
+  'queryService',
   'streamer',
 ]);

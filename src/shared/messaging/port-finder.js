@@ -47,6 +47,7 @@ export class PortFinder {
    * @return {Promise<MessagePort>}
    */
   async discover(target) {
+    console.log("port finder", this._source, target, this._hostFrame)
     let isValidRequest = false;
     if (
       (this._source === 'guest' && target === 'host') ||

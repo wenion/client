@@ -564,6 +564,9 @@ export class FrameSyncService {
     const hostPort = await this._portFinder.discover('host');
     this._hostRPC.connect(hostPort);
 
+    console.log("hostPort",hostPort);
+
+
     // Listen for guests connecting to the sidebar.
     this._listeners.add(hostPort, 'message', event => {
       const { data, ports } = event;

@@ -2,7 +2,7 @@ import { createStoreModule, makeAction } from '../create-store';
 import type { QueryResult } from '../../../types/api';
 
 const initialState = {
- query: 'test',
+ query: 'test2222',
  results: [
   {
     data_type: 'pdf',
