@@ -59,17 +59,11 @@ function TopBar({
   // const [prevQuery, setPrevQuery] = useState(store.queryingWord());
 
   // The query that the user is currently typing, but may not yet have applied.
-  // const [pendingQuery, setPendingQuery] = useState(store.queryingWord());
-
-  const toggleSharePanel = () => {
-    store.toggleSidebarPanel('shareGroupAnnotations');
-  };
+  const [pendingQuery, setPendingQuery] = useState(store.queryingWord());
 
   const onSubmit = (e: Event) => {
     e.preventDefault();
-
-    console.log("on_submit")
-    queryService.queryActivity();
+    queryService.queryActivity(pendingQuery);
   };
 
   // When the active query changes outside of this component, update the input
@@ -81,8 +75,7 @@ function TopBar({
 
   const onInput = (e: Event) => {
     const value = (e.target as HTMLInputElement).value;
-    // const { value } = e.target | null;
-    // this.setState({ value })
+    setPendingQuery(value);
   }
 
   return (
@@ -93,7 +86,8 @@ function TopBar({
             <LogoIcon />
           </a>
           <div class="nav-bar__search js-search-bar" data-ref="searchBar">
-            <form class="search-bar"
+            <form action="http://localhost:5000/api/query"
+                  class="search-bar"
                   data-ref="searchBarForm"
                   id="search-bar"
                   role="search"
@@ -115,12 +109,12 @@ function TopBar({
                       name="q"
                       placeholder="Search…"
                       role="combobox"
-                      value={''}
+                      value={pendingQuery || ''}
                       onInput={onInput}
                       />
                 <div>
                   <input type="submit" class="nav-bar__search-hidden-input"/>
-                  <div className="search-bar__icon">
+                  <div className="search-bar__icon" onClick={onSubmit}>
                     <SearchIcon />
                   </div>
                 </div>

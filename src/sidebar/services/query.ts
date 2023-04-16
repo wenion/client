@@ -1,5 +1,3 @@
-import { isShared } from '../helpers/permissions';
-import * as postMessageJsonRpc from '../util/postmessage-json-rpc';
 import type { SidebarSettings } from '../../types/config';
 import type { APIService } from './api';
 import type { SidebarStore } from '../store';
@@ -35,11 +33,15 @@ export class QueryService {
   }
 
   /* submit query*/
-  async queryActivity() {
+  async queryActivity(query: string | null) {
+    if (!query)
+      return;
     const queryParams = {
-      q: 'test',
+      q: query,
     };
-    const result = await this._api.query(queryParams);
-    console.log("queryActivity", result)
+    let result = await this._api.query(queryParams);
+    if (result) {
+      this._store.addResults(result.query, result.rows);
+    }
   }
 }

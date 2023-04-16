@@ -7,6 +7,7 @@ import { replaceURLParams } from '../util/url';
  * @typedef {import('../../types/api').RouteMap} RouteMap
  * @typedef {import('../../types/api').RouteMetadata} RouteMetadata
  * @typedef {import('../../types/api').Profile} Profile
+ * @typedef {import('../../types/api').QueryResult} QueryResult
  */
 
 /**
@@ -160,8 +161,6 @@ function createAPICall(
         }
       }
 
-      console.log("apiURL", apiURL)
-
       // nb. Don't "simplify" the lines below to `return fetchJSON(...)` as this
       // would cause `onRequestFinished` to be called before the API response
       // is received.
@@ -298,7 +297,14 @@ export class APIService {
       apiCall('event')
     );
 
-    this.query = (
+    /**
+     * @typedef QuerySearchResult
+     * @prop {string} query
+     * @prop {QueryResult[]} rows
+     * @prop {number} total
+     */
+
+    this.query = /** @type {APICall<{}, void, QuerySearchResult>} */ (
       apiCall('query')
     );
   }
