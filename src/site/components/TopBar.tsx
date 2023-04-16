@@ -2,12 +2,13 @@ import {
   LinkButton,
   SearchIcon,
 } from '@hypothesis/frontend-shared/lib/next';
-import { useRef } from 'preact/hooks';
+import { useRef, useState } from 'preact/hooks';
 
 import type { SidebarSettings } from '../../types/config';
 import { isThirdPartyService } from '../../sidebar/helpers/is-third-party-service';
 import { applyTheme } from '../../sidebar/helpers/theme';
 import { withServices } from '../../sidebar/service-context';
+import type { QueryService } from '../../sidebar/services/query';
 import type { FrameSyncService } from '../../sidebar/services/frame-sync';
 import { useSidebarStore } from '../../sidebar/store';
 import UserMenu from './UserMenu';
@@ -28,6 +29,7 @@ export type TopBarProps = {
 
   // injected
   frameSync: FrameSyncService;
+  queryService: QueryService;
   settings: SidebarSettings;
 };
 
@@ -41,6 +43,7 @@ function TopBar({
   onLogout,
   onSignUp,
   frameSync,
+  queryService,
   settings,
 }: TopBarProps) {
   const showSharePageButton = !isThirdPartyService(settings);
@@ -50,26 +53,29 @@ function TopBar({
   const filterQuery = store.filterQuery();
   const isLoggedIn = store.isLoggedIn();
   const hasFetchedProfile = store.hasFetchedProfile();
-  const input = useRef<HTMLInputElement | null>(null);
+  // const input = useRef<HTMLInputElement | null>(null);
 
-  const toggleSharePanel = () => {
-    store.toggleSidebarPanel('shareGroupAnnotations');
-  };
+  // The active filter query from the previous render.
+  // const [prevQuery, setPrevQuery] = useState(store.queryingWord());
 
-  const isHelpPanelOpen = store.isSidebarPanelOpen('help');
-  const isAnnotationsPanelOpen = store.isSidebarPanelOpen(
-    'shareGroupAnnotations'
-  );
+  // The query that the user is currently typing, but may not yet have applied.
+  const [pendingQuery, setPendingQuery] = useState(store.queryingWord());
 
   const onSubmit = (e: Event) => {
     e.preventDefault();
-    console.log("on_submit")
+    queryService.queryActivity(pendingQuery);
   };
+
+  // When the active query changes outside of this component, update the input
+  // field to match. This happens when clearing the current filter for example.
+  // if (store.queryingWord() !== prevQuery) {
+  //   setPendingQuery(store.queryingWord());
+  //   setPrevQuery(store.queryingWord());
+  // }
 
   const onInput = (e: Event) => {
     const value = (e.target as HTMLInputElement).value;
-    // const { value } = e.target | null;
-    // this.setState({ value })
+    setPendingQuery(value);
   }
 
   return (
@@ -80,7 +86,8 @@ function TopBar({
             <LogoIcon />
           </a>
           <div class="nav-bar__search js-search-bar" data-ref="searchBar">
-            <form class="search-bar"
+            <form action="http://localhost:5000/api/query"
+                  class="search-bar"
                   data-ref="searchBarForm"
                   id="search-bar"
                   role="search"
@@ -102,12 +109,12 @@ function TopBar({
                       name="q"
                       placeholder="Search…"
                       role="combobox"
-                      value=""
+                      value={pendingQuery || ''}
                       onInput={onInput}
                       />
                 <div>
                   <input type="submit" class="nav-bar__search-hidden-input"/>
-                  <div className="search-bar__icon">
+                  <div className="search-bar__icon" onClick={onSubmit}>
                     <SearchIcon />
                   </div>
                 </div>
@@ -154,4 +161,4 @@ function TopBar({
   );
 }
 
-export default withServices(TopBar, ['frameSync', 'settings']);
+export default withServices(TopBar, ['frameSync', 'settings', 'queryService']);

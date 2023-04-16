@@ -2,87 +2,8 @@ import { createStoreModule, makeAction } from '../create-store';
 import type { QueryResult } from '../../../types/api';
 
 const initialState = {
- query: 'test',
- results: [
-  {
-    data_type: 'pdf',
-    title: 'test pdf 1',
-    context: 'for test pdf',
-    author: 'author',
-    url: 'http://localhost:3000'
-  }, {
-    data_type: 'html',
-    title: 'test html 2',
-    context: 'for test html',
-    author: 'author',
-    url: 'http://localhost:3000'
-  }, {
-    data_type: 'html',
-    title: 'test html 3',
-    context: 'for test html',
-    author: 'author',
-    url: 'http://localhost:3000'
-  }, {
-    data_type: 'image',
-    title: 'test image 4',
-    context: 'for test image',
-    author: 'author',
-    url: 'http://localhost:3000'
-  }, {
-    data_type: 'html',
-    title: 'test html 5',
-    context: 'for test html',
-    author: 'author',
-    url: 'http://localhost:3000'
-  }, {
-    data_type: 'html',
-    title: 'test html 6',
-    context: 'for test html',
-    author: 'author',
-    url: 'http://localhost:3000'
-  }, {
-    data_type: 'image',
-    title: 'test image 7',
-    context: 'for test image',
-    author: 'author',
-    url: 'http://localhost:3000'
-  }, {
-    data_type: 'html',
-    title: 'test html 8',
-    context: 'for test html',
-    author: 'author',
-    url: 'http://localhost:3000'
-  }, {
-    data_type: 'video',
-    title: 'test video 9',
-    context: 'for test video',
-    author: 'author',
-    url: 'http://localhost:3000'
-  }, {
-    data_type: 'image',
-    title: 'test image 10',
-    context: 'for test image',
-    author: 'author',
-    url: 'http://localhost:3000'
-  }, {
-    data_type: 'video',
-    title: 'test video 11',
-    context: 'for test video',
-    author: 'author',
-    url: 'http://localhost:3000'
-  }, {
-    data_type: 'html',
-    title: 'test html 12',
-    context: 'for test html',
-    author: 'author',
-    url: 'http://localhost:3000'
-  }, {
-    data_type: 'image',
-    title: 'test image 13',
-    context: 'for test image',
-    author: 'author',
-    url: 'http://localhost:3000'
-  }],
+ query: '',
+ results: [],
 } as {
   query: string | null;
   results: QueryResult[];
@@ -99,6 +20,7 @@ const reducers = {
     }
   ): Partial<State> {
     state.query = action.query;
+    state.results.length = 0;
     for (const ret of action.results) {
       state.results.push(
         ret
@@ -111,7 +33,14 @@ const reducers = {
     };
   },
 
-  CLEAR_RESULTS(): Partial<State> {
+  CLEAR_PRE_RESULTS( state: State, action: { query: string }): Partial<State> {
+    state.query = action.query;
+    return { query: state.query, results: [] };
+  },
+
+  CLEAR_RESULTS(
+    state: State,
+  ): Partial<State> {
     return { query: null, results: [] };
   },
 };
@@ -129,6 +58,11 @@ function clearResults() {
   return makeAction(reducers, 'CLEAR_RESULTS', undefined);
 }
 
+/** Set the currently displayed annotations to the empty set. */
+function clearPreResults(query: string) {
+  return makeAction(reducers, 'CLEAR_PRE_RESULTS', {query});
+}
+
 function allResults(state: State) {
   return state.results;
 }
@@ -143,6 +77,7 @@ export const resultModule = createStoreModule(initialState, {
   actionCreators: {
     addResults,
     clearResults,
+    clearPreResults,
   },
   selectors: {
     allResults,

@@ -7,6 +7,7 @@ import { replaceURLParams } from '../util/url';
  * @typedef {import('../../types/api').RouteMap} RouteMap
  * @typedef {import('../../types/api').RouteMetadata} RouteMetadata
  * @typedef {import('../../types/api').Profile} Profile
+ * @typedef {import('../../types/api').QueryResult} QueryResult
  */
 
 /**
@@ -294,6 +295,17 @@ export class APIService {
 
     this.event = (
       apiCall('event')
+    );
+
+    /**
+     * @typedef QuerySearchResult
+     * @prop {string} query
+     * @prop {QueryResult[]} rows
+     * @prop {number} total
+     */
+
+    this.query = /** @type {APICall<{}, void, QuerySearchResult>} */ (
+      apiCall('query')
     );
   }
 
