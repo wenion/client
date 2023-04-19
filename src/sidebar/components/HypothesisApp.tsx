@@ -14,6 +14,7 @@ import type { ToastMessengerService } from '../services/toast-messenger';
 import { useSidebarStore } from '../store';
 import AnnotationView from './AnnotationView';
 import HelpPanel from './HelpPanel';
+import RatingPanel from './RatingPanel';
 import NotebookView from './NotebookView';
 import ProfileView from './ProfileView';
 import ShareAnnotationsPanel from './ShareAnnotationsPanel';
@@ -160,6 +161,7 @@ function HypothesisApp({
       <div className="container">
         <ToastMessages />
         <HelpPanel />
+        <RatingPanel />
         <ShareAnnotationsPanel />
 
         {route && (

@@ -12,6 +12,7 @@ import type { QueryService } from '../../sidebar/services/query';
 import type { FrameSyncService } from '../../sidebar/services/frame-sync';
 import { useSidebarStore } from '../../sidebar/store';
 import UserMenu from './UserMenu';
+import Dropdown from './Dropdown';
 import LogoIcon from '../static/logo';
 
 export type TopBarProps = {
@@ -60,6 +61,17 @@ function TopBar({
 
   // The query that the user is currently typing, but may not yet have applied.
   const [pendingQuery, setPendingQuery] = useState(store.queryingWord());
+  const [isFocus, setIsFocus] = useState(false);
+  const [isExtend, setIsExtend] = useState(false);
+
+  const onSelectSuggestItem = (suggest: string | null) => {
+    console.log("onSelectSuggestItem 1 isExtend", isExtend, "isFocus", isFocus)
+    setIsExtend(true);
+    setPendingQuery(suggest);
+    setIsExtend(false);
+    setIsFocus(false);
+    console.log("onSelectSuggestItem 2 isExtend", isExtend, "isFocus", isFocus)
+  };
 
   const onSubmit = (e: Event) => {
     e.preventDefault();
@@ -94,9 +106,6 @@ function TopBar({
                   onSubmit={onSubmit}
                   >
 
-              {/* <input type="submit" class="nav-bar__search-hidden-input"/> */}
-
-
               <div class="search-bar__lozenges" data-ref="searchBarLozenges">
 
                 <input class="search-bar__input js-input-autofocus"
@@ -111,18 +120,38 @@ function TopBar({
                       role="combobox"
                       value={pendingQuery || ''}
                       onInput={onInput}
+                      onFocus={() => {
+                        console.log("onFocus 1 isExtend", isExtend, "isFocus", isFocus)
+                        setIsFocus(true);
+                        setIsExtend(true);
+                        console.log("onFocus 1 isExtend", isExtend, "isFocus", isFocus)
+                      }
+                      }
+                      onBlur={() => {
+                        console.log("onBlur 1 isExtend", isExtend, "isFocus", isFocus)
+                        setIsFocus(false);
+                        console.log("onBlur 2 isExtend", isExtend, "isFocus", isFocus)
+                        }}
                       />
+
+                <Dropdown
+                  isFocus={false}
+                  onSelectSuggestItem={onSelectSuggestItem}
+                />
+
                 <div>
                   <input type="submit" class="nav-bar__search-hidden-input"/>
                   <div className="search-bar__icon" onClick={onSubmit}>
                     <SearchIcon />
                   </div>
                 </div>
+
               </div>
             </form>
           </div>
 
           <div class="u-stretch"></div>
+
           <nav className="nav-bar-links">
             {isLoggedIn ? (
               <UserMenu onLogout={onLogout} />
@@ -154,7 +183,6 @@ function TopBar({
               </div>
             )}
           </nav>
-
         </div>
       </header>
     </div>
