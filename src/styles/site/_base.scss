@@ -18,7 +18,8 @@
     @apply inline-block;
     // Give links a radius to allow :focus styling to appear similar to that of buttons
     @apply rounded-sm;
-    @apply text-brand no-underline;
+    // @apply text-brand no-underline;
+    @apply no-underline;
   }
 
   a:active,
@@ -27,7 +28,8 @@
   }
 
   a:hover {
-    @apply text-brand-dark no-underline;
+    // @apply text-brand-dark no-underline;
+    @apply text-brand no-underline;
   }
 
   // TODO: Research history of this and whether it's still appropriate
