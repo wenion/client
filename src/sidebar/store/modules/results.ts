@@ -19,17 +19,16 @@ const reducers = {
       results: QueryResult[];
     }
   ): Partial<State> {
-    state.query = action.query;
-    state.results.length = 0;
+    const added = []
     for (const ret of action.results) {
-      state.results.push(
+      added.push(
         ret
       );
     }
 
     return {
-      query: state.query,
-      results: state.results,
+      query: action.query,
+      results: added,
     };
   },
 
