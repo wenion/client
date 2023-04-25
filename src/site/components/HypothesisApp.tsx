@@ -1,5 +1,6 @@
 import classnames from 'classnames';
 import { useEffect, useMemo } from 'preact/hooks';
+import  Router from 'preact-router';
 
 import { confirm } from '../../shared/prompts';
 import type { SidebarSettings } from '../../types/config';
@@ -12,8 +13,7 @@ import type { FrameSyncService } from '../../sidebar/services/frame-sync';
 import type { SessionService } from '../../sidebar/services/session';
 import type { ToastMessengerService } from '../../sidebar/services/toast-messenger';
 import { useSidebarStore } from '../../sidebar/store';
-import NotebookView from './NotebookView';
-import TopBar from './TopBar';
+import QueryView from './QueryView';
 
 export type HypothesisAppProps = {
   auth: AuthService;
@@ -131,17 +131,13 @@ function HypothesisApp({
       data-testid="hypothesis-app"
       style={backgroundStyle}
     >
-      <TopBar
-        onLogin={login}
-        onSignUp={signUp}
-        onLogout={logout}
-        isSidebar={isSidebar}
-      />
-      <div className="container">        
-        <main>
-          <NotebookView />
-        </main>
-      </div>
+      <Router>
+        <QueryView path="/query"
+          onLogin={login}
+          onSignUp={signUp}
+          onLogout={logout}
+          isSidebar={isSidebar} />
+      </Router>
     </div>
   );
 }

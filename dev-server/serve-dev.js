@@ -185,8 +185,8 @@ function serveDev(port, config) {
     });
   });
 
-  app.get('/home', (req, res) => {
-    res.sendFile(path.join(__dirname, './build/home.html'));
+  app.get('/query', (req, res) => {
+    res.sendFile(path.join(__dirname, './build/index.html'));
   });
 
   // Nothing else matches: this is a 404
