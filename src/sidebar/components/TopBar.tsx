@@ -4,7 +4,7 @@ import {
   LinkButton,
   HelpIcon,
   ShareIcon,
-  SearchIcon,
+  GlobeAltIcon,
 } from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
 
@@ -130,8 +130,7 @@ function TopBar({
             </>
           )}
           <IconButton
-            icon={SearchIcon}
-            expanded={isHelpPanelOpen}
+            icon={GlobeAltIcon}
             onClick={requestQuery}
             size="xs"
             title="Go to the querying page"
