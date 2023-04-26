@@ -29,7 +29,7 @@ export type HypothesisAppProps = {
  * This handles login/logout actions and renders the top navigation bar
  * and content appropriate for the current route.
  */
-function HypothesisApp({
+function SiteApp({
   auth,
   frameSync,
   settings,
@@ -142,7 +142,7 @@ function HypothesisApp({
   );
 }
 
-export default withServices(HypothesisApp, [
+export default withServices(SiteApp, [
   'auth',
   'frameSync',
   'session',

@@ -6,7 +6,7 @@ import 'preact/debug';
 
 import { parseJsonConfig } from '../boot/parse-json-config';
 import { Injector } from '../shared/injector';
-import HypothesisApp from './components/HypothesisApp';
+import SiteApp from './components/SiteApp';
 import LaunchErrorPanel from '../sidebar/components/LaunchErrorPanel';
 import { buildSettings } from '../sidebar/config/build-settings';
 import { checkEnvironment } from '../sidebar/config/check-env';
@@ -163,7 +163,7 @@ function startApp(settings, appEl) {
   // Render the UI.
   render(
     <ServiceContext.Provider value={container}>
-      <HypothesisApp />
+      <SiteApp />
     </ServiceContext.Provider>,
     appEl
   );
@@ -184,7 +184,7 @@ function reportLaunchError(error, appEl) {
 }
 
 const appEl = /** @type {HTMLElement} */ (
-  document.querySelector('hypothesis-app')
+  document.querySelector('main')
 );
 
 // Start capturing RPC requests before we start the RPC server (startRPCServer)
