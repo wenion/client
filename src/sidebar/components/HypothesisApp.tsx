@@ -14,6 +14,7 @@ import type { ToastMessengerService } from '../services/toast-messenger';
 import { useSidebarStore } from '../store';
 import AnnotationView from './AnnotationView';
 import HelpPanel from './HelpPanel';
+import FileTreePanel from './FileTreePanel';
 import NotebookView from './NotebookView';
 import ProfileView from './ProfileView';
 import ShareAnnotationsPanel from './ShareAnnotationsPanel';
@@ -57,6 +58,7 @@ function HypothesisApp({
   const isSidebar = route === 'sidebar';
 
   useEffect(() => {
+    store.openSidebarPanel('fileTree');
     if (shouldAutoDisplayTutorial(isSidebar, profile, settings)) {
       store.openSidebarPanel('help');
     }
@@ -161,6 +163,7 @@ function HypothesisApp({
         <ToastMessages />
         <HelpPanel />
         <ShareAnnotationsPanel />
+        <FileTreePanel/>
 
         {route && (
           <main>

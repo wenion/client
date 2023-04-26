@@ -1,4 +1,5 @@
 import {
+  FolderIcon,
   IconButton,
   LinkButton,
   HelpIcon,
@@ -63,10 +64,15 @@ function TopBar({
     store.toggleSidebarPanel('shareGroupAnnotations');
   };
 
+  const toggleFileTreePanel = () => {
+    store.toggleSidebarPanel('fileTree');
+  }
+
   const isHelpPanelOpen = store.isSidebarPanelOpen('help');
   const isAnnotationsPanelOpen = store.isSidebarPanelOpen(
     'shareGroupAnnotations'
   );
+  const isFileTreePanelOpen = store.isSidebarPanelOpen('fileTree');
 
   /**
    * Open the help panel, or, if a service callback is configured to handle
@@ -136,6 +142,13 @@ function TopBar({
             onClick={requestHelp}
             size="xs"
             title="Help"
+          />
+          <IconButton
+            icon={FolderIcon}
+            expanded={isFileTreePanelOpen}
+            onClick={toggleFileTreePanel}
+            size="xs"
+            title="Browser cloud repository"
           />
           {isLoggedIn ? (
             <UserMenu onLogout={onLogout} />
