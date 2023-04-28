@@ -1,10 +1,11 @@
 import {
   FolderIcon,
+  GlobeAltIcon,
+  HelpIcon,
   IconButton,
   LinkButton,
-  HelpIcon,
   ShareIcon,
-  GlobeAltIcon,
+  SocialFacebookIcon,
 } from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
 
@@ -120,7 +121,7 @@ function TopBar({
               <SortMenu />
               {showSharePageButton && (
                 <IconButton
-                  icon={ShareIcon}
+                  icon={SocialFacebookIcon}
                   expanded={isAnnotationsPanelOpen}
                   onClick={toggleSharePanel}
                   size="xs"
