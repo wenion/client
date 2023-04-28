@@ -6,6 +6,7 @@ import { annotationsModule } from './modules/annotations';
 import { defaultsModule } from './modules/defaults';
 import { directLinkedModule } from './modules/direct-linked';
 import { draftsModule } from './modules/drafts';
+import { fileTreeModule } from './modules/file-tree';
 import { filtersModule } from './modules/filters';
 import { framesModule } from './modules/frames';
 import { groupsModule } from './modules/groups';
@@ -45,6 +46,7 @@ export function createSidebarStore(settings) {
     defaultsModule,
     directLinkedModule,
     draftsModule,
+    fileTreeModule,
     filtersModule,
     framesModule,
     linksModule,

@@ -8,6 +8,7 @@ import { replaceURLParams } from '../util/url';
  * @typedef {import('../../types/api').RouteMetadata} RouteMetadata
  * @typedef {import('../../types/api').Profile} Profile
  * @typedef {import('../../types/api').QueryResult} QueryResult
+ * @typedef {import('../../types/api').FileStat} FileStat
  */
 
 /**
@@ -306,6 +307,16 @@ export class APIService {
 
     this.query = /** @type {APICall<{}, void, QuerySearchResult>} */ (
       apiCall('query')
+    );
+
+    /**
+     * @typedef FileTreeResult
+     * @prop {string} current_path
+     * @prop {FileStat[]} current_dir
+     */
+
+    this.repository = /** @type {APICall<{}, void, FileTreeResult>} */(
+      apiCall('repository')
     );
   }
 

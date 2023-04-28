@@ -4,43 +4,41 @@ import {
   FolderIcon,
   LinkIcon,
 } from '@hypothesis/frontend-shared/lib/next';
-import type { ComponentChildren as Children } from 'preact';
-import { useCallback, useMemo, useState } from 'preact/hooks';
+import { useEffect } from 'preact/hooks';
 
+import type { SidebarSettings } from '../../types/config';
 import { username } from '../helpers/account-id';
 import { withServices } from '../service-context';
+import type { FileTreeService } from '../services/file-tree';
 import type { SessionService } from '../services/session';
 import { useSidebarStore } from '../store';
 import SidebarPanel from './SidebarPanel';
 
-type HelpPanelProps = {
+type FileTreePanelProps = {
+  fileTreeService: FileTreeService;
   session: SessionService;
+  settings: SidebarSettings;
 };
 
-function FileTreePanel({ session }: HelpPanelProps) {
+function FileTreePanel({
+  fileTreeService,
+  session,
+  settings }: FileTreePanelProps) {
   const store = useSidebarStore();
   const isLoggedIn = store.isLoggedIn();
   const profile = store.profile();
   const displayName =
     profile.user_info?.display_name ?? username(profile.userid);
 
-  const panelTitle = 'Your Cloud Repository';
+  const current_dir = store.allFiles();
+  const current_path = store.currentDir();
 
-  const currentDirectory = {
-    current_path: '/home/user',
-    current_dir: [
-      {name: '..', path: './..', type: 'dir'},
-      {name: '.babelrc', path: './.babelrc', type: 'file'},
-      {name: '.eslintignore', path: './.eslintignore', type: 'file'},
-      {name: '.eslintrc', path: './.eslintrc', type: 'file'},
-      {name: '.git', path: './.git', type: 'dir'},
-      {name: '.github', path: './.github', type: 'dir'},
-      {name: '.gitignore', path: './.gitignore', type: 'file'},
-      {name: '.npmignore', path: './.npmignore', type: 'file'},
-      {name: '.npmrc', path: './.npmrc', type: 'file'},
-      {name: '.prettierignore', path: './.prettierignore', type: 'file'},
-      {name: '.python-version', path: './.python-version', type: 'file'},
-    ]}
+  const panelTitle = 'Cloud Repository';
+
+  useEffect(() => {
+    store.openSidebarPanel('fileTree');
+    fileTreeService.updateFileTree();
+  }, [profile, settings, store]);
 
   const onDrop = (e: Event) => {
     console.log('onDrop', e)
@@ -67,7 +65,7 @@ function FileTreePanel({ session }: HelpPanelProps) {
       title={panelTitle}
       panelName="fileTree"
     >
-      <div className="h-[350px]">
+      <div>
       <Scroll>
         <Table
           title="table test"
@@ -79,13 +77,13 @@ function FileTreePanel({ session }: HelpPanelProps) {
           <TableHead>
             <TableRow>
             <div className="text-xl">
-              {currentDirectory.current_path}
+              {current_path}
             </div>
             </TableRow>
           </TableHead>
           <TableBody>
             {
-              currentDirectory.current_dir.map(child => (
+              current_dir.map(child => (
               <TableRow onDblClick={onDblClick}>
                 <div className="text-lg items-center flex gap-x-2">
                   {child.type === 'dir' ? (
@@ -110,4 +108,4 @@ function FileTreePanel({ session }: HelpPanelProps) {
   );
 }
 
-export default withServices(FileTreePanel, ['session']);
+export default withServices(FileTreePanel, ['fileTreeService', 'session', 'settings']);

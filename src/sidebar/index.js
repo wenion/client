@@ -21,6 +21,7 @@ import { APIService } from './services/api';
 import { APIRoutesService } from './services/api-routes';
 import { AuthService } from './services/auth';
 import { AutosaveService } from './services/autosave';
+import { FileTreeService } from './services/file-tree';
 import { FrameSyncService } from './services/frame-sync';
 import { GroupsService } from './services/groups';
 import { LoadAnnotationsService } from './services/load-annotations';
@@ -129,6 +130,7 @@ function startApp(settings, appEl) {
     .register('apiRoutes', APIRoutesService)
     .register('auth', AuthService)
     .register('autosaveService', AutosaveService)
+    .register('fileTreeService', FileTreeService)
     .register('frameSync', FrameSyncService)
     .register('groups', GroupsService)
     .register('loadAnnotationsService', LoadAnnotationsService)

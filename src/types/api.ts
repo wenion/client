@@ -325,3 +325,13 @@ export type QueryResult = {
   author: string;
   url: string;
 };
+
+/**
+ * Response to an `/api/repository` API call.
+ *
+ */
+export type FileStat = {
+  name : string;
+  path: string;
+  type: string;
+};
