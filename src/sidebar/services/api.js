@@ -1,5 +1,6 @@
 import { fetchJSON } from '../util/fetch';
 import { replaceURLParams } from '../util/url';
+import { createAPICallExtend } from './fetch-extend'
 
 /**
  * @typedef {import('../../types/api').Annotation} Annotation
@@ -225,6 +226,15 @@ export class APIService {
         onRequestFinished: store.apiRequestFinished,
       });
 
+    /** @param {string} route */
+    const apiCallExtend = route =>
+      createAPICallExtend(links, route, {
+        getAccessToken: () => auth.getAccessToken(),
+        getClientId,
+        onRequestStarted: store.apiRequestStarted,
+        onRequestFinished: store.apiRequestFinished,
+      });
+
     // Define available API calls.
     //
     // The type syntax is APICall<Parameters, Body, Result>, where `void` means
@@ -317,6 +327,10 @@ export class APIService {
 
     this.repository = /** @type {APICall<{}, void, FileTreeResult>} */(
       apiCall('repository')
+    );
+
+    this.upload = (
+      apiCallExtend('upload')
     );
   }
 

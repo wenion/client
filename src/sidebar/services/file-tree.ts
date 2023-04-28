@@ -34,12 +34,34 @@ export class FileTreeService {
     /**
      * @typedef FileTreeResult
      * @prop {string} current_path
-     * @prop {FileStatResult[]} current_dir
+     * @prop {FileStat[]} current_dir
      */
 
-  /* submit query*/
+  /* update cloud files*/
   async updateFileTree() {
     const result = await this._api.repository({});
     this._store.addFileStats(result.current_path, result.current_dir);
+    return result
+  }
+
+  /* upload file to repository*/
+  async uploadFile() {
+    const mainFrame = this._store.mainFrame();
+    if (mainFrame && mainFrame.uri) {
+      await fetch(mainFrame.uri)
+              .then(response => response.blob())
+              .then(blob => {
+                return this._api.upload({}, blob, mainFrame.metadata);
+              })
+              .then(response => {
+                console.log('response', response)
+                // handle response
+              })
+              .catch(error => {
+                console.log('response', error)
+                // handle error
+              });
+    }
+
   }
 }

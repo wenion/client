@@ -14,6 +14,7 @@ import { serviceConfig } from '../config/service-config';
 import { isThirdPartyService } from '../helpers/is-third-party-service';
 import { applyTheme } from '../helpers/theme';
 import { withServices } from '../service-context';
+import { FileTreeService } from '../services/file-tree';
 import type { FrameSyncService } from '../services/frame-sync';
 import { useSidebarStore } from '../store';
 import GroupList from './GroupList';
@@ -37,6 +38,7 @@ export type TopBarProps = {
   onSignUp: () => void;
 
   // injected
+  fileTreeService: FileTreeService;
   frameSync: FrameSyncService;
   settings: SidebarSettings;
 };
@@ -50,6 +52,7 @@ function TopBar({
   onLogin,
   onLogout,
   onSignUp,
+  fileTreeService,
   frameSync,
   settings,
 }: TopBarProps) {
@@ -67,6 +70,10 @@ function TopBar({
 
   const toggleFileTreePanel = () => {
     store.toggleSidebarPanel('fileTree');
+  }
+
+  const toggleSavePanel = (e: Event) => {
+    fileTreeService.uploadFile();
   }
 
   const isHelpPanelOpen = store.isSidebarPanelOpen('help');
@@ -111,6 +118,12 @@ function TopBar({
       >
         {isSidebar ? <GroupList /> : <StreamSearchInput />}
         <div className="grow flex items-center justify-end">
+          <IconButton
+            icon={ShareIcon}
+            onClick={toggleSavePanel}
+            size="xs"
+            title="Save the page to your repository"
+          />
           {isSidebar && (
             <>
               <PendingUpdatesButton />
@@ -185,4 +198,4 @@ function TopBar({
   );
 }
 
-export default withServices(TopBar, ['frameSync', 'settings']);
+export default withServices(TopBar, ['fileTreeService', 'frameSync', 'settings']);
