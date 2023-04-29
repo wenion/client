@@ -39,9 +39,10 @@ export class FileTreeService {
 
   /* update cloud files*/
   async updateFileTree() {
-    const result = await this._api.repository({});
-    this._store.addFileStats(result.current_path, result.current_dir);
-    return result
+    if (this._store.isLoggedIn()) {
+      const result = await this._api.repository({});
+      this._store.addFileStats(result.current_path, result.current_dir);
+    }
   }
 
   /* upload file to repository*/
