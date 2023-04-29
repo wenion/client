@@ -63,6 +63,11 @@ export class FileTreeService {
                 // handle error
               });
     }
+  }
 
+  /* TODO temporally put it here */
+  async getClientURL() {
+    const result = await this._api.clentURL({});
+    return result;
   }
 }

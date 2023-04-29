@@ -332,6 +332,14 @@ export class APIService {
     this.upload = (
       apiCallExtend('upload')
     );
+
+    /**
+     * @typedef ClientURL
+     * @prop {string} home
+     */
+    this.clentURL = /** @type {APICall<{}, void, ClientURL>} */(
+      apiCall('client')
+    )
   }
 
   /**

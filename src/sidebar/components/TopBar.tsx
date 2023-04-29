@@ -96,8 +96,9 @@ function TopBar({
   };
 
   const requestQuery = () => {
-    const pageLink = window.location.origin + '/client/home.html'
-    window.open(pageLink);
+    fileTreeService.getClientURL().then(res => {
+      window.open(res.home);
+    });
   }
 
   return (
