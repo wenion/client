@@ -119,8 +119,7 @@ function NotebookView({ loadAnnotationsService, queryService, streamer }: Notebo
   }, [paginationPage]);
 
   return (
-    <div className="grid gap-2 lg:grid-cols-2" data-testid="notebook-container">
-     {/* <div class="mb-4" data-testid="notebook-container"> */}
+    <div class="mb-4" data-testid="notebook-container">
       <header className="leading-none lg:col-span-2" ref={threadListScrollTop}>
         <h1 className="text-4xl font-robo my-12" data-testid="notebook-group-name">
           Search results for: {queryService.getQueryWord()}
@@ -130,7 +129,7 @@ function NotebookView({ loadAnnotationsService, queryService, streamer }: Notebo
         </p>
         <hr class="mx-auto bg-black mb-8" />
       </header>
-      <div className="lg:col-span-2">
+      <div>
         {hasTooManyAnnotationsError && (
           <div className="py-4" data-testid="notebook-messages">
             <Panel title="Too many results to show">

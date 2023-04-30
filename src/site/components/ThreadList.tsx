@@ -78,7 +78,7 @@ export default function ThreadList({ threads }: ThreadListProps) {
   const store = useSidebarStore();
 
   return (
-    <div>
+    <div class="flex flex-col" >
       {/* <div style={{ height: offscreenUpperHeight }} /> */}
       {threads.map(child => (
         <a href={child.annotation?.url}>
