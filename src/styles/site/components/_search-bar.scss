@@ -53,10 +53,17 @@
 }
 
 .search-bar__icon {
-  flex-shrink: 0;
-  height: 14px;
-  margin-left: 7px;
-  margin-top: 18px;
+  border: none;
+
+  // Add spacing to left of input field for search icon
+  padding-left: 7px;
+  padding-top: 18px;
+  padding-bottom: 18px;
+  padding-right: 3px;
+
+  // prevent the search input from being squashed
+  align-items: center;
+  justify-content: center;
   color: color.$grey-5;
 }
 
