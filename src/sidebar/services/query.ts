@@ -32,6 +32,13 @@ export class QueryService {
     return this._store.allResults();
   }
 
+    /**
+     * @typedef QuerySearchResult
+     * @prop {string} query
+     * @prop {QueryResult[]} rows
+     * @prop {number} total
+     */
+
   /* submit query*/
   async queryActivity(query: string | null) {
     if (!query)
@@ -39,7 +46,7 @@ export class QueryService {
     const queryParams = {
       q: query,
     };
-    let result = await this._api.query(queryParams);
+    let result = await this._api.query({q: query});
     if (result) {
       this._store.addResults(result.query, result.rows);
     }

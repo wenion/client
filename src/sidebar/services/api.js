@@ -315,7 +315,7 @@ export class APIService {
      * @prop {number} total
      */
 
-    this.query = /** @type {APICall<{}, void, QuerySearchResult>} */ (
+    this.query = /** @type {APICall<{ q: string }, void, QuerySearchResult>} */ (
       apiCall('query')
     );
 
