@@ -132,6 +132,10 @@ function SiteApp({
       style={backgroundStyle}
     >
       <Router>
+        <div path="/">
+          <h1>Homepage is building.</h1>
+          <h4><a href='/query'>Welcome to KMASS, please click link to query page.</a></h4>
+        </div>
         <QueryView path="/query"
           onLogin={login}
           onSignUp={signUp}
