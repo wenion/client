@@ -4,7 +4,7 @@ import { render } from 'preact';
 // Enable debugging checks for Preact. Removed in prod builds by Rollup config.
 import 'preact/debug';
 
-import { parseJsonConfig } from '../boot/parse-json-config';
+// import { parseJsonConfig } from '../boot/parse-json-config';
 import { Injector } from '../shared/injector';
 import SiteApp from './components/SiteApp';
 import LaunchErrorPanel from '../sidebar/components/LaunchErrorPanel';
@@ -38,6 +38,33 @@ import { QueryService } from '../sidebar/services/query';
 import { createSidebarStore } from '../sidebar/store';
 import { disableOpenerForExternalLinks } from '../sidebar/util/disable-opener-for-external-links';
 import * as sentry from '../sidebar/util/sentry';
+
+/**
+ * @param {Document|Element} document - The root element to search.
+ */
+function parseJsonConfig(document) {
+  /** @type {Record<string, unknown>} */
+  const config = {};
+  const settingsElements = document.querySelectorAll(
+    'script.js-home-config'
+  );
+
+  for (let i = 0; i < settingsElements.length; i++) {
+    let settings;
+    try {
+      settings = JSON.parse(settingsElements[i].textContent || '');
+    } catch (err) {
+      console.warn(
+        'Could not parse settings from js-hypothesis-config tags',
+        err
+      );
+      settings = {};
+    }
+    Object.assign(config, settings);
+  }
+
+  return config;
+}
 
 // Read settings rendered into sidebar app HTML by service/extension.
 const configFromSidebar =
