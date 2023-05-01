@@ -79,32 +79,23 @@ export default function ThreadList({ threads }: ThreadListProps) {
 
   return (
     <div class="flex flex-col" >
-      {/* <div style={{ height: offscreenUpperHeight }} /> */}
       {threads.map(child => (
-        <a href={child.annotation?.url}>
-          <div
-            className={classnames(
-              // The goal is to space out each annotation card vertically. Typically
-              // this is better handled by applying vertical spacing to the parent
-              // element (e.g. `space-y-3`) but in this case, the constraints of
-              // sibling divs before and after the list of annotation cards prevents
-              // this, so a bottom margin is added to each card's wrapping element.
-              'mb-8'
-            )}
-            data-testid="thread-card-container"
-            id={child.id}
-            key={child.id}
-          >
-            {/* {headings.get(child) && (
-              <h3 className="text-md text-grey-7 font-bold pt-3 pb-2">
-                {headings.get(child)}
-              </h3>
-            )} */}
-            <ThreadCard thread={child} />
-          </div>
-        </a>
+        <div
+          className={classnames(
+            // The goal is to space out each annotation card vertically. Typically
+            // this is better handled by applying vertical spacing to the parent
+            // element (e.g. `space-y-3`) but in this case, the constraints of
+            // sibling divs before and after the list of annotation cards prevents
+            // this, so a bottom margin is added to each card's wrapping element.
+            'mb-8'
+          )}
+          data-testid="thread-card-container"
+          id={child.id}
+          key={child.id}
+        >
+          <ThreadCard thread={child} />
+        </div>
       ))}
-      {/* <div style={{ height: offscreenLowerHeight }} /> */}
     </div>
   );
 }
