@@ -1,5 +1,6 @@
 import {
-  FlagIcon,
+  BookmarkIcon,
+  BookmarkFilledIcon,
 } from '@hypothesis/frontend-shared/lib/next';
 
 import type { QueryResult as IAnnotation } from '../../../types/api';
@@ -98,7 +99,7 @@ function Annotation({
           </h1>
 
           <div className="flex justify-end grow">
-            <FlagIcon />
+            <BookmarkIcon />
           </div>
         </div>
       </header>
