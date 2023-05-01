@@ -53,7 +53,12 @@ function FileTreePanel({
   }
 
   const onDblClick = (e: Event) => {
-    console.log(e)
+    current_dir.map(child => {
+      if (child.id === (e.target as HTMLElement).id) {
+        // window.parent.location.replace(child.link)
+        window.parent.location = child.link;
+      }
+    })
   }
 
   if (!isLoggedIn) {
@@ -76,7 +81,7 @@ function FileTreePanel({
         >
           <TableHead>
             <TableRow>
-            <div className="text-xl">
+            <div className="text-lg">
               {current_path}
             </div>
             </TableRow>
@@ -85,7 +90,7 @@ function FileTreePanel({
             {
               current_dir.map(child => (
               <TableRow onDblClick={onDblClick}>
-                <div className="text-lg items-center flex gap-x-2">
+                <div className="text-lg items-center flex gap-x-2" id={child.id}>
                   {child.type === 'dir' ? (
                     <FolderIcon className="w-em h-em" />
                   ) : (

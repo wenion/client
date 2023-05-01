@@ -331,7 +331,10 @@ export type QueryResult = {
  *
  */
 export type FileStat = {
+  id : string;
   name : string;
   path: string;
   type: string;
+  link: string;
+  location: string;
 };
