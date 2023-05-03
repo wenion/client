@@ -159,7 +159,12 @@ export default function Search({
 
   return (
     <div
-      className="max-w-md" //nav-bar__search"
+      className={classnames(
+        {
+          'max-w-md nav-bar__search': !isOpen,
+          'w-[32rem]': isOpen,
+        }
+      )}
       data-testid="menu-container"
       ref={menuRef}
       // Add inline styles for positioning
@@ -200,7 +205,7 @@ export default function Search({
             className={classnames(
               'focus-visible-ring',
               // Position menu content near bottom of menu label/toggle control
-              'absolute max-w-md',// top-[calc(100%+5px)]
+              'absolute w-[32rem]',// top-[calc(100%+5px)]
               'z-1 border shadow',
               'bg-white text-md',
               {
