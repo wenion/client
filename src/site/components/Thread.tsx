@@ -11,6 +11,7 @@ import {
   PreviewIcon,
 } from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'preact/hooks';
 
 import type { Thread as IThread } from '../helpers/build-thread';
 import { withServices } from '../../sidebar/service-context';
@@ -46,6 +47,8 @@ function Thread({ thread, threadsService }: ThreadProps) {
   const text = thread.annotation?.context;
   const authorName = thread.annotation?.author;
   const url = thread.annotation?.url;
+
+  const [isBookmark, setIsBookmark]= useState(false)
 
   return (
     <>
@@ -87,8 +90,8 @@ function Thread({ thread, threadsService }: ThreadProps) {
             </div>
           </a>
         </section>
-        <div className="flex justify-end">
-          <BookmarkIcon />
+        <div className="flex justify-end" onClick={ e => { setIsBookmark(!isBookmark) }}>
+          { isBookmark ? <BookmarkFilledIcon /> : <BookmarkIcon />}
         </div>
       </div>
       <footer className="flex ml-8">

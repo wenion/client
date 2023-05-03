@@ -2,8 +2,8 @@ import { createStoreModule, makeAction } from '../create-store';
 import type { QueryResult } from '../../../types/api';
 
 const initialState = {
- query: '',
- results: [],
+  query: '',
+  results: [],
 } as {
   query: string | null;
   results: QueryResult[];
