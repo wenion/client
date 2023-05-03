@@ -4,7 +4,8 @@ import {
   FolderIcon,
   LinkIcon,
 } from '@hypothesis/frontend-shared/lib/next';
-import { useEffect } from 'preact/hooks';
+import classnames from 'classnames';
+import { useEffect, useState } from 'preact/hooks';
 
 import type { SidebarSettings } from '../../types/config';
 import { username } from '../helpers/account-id';
@@ -13,6 +14,33 @@ import type { FileTreeService } from '../services/file-tree';
 import type { SessionService } from '../services/session';
 import { useSidebarStore } from '../store';
 import SidebarPanel from './SidebarPanel';
+
+/**
+ * Metadata collected from a `<link>` element on a document, or equivalent
+ * source of related-URL information.
+ */
+export type Link = {
+  rel?: string;
+  type?: string;
+  href: string;
+};
+
+export type DocumentMetadata = {
+  title: string;
+  link: Link[];
+
+  // HTML only
+  dc?: Record<string, string[]>;
+  eprints?: Record<string, string[]>;
+  facebook?: Record<string, string[]>;
+  highwire?: Record<string, string[]>;
+  prism?: Record<string, string[]>;
+  twitter?: Record<string, string[]>;
+  favicon?: string;
+
+  // HTML + PDF
+  documentFingerprint?: string;
+};
 
 type FileTreePanelProps = {
   fileTreeService: FileTreeService;
@@ -33,23 +61,54 @@ function FileTreePanel({
   const current_dir = store.allFiles();
   const current_path = store.currentDir();
 
+  const [dragging, setDragging] = useState(false);
+
   const panelTitle = 'Cloud Repository';
 
   useEffect(() => {
     store.openSidebarPanel('fileTree');
     fileTreeService.updateFileTree();
-  }, [profile, settings, store]);
+  }, [profile, settings, dragging, store]);
 
   const onDrop = (e: Event) => {
-    console.log('onDrop', e)
+    e.preventDefault();
+
+    if ((e as DragEvent).dataTransfer?.items)
+    {
+      [...(e as DragEvent).dataTransfer?.items].forEach((item, i) => {
+        // If dropped items aren't files, reject them
+        if (item.kind === 'file') {
+          const file = item.getAsFile();
+          const link: Link = {
+            href: '',
+          }
+          const metadata: DocumentMetadata = {
+            title: file.name,
+            link: [link,],
+          };
+
+          fileTreeService.uploadFile(file, metadata);
+          console.log(">>>> test >>>>>",file)
+        }
+      });
+    }
+    else {
+      [...e.dataTransfer.files].forEach((file, i) => {
+        console.log(`… file[${i}].name = ${file.name} start else branch...`);
+      });
+    }
+
+    setDragging(false);
   }
 
   const onDragLeave = (e: Event) => {
-    console.log('onDragLeave', e)
+    e.preventDefault();
+    setDragging(false);
   }
 
   const onDragOver = (e: Event) => {
-    console.log('onDragOver', e)
+    e.preventDefault();
+    setDragging(true);
   }
 
   const onDblClick = (e: Event) => {
@@ -70,44 +129,55 @@ function FileTreePanel({
       title={panelTitle}
       panelName="fileTree"
     >
-      <div>
-      <Scroll>
-        <Table
-          title="table test"
-          interactive
-          onDrop={onDrop}
-          onDragLeave={onDragLeave}
-          onDragOver={onDragOver}
-        >
-          <TableHead>
-            <TableRow>
-            <div className="text-lg">
-              {current_path}
-            </div>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {
-              current_dir.map(child => (
-              <TableRow onDblClick={onDblClick}>
-                <div className="text-lg items-center flex gap-x-2" id={child.id}>
-                  {child.type === 'dir' ? (
-                    <FolderIcon className="w-em h-em" />
-                  ) : (
-                    child.type === 'file' ? (
-                      <FilePdfIcon className="w-em h-em" />
-                    ) : (
-                      <LinkIcon className="w-em h-em" />
-                    )
-                  )}
-                  {child.name}
+      <div
+        onDrop={onDrop}
+        onDragLeave={onDragLeave}
+        onDragOver={onDragOver}
+      >
+        {dragging ? (
+          <div
+            className={classnames([
+              'h-[20rem]',
+            ])}
+          >
+            <h3>Drop the file over here to upload</h3>
+          </div>
+        ) : (
+          <Scroll>
+            <Table
+              title="table test"
+              interactive
+            >
+              <TableHead>
+                <TableRow>
+                <div className="text-lg">
+                  {current_path}
                 </div>
-              </TableRow>
-              ))
-            }          
-          </TableBody>
-        </Table>
-        </Scroll>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {
+                  current_dir.map(child => (
+                  <TableRow onDblClick={onDblClick}>
+                    <div className="text-lg items-center flex gap-x-2" id={child.id}>
+                      {child.type === 'dir' ? (
+                        <FolderIcon className="w-em h-em" />
+                      ) : (
+                        child.type === 'file' ? (
+                          <FilePdfIcon className="w-em h-em" />
+                        ) : (
+                          <LinkIcon className="w-em h-em" />
+                        )
+                      )}
+                      {child.name}
+                    </div>
+                  </TableRow>
+                  ))
+                }
+              </TableBody>
+            </Table>
+          </Scroll>
+        )}
       </div>
     </SidebarPanel>
   );

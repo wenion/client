@@ -3,6 +3,33 @@ import type { APIService } from './api';
 import type { SidebarStore } from '../store';
 
 /**
+ * Metadata collected from a `<link>` element on a document, or equivalent
+ * source of related-URL information.
+ */
+export type Link = {
+  rel?: string;
+  type?: string;
+  href: string;
+};
+
+export type DocumentMetadata = {
+  title: string;
+  link: Link[];
+
+  // HTML only
+  dc?: Record<string, string[]>;
+  eprints?: Record<string, string[]>;
+  facebook?: Record<string, string[]>;
+  highwire?: Record<string, string[]>;
+  prism?: Record<string, string[]>;
+  twitter?: Record<string, string[]>;
+  favicon?: string;
+
+  // HTML + PDF
+  documentFingerprint?: string;
+};
+
+/**
  * Send messages to configured ancestor frame on annotation activity
  */
 // @inject
@@ -31,12 +58,6 @@ export class FileTreeService {
     return this._store.allFiles();
   }
 
-    /**
-     * @typedef FileTreeResult
-     * @prop {string} current_path
-     * @prop {FileStat[]} current_dir
-     */
-
   /* update cloud files*/
   async updateFileTree() {
     if (this._store.isLoggedIn()) {
@@ -46,7 +67,10 @@ export class FileTreeService {
   }
 
   /* upload file to repository*/
-  async uploadFile() {
+  async uploadFile(data?: Blob, metadata?: DocumentMetadata) {
+    if (data && metadata) {
+      return this._api.upload({}, data, metadata);
+    }
     const mainFrame = this._store.mainFrame();
     if (mainFrame && mainFrame.uri) {
       await fetch(mainFrame.uri)
