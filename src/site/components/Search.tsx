@@ -161,7 +161,7 @@ export default function Search({
     <div
       className={classnames(
         {
-          'max-w-md nav-bar__search': !isOpen,
+          'max-w-lg nav-bar__search': !isOpen,
           'w-[32rem]': isOpen,
         }
       )}
