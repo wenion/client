@@ -338,3 +338,12 @@ export type FileStat = {
   link: string;
   location: string;
 };
+
+/**
+ * Response to an `/api/query` API call.
+ *
+ */
+export type suggestResult = {
+  id : string;
+  text: string;
+};

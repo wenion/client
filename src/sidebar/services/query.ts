@@ -18,10 +18,17 @@ export class QueryService {
     // this._rpc = settings.rpc;
     this._api = api;
     this._store = store;
+    this._initialize();
   }
 
   _initialize() {
-
+    this._store.addSuggestResults([
+      {id: '1', text: 'test case 1'},
+      {id: '2', text: 'test case 2'},
+      {id: '3', text: 'test case 3'},
+      {id: '4', text: 'test case 4'},
+      {id: '5', text: 'test case 5'},
+    ])
   }
 
   getQueryWord() {
@@ -32,20 +39,22 @@ export class QueryService {
     return this._store.allResults();
   }
 
-    /**
-     * @typedef QuerySearchResult
-     * @prop {string} query
-     * @prop {QueryResult[]} rows
-     * @prop {number} total
-     */
+  getSuggestResult() {
+    return this._store.getSuggestResults();
+  }
+
+  getSuggestIndex() {
+    return this._store.getSuggestIndex();
+  }
+
+  clearSuggestIndex() {
+    this._store.clearIndex();
+  }
 
   /* submit query*/
   async queryActivity(query: string | null) {
     if (!query)
       return;
-    const queryParams = {
-      q: query,
-    };
     let result = await this._api.query({q: query});
     if (result) {
       this._store.addResults(result.query, result.rows);

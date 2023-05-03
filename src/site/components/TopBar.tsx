@@ -1,6 +1,5 @@
 import {
   LinkButton,
-  SearchIcon,
 } from '@hypothesis/frontend-shared/lib/next';
 import { useEffect, useRef } from 'preact/hooks';
 
@@ -10,6 +9,7 @@ import { withServices } from '../../sidebar/service-context';
 import type { QueryService } from '../../sidebar/services/query';
 import type { FrameSyncService } from '../../sidebar/services/frame-sync';
 import { useSidebarStore } from '../../sidebar/store';
+import Search from './Search';
 import UserMenu from './UserMenu';
 import LogoIcon from '../static/logo-monash';
 
@@ -68,28 +68,7 @@ function TopBar({
           <a href="https://colam.kmass.cloud.edu.au/" title="CoLAM homepage" class="nav-bar__logo-container mx-12">
             <LogoIcon />
           </a>
-          <div class="max-w-md nav-bar__search">
-            <form action="/query"
-                  class="search-bar"
-                  id="search-bar"
-                  >
-                <input class="search-bar__input"
-                      aria-autocomplete="list"
-                      aria-label=""
-                      aria-haspopup="true"
-                      autocapitalize="off"
-                      autocomplete="off"
-                      type="text"
-                      ref={inputRef}
-                      name="q"
-                      placeholder="Search…"
-                      role="combobox"
-                      />
-              <button className="search-bar__icon" type="submit">
-                <SearchIcon />
-              </button>
-            </form>
-          </div>
+          <Search inputRef={inputRef} />
           <nav className="nav-bar-links mx-14">
             {isLoggedIn ? (
               <UserMenu onLogout={onLogout} />
