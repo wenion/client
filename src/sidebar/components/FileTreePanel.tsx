@@ -3,6 +3,8 @@ import {
   FilePdfIcon,
   FolderIcon,
   LinkIcon,
+  CancelIcon,
+  ButtonBase,
 } from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
 import { useEffect, useState } from 'preact/hooks';
@@ -111,11 +113,21 @@ function FileTreePanel({
     setDragging(true);
   }
 
-  const onDblClick = (e: Event) => {
+  const onDblClick = (id: string) => {
     current_dir.map(child => {
-      if (child.id === (e.target as HTMLElement).id) {
+      if (child.id === id) {
         // window.parent.location.replace(child.link)
         window.parent.location = child.link;
+      }
+    })
+  }
+
+  const onDeleteClick = (id: string) => {
+    current_dir.map(child => {
+      if (child.id === id) {
+        fileTreeService.delete(child)
+        // TODO need to check the return whether need to get repository or not
+        fileTreeService.updateFileTree();
       }
     })
   }
@@ -158,20 +170,31 @@ function FileTreePanel({
               <TableBody>
                 {
                   current_dir.map(child => (
-                  <TableRow onDblClick={onDblClick}>
-                    <div className="text-lg items-center flex gap-x-2" id={child.id}>
-                      {child.type === 'dir' ? (
-                        <FolderIcon className="w-em h-em" />
-                      ) : (
-                        child.type === 'file' ? (
-                          <FilePdfIcon className="w-em h-em" />
-                        ) : (
-                          <LinkIcon className="w-em h-em" />
-                        )
-                      )}
-                      {child.name}
-                    </div>
-                  </TableRow>
+                    <TableRow
+                      key={child.id}
+                      onDblClick={() => onDblClick(child.id)}
+                      >
+                      <div className={classnames('flex justify-between', 'h-6')}>
+                        <div className="text-lg items-center flex gap-x-2" id={child.id}>
+                          {child.type === 'dir' ? (
+                            <FolderIcon className="w-em h-em" />
+                          ) : (
+                            child.type === 'file' ? (
+                              <FilePdfIcon className="w-em h-em" />
+                            ) : (
+                              <LinkIcon className="w-em h-em" />
+                            )
+                          )}
+                          {child.name}
+                        </div>
+                        <ButtonBase
+                          classes={classnames('border bg-grey-0 hover:bg-red-400 m-1' )}
+                          onClick={ () => onDeleteClick(child.id)}>
+                          <CancelIcon className="w-3 h-3"/>
+                        </ButtonBase>
+                      </div>
+                      {/* <Button onClick={onDeleteClick}>Delete</Button> */}
+                    </TableRow>
                   ))
                 }
               </TableBody>

@@ -1,4 +1,5 @@
 import type { SidebarSettings } from '../../types/config';
+import type { FileStat } from '../../types/api'
 import type { APIService } from './api';
 import type { SidebarStore } from '../store';
 
@@ -88,6 +89,17 @@ export class FileTreeService {
               });
     }
   }
+
+    /* delete file to repository*/
+    async delete(fileStat: FileStat) {
+        this._api.delete(fileStat);
+        /**
+         *  TODO check and handle the return
+         *  in_param file meta
+         *  const result = this._api.delete(file_meta)
+         *  call file-tree service to remove current_dir according json return
+         */
+    }
 
   /* TODO temporally put it here */
   async getClientURL() {

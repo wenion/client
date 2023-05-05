@@ -333,6 +333,10 @@ export class APIService {
       apiCallExtend('upload')
     );
 
+    this.delete = /** @type {APICall<FileStat >} */ (
+      apiCall('delete')
+    );
+
     /**
      * @typedef ClientURL
      * @prop {string} home
