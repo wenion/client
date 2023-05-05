@@ -2,9 +2,11 @@ import { createStoreModule, makeAction } from '../create-store';
 import type { FileStat } from '../../../types/api';
 
 const initialState = {
- current_path: '',
- current_dir: [],
+  parent_path: '',
+  current_path: '',
+  current_dir: [],
 } as {
+  parent_path: string;
   current_path: string;
   current_dir: FileStat[];
 };
