@@ -21,6 +21,7 @@ import GroupList from './GroupList';
 import PendingUpdatesButton from './PendingUpdatesButton';
 import SearchInput from './SearchInput';
 import SortMenu from './SortMenu';
+import ThirdPartyMenu from './ThirdPartyMenu';
 import StreamSearchInput from './StreamSearchInput';
 import UserMenu from './UserMenu';
 
@@ -135,15 +136,7 @@ function TopBar({
                 onSearch={store.setFilterQuery}
               />
               <SortMenu />
-              {showSharePageButton && (
-                <IconButton
-                  icon={SocialFacebookIcon}
-                  expanded={isAnnotationsPanelOpen}
-                  onClick={toggleSharePanel}
-                  size="xs"
-                  title="Share annotations on this page"
-                />
-              )}
+              <ThirdPartyMenu />
             </>
           )}
           <IconButton
