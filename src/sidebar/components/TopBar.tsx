@@ -95,10 +95,12 @@ function TopBar({
     }
   };
 
-  const requestQuery = () => {
-    fileTreeService.getClientURL().then(res => {
-      window.open(res.home);
-    });
+  const requestQuery = async () => {
+    const link = await fileTreeService.getClientURL();
+    if (!link){
+      return;
+    }
+    window.parent.location = link;
   }
 
   return (

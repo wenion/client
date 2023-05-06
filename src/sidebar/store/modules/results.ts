@@ -3,9 +3,11 @@ import type { QueryResult } from '../../../types/api';
 
 const initialState = {
   query: '',
+  clientURL: null,
   results: [],
 } as {
   query: string | null;
+  clientURL: string | null,
   results: QueryResult[];
 };
 
@@ -29,6 +31,17 @@ const reducers = {
     return {
       query: action.query,
       results: added,
+    };
+  },
+
+  SET_CLIENT_URL(
+    state: State,
+    action: {
+      clientURL: string;
+    }
+  ): Partial<State> {
+    return {
+      clientURL: action.clientURL,
     };
   },
 
@@ -70,6 +83,14 @@ function queryingWord(state: State) {
   return state.query;
 }
 
+function setClientURL(clientURL: string) {
+  return makeAction(reducers, 'SET_CLIENT_URL', {clientURL});
+}
+
+function getClientURL(state: State) {
+  return state.clientURL;
+}
+
 export const resultModule = createStoreModule(initialState, {
   namespace: 'results',
   reducers,
@@ -77,9 +98,11 @@ export const resultModule = createStoreModule(initialState, {
     addResults,
     clearResults,
     clearPreResults,
+    setClientURL,
   },
   selectors: {
     allResults,
     queryingWord,
+    getClientURL,
   },
 });

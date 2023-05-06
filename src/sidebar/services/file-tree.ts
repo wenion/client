@@ -103,7 +103,13 @@ export class FileTreeService {
 
   /* TODO temporally put it here */
   async getClientURL() {
-    const result = await this._api.clentURL({});
-    return result;
+    if (!this._store.getClientURL())
+    {
+      const result = await this._api.clentURL({});
+      const url = new URL(result.url_string, result.base_url);
+      this._store.setClientURL(url.href);
+      return url.href;
+    }
+    return this._store.getClientURL();
   }
 }

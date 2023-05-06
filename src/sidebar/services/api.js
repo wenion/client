@@ -339,7 +339,9 @@ export class APIService {
 
     /**
      * @typedef ClientURL
-     * @prop {string} home
+     * @prop {string} base_url
+     * @prop {string} url_string
+     *
      */
     this.clentURL = /** @type {APICall<{}, void, ClientURL>} */(
       apiCall('client')
