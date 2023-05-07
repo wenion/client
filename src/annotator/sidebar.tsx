@@ -201,6 +201,7 @@ export class Sidebar implements Destroyable {
 
     // Register the sidebar as a handler for Hypothesis errors in this frame.
     if (this.iframe.contentWindow) {
+      window.sidebarWindow = this.iframe.contentWindow;
       sendErrorsTo(this.iframe.contentWindow);
     }
 
