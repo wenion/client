@@ -15,7 +15,6 @@ export type SearchKeyboardNavigationProps = {
   children: ComponentChildren;
 
   inputRef: RefObject<HTMLInputElement>;
-  inputOrigin: MutableRef<string>;
 
   onItemSelect?: (element : HTMLElement, index : number) => void;
 };
@@ -32,7 +31,6 @@ export default function SearchKeyboardNavigation({
   closeMenu,
   children,
   inputRef,
-  inputOrigin,
   onItemSelect,
 }: SearchKeyboardNavigationProps) {
   const menuRef = useRef<HTMLDivElement | null>(null);

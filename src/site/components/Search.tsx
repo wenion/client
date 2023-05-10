@@ -66,8 +66,6 @@ export default function Search({
   const store = useSidebarStore();
   const suggestResults = store.getSuggestResults();
 
-  const inputOrigin = useRef(inputRef.current!.value);
-
   let [isOpen, setOpen]: [boolean, (open: boolean) => void] =
     useState(defaultOpen);
   if (typeof open === 'boolean') {
@@ -261,7 +259,7 @@ export default function Search({
             onClick={closeMenu}
             onKeyDown={handleMenuKeyDown}
           >
-            <SearchDropdownKeyboardNavigation inputRef={inputRef} inputOrigin={inputOrigin} onItemSelect={onItemSelect}>
+            <SearchDropdownKeyboardNavigation inputRef={inputRef} onItemSelect={onItemSelect}>
               {menuItems}
             </SearchDropdownKeyboardNavigation>
           </div>
