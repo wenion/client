@@ -56,8 +56,9 @@ function TopBar({
   useEffect(() => {
     if (param) {
       const el = inputRef.current!;
-      el.value = param[1];
-      queryService.queryActivity(param[1]);
+      const queryWord = param[1]!.replace(/\+/g, ' ');
+      el.value = queryWord;
+      queryService.queryActivity(queryWord);
     }
   }, [param]);
 
