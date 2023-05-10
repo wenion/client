@@ -66,6 +66,8 @@ export default function Search({
   const store = useSidebarStore();
   const suggestResults = store.getSuggestResults();
 
+  const inputOrigin = useRef(inputRef.current!.value);
+
   let [isOpen, setOpen]: [boolean, (open: boolean) => void] =
     useState(defaultOpen);
   if (typeof open === 'boolean') {
@@ -100,7 +102,7 @@ export default function Search({
       return;
     }
 
-    setOpen(!isOpen);
+    setOpen(true);
   };
 
   const closeMenu = useCallback(() => setOpen(false), [setOpen]);
@@ -128,6 +130,44 @@ export default function Search({
       setTimeout(() => {
         closeMenu();
       });
+    }
+  };
+
+  const handleInputKeyDown = (event: KeyboardEvent) => {
+    let handled = false;
+    let focusedIndex = -1;
+    switch (event.key) {
+      case 'Enter':
+        closeMenu();
+        break;
+      case 'ArrowUp':
+        // The focus won't work without delaying rendering.
+        const lastItem = menuRef.current!.querySelector(
+          '[role^="menuitem"]:last-of-type'
+        ) as HTMLElement;
+        if (lastItem) {
+          lastItem.focus();
+        }
+        handled = true;
+        focusedIndex = menuItems.length - 1;
+        break;
+      case 'ArrowDown':
+        // The focus won't work without delaying rendering.
+        const firstItem = menuRef.current!.querySelector(
+          '[role^="menuitem"]'
+        ) as HTMLElement;
+        if (firstItem) {
+          firstItem.focus();
+        }
+        handled = true;
+        focusedIndex = 0;
+        break;
+    }
+
+    if (handled) {
+      inputRef.current!.value = menuItems[focusedIndex].key;
+      event.stopPropagation();
+      event.preventDefault();
     }
   };
 
@@ -194,6 +234,7 @@ export default function Search({
               role="combobox"
               onMouseDown={toggleMenu}
               onClick={toggleMenu}
+              onKeyDown={handleInputKeyDown}
               />
         <button className="search-bar__icon" type="submit">
           <SearchIcon />
@@ -220,7 +261,7 @@ export default function Search({
             onClick={closeMenu}
             onKeyDown={handleMenuKeyDown}
           >
-            <SearchDropdownKeyboardNavigation visible={true} onItemSelect={onItemSelect}>
+            <SearchDropdownKeyboardNavigation inputRef={inputRef} inputOrigin={inputOrigin} onItemSelect={onItemSelect}>
               {menuItems}
             </SearchDropdownKeyboardNavigation>
           </div>

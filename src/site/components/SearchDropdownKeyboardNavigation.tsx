@@ -1,4 +1,4 @@
-import type { ComponentChildren } from 'preact';
+import type { ComponentChildren, RefObject} from 'preact';
 import { useEffect, useRef, MutableRef } from 'preact/hooks';
 
 function isElementVisible(element: HTMLElement) {
@@ -11,14 +11,11 @@ export type SearchKeyboardNavigationProps = {
   /** Callback invoked when the menu is closed via a keyboard command. */
   closeMenu?: (e: KeyboardEvent) => void;
 
-  /**
-   * If true, the first element in children with `role=menuitem` is focused when
-   * this component is mounted.
-   */
-  visible?: boolean;
-
   /** Content to display, which is typically a list of `<MenuItem>` elements. */
   children: ComponentChildren;
+
+  inputRef: RefObject<HTMLInputElement>;
+  inputOrigin: MutableRef<string>;
 
   onItemSelect?: (element : HTMLElement, index : number) => void;
 };
@@ -34,29 +31,11 @@ export default function SearchKeyboardNavigation({
   className,
   closeMenu,
   children,
-  visible,
+  inputRef,
+  inputOrigin,
   onItemSelect,
 }: SearchKeyboardNavigationProps) {
   const menuRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    let focusTimer: number | undefined;
-    if (visible) {
-      focusTimer = setTimeout(() => {
-        // The focus won't work without delaying rendering.
-        const firstItem = menuRef.current!.querySelector(
-          '[role^="menuitem"]'
-        ) as HTMLElement;
-        if (firstItem) {
-          firstItem.focus();
-        }
-      });
-    }
-    return () => {
-      // unmount
-      clearTimeout(focusTimer);
-    };
-  }, [visible]);
 
   const onKeyDown = (event: KeyboardEvent) => {
     const menuItems = Array.from(
@@ -82,14 +61,14 @@ export default function SearchKeyboardNavigation({
       case 'ArrowUp':
         focusedIndex -= 1;
         if (focusedIndex < 0) {
-          focusedIndex = menuItems.length - 1;
+          inputRef.current!.focus();
         }
         handled = true;
         break;
       case 'ArrowDown':
         focusedIndex += 1;
         if (focusedIndex === menuItems.length) {
-          focusedIndex = 0;
+          inputRef.current!.focus();
         }
         handled = true;
         break;
@@ -103,7 +82,7 @@ export default function SearchKeyboardNavigation({
         break;
     }
 
-    if (handled && focusedIndex >= 0) {
+    if (handled && focusedIndex >= 0 && focusedIndex < menuItems.length) {
       event.stopPropagation();
       event.preventDefault();
       menuItems[focusedIndex].focus();
