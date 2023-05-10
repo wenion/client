@@ -25,6 +25,8 @@ export default {
         'fade-out': 'fade-out 0.3s forwards',
         'pulse-fade-out': 'pulse-fade-out 5s ease-in-out forwards',
         'slide-in-from-right': 'slide-in-from-right 0.3s forwards ease-in-out',
+        'slide-in-from-right-slow': 'right-to-left 1s forwards ease-in-out',
+        'slide-in-from-left-slow': 'left-to-right 1s forwards ease-in-out',
       },
       borderRadius: {
         // Tailwind provides a default set of border-radius utility styles
@@ -183,6 +185,19 @@ export default {
           '100%': {
             left: '0',
             opacity: '1',
+          },
+        },
+        'right-to-left': {
+          '0%': {
+            left: '150px',
+          },
+        },
+        'left-to-right': {
+          '0%': {
+            left: '0',
+          },
+          '100%': {
+            left: '150px',
           },
         },
       },

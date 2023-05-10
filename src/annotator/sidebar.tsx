@@ -24,6 +24,7 @@ import ToastMessages from './components/ToastMessages';
 import { createAppConfig } from './config/app';
 import { FeatureFlags } from './features';
 import { sidebarTrigger } from './sidebar-trigger';
+import { NotificationController } from './notification';
 import { ToolbarController } from './toolbar';
 import type { Emitter, EventBus } from './util/emitter';
 import { createShadowRoot } from './util/shadow-root';
@@ -127,6 +128,7 @@ export class Sidebar implements Destroyable {
   features: FeatureFlags;
   externalFrame: Element | undefined;
   iframeContainer: HTMLDivElement | undefined;
+  notification: NotificationController;
   toolbar: ToolbarController;
   onLoginRequest: Service['onLoginRequest'];
   onLogoutRequest: Service['onLogoutRequest'];
@@ -207,6 +209,8 @@ export class Sidebar implements Destroyable {
 
     this._listeners = new ListenerCollection();
 
+    const notificationContainer = document.createElement('div');
+    this.notification = new NotificationController(notificationContainer);
     // Set up the toolbar on the left edge of the sidebar.
     const toolbarContainer = document.createElement('div');
     this.toolbar = new ToolbarController(toolbarContainer, {
@@ -229,6 +233,7 @@ export class Sidebar implements Destroyable {
     }
 
     if (this.iframeContainer) {
+      this.iframeContainer.prepend(notificationContainer);
       // If using our own container frame for the sidebar, add the toolbar to it.
       this.iframeContainer.prepend(toolbarContainer);
       this._toolbarWidth = this.toolbar.getWidth();
