@@ -74,19 +74,25 @@ export class FileTreeService {
     }
     const mainFrame = this._store.mainFrame();
     if (mainFrame && mainFrame.uri) {
-      await fetch(mainFrame.uri)
-              .then(response => response.blob())
-              .then(blob => {
-                return this._api.upload({}, blob, mainFrame.metadata);
-              })
-              .then(response => {
-                console.log('response', response)
-                // handle response
-              })
-              .catch(error => {
-                console.log('response', error)
-                // handle error
-              });
+      fetch(mainFrame!.uri)
+        .then(response => {
+          if (response.ok) {
+            return response.blob();
+          } else {
+            throw new Error('File request failed');
+          }
+        })
+        .then(blob => {
+          return this._api.upload({}, blob, mainFrame.metadata);
+        })
+          .then(response => {
+            console.log('response', response)
+            // handle response
+          })
+          .catch(error => {
+            console.log('error', error)
+            // handle error
+          });
     }
   }
 
