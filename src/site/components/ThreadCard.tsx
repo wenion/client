@@ -1,4 +1,4 @@
-import { Card, CardContent } from '@hypothesis/frontend-shared/lib/next';
+import { Card, CardContent } from '@hypothesis/frontend-shared';
 import { useEffect, useMemo, useRef } from 'preact/hooks';
 
 import type { Thread as IThread } from '../helpers/build-thread';

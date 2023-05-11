@@ -1,7 +1,7 @@
 import {
   PointerDownIcon,
   PointerUpIcon,
-} from '@hypothesis/frontend-shared/lib/next';
+} from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 
 type MenuArrowProps = {

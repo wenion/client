@@ -1,4 +1,4 @@
-import { SocialFacebookIcon } from '@hypothesis/frontend-shared/lib/next';
+import { SocialFacebookIcon } from '@hypothesis/frontend-shared';
 
 import { useSidebarStore } from '../store';
 import { withServices } from '../service-context';

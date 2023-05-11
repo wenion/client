@@ -1,5 +1,5 @@
 import { useElementShouldClose } from '@hypothesis/frontend-shared';
-import { SearchIcon } from '@hypothesis/frontend-shared/lib/next';
+import { SearchIcon } from '@hypothesis/frontend-shared';
 import { MutableRef, useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import classnames from 'classnames';
 

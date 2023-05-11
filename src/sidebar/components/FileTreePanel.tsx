@@ -1,11 +1,11 @@
-import {Table, TableHead, TableBody, TableRow, Scroll } from '@hypothesis/frontend-shared/lib/next';
+import {Table, TableHead, TableBody, TableRow, Scroll } from '@hypothesis/frontend-shared';
 import {
   FilePdfIcon,
   FolderIcon,
   LinkIcon,
   CancelIcon,
   ButtonBase,
-} from '@hypothesis/frontend-shared/lib/next';
+} from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useEffect, useState } from 'preact/hooks';
 

@@ -3,7 +3,7 @@ import {
   ButtonBase,
   ArrowLeftIcon,
   ArrowRightIcon,
-} from '@hypothesis/frontend-shared/lib/next';
+} from '@hypothesis/frontend-shared';
 import type { PresentationalProps } from '@hypothesis/frontend-shared/lib/types';
 import classnames from 'classnames';
 import type { JSX } from 'preact';

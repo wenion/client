@@ -1,6 +1,6 @@
 import {
   LinkButton,
-} from '@hypothesis/frontend-shared/lib/next';
+} from '@hypothesis/frontend-shared';
 import { useEffect, useRef } from 'preact/hooks';
 
 import type { SidebarSettings } from '../../types/config';

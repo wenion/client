@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useRef } from 'preact/hooks';
-import { Panel } from '@hypothesis/frontend-shared/lib/next';
+import { Panel } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import type { JSX, RefObject } from 'preact';
 

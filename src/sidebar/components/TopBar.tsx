@@ -5,8 +5,7 @@ import {
   IconButton,
   LinkButton,
   ShareIcon,
-  SocialFacebookIcon,
-} from '@hypothesis/frontend-shared/lib/next';
+} from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 
 import type { SidebarSettings } from '../../types/config';

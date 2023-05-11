@@ -1,4 +1,4 @@
-import { Card, CardContent } from '@hypothesis/frontend-shared/lib/next';
+import { Card, CardContent } from '@hypothesis/frontend-shared';
 import debounce from 'lodash.debounce';
 import { useCallback, useEffect, useMemo, useRef } from 'preact/hooks';
 
@@ -9,23 +9,13 @@ import type { FrameSyncService } from '../services/frame-sync';
 import { useSidebarStore } from '../store';
 import Thread from './Thread';
 
-/**
- * @typedef {import('../../types/api').Annotation} Annotation
- * @typedef {import('../../types/config').SidebarSettings} SidebarSettings
- */
-
-/**
- * @typedef ThreadCardProps
- * @prop {import('../helpers/build-thread').Thread} thread
- * @prop {import('../services/frame-sync').FrameSyncService} frameSync
- */
-
 export type ThreadCardProps = {
   thread: IThread;
 
   // injected
   frameSync: FrameSyncService;
 };
+
 /**
  * A "top-level" `Thread`, rendered as a "card" in the sidebar. A `Thread`
  * renders its own child `Thread`s within itself.

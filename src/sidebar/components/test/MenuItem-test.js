@@ -1,4 +1,4 @@
-import { EditIcon } from '@hypothesis/frontend-shared/lib/next';
+import { EditIcon } from '@hypothesis/frontend-shared';
 import { mount } from 'enzyme';
 import { act } from 'preact/test-utils';
 
@@ -190,7 +190,7 @@ describe('MenuItem', () => {
         isSubmenuVisible: true,
         submenu: <div role="menuitem">Submenu content</div>,
       });
-      assert.equal(wrapper.find('Slider').prop('visible'), true);
+      assert.equal(wrapper.find('Slider').prop('direction'), 'in');
       assert.equal(
         wrapper.find('MenuKeyboardNavigation').prop('visible'),
         true
@@ -203,7 +203,7 @@ describe('MenuItem', () => {
         isSubmenuVisible: false,
         submenu: <div>Submenu content</div>,
       });
-      assert.equal(wrapper.find('Slider').prop('visible'), false);
+      assert.equal(wrapper.find('Slider').prop('direction'), 'out');
       assert.equal(
         wrapper.find('MenuKeyboardNavigation').prop('visible'),
         false
