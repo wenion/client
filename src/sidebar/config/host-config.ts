@@ -32,7 +32,7 @@ export function hostPageConfig(window: Window): ConfigFromAnnotator {
     'appType',
 
     // Config params documented at
-    // https://h.readthedocs.io/projects/client/en/latest/publishers/config/
+    // https://h.readthedocs.io/projects/client/en/latest/publishers/config.html
     'openSidebar',
     'showHighlights',
     'services',
