@@ -56,3 +56,14 @@ body {
 .content {
   margin-bottom: 40px;
 }
+
+@font-face {
+  font-family: 'Hubot Sans';
+
+  /* This URL assumes this CSS file will be served from `build/styles` and
+     fonts from `build/styles/fonts` */
+  src: url('./fonts/Hubot-Sans.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}

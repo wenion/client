@@ -87,7 +87,7 @@ gulp.task(
   })
 );
 
-const fontFiles = ['node_modules/katex/dist/fonts/*.woff2'];
+const fontFiles = ['node_modules/katex/dist/fonts/*.woff2', 'src/site/static/fonts/*.woff2'];
 
 gulp.task('build-fonts', () => {
   // Fonts are located in a subdirectory of `build/styles` so that we can reuse

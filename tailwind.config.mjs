@@ -74,12 +74,15 @@ export default {
         sans: [
           '"Helvetica Neue"',
           'Helvetica',
+          'Hubot Sans',
           'Arial',
           '"Lucida Grande"',
           'sans-serif',
         ],
         robo: ["Roboto Condensed", "sans-serif"],
         open: ["Open Sans", "sans-serif"],
+        hubot: ['Hubot Sans', 'Arial', 'sans-serif',]
+
       },
       // The following text sizes describe the current font sizes being used
       // in the app (descriptive), but should not be interpreted as defining
