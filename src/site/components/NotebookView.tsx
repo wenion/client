@@ -2,6 +2,7 @@ import { Link, Panel } from '@hypothesis/frontend-shared';
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import scrollIntoView from 'scroll-into-view';
 
+import { convertResponseToThread } from '../helpers/build-thread';
 import { ResultSizeError } from '../../sidebar/search-client';
 import { withServices } from '../../sidebar/service-context';
 import type { LoadAnnotationsService } from '../../sidebar/services/load-annotations';
@@ -9,7 +10,6 @@ import type { QueryService } from '../../sidebar/services/query';
 import type { StreamerService } from '../../sidebar/services/streamer';
 import { useSidebarStore } from '../../sidebar/store';
 import PaginatedThreadList from './PaginatedThreadList';
-import { useQueryThread, useQueryWord } from '../helpers/use-query-thread';
 
 export type NotebookViewProps = {
   // injected
@@ -30,8 +30,7 @@ function NotebookView({ loadAnnotationsService, queryService, streamer }: Notebo
   const isLoading = store.isLoading();
   const resultCount = store.annotationResultCount();
 
-  const rootThread = useQueryThread();
-  const queryWord = useQueryWord();
+  const responseData = convertResponseToThread();
 
   // Get the ID of the group to fetch annotations from.
   //
@@ -125,7 +124,7 @@ function NotebookView({ loadAnnotationsService, queryService, streamer }: Notebo
           Search results for: {queryService.getQueryWord()}
         </h1>
         <p className="text-xl font-open mb-8">
-        {rootThread.children.length} results found
+          {responseData.isErrorOccurred ? 'Sorry, error occurred! Error message: ' + responseData.status : responseData.children.length + ' results found'}
         </p>
         <hr class="mx-auto bg-black mb-8" />
       </header>
@@ -155,7 +154,7 @@ function NotebookView({ loadAnnotationsService, queryService, streamer }: Notebo
           currentPage={paginationPage}
           isLoading={isLoading}
           onChangePage={onChangePage}
-          threads={rootThread.children}
+          threads={responseData.children}
         />
       </div>
     </div>

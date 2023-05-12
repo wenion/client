@@ -57,7 +57,7 @@ export class QueryService {
       return;
     let result = await this._api.query({q: query});
     if (result) {
-      this._store.addResults(result.query, result.rows);
+      this._store.addResponse(query, result);
     }
   }
 }

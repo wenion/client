@@ -1,14 +1,16 @@
 import { createStoreModule, makeAction } from '../create-store';
-import type { QueryResult } from '../../../types/api';
+import type { QueryResult, QueryResponseObject } from '../../../types/api';
 
 const initialState = {
   query: '',
   clientURL: null,
   results: [],
+  response: null,
 } as {
   query: string | null;
   clientURL: string | null,
   results: QueryResult[];
+  response: QueryResponseObject | null,
 };
 
 export type State = typeof initialState;
@@ -32,6 +34,31 @@ const reducers = {
       query: action.query,
       results: added,
     };
+  },
+
+  ADD_RESPONSE(
+    state: State,
+    action: {
+      query: string;
+      response: QueryResponseObject;
+    }
+  ): Partial<State> {
+    return {
+      query: action.query,
+      response: action.response,
+    };
+  },
+
+  CLEAR_RESPONSE(
+    state: State,
+  ): Partial<State> {
+    return { query: null, response: null };
+  },
+
+  CLEAR_RESPONSE_ONLY(
+    state: State,
+  ): Partial<State> {
+    return { response: null };
   },
 
   SET_CLIENT_URL(
@@ -63,6 +90,22 @@ const reducers = {
  */
 function addResults(query: string, results: QueryResult[]) {
   return makeAction(reducers, 'ADD_RESULTS', {query, results});
+}
+
+function addResponse(query: string, response: QueryResponseObject) {
+  return makeAction(reducers, 'ADD_RESPONSE', {query, response});
+}
+
+function clearResponse() {
+  return makeAction(reducers, 'CLEAR_RESPONSE', undefined);
+}
+
+function clearResponseOnly() {
+  return makeAction(reducers, 'CLEAR_RESPONSE_ONLY', undefined);
+}
+
+function getResponse(state: State) {
+  return state.response;
 }
 
 /** Set the currently displayed annotations to the empty set. */
@@ -99,10 +142,14 @@ export const resultModule = createStoreModule(initialState, {
     clearResults,
     clearPreResults,
     setClientURL,
+    addResponse,
+    clearResponse,
+    clearResponseOnly,
   },
   selectors: {
     allResults,
     queryingWord,
     getClientURL,
+    getResponse,
   },
 });

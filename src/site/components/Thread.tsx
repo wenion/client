@@ -25,6 +25,12 @@ export type ThreadProps = {
   threadsService: ThreadsService;
 };
 
+function getFirst100Words(str: string) {
+  const words = str.split(' ');
+  const first1000Words = words.slice(0, 100);
+  return first1000Words.join(' ') + '...';
+}
+
 /**
  * A thread, which contains a single annotation at its top level, and its
  * recursively-rendered children (i.e. replies).
@@ -41,12 +47,12 @@ export type ThreadProps = {
  * collapsible.
  */
 function Thread({ thread, threadsService }: ThreadProps) {
-  const dataType = thread.annotation?.data_type;
-  const link = thread.annotation?.url;
-  const title = thread.annotation?.title;
-  const text = thread.annotation?.context;
-  const authorName = thread.annotation?.author;
-  const url = thread.annotation?.url;
+  const dataType = thread.data_type;
+  const link = thread.url;
+  const title = thread.title;
+  const text = thread.context;
+  const authorName = thread.author;
+  const url = thread.url;
 
   const [isBookmark, setIsBookmark]= useState(false)
 
@@ -80,11 +86,11 @@ function Thread({ thread, threadsService }: ThreadProps) {
                 )}
                 data-testid="thread-content"
               >
-                <h1 class="font-robo">
+                <h1 class="text-2xl font-robo">
                   {title}
                 </h1>
-                <p className="text-base font-open">
-                  {text}
+                <p className="text-lg font-open">
+                  {getFirst100Words(text)}
                 </p>
             </div>
             </div>
@@ -95,7 +101,7 @@ function Thread({ thread, threadsService }: ThreadProps) {
         </div>
       </div>
       <footer className="flex ml-8">
-        <AnnotationUser authorLink={url} displayName={authorName? authorName : 'anonymous'} />
+        {/* <AnnotationUser authorLink={url} displayName={authorName? authorName : 'anonymous'} /> */}
       </footer>
     </>
   );

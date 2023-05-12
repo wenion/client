@@ -326,6 +326,23 @@ export type QueryResult = {
   url: string;
 };
 
+export type Metadata = {
+  heading: string,
+  url: string,
+};
+
+export type Record = {
+  id: string,
+  page_content: string,
+  metadata: Metadata,
+};
+
+export type QueryResponseObject = {
+  query: string,
+  context: Record[][],
+  status: string,
+};
+
 /**
  * Response to an `/api/repository` API call.
  *

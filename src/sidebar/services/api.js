@@ -8,7 +8,7 @@ import { createAPICallExtend } from './fetch-extend'
  * @typedef {import('../../types/api').RouteMap} RouteMap
  * @typedef {import('../../types/api').RouteMetadata} RouteMetadata
  * @typedef {import('../../types/api').Profile} Profile
- * @typedef {import('../../types/api').QueryResult} QueryResult
+ * @typedef {import('../../types/api').QueryResponseObject} QueryResponseObject
  * @typedef {import('../../types/api').FileStat} FileStat
  */
 
@@ -308,14 +308,7 @@ export class APIService {
       apiCall('event')
     );
 
-    /**
-     * @typedef QuerySearchResult
-     * @prop {string} query
-     * @prop {QueryResult[]} rows
-     * @prop {number} total
-     */
-
-    this.query = /** @type {APICall<{ q: string }, void, QuerySearchResult>} */ (
+    this.query = /** @type {APICall<{ q: string }, void, QueryResponseObject>} */ (
       apiCall('query')
     );
 
