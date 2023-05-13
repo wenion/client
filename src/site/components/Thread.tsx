@@ -17,6 +17,7 @@ import type { Thread as IThread } from '../helpers/build-thread';
 import { withServices } from '../../sidebar/service-context';
 import type { ThreadsService } from '../../sidebar/services/threads';
 import AnnotationUser from './Annotation/AnnotationUser';
+import MarkdownView from './MarkdownView';
 
 export type ThreadProps = {
   thread: IThread;
@@ -58,22 +59,21 @@ function Thread({ thread, threadsService }: ThreadProps) {
 
   return (
     <>
-      <div class="flex">
-        <section className="grow p-2" data-testid="thread-container">
-          <a href={link}>
+      <div class="flex border border-gray-500 min-h-max">
+        <section className="grow m-4" data-testid="thread-container">
             <div class="flex gap-6">
               <div class="flex-none flex items-center">
                 {dataType === "pdf" ? (
-                  <FilePdfIcon className="w-16 h-16"
+                  <FilePdfIcon className="w-8 h-8"
                   />
                 ) : (dataType === "image" ? (
-                  <ImageIcon className="w-16 h-16"
+                  <ImageIcon className="w-8 h-8"
                     />
                 ) : (dataType === "video" ? (
-                  <PreviewIcon className="w-16 h-16"
+                  <PreviewIcon className="w-8 h-8"
                   />
                 ) : (
-                  <FileGenericIcon className="w-16 h-16"
+                  <FileGenericIcon className="w-8 h-8"
                   />
                 )
                 ))}
@@ -86,17 +86,20 @@ function Thread({ thread, threadsService }: ThreadProps) {
                 )}
                 data-testid="thread-content"
               >
-                <h1 class="text-2xl font-robo">
-                  {title}
-                </h1>
-                <p className="text-lg font-open">
-                  {getFirst100Words(text)}
-                </p>
+                <a href={link}>
+                  <h1 class="text-2xl font-robo">
+                    {title}
+                  </h1>
+                </a>
+                <MarkdownView
+                  markdown={getFirst100Words(text)}
+                  classes="text-lg leading-relaxed indent-8 font-sans"
+                  // style={textStyle}
+                />
             </div>
             </div>
-          </a>
         </section>
-        <div className="flex justify-end" onClick={ e => { setIsBookmark(!isBookmark) }}>
+        <div className="mt-4 mr-4 finger-cursor" onClick={ e => { setIsBookmark(!isBookmark) }}>
           { isBookmark ? <BookmarkFilledIcon /> : <BookmarkIcon />}
         </div>
       </div>

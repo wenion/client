@@ -37,8 +37,6 @@ function PaginatedThreadList({
     };
   }, [threads, currentPage, pageSize]);
 
-  // console.log('PaginatedThreadListProps', paginatedThreads, totalPages)
-
   return (
     <>
       <ThreadList threads={paginatedThreads} />

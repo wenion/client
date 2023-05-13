@@ -3,9 +3,9 @@ import debounce from 'lodash.debounce';
 import { useLayoutEffect, useState } from 'preact/hooks';
 
 import { ListenerCollection } from '../../shared/listener-collection';
-import type { Thread } from '../helpers/build-thread';
+import type { Thread as IThread } from '../helpers/build-thread';
 import { useSidebarStore } from '../../sidebar/store';
-import ThreadCard from './ThreadCard';
+import Thread from './Thread';
 
 // The precision of the `scrollPosition` value in pixels; values will be rounded
 // down to the nearest multiple of this scale value
@@ -24,7 +24,7 @@ function roundScrollPosition(pos: number) {
 }
 
 export type ThreadListProps = {
-  threads: Thread[];
+  threads: IThread[];
 };
 
 /**
@@ -75,8 +75,6 @@ export default function ThreadList({ threads }: ThreadListProps) {
     };
   }, []);
 
-  const store = useSidebarStore();
-
   return (
     <div class="flex flex-col" >
       {threads.map(child => (
@@ -93,7 +91,7 @@ export default function ThreadList({ threads }: ThreadListProps) {
           id={child.id}
           key={child.id}
         >
-          <ThreadCard thread={child} />
+          <Thread thread={child} />
         </div>
       ))}
     </div>

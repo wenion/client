@@ -123,7 +123,7 @@ function NotebookView({ loadAnnotationsService, queryService, streamer }: Notebo
         <h1 className="text-4xl font-robo my-12" data-testid="notebook-group-name">
           Search results for: {queryService.getQueryWord()}
         </h1>
-        <p className="text-xl font-open mb-8">
+        <p className="text-xl font-sans mb-8">
           {responseData.isErrorOccurred ? 'Sorry, error occurred! Error message: ' + responseData.status : responseData.children.length + ' results found'}
         </p>
         <hr class="mx-auto bg-black mb-8" />
