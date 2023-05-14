@@ -9,7 +9,7 @@ import { createAPICallExtend } from './fetch-extend'
  * @typedef {import('../../types/api').RouteMetadata} RouteMetadata
  * @typedef {import('../../types/api').Profile} Profile
  * @typedef {import('../../types/api').QueryResponseObject} QueryResponseObject
- * @typedef {import('../../types/api').FileStat} FileStat
+ * @typedef {import('../../types/api').FileNode} FileNode
  */
 
 /**
@@ -312,13 +312,7 @@ export class APIService {
       apiCall('query')
     );
 
-    /**
-     * @typedef FileTreeResult
-     * @prop {string} current_path
-     * @prop {FileStat[]} current_dir
-     */
-
-    this.repository = /** @type {APICall<{}, void, FileTreeResult>} */(
+    this.repository = /** @type {APICall<{}, void, FileNode>} */(
       apiCall('repository')
     );
 
@@ -326,7 +320,7 @@ export class APIService {
       apiCallExtend('upload')
     );
 
-    this.delete = /** @type {APICall<FileStat >} */ (
+    this.delete = /** @type {APICall<{ file: string }, void, string>} */ (
       apiCall('delete')
     );
 

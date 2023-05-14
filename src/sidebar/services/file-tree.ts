@@ -1,5 +1,4 @@
 import type { SidebarSettings } from '../../types/config';
-import type { FileStat } from '../../types/api'
 import type { APIService } from './api';
 import type { SidebarStore } from '../store';
 
@@ -51,19 +50,30 @@ export class FileTreeService {
 
   }
 
-  getCurrentDir() {
-    return this._store.currentDir();
-  }
-
-  getAllFiles() {
-    return this._store.allFiles();
-  }
-
-  /* update cloud files*/
-  async updateFileTree() {
+  async initFileTree() {
     if (this._store.isLoggedIn()) {
       const result = await this._api.repository({});
-      this._store.addFileStats(result.current_path, result.current_dir);
+      this._store.addFileTree(result);
+    }
+  }
+
+  findFile(path: string) {
+    // let objectNode = Object.assign({}, this._store.getFileTree());
+    // console.log('objectNode', objectNode);
+    return this._store.find(this._store.getFileTree()!, path);
+  }
+
+  goBack() {
+    if (this._store.getCurrentFileNode() == this._store.getFileTree()) {
+      return;
+    }
+
+    let parentPath = this._store.getCurrentFileNode()!.path;
+    const lastIndex = parentPath.lastIndexOf('/');
+    if (lastIndex != -1) {
+      parentPath = parentPath.slice(0, lastIndex);
+      console.log('parentPath', parentPath, lastIndex)
+      return this._store.find(this._store.getFileTree()!, parentPath);
     }
   }
 
@@ -97,8 +107,12 @@ export class FileTreeService {
   }
 
     /* delete file to repository*/
-    async delete(fileStat: FileStat) {
-        this._api.delete(fileStat);
+    async delete(path: string) {
+        this._api.delete({file: path}).then(
+          response => {
+            this.initFileTree();
+          }
+        );
         /**
          *  TODO check and handle the return
          *  in_param file meta

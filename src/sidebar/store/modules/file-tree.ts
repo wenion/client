@@ -1,76 +1,86 @@
 import { createStoreModule, makeAction } from '../create-store';
-import type { FileStat } from '../../../types/api';
+import type { FileNode } from '../../../types/api';
 
 const initialState = {
-  parent_path: '',
-  current_path: '',
-  current_dir: [],
+  currentNode: null,
+  fileTree: null,
 } as {
-  parent_path: string;
-  current_path: string;
-  current_dir: FileStat[];
+  currentNode: FileNode | null;
+  fileTree: FileNode | null;
 };
+
+function joinPaths(...segments: string[]): string{
+  return segments.join('/').replace(/\/{2,}/g, '/');
+}
 
 export type State = typeof initialState;
 
 const reducers = {
-  ADD_FILESTATS(
+  UPDATE_FILETREE(
     state: State,
     action: {
-      current_path: string;
-      current_dir: FileStat[];
+      fileTree: FileNode;
     }
   ): Partial<State> {
-    const added = []
-    for (const ret of action.current_dir) {
-      added.push(
-        ret
-      );
-    }
-
     return {
-      current_path: action.current_path,
-      current_dir: added,
+      currentNode: action.fileTree,
+      fileTree: action.fileTree,
     };
-  },
-
-  CLEAR_FILESTATS(
-    state: State,
-  ): Partial<State> {
-    return { current_path: '', current_dir: [] };
   },
 };
 
-/**
- * Add these `annotations` to the current collection of annotations in the
- * store.
- */
-function addFileStats(current_path: string, current_dir: FileStat[]) {
-  return makeAction(reducers, 'ADD_FILESTATS', {current_path, current_dir});
+function find(state: State, fileNode: FileNode, path: string) {
+  // if (path == null || state.fileTree == null || fileNode == null) {
+  //   return state.currentNode;
+  // }
+
+  if (path == fileNode.path) {
+    // console.log('found', fileNode)
+    state.currentNode = fileNode;
+    return;
+    // return fileNode;
+  }
+
+  // let isFound = false;
+  for (const child of fileNode.children) {
+    let newPath = joinPaths(fileNode.path , child.name)
+    // isFound = path.startsWith(newPath)
+    // if (isFound) {
+    if (path.startsWith(newPath)) {
+      // console.log('newpath', newPath, 'found?')//, isFound)
+      find(state, child, path);
+    }
+  }
+  // return;
+  // return state.currentNode;
 }
 
-/** Set the currently displayed annotations to the empty set. */
-function clearFileStats() {
-  return makeAction(reducers, 'CLEAR_FILESTATS', undefined);
+function isTopDirectory(state: State) {
+  return state.currentNode == state.fileTree;
 }
 
-function allFiles(state: State) {
-  return state.current_dir;
+function addFileTree(fileTree: FileNode) {
+  return makeAction(reducers, 'UPDATE_FILETREE', {fileTree});
 }
 
-function currentDir(state: State) {
-  return state.current_path;
+function getCurrentFileNode(state: State){
+  return state.currentNode;
+}
+
+function getFileTree(state: State){
+  return state.fileTree;
 }
 
 export const fileTreeModule = createStoreModule(initialState, {
   namespace: 'fileTree',
   reducers,
   actionCreators: {
-    addFileStats,
-    clearFileStats,
+    addFileTree,
   },
   selectors: {
-    allFiles,
-    currentDir,
+    getCurrentFileNode,
+    getFileTree,
+    find,
+    isTopDirectory,
   },
 });

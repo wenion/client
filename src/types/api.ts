@@ -347,13 +347,13 @@ export type QueryResponseObject = {
  * Response to an `/api/repository` API call.
  *
  */
-export type FileStat = {
+export type FileNode = {
   id : string;
   name : string;
   path: string;
   type: string;
-  link: string;
-  location: string;
+  link?: string;
+  children: FileNode[];
 };
 
 /**

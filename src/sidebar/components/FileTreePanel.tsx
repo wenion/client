@@ -1,4 +1,4 @@
-import {Table, TableHead, TableBody, TableRow, Scroll } from '@hypothesis/frontend-shared';
+import {Table, TableHead, TableBody, TableRow, Scroll, Input } from '@hypothesis/frontend-shared';
 import {
   FilePdfIcon,
   FolderIcon,
@@ -60,8 +60,8 @@ function FileTreePanel({
   const displayName =
     profile.user_info?.display_name ?? username(profile.userid);
 
-  const current_dir = store.allFiles();
-  const current_path = store.currentDir();
+  const currentTree = store.getCurrentFileNode();
+  const isTopDirectory = store.isTopDirectory();
 
   const [dragging, setDragging] = useState(false);
 
@@ -69,15 +69,15 @@ function FileTreePanel({
 
   useEffect(() => {
     store.openSidebarPanel('fileTree');
-    fileTreeService.updateFileTree();
+    fileTreeService.initFileTree();
   }, [profile, settings, dragging, store]);
 
   const onDrop = (e: Event) => {
     e.preventDefault();
 
-    if ((e as DragEvent).dataTransfer?.items)
+    if (e instanceof DragEvent && e.dataTransfer?.items) {
     {
-      [...(e as DragEvent).dataTransfer?.items].forEach((item, i) => {
+        Array.from(e.dataTransfer.items).forEach((item, i) => {
         // If dropped items aren't files, reject them
         if (item.kind === 'file') {
           const file = item.getAsFile();
@@ -85,17 +85,16 @@ function FileTreePanel({
             href: '',
           }
           const metadata: DocumentMetadata = {
-            title: file.name,
+            title: file!.name,
             link: [link,],
           };
-
-          fileTreeService.uploadFile(file, metadata);
+          fileTreeService.uploadFile(file!, metadata);
           console.log(">>>> test >>>>>",file)
         }
       });
     }
-    else {
-      [...e.dataTransfer.files].forEach((file, i) => {
+    } else if (e instanceof DragEvent && e.dataTransfer?.files) {
+      Array.from(e.dataTransfer.files).forEach((file, i) => {
         console.log(`… file[${i}].name = ${file.name} start else branch...`);
       });
     }
@@ -113,23 +112,23 @@ function FileTreePanel({
     setDragging(true);
   }
 
-  const onDblClick = (id: string) => {
-    current_dir.map(child => {
-      if (child.id === id) {
-        // window.parent.location.replace(child.link)
-        window.parent.location = child.link;
+  const onDblClick = (id: string, type: string, link?: string) => {
+    if (type == 'dir') {
+      fileTreeService.findFile(id);
+    }
+    else {
+      if (link) {
+        window.parent.location = link;
       }
-    })
+    }
   }
 
-  const onDeleteClick = (id: string) => {
-    current_dir.map(child => {
-      if (child.id === id) {
-        fileTreeService.delete(child)
-        // TODO need to check the return whether need to get repository or not
-        fileTreeService.updateFileTree();
-      }
-    })
+  const onGoBack = () => {
+    fileTreeService.goBack();
+  }
+
+  const onDeleteClick = (path: string) => {
+    const result = fileTreeService.delete(path);
   }
 
   if (!isLoggedIn) {
@@ -149,10 +148,10 @@ function FileTreePanel({
         {dragging ? (
           <div
             className={classnames([
-              'h-[20rem]',
+              'h-[20rem] flex justify-center',
             ])}
           >
-            <h3>Drop the file over here to upload</h3>
+            <h3 className={classnames('text-xl')}>Drop the file over here to upload</h3>
           </div>
         ) : (
           <Scroll>
@@ -161,18 +160,25 @@ function FileTreePanel({
               interactive
             >
               <TableHead>
-                <TableRow>
-                <div className="text-lg">
-                  {current_path}
-                </div>
-                </TableRow>
+                <Input aria-label="Input example" value={currentTree?.path} />
               </TableHead>
               <TableBody>
+                {!isTopDirectory && (
+                  <TableRow
+                    onDblClick={() => onGoBack()}
+                    >
+                    <div className={classnames('flex justify-between', 'h-6')}>
+                      <div className="text-lg items-center flex gap-x-2">
+                        <FolderIcon className="w-em h-em" />..
+                      </div>
+                    </div>
+                  </TableRow>
+                )}
                 {
-                  current_dir.map(child => (
+                  currentTree?.children.map(child => (
                     <TableRow
                       key={child.id}
-                      onDblClick={() => onDblClick(child.id)}
+                      onDblClick={() => onDblClick(child.id, child.type, child.link)}
                       >
                       <div className={classnames('flex justify-between', 'h-6')}>
                         <div className="text-lg items-center flex gap-x-2" id={child.id}>
@@ -189,11 +195,10 @@ function FileTreePanel({
                         </div>
                         <ButtonBase
                           classes={classnames('border bg-grey-0 hover:bg-red-400 m-1' )}
-                          onClick={ () => onDeleteClick(child.id)}>
+                          onClick={ () => onDeleteClick(child.path)}>
                           <CancelIcon className="w-3 h-3"/>
                         </ButtonBase>
                       </div>
-                      {/* <Button onClick={onDeleteClick}>Delete</Button> */}
                     </TableRow>
                   ))
                 }
