@@ -329,6 +329,8 @@ export type QueryResult = {
 export type Metadata = {
   heading: string,
   url: string,
+  "video name"?: string,
+  "video url"?: string,
 };
 
 export type Record = {

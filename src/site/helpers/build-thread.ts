@@ -57,10 +57,10 @@ export function convertResponseToThread() {
           children.push({
             id: record.id,
             visible: true,
-            data_type: getDataType(record.metadata!.url),
-            title: record.metadata.heading,
+            data_type: record.metadata!.url? getDataType(record.metadata!.url) : getDataType(record.metadata['video url']!),
+            title: record.metadata.heading ? record.metadata.heading : getDataType(record.metadata['video name']!),
             context: record.page_content,
-            url: record.metadata!.url,
+            url: record.metadata!.url? record.metadata!.url : record.metadata['video url']!,
           })
         });
       });
