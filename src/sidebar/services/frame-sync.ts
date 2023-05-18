@@ -387,14 +387,7 @@ export class FrameSyncService {
     });
 
     guestRPC.on('createUserEvent', (evet: UserEventData) => {
-      // console.log("createUserEvent",
-      // evet.event_type,
-      // evet.node_name,
-      // evet.base_url,
-      // evet.id,
-      // evet.inner_text
-      // )
-      this._annotationsService.tempCreateUserEvent(evet)
+      this._annotationsService.createUserEvent(evet)
     });
 
     // A new annotation, note or highlight was created in the frame
