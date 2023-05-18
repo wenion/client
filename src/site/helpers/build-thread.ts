@@ -20,6 +20,8 @@ export type Thread = {
 };
 
 function getDataType(url: string) {
+  if (!url)
+    return ''
   if (url.endsWith('.mp4')) {
     return 'video';
   }
@@ -57,7 +59,7 @@ export function convertResponseToThread() {
           children.push({
             id: record.id,
             visible: true,
-            data_type: record.metadata!.url? getDataType(record.metadata!.url) : getDataType(record.metadata['video url']!),
+            data_type: record.metadata? getDataType(record.metadata!.url) : '',
             title: record.metadata.heading ? record.metadata.heading : getDataType(record.metadata['video name']!),
             context: record.page_content,
             url: record.metadata!.url? record.metadata!.url : record.metadata['video url']!,
