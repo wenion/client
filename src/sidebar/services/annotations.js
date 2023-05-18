@@ -7,7 +7,7 @@ import {
 } from '../helpers/permissions';
 
 /**
- * @typedef {import('../../types/api').UserEventData} UserEventData
+ * @typedef {import('../../types/api').EventData} EventData
  * @typedef {import('../../types/api').Annotation} Annotation
  * @typedef {import('../../types/annotator').AnnotationData} AnnotationData
  * @typedef {import('../../types/api').SavedAnnotation} SavedAnnotation
@@ -151,35 +151,20 @@ export class AnnotationsService {
 
   /**
    *
-   * @param {UserEventData} userEventData
-   * @param {Date} now
+   * @param {EventData} eventData
    */
-  async tempCreateUserEvent(userEventData, now = new Date()) {
-    let result;
+  async createUserEvent(eventData) {
     const profile = this._store.profile();
-
     const userid = profile.userid;
     if (!userid) {
       return;
     }
 
-    const userEvent = Object.assign({
-      created: now.toISOString(),
+    const userEventData = {
+      ...eventData,
       user: userid,
-    },
-    userEventData
-    );
-
-    result = this._api.event({}, userEvent);
-    let savedAnnotation;
-    try {
-      savedAnnotation = await result;
-    } catch (err) {
-      console.log("savedAnnotation err", err, err.message);
     }
-    // finally {
-    //   console.log("savedAnnotation succ", savedAnnotation);
-    // }
+    this._api.event({}, userEventData);
   }
 
   /**

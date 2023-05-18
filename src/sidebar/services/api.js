@@ -304,7 +304,17 @@ export class APIService {
       ),
     };
 
-    this.event = (
+    /**
+     * @typedef UserEventData
+     * @prop {string} [event_type]
+     * @prop {number} [hostpage_time_stamp]
+     * @prop {string} [base_url]
+     * @prop {string} [tag_name]
+     * @prop {string} [text_content]
+     * @prop {string} [user]
+     */
+
+    this.event = /** @type {APICall<{}, UserEventData>} */(
       apiCall('event')
     );
 

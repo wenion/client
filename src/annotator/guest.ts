@@ -1,4 +1,3 @@
-import { createElement } from 'preact';
 import { TinyEmitter } from 'tiny-emitter';
 
 import { ListenerCollection } from '../shared/listener-collection';
@@ -15,7 +14,7 @@ import type {
   Integration,
   SidebarLayout,
 } from '../types/annotator';
-import type { Target, UserEventData } from '../types/api';
+import type { Target, EventData } from '../types/api';
 import type {
   HostToGuestEvent,
   GuestToHostEvent,
@@ -302,25 +301,35 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     };
 
     this._listeners.add(this.element, 'click', event => {
-      const target = event.target as Element;
-      const userEvent: UserEventData = {
-        event_type: event.type,
-        time_stamp: event.timeStamp,
-        base_url: target.baseURI,
-        id: target.id,
-        node_name: target.nodeName,
-        inner_text: event.target instanceof HTMLElement? event.target.innerText : '',
+      const clickElement = event.target as Element;
+      if (clickElement) {
+        const linkElement = clickElement.closest('a');
+        if (linkElement) {
+          this._handlePageEvent('click-href', linkElement.baseURI, linkElement.tagName, linkElement.href);
+          return;
+        }
+        const submitElement = clickElement.closest('input[type="submit"]') as HTMLInputElement;
+        if (submitElement) {
+          this._handlePageEvent('click-submit', submitElement.baseURI, submitElement.tagName, submitElement.value);
+          return;
+        }
+        const inputElement = clickElement.closest('input[type="button"]') as HTMLInputElement;
+        if (inputElement) {
+          this._handlePageEvent('click-input', inputElement.baseURI, inputElement.tagName, inputElement.value);
+          return;
+        }
+        const buttonElement = clickElement.closest('button');
+        if (buttonElement) {
+          let value = buttonElement.textContent ? buttonElement.textContent : buttonElement.value;
+          this._handlePageEvent('click-button', buttonElement.baseURI, buttonElement.tagName, value);
+          return;
+        }
       }
-      this._sidebarRPC.call('createUserEvent', userEvent);
-    });
-
-    this._listeners.add(this.element, 'input', event => {
-      this._inputElement = event.target as HTMLInputElement;
     });
 
     this._listeners.add(window, 'scroll', event => {
-      var direction = "down";
-      var st = window.pageYOffset || document.documentElement.scrollTop;
+      let direction = "down";
+      let st = window.pageYOffset || document.documentElement.scrollTop;
       if (st > this._lastScrollTop) {
         direction = "down";
       } else if (st < this._lastScrollTop) {
@@ -329,30 +338,42 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       this._lastScrollTop = st <= 0 ? 0 : st; // For Mobile or negative scrolling
 
       const target = event.target as Document;
-      const userEvent: UserEventData = {
-        event_type: event.type,
-        time_stamp: event.timeStamp,
-        base_url: target.URL,
-        id: "",
-        node_name: "",
-        inner_text: direction,
-      }
       /* TODO */
       // this._sidebarRPC.call('createUserEvent', userEvent);
     });
 
     this._listeners.add(this.element, 'submit', event => {
-      // event.preventDefault();
-      const target = this._inputElement;
-      const userEvent: UserEventData = {
-        event_type: event.type,
-        time_stamp: event.timeStamp,
-        base_url: target.baseURI,
-        id: target.id,
-        node_name: target.nodeName,
-        inner_text: target.value,
+      const target = event.target as HTMLFormElement;
+      if (target) {
+        const formElements = Array.from(target.elements);
+        formElements.map((element, index) => {
+          let value = '';
+          let tagName = '';
+          let eventType = '';
+          if (element instanceof HTMLInputElement) {
+            if (element.type === 'text') {
+              value = element.value;
+              tagName = element.tagName;
+              this._handlePageEvent('submit-text', target.baseURI, tagName, value);
+            }
+            else if (element.type === "checkbox") {
+              value = element.value;
+              tagName = element.tagName;
+              this._handlePageEvent('submit-checkbox', target.baseURI, tagName, value);
+            }
+          }
+          else if (element instanceof HTMLSelectElement) {
+            value = element.value;
+            tagName = element.tagName;
+            this._handlePageEvent('submit-select', target.baseURI, tagName, value);
+          }
+          else if (element instanceof HTMLTextAreaElement) {
+            value = element.value;
+            tagName = element.tagName;
+            this._handlePageEvent('submit-textArea', target.baseURI, tagName, value);
+          }
+        })
       }
-      this._sidebarRPC.call('createUserEvent', userEvent);
     });
 
     this._listeners.add(this.element, 'mouseup', event => {
@@ -782,6 +803,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
 
     this.selectedRanges = [annotatableRange];
     this._hostRPC.call('textSelected');
+    this._handlePageEvent('select', document.location.origin, 'SELECT', selection.toString())
 
     this._adder.annotationsForSelection = annotationsForSelection();
     this._isAdderVisible = true;
@@ -880,5 +902,16 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     if (matchShortcut(event, 'Ctrl+Shift+H')) {
       this.setHighlightsVisible(!this._highlightsVisible);
     }
+  }
+
+  async _handlePageEvent(type: string, url: string, tagName: string, textContent: string) {
+    const userEvent: EventData = {
+      event_type: type,
+      hostpage_time_stamp: Date.now(),
+      base_url: url,
+      tag_name: tagName,
+      text_content: textContent,
+    };
+    this._sidebarRPC.call('createUserEvent', userEvent);
   }
 }

@@ -304,13 +304,12 @@ export type SearchResponse = {
  * Response to an `/api/event` API call.
  *
  */
-export type UserEventData = {
+export type EventData = {
   event_type: string;
-  time_stamp?: number;
+  hostpage_time_stamp: number;
   base_url: string;
-  id?: string;
-  node_name: string;
-  inner_text?: string;
+  tag_name: string;
+  text_content: string;
 };
 
 /**
