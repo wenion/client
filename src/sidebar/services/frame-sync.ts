@@ -12,7 +12,7 @@ import {
 } from '../../shared/messaging';
 import type { Message } from '../../shared/messaging';
 import type { AnnotationData, DocumentInfo } from '../../types/annotator';
-import type { Annotation, UserEventData } from '../../types/api';
+import type { Annotation, EventData } from '../../types/api';
 import type {
   SidebarToHostEvent,
   HostToSidebarEvent,
@@ -386,7 +386,7 @@ export class FrameSyncService {
       this._guestRPC.delete(sourceId);
     });
 
-    guestRPC.on('createUserEvent', (evet: UserEventData) => {
+    guestRPC.on('createUserEvent', (evet: EventData) => {
       this._annotationsService.createUserEvent(evet)
     });
 
