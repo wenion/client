@@ -172,7 +172,6 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
   private _sideBySideActive: boolean;
   private _listeners: ListenerCollection;
 
-  private _inputElement: HTMLInputElement;
   private _lastScrollTop: number;
 
   /**
@@ -276,7 +275,6 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     this._listeners = new ListenerCollection();
     this._setupElementEvents();
 
-    this._inputElement = document.querySelectorAll("input[type='search']")[0] as HTMLInputElement || document.createElement('input');
     this._lastScrollTop =  window.pageYOffset || document.documentElement.scrollTop;
 
     this._hoveredAnnotations = new Set();
