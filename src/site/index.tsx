@@ -28,7 +28,7 @@ import { GroupsService } from '../sidebar/services/groups';
 import { LoadAnnotationsService } from '../sidebar/services/load-annotations';
 import { LocalStorageService } from '../sidebar/services/local-storage';
 import { PersistedDefaultsService } from '../sidebar/services/persisted-defaults';
-import { RouterService } from '../sidebar/services/router';
+// import { RouterService } from '../sidebar/services/router';
 import { ServiceURLService } from '../sidebar/services/service-url';
 import { SessionService } from '../sidebar/services/session';
 import { StreamFilter } from '../sidebar/services/stream-filter';
@@ -76,11 +76,11 @@ function setupApi(api: APIService, streamer: StreamerService) {
 function setupRoute(
   groups: GroupsService,
   session: SessionService,
-  router: RouterService
+  // router: RouterService
 ) {
   groups.load();
   session.load();
-  router.sync();
+  // router.sync();
 }
 
 /**
@@ -131,7 +131,7 @@ function startApp(settings: SidebarSettings, appEl: HTMLElement) {
     .register('loadAnnotationsService', LoadAnnotationsService)
     .register('localStorage', LocalStorageService)
     .register('persistedDefaults', PersistedDefaultsService)
-    .register('router', RouterService)
+    // .register('router', RouterService)
     .register('serviceURL', ServiceURLService)
     .register('session', SessionService)
     .register('streamer', StreamerService)
