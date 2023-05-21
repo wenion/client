@@ -16,7 +16,7 @@ import { useEffect, useLayoutEffect, useMemo, useState } from 'preact/hooks';
 import type { Thread as IThread } from '../helpers/build-thread';
 import { withServices } from '../../sidebar/service-context';
 import type { ThreadsService } from '../../sidebar/services/threads';
-import AnnotationUser from './Annotation/AnnotationUser';
+// import AnnotationUser from './Annotation/AnnotationUser';
 import MarkdownView from './MarkdownView';
 
 export type ThreadProps = {
@@ -33,43 +33,26 @@ function getFirst100Words(str: string) {
 }
 
 /**
- * A thread, which contains a single annotation at its top level, and its
+ * A thread, which comes from convertResponseToThread(), was imported by NotebookView and its
  * recursively-rendered children (i.e. replies).
  *
- * - Threads with parents (replies) may be "collapsed". Top-level threads are
- *   never collapsed.
- * - Any thread may be "hidden" because it does not match current filters.
- *
- * Each reply thread renders as a two-column "row", with a control to toggle
- * the thread's collapsed state at left and the content for the thread and its
- * children to the right.
- *
- * Top-level threads do not render a collapse control, as they are not
- * collapsible.
  */
 function Thread({ thread, threadsService }: ThreadProps) {
-  const dataType = thread.data_type;
-  const link = thread.url;
-  const title = thread.title;
-  const text = thread.context;
-  const authorName = thread.author;
-  const url = thread.url;
-
   const [isBookmark, setIsBookmark]= useState(false)
 
   return (
     <>
-      <div class="flex border border-gray-500 min-h-max">
+      <div class="flex min-h-max">
         <section className="grow m-4" data-testid="thread-container">
             <div class="flex gap-6">
               <div class="flex-none flex items-center">
-                {dataType === "pdf" ? (
+                {thread.dataType === "pdf" ? (
                   <FilePdfIcon className="w-8 h-8"
                   />
-                ) : (dataType === "image" ? (
+                ) : (thread.dataType === "image" ? (
                   <ImageIcon className="w-8 h-8"
                     />
-                ) : (dataType === "video" ? (
+                ) : (thread.dataType === "video" ? (
                   <PreviewIcon className="w-8 h-8"
                   />
                 ) : (
@@ -86,25 +69,37 @@ function Thread({ thread, threadsService }: ThreadProps) {
                 )}
                 data-testid="thread-content"
               >
-                <a href={link}>
+                {thread.url? (
+                  <a href={thread.url}>
+                    <h1 class="text-2xl font-robo">
+                      {thread.title}
+                    </h1>
+                  </a>
+                ) : (
                   <h1 class="text-2xl font-robo">
-                    {title}
+                    {thread.title}
                   </h1>
-                </a>
+                )}
                 <MarkdownView
-                  markdown={getFirst100Words(text)}
+                  markdown={thread.summary}
                   classes="text-lg leading-relaxed indent-8 font-sans"
                   // style={textStyle}
                 />
-            </div>
+              </div>
             </div>
         </section>
         <div className="mt-4 mr-4 finger-cursor" onClick={ e => { setIsBookmark(!isBookmark) }}>
           { isBookmark ? <BookmarkFilledIcon /> : <BookmarkIcon />}
         </div>
       </div>
-      <footer className="flex ml-8">
+      <footer className="m-4">
         {/* <AnnotationUser authorLink={url} displayName={authorName? authorName : 'anonymous'} /> */}
+        <p className="ml-16 italic font-bold">highlights</p>
+        <MarkdownView
+          markdown={thread.highlights}
+          classes="text-base ml-16 font-sans"
+          // style={textStyle}
+        />
       </footer>
     </>
   );

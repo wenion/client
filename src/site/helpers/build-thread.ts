@@ -1,28 +1,19 @@
 import { useSidebarStore } from '../../sidebar/store';
+import type { Metadata } from '../../types/api'
 
-export type Thread = {
-  /**
-   * The thread's id, which equivalent to the id of its annotation. For unsaved
-   * annotations, the id is derived from the annotation's local `$tag` property.
-   */
-  id?: string;
-
+export type Thread = Metadata & {
   /**
    * Whether this thread should be visible when rendered. true when the thread's
    * annotation matches current annotation filters.
    */
   visible: boolean;
-  data_type: string;
-  title: string;
-  context: string;
-  author?: string;
-  url: string;
+  dataType: string;
 };
 
-function getDataType(url: string) {
-  if (!url)
+function getDataType(url: string | undefined, title: string) {
+  if (!url || url === undefined)
     return ''
-  if (url.endsWith('.mp4')) {
+  if (url.endsWith('.mp4') || url.includes('youtube.com') || title.endsWith('.mp4')) {
     return 'video';
   }
   else if (url.endsWith('pdf')) {
@@ -40,6 +31,9 @@ function getWrongResponse(status: string) {
   return true;
 }
 
+/**
+ * Transfer Response format to Thread format.
+ */
 export function convertResponseToThread() {
   const store = useSidebarStore();
   let isErrorOccurred = false;
@@ -55,14 +49,17 @@ export function convertResponseToThread() {
 
     if (!isErrorOccurred) {
       response.context.forEach((innerArray) => {
-        innerArray.forEach((record) => {
+        innerArray.forEach((item) => {
           children.push({
-            id: record.id,
+            id: item.id,
             visible: true,
-            data_type: record.metadata? getDataType(record.metadata!.url) : '',
-            title: record.metadata.heading ? record.metadata.heading : getDataType(record.metadata['video name']!),
-            context: record.page_content,
-            url: record.metadata!.url? record.metadata!.url : record.metadata['video url']!,
+            dataType: getDataType(item.metadata.url, item.metadata.title),
+
+            title: item.metadata.title ? item.metadata.title : (item.metadata['video name'] ? item.metadata['video name'] : 'untitled'),
+            url: item.metadata.url ? item.metadata.url : item.metadata['video url'],
+
+            summary: item.metadata.summary,
+            highlights: item.metadata.highlights,
           })
         });
       });

@@ -118,7 +118,7 @@ function NotebookView({ loadAnnotationsService, queryService, streamer }: Notebo
   }, [paginationPage]);
 
   return (
-    <div class="mb-4" data-testid="notebook-container">
+    <div class="mb-8" data-testid="notebook-container">
       <header className="leading-none lg:col-span-2" ref={threadListScrollTop}>
         <h1 className="text-4xl font-robo my-12" data-testid="notebook-group-name">
           Search results for: {queryService.getQueryWord()}

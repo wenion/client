@@ -317,13 +317,17 @@ export type EventData = {
  *
  */
 export type Metadata = {
-  heading: string,
-  url: string,
+  id?: string,
+  heading?: string,
+  title: string,
+  url?: string,
   "video name"?: string,
   "video url"?: string,
+  summary: string,
+  highlights: string,
 };
 
-export type Record = {
+export type Item = {
   id: string,
   page_content: string,
   metadata: Metadata,
@@ -331,7 +335,7 @@ export type Record = {
 
 export type QueryResponseObject = {
   query: string,
-  context: Record[][],
+  context: Item[][],
   status: string,
 };
 
