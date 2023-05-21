@@ -331,6 +331,7 @@ export type Item = {
   id: string,
   page_content: string,
   metadata: Metadata,
+  is_bookmark?: boolean,
 };
 
 export type QueryResponseObject = {

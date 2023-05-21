@@ -1,5 +1,5 @@
 import { createStoreModule, makeAction } from '../create-store';
-import type { QueryResponseObject } from '../../../types/api';
+import type { QueryResponseObject, Item } from '../../../types/api';
 
 const initialState = {
   query: '',
@@ -25,6 +25,36 @@ const reducers = {
       query: action.query,
       response: action.response,
     };
+  },
+
+  SET_BOOKMARK(
+    state: State,
+    action: {
+      title: string;
+      isBookmark: boolean;
+    }
+  ): Partial<State> {
+    let newResponse: QueryResponseObject = {query: state.response!.query, status: state.response!.status, context:[]};
+
+    state.response!.context.forEach((innerArray) => {
+      let newTopic: Item[] = [];
+      innerArray.forEach((item) => {
+        if (item.metadata.title === action.title) {
+          newTopic.push({
+            ...item,
+            is_bookmark: action.isBookmark,
+          })
+        }
+        else {
+          newTopic.push(item);
+        }
+      })
+      newResponse.context.push(newTopic);
+    });
+
+    return {
+      response: newResponse,
+    }
   },
 
   CLEAR_RESPONSE(
@@ -53,6 +83,10 @@ const reducers = {
 
 function addResponse(query: string, response: QueryResponseObject) {
   return makeAction(reducers, 'ADD_RESPONSE', {query, response});
+}
+
+function setBookmark(title: string, isBookmark: boolean) {
+  return makeAction(reducers, 'SET_BOOKMARK', {title, isBookmark});
 }
 
 function clearResponse() {
@@ -85,6 +119,7 @@ export const resultModule = createStoreModule(initialState, {
   actionCreators: {
     setClientURL,
     addResponse,
+    setBookmark,
     clearResponse,
     clearResponseOnly,
   },

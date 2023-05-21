@@ -1,10 +1,6 @@
 import {
-  Button,
-  ButtonBase,
   BookmarkIcon,
   BookmarkFilledIcon,
-  CaretRightIcon,
-  MenuExpandIcon,
   FileGenericIcon,
   FilePdfIcon,
   ImageIcon,
@@ -15,8 +11,8 @@ import { useEffect, useLayoutEffect, useMemo, useState } from 'preact/hooks';
 
 import type { Thread as IThread } from '../helpers/build-thread';
 import { withServices } from '../../sidebar/service-context';
+import type { QueryService } from '../../sidebar/services/query';
 import type { ThreadsService } from '../../sidebar/services/threads';
-// import AnnotationUser from './Annotation/AnnotationUser';
 import MarkdownView from './MarkdownView';
 
 export type ThreadProps = {
@@ -24,6 +20,7 @@ export type ThreadProps = {
 
   // injected
   threadsService: ThreadsService;
+  queryService: QueryService;
 };
 
 function getFirst100Words(str: string) {
@@ -37,9 +34,7 @@ function getFirst100Words(str: string) {
  * recursively-rendered children (i.e. replies).
  *
  */
-function Thread({ thread, threadsService }: ThreadProps) {
-  const [isBookmark, setIsBookmark]= useState(false)
-
+function Thread({ thread, threadsService, queryService}: ThreadProps) {
   return (
     <>
       <div class="flex min-h-max">
@@ -88,12 +83,11 @@ function Thread({ thread, threadsService }: ThreadProps) {
               </div>
             </div>
         </section>
-        <div className="mt-4 mr-4 finger-cursor" onClick={ e => { setIsBookmark(!isBookmark) }}>
-          { isBookmark ? <BookmarkFilledIcon /> : <BookmarkIcon />}
+        <div className="mt-4 mr-4 finger-cursor" onClick={ e => { queryService.setBookmark(thread.title, !thread.isBookmark) }}>
+          { thread.isBookmark ? <BookmarkFilledIcon /> : <BookmarkIcon />}
         </div>
       </div>
       <footer className="m-4">
-        {/* <AnnotationUser authorLink={url} displayName={authorName? authorName : 'anonymous'} /> */}
         <p className="ml-16 italic font-bold">highlights</p>
         <MarkdownView
           markdown={thread.highlights}
@@ -105,4 +99,4 @@ function Thread({ thread, threadsService }: ThreadProps) {
   );
 }
 
-export default withServices(Thread, ['threadsService']);
+export default withServices(Thread, ['threadsService', 'queryService']);

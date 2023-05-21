@@ -56,4 +56,8 @@ export class QueryService {
       this._store.addResponse(query, result);
     }
   }
+
+  setBookmark(title: string, isBookmark: boolean) {
+    this._store.setBookmark(title, isBookmark);
+  }
 }

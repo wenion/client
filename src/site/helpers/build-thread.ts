@@ -8,6 +8,7 @@ export type Thread = Metadata & {
    */
   visible: boolean;
   dataType: string;
+  isBookmark: boolean;
 };
 
 function getDataType(url: string | undefined, title: string) {
@@ -54,6 +55,7 @@ export function convertResponseToThread() {
             id: item.id,
             visible: true,
             dataType: getDataType(item.metadata.url, item.metadata.title),
+            isBookmark: item.is_bookmark ? item.is_bookmark : false,
 
             title: item.metadata.title ? item.metadata.title : (item.metadata['video name'] ? item.metadata['video name'] : 'untitled'),
             url: item.metadata.url ? item.metadata.url : item.metadata['video url'],
