@@ -57,7 +57,17 @@ export class QueryService {
     }
   }
 
-  setBookmark(title: string, isBookmark: boolean) {
-    this._store.setBookmark(title, isBookmark);
+  async setBookmark(title: string, isBookmark: boolean) {
+    if (!this._store.isLoggedIn())
+      return;
+    if (this._store.queryingWord()){
+      const bookmarkData = {
+        title: title,
+        query: this._store.queryingWord()!,
+        is_bookmark: isBookmark,
+      }
+      const result = await this._api.bookmark({}, bookmarkData)
+      this._store.setBookmark(title, isBookmark);
+    }
   }
 }

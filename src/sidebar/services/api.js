@@ -343,6 +343,17 @@ export class APIService {
     this.clentURL = /** @type {APICall<{}, void, ClientURL>} */(
       apiCall('client')
     )
+
+    /**
+     * @typedef BookmarkData
+     * @prop {string} title
+     * @prop {string} query
+     * @prop {boolean} is_bookmark
+     *
+     */
+    this.bookmark = /** @type {APICall<{}, BookmarkData>} */(
+      apiCall('bookmark')
+    );
   }
 
   /**
