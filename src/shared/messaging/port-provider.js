@@ -115,6 +115,13 @@ export class PortProvider {
         frame2: 'sidebar',
         type: 'request',
       },
+      // KMASS Project
+      {
+        allowedOrigin: '*',
+        frame1: 'site',
+        frame2: 'sidebar',
+        type: 'request',
+      },
     ];
 
     this._listen();

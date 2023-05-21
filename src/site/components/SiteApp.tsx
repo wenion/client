@@ -15,6 +15,26 @@ import type { ToastMessengerService } from '../../sidebar/services/toast-messeng
 import { useSidebarStore } from '../../sidebar/store';
 import QueryView from './QueryView';
 
+import { PortRPC } from '../../shared/messaging';
+import { PortFinder } from '.././helpers/port-finder';
+import type { Profile } from '../../types/api'
+
+const _sidebarRPC = new PortRPC();
+const _portFinder = new PortFinder({
+  hostFrame: window,
+  source: 'site',
+  sourceId: undefined,
+});
+
+_portFinder.discover('sidebar')
+  .then((hostPort) =>{
+    _sidebarRPC.connect(hostPort);
+  })
+
+_sidebarRPC.on('updateProfile', (profile: Profile) => {
+  console.log('profile', profile)
+})
+
 export type HypothesisAppProps = {
   auth: AuthService;
   frameSync: FrameSyncService;

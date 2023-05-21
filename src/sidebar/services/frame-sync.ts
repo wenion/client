@@ -19,6 +19,10 @@ import type {
   SidebarToGuestEvent,
   GuestToSidebarEvent,
 } from '../../types/port-rpc-events';
+import type {
+  SiteToSidebarEvent,
+  SidebarToSiteEvent,
+} from '../../types/site-port-rpc-events';
 import { isReply, isPublic } from '../helpers/annotation-metadata';
 import { annotationMatchesSegment } from '../helpers/annotation-segment';
 import type { SidebarStore } from '../store';
@@ -120,6 +124,11 @@ export class FrameSyncService {
   private _hostRPC: PortRPC<HostToSidebarEvent, SidebarToHostEvent>;
 
   /**
+   * Channel for site-sidebar communication. KMASS Project
+   */
+  private _siteRPC: PortRPC<SiteToSidebarEvent, SidebarToSiteEvent>;
+
+  /**
    * Tags of annotations that are currently loaded into guest frames.
    */
   private _inFrame: Set<string>;
@@ -182,6 +191,7 @@ export class FrameSyncService {
     this._listeners = new ListenerCollection();
 
     this._hostRPC = new PortRPC();
+    this._siteRPC = new PortRPC();
     this._guestRPC = new Map();
     this._inFrame = new Set<string>();
     this._highlightsVisible = false;
@@ -575,6 +585,16 @@ export class FrameSyncService {
       ) {
         this._connectGuest(ports[0], message.sourceId ?? null);
       }
+      else if ( // KMASS Project
+        isMessageEqual(message, {
+          frame1: 'site',
+          frame2: 'sidebar',
+          type: 'offer',
+        })
+      ) {
+        this._siteRPC.connect(ports[0]);
+        // setTimeout(()=>{this._siteRPC.call('updateProfile'); console.log('sent update profile')}, 5000);
+      }
     });
   }
 
@@ -583,6 +603,13 @@ export class FrameSyncService {
    */
   notifyHost(method: SidebarToHostEvent, ...args: unknown[]) {
     this._hostRPC.call(method, ...args);
+  }
+
+  /**
+   * Send an RPC message to the site.
+   */
+  notifySite(method: SidebarToSiteEvent, ...args: unknown[]) {
+    this._siteRPC.call(method, ...args);
   }
 
   /**
