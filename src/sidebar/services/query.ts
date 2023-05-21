@@ -35,10 +35,6 @@ export class QueryService {
     return this._store.queryingWord();
   }
 
-  getQueryResults() {
-    return this._store.allResults();
-  }
-
   getSuggestResult() {
     return this._store.getSuggestResults();
   }

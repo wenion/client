@@ -316,15 +316,6 @@ export type EventData = {
  * Response to an `/api/query` API call.
  *
  */
-export type QueryResult = {
-  id : string;
-  data_type: string;
-  title: string;
-  context: string;
-  author: string;
-  url: string;
-};
-
 export type Metadata = {
   heading: string,
   url: string,
