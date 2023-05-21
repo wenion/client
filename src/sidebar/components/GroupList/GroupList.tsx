@@ -21,6 +21,7 @@ import GroupListSection from './GroupListSection';
  */
 function publisherProvidedIcon(settings: SidebarSettings) {
   const svc = serviceConfig(settings);
+  console.log('svc', svc)
   return svc && svc.icon ? svc.icon : null;
 }
 
@@ -69,6 +70,7 @@ function GroupList({ settings }: GroupListProps) {
 
   let label;
   if (focusedGroup) {
+    console.log('focusedGroup.organization.logo', focusedGroup.organization.logo)
     const icon =
       focusedGroup.organization.logo || publisherProvidedIcon(settings) || '';
 
@@ -86,7 +88,7 @@ function GroupList({ settings }: GroupListProps) {
           <img
             className={classnames(
               // Tiny adjustment to make H logo align better with group name
-              'relative top-[1px] w-4 h-4'
+              'relative top-[1px]'
             )}
             src={icon}
             alt={altName}
