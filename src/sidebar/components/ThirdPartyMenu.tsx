@@ -64,7 +64,7 @@ export function ThirdPartyMenu({fileTreeService, frameSync,}: ThirdPartyMenuProp
 
   const menuLabel = (
     <span className="p-1">
-      <SocialFacebookIcon />
+      <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="M732 912V804H624v-72h108V624h72v108h108v72H804v108h-72Zm-494 24q-20 0-36.5-9.5T175 900L84 741q-10-17-10-36t10-36l242-417q10-17 27-26.5t36-9.5h182q19 0 36 9.5t27 26.5l177 304q-11-2-21.5-3t-21.5-1q-11 0-21 1t-20 3L571 288H389L146 705l92 159h337q11 21 25 39t32 33H238Zm62-171-27-48 173-302h69l109 192q-15 13-27 28t-21 33l-96-168-111 194 196-1q-7 17-10 35t-3 37H300Z"/></svg>
     </span>
   );
 
