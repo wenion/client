@@ -83,7 +83,7 @@ function Thread({ thread, threadsService, queryService}: ThreadProps) {
               </div>
             </div>
         </section>
-        <div className="mt-4 mr-4 finger-cursor" onClick={ e => { queryService.setBookmark(thread.title, !thread.isBookmark) }}>
+        <div className="mt-4 mr-4 finger-cursor" onClick={ e => { queryService.setBookmark(thread.id, !thread.isBookmark) }}>
           { thread.isBookmark ? <BookmarkFilledIcon /> : <BookmarkIcon />}
         </div>
       </div>

@@ -317,7 +317,7 @@ export type EventData = {
  *
  */
 export type Metadata = {
-  id?: string,
+  id: string,
   heading?: string,
   title: string,
   url?: string,

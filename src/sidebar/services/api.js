@@ -346,7 +346,7 @@ export class APIService {
 
     /**
      * @typedef BookmarkData
-     * @prop {string} title
+     * @prop {string} id
      * @prop {string} query
      * @prop {boolean} is_bookmark
      *

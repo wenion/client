@@ -30,7 +30,7 @@ const reducers = {
   SET_BOOKMARK(
     state: State,
     action: {
-      title: string;
+      id: string;
       isBookmark: boolean;
     }
   ): Partial<State> {
@@ -39,7 +39,8 @@ const reducers = {
     state.response!.context.forEach((innerArray) => {
       let newTopic: Item[] = [];
       innerArray.forEach((item) => {
-        if (item.metadata.title === action.title) {
+        console.log("item", item)
+        if (item.id === action.id) {
           newTopic.push({
             ...item,
             is_bookmark: action.isBookmark,
@@ -85,8 +86,8 @@ function addResponse(query: string, response: QueryResponseObject) {
   return makeAction(reducers, 'ADD_RESPONSE', {query, response});
 }
 
-function setBookmark(title: string, isBookmark: boolean) {
-  return makeAction(reducers, 'SET_BOOKMARK', {title, isBookmark});
+function setBookmark(id: string, isBookmark: boolean) {
+  return makeAction(reducers, 'SET_BOOKMARK', {id, isBookmark});
 }
 
 function clearResponse() {
