@@ -23,12 +23,6 @@ export type ThreadProps = {
   queryService: QueryService;
 };
 
-function getFirst100Words(str: string) {
-  const words = str.split(' ');
-  const first1000Words = words.slice(0, 100);
-  return first1000Words.join(' ') + '...';
-}
-
 /**
  * A thread, which comes from convertResponseToThread(), was imported by NotebookView and its
  * recursively-rendered children (i.e. replies).
@@ -77,7 +71,7 @@ function Thread({ thread, threadsService, queryService}: ThreadProps) {
                 )}
                 <MarkdownView
                   markdown={thread.summary}
-                  classes="text-lg leading-relaxed indent-8 font-sans"
+                  classes="text-lg leading-relaxed font-sans"
                   // style={textStyle}
                 />
               </div>

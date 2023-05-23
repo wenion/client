@@ -25,6 +25,12 @@ function getDataType(url: string | undefined, title: string) {
   }
 }
 
+function getFirst100Words(str: string) {
+  const words = str.split(' ');
+  const first1000Words = words.slice(0, 100);
+  return first1000Words.join(' ') + '...';
+}
+
 function getWrongResponse(status: string) {
   if (status === '200') {
     return false;
@@ -60,7 +66,7 @@ export function convertResponseToThread() {
             title: item.metadata.title ? item.metadata.title : (item.metadata['video name'] ? item.metadata['video name'] : 'untitled'),
             url: item.metadata.url ? item.metadata.url : item.metadata['video url'],
 
-            summary: item.metadata.summary,
+            summary: item.metadata.summary ? item.metadata.summary : getFirst100Words(item.page_content),
             highlights: item.metadata.highlights,
           })
         });
