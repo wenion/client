@@ -3,6 +3,8 @@ import { SearchIcon } from '@hypothesis/frontend-shared';
 import { MutableRef, useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import classnames from 'classnames';
 
+import { withServices } from '../../sidebar/service-context';
+import type { QueryService } from '../../sidebar/services/query';
 import { useSidebarStore } from '../../sidebar/store';
 import SearchDropdownItem from './SearchDropdownItem';
 import SearchDropdownKeyboardNavigation from './SearchDropdownKeyboardNavigation';
@@ -47,6 +49,7 @@ export type SearchProps = {
    * be provided to respond to the user opening or closing the menu.
    */
   open?: boolean;
+  queryService: QueryService;
 }
 
 const noop = () => {};
@@ -54,7 +57,7 @@ const noop = () => {};
 /**
  * A drop-down menu of sorting options for a collection of annotations.
  */
-export default function Search({
+function Search({
   align = 'left',
   containerPositioned = true,
   contentClass,
@@ -62,6 +65,7 @@ export default function Search({
   inputRef,
   open,
   onOpenChanged,
+  queryService,
 }: SearchProps) {
   const store = useSidebarStore();
   const suggestResults = store.getSuggestResults();
@@ -169,6 +173,11 @@ export default function Search({
     }
   };
 
+  const onSearchBarInput = (event: Event) => {
+    const text = (event.target as HTMLInputElement).value;
+    queryService.getSuggestion(text)
+  }
+
   const onItemSelect = (element : HTMLElement, index : number) => {
     const el = inputRef.current!;
     el.value = element.innerHTML;
@@ -180,16 +189,14 @@ export default function Search({
     el.focus();
   }
 
-  const menuItems = suggestResults.map(option => {
-    return (
-      <SearchDropdownItem
-        key={option.text}
-        label={option.text}
-        onClick={() => onSuggestItemClick(option.text)}
-        // isSelected={sortOption === sortKey}
-      />
-    );
-  });
+  const menuItems = suggestResults.map(option => (
+    <SearchDropdownItem
+      key={option.text}
+      label={option.text}
+      onClick={() => onSuggestItemClick(option.text)}
+      // isSelected={sortOption === sortKey}
+    />
+  ));
 
   const containerStyle = {
     position: containerPositioned ? 'relative' : 'static',
@@ -233,6 +240,7 @@ export default function Search({
               onMouseDown={toggleMenu}
               onClick={toggleMenu}
               onKeyDown={handleInputKeyDown}
+              onInput={onSearchBarInput}
               />
         <button className="search-bar__icon" type="submit">
           <SearchIcon />
@@ -268,3 +276,7 @@ export default function Search({
     </div>
   );
 }
+
+export default withServices(Search, [
+  'queryService',
+]);

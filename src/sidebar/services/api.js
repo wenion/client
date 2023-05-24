@@ -354,6 +354,16 @@ export class APIService {
     this.bookmark = /** @type {APICall<{}, BookmarkData>} */(
       apiCall('bookmark')
     );
+
+    /**
+     * @typedef TypingResponse
+     * @prop {string} id
+     * @prop {string} text
+     *
+     */
+    this.typing = /** @type {APICall<{ q: string }, void, TypingResponse[]>} */ (
+      apiCall('typing')
+    );
   }
 
   /**

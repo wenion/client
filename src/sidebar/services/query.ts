@@ -18,17 +18,6 @@ export class QueryService {
     // this._rpc = settings.rpc;
     this._api = api;
     this._store = store;
-    this._initialize();
-  }
-
-  _initialize() {
-    this._store.addSuggestResults([
-      {id: '1', text: 'test case 1'},
-      {id: '2', text: 'test case 2'},
-      {id: '3', text: 'test case 3'},
-      {id: '4', text: 'test case 4'},
-      {id: '5', text: 'test case 5'},
-    ])
   }
 
   getQueryWord() {
@@ -69,5 +58,10 @@ export class QueryService {
       await this._api.bookmark({}, bookmarkData)
       this._store.setBookmark(id, isBookmark);
     }
+  }
+
+  async getSuggestion(query: string) {
+    let result = await this._api.typing({q: query});
+    this._store.addSuggestResults(result);
   }
 }

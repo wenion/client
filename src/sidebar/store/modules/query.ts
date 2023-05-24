@@ -28,16 +28,15 @@ const reducers = {
       // selectedSuggestIndex: number | null;
     }
   ): Partial<State> {
-    const added = []
-    for (const ret of action.suggestList) {
-      added.push(
-        ret
-      );
-    }
+    // const added = []
+    // for (const ret of action.suggestList) {
+    //   added.push(
+    //     ret
+    //   );
+    // }
 
     return {
-      suggestList: added,
-      selectedSuggestIndex: null,
+      suggestList: action.suggestList,
     };
   },
 
