@@ -151,13 +151,13 @@ function TopBar({
             size="xs"
             title="Help"
           />
-          <IconButton
+          {/* <IconButton
             icon={FolderIcon}
             expanded={isFileTreePanelOpen}
             onClick={toggleFileTreePanel}
             size="xs"
             title="Browser cloud repository"
-          />
+          /> */}
           {isLoggedIn ? (
             <UserMenu onLogout={onLogout} />
           ) : (

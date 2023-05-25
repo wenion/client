@@ -58,7 +58,6 @@ function HypothesisApp({
   const isSidebar = route === 'sidebar';
 
   useEffect(() => {
-    store.openSidebarPanel('fileTree');
     if (shouldAutoDisplayTutorial(isSidebar, profile, settings)) {
       store.openSidebarPanel('help');
     }
@@ -163,7 +162,7 @@ function HypothesisApp({
         <ToastMessages />
         <HelpPanel />
         <ShareAnnotationsPanel />
-        <FileTreePanel/>
+        {/* <FileTreePanel/> */}
 
         {route && (
           <main>
