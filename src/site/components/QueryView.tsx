@@ -46,47 +46,6 @@ function QueryView({
   settings }: QueryViewProps) {
   const store = useSidebarStore();
   const profile = store.profile();
-  const route = store.route();
-  // const isModalRoute = route === 'notebook' || route === 'profile';
-
-  // const backgroundStyle = useMemo(
-  //   () => applyTheme(['appBackgroundColor'], settings),
-  //   [settings]
-  // );
-  // const isThemeClean = settings.theme === 'clean';
-
-  // const isSidebar = route === 'sidebar';
-
-  useEffect(() => {
-    if (shouldAutoDisplayTutorial(isSidebar, profile, settings)) {
-      store.openSidebarPanel('help');
-    }
-  }, [isSidebar, profile, settings, store]);
-
-  // const promptToLogout = async () => {
-  //   const drafts = store.countDrafts();
-  //   if (drafts === 0) {
-  //     return true;
-  //   }
-
-  //   let message = '';
-  //   if (drafts === 1) {
-  //     message =
-  //       'You have an unsaved annotation.\n' +
-  //       'Do you really want to discard this draft?';
-  //   } else if (drafts > 1) {
-  //     message =
-  //       'You have ' +
-  //       drafts +
-  //       ' unsaved annotations.\n' +
-  //       'Do you really want to discard these drafts?';
-  //   }
-  //   return confirm({
-  //     title: 'Discard drafts?',
-  //     message,
-  //     confirmAction: 'Discard',
-  //   });
-  // };
 
   return (
     <>
