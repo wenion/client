@@ -68,6 +68,7 @@ export function convertResponseToThread() {
 
             summary: item.metadata.summary ? item.metadata.summary : getFirst100Words(item.page_content),
             highlights: item.metadata.highlights,
+            repository: item.metadata.repository ? item.metadata.repository : "",
           })
         });
       });

@@ -325,6 +325,9 @@ export type Metadata = {
   "video url"?: string,
   summary: string,
   highlights: string,
+  deleted?: boolean,
+  expired?: boolean,
+  repository: string,
 };
 
 export type Item = {

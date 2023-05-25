@@ -81,13 +81,13 @@ function Thread({ thread, threadsService, queryService}: ThreadProps) {
           { thread.isBookmark ? <BookmarkFilledIcon /> : <BookmarkIcon />}
         </div>
       </div>
-      <footer className="m-4">
-        <p className="ml-16 italic font-bold">highlights</p>
-        <MarkdownView
-          markdown={thread.highlights}
+      <footer className="mb-8">
+        <p className="ml-16 font-bold"><em>source</em>: {thread.repository}</p>
+        {/* <MarkdownView
+          markdown={thread.repository}
           classes="text-base ml-16 font-sans"
           // style={textStyle}
-        />
+        /> */}
       </footer>
     </>
   );
