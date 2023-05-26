@@ -42,6 +42,7 @@
 @use 'components/share-widget';
 @use 'components/tooltip';
 @use 'components/tabs';
+@use 'components/video-js';
 
 // Rules
 // ----------------------------------------------------------------------------
@@ -70,4 +71,19 @@ body {
 
 .finger-cursor {
   cursor: pointer;
+}
+
+@media (min-width: 1080px) {
+
+  .\!video-container {
+    max-width: 1080px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  .video-container {
+    max-width: 1080px;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }

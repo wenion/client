@@ -1,6 +1,8 @@
 import classnames from 'classnames';
-import { useEffect, useMemo } from 'preact/hooks';
+import { useEffect, useMemo, useRef } from 'preact/hooks';
 import  Router from 'preact-router';
+import type  { VideoJsPlayer, VideoJsPlayerOptions  } from 'video.js';
+import  videojs from 'video.js';
 
 import { confirm } from '../../shared/prompts';
 import type { SidebarSettings } from '../../types/config';
@@ -14,6 +16,7 @@ import type { SessionService } from '../../sidebar/services/session';
 import type { ToastMessengerService } from '../../sidebar/services/toast-messenger';
 import { useSidebarStore } from '../../sidebar/store';
 import QueryView from './QueryView';
+import VideoView from './VideoView';
 
 import { PortRPC } from '../../shared/messaging';
 import { PortFinder } from '.././helpers/port-finder';
@@ -68,6 +71,39 @@ function SiteApp({
   const isThemeClean = settings.theme === 'clean';
 
   const isSidebar = route === 'sidebar';
+  const playerRef = useRef<VideoJsPlayer | null>(null);
+  const videoJsOptions: VideoJsPlayerOptions = {
+    autoplay: true,
+    controls: true,
+    responsive: true,
+    fluid: true,
+    sources: [{
+      src: 'http://techslides.com/demos/sample-videos/small.mp4',
+      type: 'video/mp4'
+    }]
+  };
+
+  const handlePlayerReady = (player: VideoJsPlayer) => {
+    playerRef.current = player;
+
+    console.log("on ready")
+
+    // You can handle player events here, for example:
+    player.on('waiting', () => {
+      videojs.log('player is waiting');
+      console.log('player is waiting');
+    });
+
+    player.on('seeked', () => {
+      videojs.log('player will seeked');
+      console.log('player will seeked');
+    });
+
+    player.on('dispose', () => {
+      videojs.log('player will dispose');
+      console.log('player will dispose');
+    });
+  };
 
   useEffect(() => {
     if (shouldAutoDisplayTutorial(isSidebar, profile, settings)) {
@@ -161,6 +197,13 @@ function SiteApp({
           onSignUp={signUp}
           onLogout={logout}
           isSidebar={isSidebar} />
+        <VideoView path="/video"
+          onLogin={login}
+          onSignUp={signUp}
+          onLogout={logout}
+          isSidebar={isSidebar}
+          options={videoJsOptions}
+          onReady={handlePlayerReady} />
       </Router>
     </div>
   );
