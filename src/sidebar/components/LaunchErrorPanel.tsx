@@ -20,7 +20,7 @@ export default function LaunchErrorPanel({ error }: LaunchErrorPanelProps) {
         'm-2 mt-12'
       )}
     >
-      <Panel title="Unable to start Hypothesis">{error.message}</Panel>
+      <Panel title="Unable to start KMASS">{error.message}</Panel>
     </div>
   );
 }
