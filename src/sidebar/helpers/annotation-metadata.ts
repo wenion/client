@@ -1,7 +1,9 @@
 import type {
   Annotation,
   SavedAnnotation,
+  VideoAnnotation,
   TextQuoteSelector,
+  VideoPositionSelector,
 } from '../../types/api';
 
 /**
@@ -176,6 +178,16 @@ function hasSelector(annotation: Annotation): boolean {
   );
 }
 
+function hasVideoSelector(annotation: Annotation): boolean {
+  return !!(
+    annotation.target &&
+    annotation.target.length > 0 &&
+    annotation.target[0].selector &&
+    annotation.target[0].selector.length > 0 &&
+    annotation.target[0].selector[0].type === 'VideoPositionSelector'
+  );
+}
+
 /**
  * Return `true` if the given annotation is not yet anchored.
  *
@@ -249,7 +261,11 @@ export function isPageNote(annotation: Annotation): boolean {
  * Return `true` if the given annotation is a top level annotation, `false` otherwise.
  */
 export function isAnnotation(annotation: Annotation): boolean {
-  return !!(hasSelector(annotation) && !isOrphan(annotation));
+  return !!(hasSelector(annotation) && !isOrphan(annotation) && !isVideoAnnotation(annotation));
+}
+
+export function isVideoAnnotation(annotation: Annotation): boolean {
+  return !!(hasVideoSelector(annotation));
 }
 
 /**
@@ -262,6 +278,8 @@ export function annotationRole(annotation: Annotation): string {
     return 'Highlight';
   } else if (isPageNote(annotation)) {
     return 'Page note';
+  } else if (isVideoAnnotation(annotation)) {
+    return 'Video Annotation';
   }
   return 'Annotation';
 }
@@ -338,6 +356,20 @@ export function quote(annotation: Annotation): string | null {
     | TextQuoteSelector
     | undefined;
   return quoteSel ? quoteSel.exact : null;
+}
+
+export function videoQuote(videoAnnotation: VideoAnnotation): number[] | null {
+  if (videoAnnotation.target.length === 0) {
+    return null;
+  }
+  const target = videoAnnotation.target[0];
+  if (!target.selector) {
+    return null;
+  }
+  const quoteSel = target.selector.find(s => s.type === 'VideoPositionSelector') as
+    | VideoPositionSelector
+    | undefined;
+  return quoteSel ? [quoteSel.start, quoteSel.end,] : null;
 }
 
 /**

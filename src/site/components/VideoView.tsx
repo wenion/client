@@ -4,10 +4,18 @@ import {
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import type { RefObject } from 'preact';
-import { useEffect, useMemo, useRef } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { VideoJsPlayer, VideoJsPlayerOptions } from 'video.js';
 import  videojs from 'video.js';
 
+import type {
+  SidebarToSiteEvent,
+  SiteToSidebarEvent,
+} from '../../types/site-port-rpc-events';
+import type { AnnotationData, DocumentMetadata } from '../../types/annotator';
+import type { VideoAnnotation, VideoPositionSelector } from '../../types/api';
+import { generateRandomString } from '../../shared/random';
+import { PortRPC } from '../../shared/messaging';
 import type { SidebarSettings } from '../../types/config';
 import { serviceConfig } from '../../sidebar/config/service-config';
 import { shouldAutoDisplayTutorial } from '../../sidebar/helpers/session';
@@ -21,7 +29,7 @@ import TopBar from './TopBar';
 
 export type QueryViewProps = {
   /** Flag indicating whether the app is in a sidebar context */
-  isSidebar: boolean;
+  // isSidebar: boolean;
 
   /** Callback invoked when user clicks "Login" button */
   onLogin: () => void;
@@ -32,8 +40,11 @@ export type QueryViewProps = {
   /** Callback invoked when user clicks "Sign up" button */
   onSignUp: () => void;
 
+  onAnchor: (annotation: AnnotationData) => void;
+
   options: VideoJsPlayerOptions,
   onReady: (player: VideoJsPlayer) => void,
+  sidebarRPC: PortRPC<SidebarToSiteEvent, SiteToSidebarEvent>;
 
   auth: AuthService;
   frameSync: FrameSyncService;
@@ -48,58 +59,62 @@ export type QueryViewProps = {
  * This handles login/logout actions and renders the top navigation bar
  * and content appropriate for the current route.
  */
-function QueryView({
-  isSidebar,
+function VideoView({
   onLogin,
   onLogout,
   onSignUp,
   options,
   onReady,
+  onAnchor,
+  sidebarRPC,
   settings }: QueryViewProps) {
   const store = useSidebarStore();
   const profile = store.profile();
   const route = store.route();
 
-  const hostURL = new URL(window.location.href);
-  console.log('hostURL', hostURL)
-  hostURL.hash = '';
-  const appURL = hostURL.toString();
-  console.log('hostURL', hostURL, 'appURL',appURL)
+  const annot = store.allVideoAnnotations();
+
+
+  const param = new URLSearchParams(window.location.search);
+  const videoSrc = param.get('file');
+  if (!videoSrc) {
+    return (<></>);
+  }
+  const format = videoSrc.substring(videoSrc.lastIndexOf(".") + 1);
+
+  if (format === 'mov') {
+    options.sources!.push({src: videoSrc, type: 'video/quicktime'})
+  }
+  else if (format === 'mp4') {
+    options.sources!.push({src: videoSrc, type: 'video/mp4'})
+  }
 
   const videoRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<VideoJsPlayer | null>(null);
 
   useEffect(() => {
-    console.log("first init")
     if (!playerRef.current) {
       const videoElement = document.createElement("video-js");
       videoElement.classList.add('vjs-big-play-centered');
 
-      // console.log("videoElement", videoElement)
-      
-      // if (videoRef && videoRef.current)
+      if (videoSrc == null || undefined) {
+        return;
+      }
+
       videoRef.current?.appendChild(videoElement);
 
       const player =  playerRef.current = videojs(videoElement, options, () => {
         videojs.log('player is ready', player);
         onReady && onReady(player);
       });
-
-      player.responsive(true);
-
-      // if (player) {
-      //   playerRef.current = player;
-      //   console.log("playerRef.current ", playerRef.current )
-      // }
-        
     }
     else {
-      console.log("second")
       const player: VideoJsPlayer = playerRef.current;
       if (options.autoplay)
         player.autoplay(options.autoplay);
       if (options.sources)
-      player.src(options.sources);
+        player.src(options.sources);
+      player.responsive(true);
     }
 
   }, [options, videoRef]);
@@ -107,11 +122,8 @@ function QueryView({
   // Dispose the Video.js player when the functional component unmounts
   useEffect(() => {
     const player = playerRef.current;
-    console.log("exit")
-
     return () => {
       if (player && !player.isDisposed()) {
-        console.log("clear")
         player.dispose();
         playerRef.current = null;
       }
@@ -119,9 +131,28 @@ function QueryView({
   }, [playerRef]);
 
   const onClick = (player:RefObject<VideoJsPlayer>) => {
-    const timeAUX = player.current?.currentTime();
-    console.log(timeAUX)
+    const timeAux = player.current?.currentTime();
+    const duration = player.current?.duration()
+    if (!timeAux || !duration)
+      return;
+    const documentMetadata: DocumentMetadata = {
+      title: document.title === '' ? videoSrc: document.title,
+      link: [{href: videoSrc}]
+    }
+    const videoPositionSelector: VideoPositionSelector = {type: 'VideoPositionSelector', start: timeAux, end: duration};
+    const annotation: AnnotationData = {
+      uri: decodeURIComponent(videoSrc),
+      document: documentMetadata,
+      target: [{source: window.location.origin, selector:[videoPositionSelector]}],
+      $cluster: 'other-content',
+      $tag: generateRandomString(16),
+    };
 
+    sidebarRPC.call('createVideoAnnotation', annotation);
+
+    onAnchor(annotation);
+
+    return annotation;
   }
 
   return (
@@ -152,7 +183,7 @@ function QueryView({
   );
 }
 
-export default withServices(QueryView, [
+export default withServices(VideoView, [
   'auth',
   'frameSync',
   'session',

@@ -144,6 +144,7 @@ export class LoadAnnotationsService {
     this._searchClient.on('results', (results: Annotation[]) => {
       if (results.length) {
         this._store.addAnnotations(results);
+        this._store.addVideoAnnotations(results);
       }
     });
 

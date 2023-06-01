@@ -10,7 +10,8 @@ export type SiteToSidebarEvent =
   /**
    * The sidebar is asking the guest(s) to delete an annotation.
    */
-  | 'test';
+  | 'test'
+  | 'createVideoAnnotation';
 
 /**
  * Events that the sidebar sends to the guest(s)
@@ -19,4 +20,10 @@ export type SidebarToSiteEvent =
   /**
    * Show a banner with information about the current content.
    */
-  | 'updateProfile';
+  | 'deleteVideoAnnotation'
+  | 'loadVideoAnnotations'
+  | 'mouseEnterVideoAnnotation'
+  | 'mouseLeaveVideoAnnotation'
+  | 'doubleClickVideoAnnotation'
+  | 'publicVideoAnnotationCountChanged'
+  | 'scrollToVideoAnnotation';

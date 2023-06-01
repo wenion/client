@@ -12,7 +12,7 @@
  * The top-level tabs in the sidebar interface. Used to reference which tab
  * is currently selected (active/visible).
  *
- * @typedef {'annotation'|'note'|'orphan'} TabName
+ * @typedef {'annotation'|'note'|'orphan'|'videoAnnotation'} TabName
  */
 
 // Make TypeScript treat this file as a module.

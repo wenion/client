@@ -6,7 +6,7 @@ import type { Dispatch } from 'redux';
 import { createSelector } from 'reselect';
 
 import { hasOwn } from '../../../shared/has-own';
-import type { Annotation, SavedAnnotation } from '../../../types/api';
+import type { VideoAnnotation, SavedVideoAnnotation } from '../../../types/api';
 import type { HighlightCluster } from '../../../types/shared';
 import * as metadata from '../../helpers/annotation-metadata';
 import { isHighlight, isSaved } from '../../helpers/annotation-metadata';
@@ -23,7 +23,7 @@ type AnchorStatusUpdates = {
   [$tag: string]: AnchorStatus;
 };
 
-type AnnotationStub = {
+type VideoAnnotationStub = {
   /**
    * Service-provided identifier if annotation has been
    * persisted to the service
@@ -35,13 +35,13 @@ type AnnotationStub = {
 };
 
 const initialState = {
-  annotations: [],
+  videoAnnotations: [],
   highlighted: {},
   hovered: {},
   nextTag: 1,
 } as {
   /** Set of currently-loaded annotations */
-  annotations: Annotation[];
+  videoAnnotations: VideoAnnotation[];
 
   /**
    * The $tags of annotations that should appear as "highlighted", e.g. the
@@ -63,7 +63,7 @@ const initialState = {
   nextTag: number;
 };
 
-export type State = typeof initialState;
+export type VideoState = typeof initialState;
 
 /**
  * Return a copy of `current` with all matching annotations in `annotations`
@@ -72,9 +72,9 @@ export type State = typeof initialState;
  * Annotations in `annotations` may be complete annotations or "stubs" with only
  * the `id` field set.
  */
-function excludeAnnotations(
-  current: Annotation[],
-  annotations: AnnotationStub[]
+function excludeVideoAnnotations(
+  current: VideoAnnotation[],
+  annotations: VideoAnnotationStub[]
 ) {
   const ids = new Set();
   const tags = new Set();
@@ -93,11 +93,11 @@ function excludeAnnotations(
   });
 }
 
-function findByID(annotations: Annotation[], id: string) {
+function findByID(annotations: VideoAnnotation[], id: string) {
   return annotations.find(a => a.id === id);
 }
 
-function findByTag(annotations: Annotation[], tag: string) {
+function findByTag(annotations: VideoAnnotation[], tag: string) {
   return annotations.find(a => a.$tag === tag);
 }
 
@@ -113,10 +113,10 @@ function findByTag(annotations: Annotation[], tag: string) {
  * @return - API annotation data with client annotation data merged
  */
 function initializeAnnotation(
-  annotation: Omit<Annotation, '$anchorTimeout'>,
+  annotation: Omit<VideoAnnotation, '$anchorTimeout'>,
   tag: string,
   currentUserId: string | null
-): Annotation {
+): VideoAnnotation {
   let orphan = annotation.$orphan;
 
   if (!annotation.id) {
@@ -125,9 +125,9 @@ function initializeAnnotation(
   }
 
   let $cluster: HighlightCluster = 'other-content';
-  if (annotation.user === currentUserId) {
-    $cluster = isHighlight(annotation) ? 'user-highlights' : 'user-annotations';
-  }
+  // if (annotation.user === currentUserId) {
+  //   $cluster = isHighlight(annotation) ? 'user-highlights' : 'user-annotations';
+  // }
 
   return Object.assign({}, annotation, {
     $anchorTimeout: false,
@@ -138,14 +138,14 @@ function initializeAnnotation(
 }
 
 const reducers = {
-  ADD_ANNOTATIONS(
-    state: State,
+  ADD_VIDEO_ANNOTATIONS(
+    state: VideoState,
     action: {
-      annotations: Annotation[];
+      annotations: VideoAnnotation[];
       currentAnnotationCount: number;
       currentUserId: string | null;
     }
-  ): Partial<State> {
+  ): Partial<VideoState> {
     const updatedIDs = new Set();
     const updatedTags = new Set();
 
@@ -157,10 +157,10 @@ const reducers = {
     for (const annot of action.annotations) {
       let existing;
       if (annot.id) {
-        existing = findByID(state.annotations, annot.id);
+        existing = findByID(state.videoAnnotations, annot.id);
       }
       if (!existing && annot.$tag) {
-        existing = findByTag(state.annotations, annot.$tag);
+        existing = findByTag(state.videoAnnotations, annot.$tag);
       }
 
       if (existing) {
@@ -181,70 +181,70 @@ const reducers = {
       }
     }
 
-    for (const annot of state.annotations) {
+    for (const annot of state.videoAnnotations) {
       if (!updatedIDs.has(annot.id) && !updatedTags.has(annot.$tag)) {
         unchanged.push(annot);
       }
     }
 
     return {
-      annotations: added.concat(updated).concat(unchanged),
+      videoAnnotations: added.concat(updated).concat(unchanged),
       nextTag,
     };
   },
 
-  CLEAR_ANNOTATIONS(): Partial<State> {
-    return { annotations: [], highlighted: {}, hovered: {} };
+  CLEAR_VIDEO_ANNOTATIONS(): Partial<VideoState> {
+    return { videoAnnotations: [], highlighted: {}, hovered: {} };
   },
 
-  HOVER_ANNOTATIONS(state: State, action: { tags: string[] }): Partial<State> {
+  HOVER_VIDEO_ANNOTATIONS(state: VideoState, action: { tags: string[] }): Partial<VideoState> {
     return { hovered: toTrueMap(action.tags) };
   },
 
-  HIDE_ANNOTATION(state: State, action: { id: string }): Partial<State> {
-    const anns = state.annotations.map(ann => {
+  HIDE_VIDEO_ANNOTATION(state: VideoState, action: { id: string }): Partial<VideoState> {
+    const anns = state.videoAnnotations.map(ann => {
       if (ann.id !== action.id) {
         return ann;
       }
       return { ...ann, hidden: true };
     });
-    return { annotations: anns };
+    return { videoAnnotations: anns };
   },
 
-  HIGHLIGHT_ANNOTATIONS(
-    state: State,
-    action: Pick<State, 'highlighted'>
-  ): Partial<State> {
+  HIGHLIGHT_VIDEO_ANNOTATIONS(
+    state: VideoState,
+    action: Pick<VideoState, 'highlighted'>
+  ): Partial<VideoState> {
     return { highlighted: action.highlighted };
   },
 
-  REMOVE_ANNOTATIONS(
-    state: State,
+  REMOVE_VIDEO_ANNOTATIONS(
+    state: VideoState,
     action: {
-      annotationsToRemove: AnnotationStub[];
-      remainingAnnotations: Annotation[];
+      annotationsToRemove: VideoAnnotationStub[];
+      remainingAnnotations: VideoAnnotation[];
     }
-  ): Partial<State> {
+  ): Partial<VideoState> {
     return {
-      annotations: [...action.remainingAnnotations],
+      videoAnnotations: [...action.remainingAnnotations],
     };
   },
 
-  UNHIDE_ANNOTATION(state: State, action: { id: string }): Partial<State> {
-    const anns = state.annotations.map(ann => {
+  UNHIDE_VIDEO_ANNOTATION(state: VideoState, action: { id: string }): Partial<VideoState> {
+    const anns = state.videoAnnotations.map(ann => {
       if (ann.id !== action.id) {
         return ann;
       }
       return Object.assign({}, ann, { hidden: false });
     });
-    return { annotations: anns };
+    return { videoAnnotations: anns };
   },
 
   UPDATE_ANCHOR_STATUS(
-    state: State,
+    state: VideoState,
     action: { statusUpdates: AnchorStatusUpdates }
-  ): Partial<State> {
-    const annotations = state.annotations.map(annot => {
+  ): Partial<VideoState> {
+    const videoAnnotations = state.videoAnnotations.map(annot => {
       if (!hasOwn(action.statusUpdates, annot.$tag)) {
         return annot;
       }
@@ -256,14 +256,14 @@ const reducers = {
         return Object.assign({}, annot, { $orphan: state === 'orphan' });
       }
     });
-    return { annotations };
+    return { videoAnnotations };
   },
 
   UPDATE_FLAG_STATUS(
-    state: State,
+    state: VideoState,
     action: { id: string; isFlagged: boolean }
-  ): Partial<State> {
-    const annotations = state.annotations.map(annot => {
+  ): Partial<VideoState> {
+    const videoAnnotations = state.videoAnnotations.map(annot => {
       const match = annot.id && annot.id === action.id;
       if (match) {
         if (annot.flagged === action.isFlagged) {
@@ -285,7 +285,7 @@ const reducers = {
         return annot;
       }
     });
-    return { annotations };
+    return { videoAnnotations };
   },
 };
 
@@ -295,32 +295,32 @@ const reducers = {
  * Add these `annotations` to the current collection of annotations in the
  * store.
  */
-function addAnnotations(annotations: Annotation[]) {
+function addVideoAnnotations(annotations: VideoAnnotation[]) {
   return function (
     dispatch: Dispatch,
     getState: () => {
-      annotations: State;
+      videoAnnotations: VideoState;
       route: RouteState;
       session: SessionState;
     }
   ) {
     annotations = annotations.filter(annot => {
       return (
-        !metadata.isVideoAnnotation(annot)
+        metadata.isVideoAnnotation(annot)
       );
     });
-    const added = annotations.filter(annot => {
+     const added = annotations.filter(annot => {
       return (
-        !annot.id || !findByID(getState().annotations.annotations, annot.id)
+        !annot.id || !findByID(getState().videoAnnotations.videoAnnotations, annot.id)
       );
     });
 
     const profile = sessionModule.selectors.profile(getState().session);
-
+    annotations = added;
     dispatch(
-      makeAction(reducers, 'ADD_ANNOTATIONS', {
+      makeAction(reducers, 'ADD_VIDEO_ANNOTATIONS', {
         annotations,
-        currentAnnotationCount: getState().annotations.annotations.length,
+        currentAnnotationCount: getState().videoAnnotations.videoAnnotations.length,
         currentUserId: profile.userid,
       })
     );
@@ -344,7 +344,7 @@ function addAnnotations(annotations: Annotation[]) {
     if (anchoringIds.length > 0) {
       setTimeout(() => {
         // Find annotations which haven't yet been anchored in the document.
-        const anns = getState().annotations.annotations;
+        const anns = getState().videoAnnotations.videoAnnotations;
         const annsStillAnchoring = anchoringIds
           .map(id => (id ? findByID(anns, id) : null))
           .filter(ann => ann && metadata.isWaitingToAnchor(ann));
@@ -357,23 +357,23 @@ function addAnnotations(annotations: Annotation[]) {
           },
           {} as AnchorStatusUpdates
         );
-        dispatch(updateAnchorStatus(anchorStatusUpdates));
+        dispatch(updateVideoAnchorStatus(anchorStatusUpdates));
       }, ANCHORING_TIMEOUT);
     }
   };
 }
 
 /** Set the currently displayed annotations to the empty set. */
-function clearAnnotations() {
-  return makeAction(reducers, 'CLEAR_ANNOTATIONS', undefined);
+function clearVideoAnnotations() {
+  return makeAction(reducers, 'CLEAR_VIDEO_ANNOTATIONS', undefined);
 }
 
 /**
  * Replace the current set of hovered annotations with the annotations
  * identified by `tags`.
  */
-function hoverAnnotations(tags: string[]) {
-  return makeAction(reducers, 'HOVER_ANNOTATIONS', { tags });
+function hoverVideoAnnotations(tags: string[]) {
+  return makeAction(reducers, 'HOVER_VIDEO_ANNOTATIONS', { tags });
 }
 
 /**
@@ -382,8 +382,8 @@ function hoverAnnotations(tags: string[]) {
  * This updates an annotation to reflect the fact that it has been hidden from
  * non-moderators.
  */
-function hideAnnotation(id: string) {
-  return makeAction(reducers, 'HIDE_ANNOTATION', { id });
+function hideVideoAnnotation(id: string) {
+  return makeAction(reducers, 'HIDE_VIDEO_ANNOTATION', { id });
 }
 
 /**
@@ -394,8 +394,8 @@ function hideAnnotation(id: string) {
  * All provided annotations (`ids`) will be set to `true` in the `highlighted`
  * map.
  */
-function highlightAnnotations(ids: string[]) {
-  return makeAction(reducers, 'HIGHLIGHT_ANNOTATIONS', {
+function highlightVideoAnnotations(ids: string[]) {
+  return makeAction(reducers, 'HIGHLIGHT_VIDEO_ANNOTATIONS', {
     highlighted: toTrueMap(ids),
   });
 }
@@ -406,14 +406,14 @@ function highlightAnnotations(ids: string[]) {
  * @param annotations - Annotations to remove. These may be complete annotations
  *   or stubs which only contain an `id` property.
  */
-export function removeAnnotations(annotations: AnnotationStub[]) {
-  return (dispatch: Dispatch, getState: () => { annotations: State }) => {
-    const remainingAnnotations = excludeAnnotations(
-      getState().annotations.annotations,
+export function removeVideoAnnotations(annotations: VideoAnnotationStub[]) {
+  return (dispatch: Dispatch, getState: () => { videoAnnotations: VideoState }) => {
+    const remainingAnnotations = excludeVideoAnnotations(
+      getState().videoAnnotations.videoAnnotations,
       annotations
     );
     dispatch(
-      makeAction(reducers, 'REMOVE_ANNOTATIONS', {
+      makeAction(reducers, 'REMOVE_VIDEO_ANNOTATIONS', {
         annotationsToRemove: annotations,
         remainingAnnotations,
       })
@@ -427,21 +427,21 @@ export function removeAnnotations(annotations: AnnotationStub[]) {
  * This updates an annotation to reflect the fact that it has been made visible
  * to non-moderators.
  */
-function unhideAnnotation(id: string) {
-  return makeAction(reducers, 'UNHIDE_ANNOTATION', { id });
+function unhideVideoAnnotation(id: string) {
+  return makeAction(reducers, 'UNHIDE_VIDEO_ANNOTATION', { id });
 }
 
 /**
  * Update the anchoring status of an annotation
  */
-function updateAnchorStatus(statusUpdates: AnchorStatusUpdates) {
+function updateVideoAnchorStatus(statusUpdates: AnchorStatusUpdates) {
   return makeAction(reducers, 'UPDATE_ANCHOR_STATUS', { statusUpdates });
 }
 
 /**
  * Updating the flagged status of an annotation.
  */
-function updateFlagStatus(id: string, isFlagged: boolean) {
+function updateVideoFlagStatus(id: string, isFlagged: boolean) {
   return makeAction(reducers, 'UPDATE_FLAG_STATUS', { id, isFlagged });
 }
 
@@ -450,24 +450,24 @@ function updateFlagStatus(id: string, isFlagged: boolean) {
 /**
  * Count the number of annotations (as opposed to notes or orphans)
  */
-const annotationCount = createSelector(
-  (state: State) => state.annotations,
-  annotations => countIf(annotations, metadata.isAnnotation)
-);
+// const annotationCount = createSelector(
+//   (state: VideoState) => state.videoAnnotations,
+//   annotations => countIf(annotations, metadata.isAnnotation)
+// );
 
-function allAnnotations(state: State) {
-  return state.annotations;
+function allVideoAnnotations(state: VideoState) {
+  return state.videoAnnotations;
 }
 
 /**
  * Does the annotation indicated by `id` exist in the collection?
  */
-function annotationExists(state: State, id: string) {
-  return state.annotations.some(annot => annot.id === id);
+function videoAnnotationExists(state: VideoState, id: string) {
+  return state.videoAnnotations.some(annot => annot.id === id);
 }
 
-function findAnnotationByID(state: State, id: string) {
-  return findByID(state.annotations, id);
+function findVideoAnnotationByID(state: VideoState, id: string) {
+  return findByID(state.videoAnnotations, id);
 }
 
 /**
@@ -476,10 +476,10 @@ function findAnnotationByID(state: State, id: string) {
  * If an annotation does not have an ID because it has not been created on
  * the server, there will be no entry for it in the returned array.
  */
-function findIDsForTags(state: State, tags: string[]) {
+function findIDsForTags(state: VideoState, tags: string[]) {
   const ids = [];
   for (const tag of tags) {
-    const annot = findByTag(state.annotations, tag);
+    const annot = findByTag(state.videoAnnotations, tag);
     if (annot && annot.id) {
       ids.push(annot.id);
     }
@@ -490,40 +490,40 @@ function findIDsForTags(state: State, tags: string[]) {
 /**
  * Retrieve currently-hovered annotation identifiers
  */
-const hoveredAnnotations = createSelector(
-  (state: State) => state.hovered,
+const hoveredVideoAnnotations = createSelector(
+  (state: VideoState) => state.hovered,
   hovered => trueKeys(hovered)
 );
 
 /**
  * Retrieve currently-highlighted annotation identifiers
  */
-const highlightedAnnotations = createSelector(
-  (state: State) => state.highlighted,
+const highlightedVideoAnnotations = createSelector(
+  (state: VideoState) => state.highlighted,
   highlighted => trueKeys(highlighted)
 );
 
 /**
  * Is the annotation identified by `$tag` currently hovered?
  */
-function isAnnotationHovered(state: State, $tag: string) {
+function isVideoAnnotationHovered(state: VideoState, $tag: string) {
   return state.hovered[$tag] === true;
 }
 
 /**
  * Are there any annotations still waiting to anchor?
  */
-const isWaitingToAnchorAnnotations = createSelector(
-  (state: State) => state.annotations,
-  annotations => annotations.some(metadata.isWaitingToAnchor)
-);
+// const isWaitingToAnchorAnnotations = createSelector(
+//   (state: VideoState) => state.videoAnnotations,
+//   annotations => annotations.some(metadata.isWaitingToAnchor)
+// );
 
 /**
  * Return all loaded annotations that are not highlights and have not been saved
  * to the server
  */
-const newAnnotations = createSelector(
-  (state: State) => state.annotations,
+const newVideoAnnotations = createSelector(
+  (state: VideoState) => state.videoAnnotations,
   annotations =>
     annotations.filter(ann => metadata.isNew(ann) && !metadata.isHighlight(ann))
 );
@@ -532,63 +532,72 @@ const newAnnotations = createSelector(
  * Return all loaded annotations that are highlights and have not been saved
  * to the server
  */
-const newHighlights = createSelector(
-  (state: State) => state.annotations,
-  annotations =>
-    annotations.filter(ann => metadata.isNew(ann) && metadata.isHighlight(ann))
-);
+// const newHighlights = createSelector(
+//   (state: VideoState) => state.videoAnnotations,
+//   annotations =>
+//     annotations.filter(ann => metadata.isNew(ann) && metadata.isHighlight(ann))
+// );
+
+// /**
+//  * Count the number of page notes currently in the collection
+//  */
+// const noteCount = createSelector(
+//   (state: VideoState) => state.videoAnnotations,
+//   annotations => countIf(annotations, metadata.isPageNote)
+// );
 
 /**
- * Count the number of page notes currently in the collection
+ * Count the number of annotations (as opposed to notes or orphans)
  */
-const noteCount = createSelector(
-  (state: State) => state.annotations,
-  annotations => countIf(annotations, metadata.isPageNote)
+const videoAnnotationCount = createSelector(
+  (state: VideoState) => state.videoAnnotations,
+  annotations => countIf(annotations, metadata.isVideoAnnotation)
 );
 
 /**
  * Count the number of orphans currently in the collection
  */
-const orphanCount = createSelector(
-  (state: State) => state.annotations,
-  annotations => countIf(annotations, metadata.isOrphan)
-);
+// const orphanCount = createSelector(
+//   (state: VideoState) => state.videoAnnotations,
+//   annotations => countIf(annotations, metadata.isOrphan)
+// );
 
 /**
  * Return all loaded annotations which have been saved to the server
  */
-function savedAnnotations(state: State): SavedAnnotation[] {
-  return state.annotations.filter(ann => isSaved(ann)) as SavedAnnotation[];
+function savedVideoAnnotations(state: VideoState): SavedVideoAnnotation[] {
+  return state.videoAnnotations.filter(ann => isSaved(ann)) as SavedVideoAnnotation[];
 }
 
-export const annotationsModule = createStoreModule(initialState, {
-  namespace: 'annotations',
+export const videoAnnotationsModule = createStoreModule(initialState, {
+  namespace: 'videoAnnotations',
   reducers,
   actionCreators: {
-    addAnnotations,
-    clearAnnotations,
-    hoverAnnotations,
-    hideAnnotation,
-    highlightAnnotations,
-    removeAnnotations,
-    unhideAnnotation,
-    updateAnchorStatus,
-    updateFlagStatus,
+    addVideoAnnotations,
+    clearVideoAnnotations,
+    hoverVideoAnnotations,
+    hideVideoAnnotation,
+    highlightVideoAnnotations,
+    removeVideoAnnotations,
+    unhideVideoAnnotation,
+    updateVideoAnchorStatus,
+    updateVideoFlagStatus,
   },
   selectors: {
-    allAnnotations,
-    annotationCount,
-    annotationExists,
-    findAnnotationByID,
+    allVideoAnnotations,
+    // annotationCount,
+    videoAnnotationCount,
+    videoAnnotationExists,
+    findVideoAnnotationByID,
     findIDsForTags,
-    hoveredAnnotations,
-    highlightedAnnotations,
-    isAnnotationHovered,
-    isWaitingToAnchorAnnotations,
-    newAnnotations,
-    newHighlights,
-    noteCount,
-    orphanCount,
-    savedAnnotations,
+    hoveredVideoAnnotations,
+    highlightedVideoAnnotations,
+    isVideoAnnotationHovered,
+    // isWaitingToAnchorAnnotations,
+    newVideoAnnotations,
+    // newHighlights,
+    // noteCount,
+    // orphanCount,
+    savedVideoAnnotations,
   },
 });

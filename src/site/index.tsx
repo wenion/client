@@ -23,6 +23,7 @@ import { APIService } from '../sidebar/services/api';
 import { APIRoutesService } from '../sidebar/services/api-routes';
 import { AuthService } from '../sidebar/services/auth';
 import { AutosaveService } from '../sidebar/services/autosave';
+// import { FileTreeService } from '../sidebar/services/file-tree';
 import { FrameSyncService } from '../sidebar/services/frame-sync';
 import { GroupsService } from '../sidebar/services/groups';
 import { LoadAnnotationsService } from '../sidebar/services/load-annotations';
@@ -37,6 +38,7 @@ import { TagsService } from '../sidebar/services/tags';
 import { ThreadsService } from '../sidebar/services/threads';
 import { ToastMessengerService } from '../sidebar/services/toast-messenger';
 import { QueryService } from '../sidebar/services/query';
+import { VideoAnnotationsService } from '../sidebar/services/video-annotations';
 import { createSidebarStore } from '../sidebar/store';
 import type { SidebarStore } from '../sidebar/store';
 import { disableOpenerForExternalLinks } from '../sidebar/util/disable-opener-for-external-links';
@@ -121,11 +123,13 @@ function startApp(settings: SidebarSettings, appEl: HTMLElement) {
   // Register services.
   container
     .register('annotationsService', AnnotationsService)
+    .register('videoAnnotationsService', VideoAnnotationsService)
     .register('annotationActivity', AnnotationActivityService)
     .register('api', APIService)
     .register('apiRoutes', APIRoutesService)
     .register('auth', AuthService)
     .register('autosaveService', AutosaveService)
+    // .register('fileTreeService', FileTreeService)
     .register('frameSync', FrameSyncService)
     .register('groups', GroupsService)
     .register('loadAnnotationsService', LoadAnnotationsService)
@@ -139,6 +143,7 @@ function startApp(settings: SidebarSettings, appEl: HTMLElement) {
     .register('tags', TagsService)
     .register('threadsService', ThreadsService)
     .register('toastMessenger', ToastMessengerService)
+    // .register('videoAnnotationsService', VideoAnnotationsService)
     .register('queryService', QueryService)
     .register('store', { factory: createSidebarStore });
 

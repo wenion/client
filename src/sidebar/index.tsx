@@ -37,7 +37,8 @@ import { StreamerService } from './services/streamer';
 import { TagsService } from './services/tags';
 import { ThreadsService } from './services/threads';
 import { ToastMessengerService } from './services/toast-messenger';
-import { QueryService } from '../sidebar/services/query';
+import { QueryService } from './services/query';
+import { VideoAnnotationsService } from './services/video-annotations';
 import { createSidebarStore } from './store';
 import type { SidebarStore } from './store';
 import { disableOpenerForExternalLinks } from './util/disable-opener-for-external-links';
@@ -142,6 +143,7 @@ function startApp(settings: SidebarSettings, appEl: HTMLElement) {
     .register('threadsService', ThreadsService)
     .register('toastMessenger', ToastMessengerService)
     .register('queryService', QueryService)
+    .register('videoAnnotationsService', VideoAnnotationsService)
     .register('store', { factory: createSidebarStore });
 
   // Register utility values/classes.

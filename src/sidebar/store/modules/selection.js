@@ -24,6 +24,7 @@ const TAB_SORTKEY_DEFAULT = {
   annotation: 'Location',
   note: 'Oldest',
   orphan: 'Location',
+  videoAnnotation: 'Location',
 };
 
 /** @param {SidebarSettings} settings */

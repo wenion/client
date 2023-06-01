@@ -17,6 +17,8 @@ import { selectionModule } from './modules/selection';
 import { sessionModule } from './modules/session';
 import { sidebarPanelsModule } from './modules/sidebar-panels';
 import { toastMessagesModule } from './modules/toast-messages';
+import { videoAnnotationsModule } from './modules/video-annotations';
+import { videoDraftsModule } from './modules/video-drafts';
 import { viewerModule } from './modules/viewer';
 import { resultModule } from './modules/results';
 import { queryModule } from './modules/query';
@@ -58,6 +60,8 @@ export function createSidebarStore(settings) {
     sessionModule,
     sidebarPanelsModule,
     toastMessagesModule,
+    videoAnnotationsModule,
+    videoDraftsModule,
     viewerModule,
     resultModule,
     queryModule,

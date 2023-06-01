@@ -58,6 +58,12 @@ export type TextPositionSelector = {
   end: number;
 };
 
+export type VideoPositionSelector = {
+  type: 'VideoPositionSelector';
+  start: number;
+  end: number;
+};
+
 /**
  * Selector which identifies a document region using XPaths and character offsets.
  */
@@ -127,6 +133,7 @@ export type Selector =
   | TextPositionSelector
   | RangeSelector
   | EPUBContentSelector
+  | VideoPositionSelector
   | PageSelector;
 
 /**
@@ -364,3 +371,10 @@ export type suggestResult = {
   id : string;
   text: string;
 };
+
+export type VideoAnnotation = Annotation;
+
+/**
+ * An annotation which has been saved to the backend and assigned an ID.
+ */
+export type SavedVideoAnnotation = VideoAnnotation & { id: string };

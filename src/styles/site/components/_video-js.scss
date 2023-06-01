@@ -1,3 +1,18 @@
+.vjs-marker
+{
+  position:absolute;
+  background:red;
+  width:10px;
+  height:10px;
+  top:35%;
+  margin-left:5px;
+}
+
+.vjs-marker:hover span
+{
+  opacity:1;
+}
+
 .vjs-modal-dialog .vjs-modal-dialog-content, .video-js .vjs-modal-dialog, .vjs-button > .vjs-icon-placeholder:before, .video-js .vjs-big-play-button .vjs-icon-placeholder:before {
   position: absolute;
   top: 0;

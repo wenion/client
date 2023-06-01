@@ -11,6 +11,8 @@ export function tabForAnnotation(ann: Annotation): TabName {
     return 'orphan';
   } else if (metadata.isPageNote(ann)) {
     return 'note';
+  } else if (metadata.isVideoAnnotation(ann)) {
+    return 'videoAnnotation';
   } else {
     return 'annotation';
   }

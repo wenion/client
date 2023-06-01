@@ -39,7 +39,6 @@ const reducers = {
     state.response!.context.forEach((innerArray) => {
       let newTopic: Item[] = [];
       innerArray.forEach((item) => {
-        console.log("item", item)
         if (item.id === action.id) {
           newTopic.push({
             ...item,

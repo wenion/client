@@ -1,11 +1,13 @@
 import classnames from 'classnames';
 import { useEffect, useMemo, useRef } from 'preact/hooks';
 import  Router from 'preact-router';
-import type  { VideoJsPlayer, VideoJsPlayerOptions  } from 'video.js';
+import type  { VideoJsPlayer, VideoJsPlayerOptions } from 'video.js';
 import  videojs from 'video.js';
 
 import { confirm } from '../../shared/prompts';
 import type { SidebarSettings } from '../../types/config';
+import type { AnnotationData, DocumentMetadata } from '../../types/annotator';
+import type { VideoAnnotation, VideoPositionSelector } from '../../types/api';
 import { serviceConfig } from '../../sidebar/config/service-config';
 import { shouldAutoDisplayTutorial } from '../../sidebar/helpers/session';
 import { applyTheme } from '../../sidebar/helpers/theme';
@@ -18,25 +20,85 @@ import { useSidebarStore } from '../../sidebar/store';
 import QueryView from './QueryView';
 import VideoView from './VideoView';
 
-import { PortRPC } from '../../shared/messaging';
-import { PortFinder } from '.././helpers/port-finder';
+import type {
+  SidebarToSiteEvent,
+  SiteToSidebarEvent,
+} from '../../types/site-port-rpc-events';
+import { PortRPC, PortFinder } from '../../shared/messaging';
 import type { Profile } from '../../types/api'
 
-const _sidebarRPC = new PortRPC();
+const _sidebarRPC: PortRPC<SidebarToSiteEvent, SiteToSidebarEvent> = new PortRPC();
 const _portFinder = new PortFinder({
   hostFrame: window,
   source: 'site',
   sourceId: undefined,
 });
 
+const anchor = (annotation: AnnotationData) => {
+  if (annotation.target[0] && annotation.target[0].selector && annotation.target[0].selector[0] && annotation.target[0].selector[0].type === 'VideoPositionSelector')
+  {
+    const timestamp = annotation.target[0].selector[0].start;
+    const duration = annotation.target[0].selector[0].end;
+
+    const progessControl = document.querySelector('.vjs-progress-control')
+    if (!progessControl) {
+      return;
+    }
+    if (document.querySelector(`.${annotation.$tag}`)) {
+      return;
+    }
+    const markerEl = document.createElement('div');
+    markerEl.className = classnames(annotation.$tag, 'vjs-marker');
+    markerEl.style.left = (timestamp/duration * 100).toString() + '%'
+    progessControl.appendChild(markerEl);
+    markerEl.addEventListener('click', e => {
+      console.log('test')
+    })
+  }
+  else {
+    return;
+  }
+};
+
+const deleteMarker = ($tag: string) => {
+  let el = document.querySelector(`.${$tag}`)
+  if (el) {
+    el.remove();
+  }
+}
+
 _portFinder.discover('sidebar')
   .then((hostPort) =>{
+    _sidebarRPC.on('loadVideoAnnotations', (annotations: AnnotationData[]) => {
+      annotations.forEach(annotation => anchor(annotation))
+    });
+    _sidebarRPC.on('deleteVideoAnnotation', ($tag: string) => {
+      deleteMarker($tag);
+    });
+    _sidebarRPC.on('publicVideoAnnotationCountChanged', (publicAnns: number) => {
+    });
+    _sidebarRPC.on('doubleClickVideoAnnotation', (annotation: VideoAnnotation) => {
+      if (annotation.target[0] && annotation.target[0].selector &&
+        annotation.target[0].selector[0] && annotation.target[0].selector[0].type === 'VideoPositionSelector') {
+          _player?.currentTime(annotation.target[0].selector[0].start)
+      }
+    });
+    _sidebarRPC.on('mouseEnterVideoAnnotation', (annotation: VideoAnnotation) => {
+      const markerEl = document.querySelector(`.${annotation.$tag}`) as HTMLDivElement
+      if (markerEl) {
+        markerEl.style.background = 'blue';
+      }
+    });
+    _sidebarRPC.on('mouseLeaveVideoAnnotation', (annotation: VideoAnnotation) => {
+      const markerEl = document.querySelector(`.${annotation.$tag}`) as HTMLDivElement
+      if (markerEl) {
+        markerEl.style.background = 'red';
+      }
+    });
     _sidebarRPC.connect(hostPort);
   })
 
-_sidebarRPC.on('updateProfile', (profile: Profile) => {
-  console.log('profile', profile)
-})
+let _player: VideoJsPlayer| null = null;
 
 export type HypothesisAppProps = {
   auth: AuthService;
@@ -62,13 +124,11 @@ function SiteApp({
   const store = useSidebarStore();
   const profile = store.profile();
   const route = store.route();
-  const isModalRoute = route === 'notebook' || route === 'profile';
 
   const backgroundStyle = useMemo(
     () => applyTheme(['appBackgroundColor'], settings),
     [settings]
   );
-  const isThemeClean = settings.theme === 'clean';
 
   const isSidebar = route === 'sidebar';
   const playerRef = useRef<VideoJsPlayer | null>(null);
@@ -77,25 +137,20 @@ function SiteApp({
     controls: true,
     responsive: true,
     fluid: true,
-    sources: [{
-      src: 'http://techslides.com/demos/sample-videos/small.mp4',
-      type: 'video/mp4'
-    }]
+    sources: []
   };
 
   const handlePlayerReady = (player: VideoJsPlayer) => {
     playerRef.current = player;
 
-    console.log("on ready")
+    _player = player;
 
     // You can handle player events here, for example:
     player.on('waiting', () => {
-      videojs.log('player is waiting');
       console.log('player is waiting');
     });
 
     player.on('seeked', () => {
-      videojs.log('player will seeked');
       console.log('player will seeked');
     });
 
@@ -201,9 +256,10 @@ function SiteApp({
           onLogin={login}
           onSignUp={signUp}
           onLogout={logout}
-          isSidebar={isSidebar}
+          onAnchor={anchor}
           options={videoJsOptions}
-          onReady={handlePlayerReady} />
+          onReady={handlePlayerReady}
+          sidebarRPC={_sidebarRPC} />
       </Router>
     </div>
   );

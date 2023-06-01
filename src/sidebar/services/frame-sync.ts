@@ -29,6 +29,7 @@ import type { SidebarStore } from '../store';
 import type { Frame } from '../store/modules/frames';
 import { watch } from '../util/watch';
 import type { AnnotationsService } from './annotations';
+import type { VideoAnnotationsService } from './video-annotations';
 import type { ToastMessengerService } from './toast-messenger';
 
 /**
@@ -103,6 +104,7 @@ function frameForAnnotation(frames: Frame[], ann: Annotation): Frame | null {
  */
 export class FrameSyncService {
   private _annotationsService: AnnotationsService;
+  private _videoAnnotationsService: VideoAnnotationsService;
 
   /**
    * Map of guest frame ID to channel for communicating with guest.
@@ -177,11 +179,13 @@ export class FrameSyncService {
   constructor(
     $window: Window,
     annotationsService: AnnotationsService,
+    videoAnnotationsService: VideoAnnotationsService,
     store: SidebarStore,
     toastMessenger: ToastMessengerService
   ) {
     this._window = $window;
     this._annotationsService = annotationsService;
+    this._videoAnnotationsService = videoAnnotationsService;
     this._store = store;
     this._toastMessenger = toastMessenger;
     this._portFinder = new PortFinder({
@@ -212,6 +216,7 @@ export class FrameSyncService {
 
     this._setupSyncToGuests();
     this._setupHostEvents();
+    this._setupSiteEvents();
     this._setupFeatureFlagSync();
     this._setupToastMessengerEvents();
   }
@@ -522,6 +527,122 @@ export class FrameSyncService {
       this._highlightsVisible = visible;
       this._guestRPC.forEach(rpc => rpc.call('setHighlightsVisible', visible));
     });
+  }
+
+  /**
+   * Listen for messages coming from the site frame.
+   */
+  private _setupSiteEvents() {
+    let prevPublicAnns = 0;
+
+    // A new video annotation was created in the sitepage.
+    this._siteRPC.on('createVideoAnnotation', (annot: AnnotationData) => {
+      // If user is not logged in, we can't really create a meaningful highlight
+      // or annotation. Instead, we need to open the sidebar, show an error,
+      // and delete the (unsaved) annotation so it gets un-selected in the
+      // target document
+      if (!this._store.isLoggedIn()) {
+        this._hostRPC.call('openSidebar');
+        this._store.openSidebarPanel('loginPrompt');
+        // TODO this._guestRPC.forEach(rpc => rpc.call('deleteAnnotation', annot.$tag));
+        return;
+      }
+      // this._inFrame.add(annot.$tag);
+
+      this._hostRPC.call('openSidebar');
+
+      this._videoAnnotationsService.create(annot);
+    });
+
+    /**
+     * Handle annotations or frames being added or removed in the store.
+     */
+    const onStoreVideoAnnotationsChanged = (
+      annotations: Annotation[],
+      frames: Frame[],
+      prevAnnotations: Annotation[]
+    ) => {
+      let publicAnns = 0;
+      const inSidebar = new Set<string>();
+      const added = [] as Annotation[];
+
+      // Determine which annotations have been added or deleted in the sidebar.
+      annotations.forEach(annot => {
+        if (isReply(annot)) {
+          // The frame does not need to know about replies
+          return;
+        }
+
+        if (isPublic(annot)) {
+          ++publicAnns;
+        }
+
+        inSidebar.add(annot.$tag);
+        added.push(annot);
+      });
+      const deleted = prevAnnotations.filter(
+        annot => !inSidebar.has(annot.$tag)
+      );
+
+      // Send added annotations to matching frame.
+      if (added.length > 0) {
+        const addedByFrame = new Map<string | null, Annotation[]>();
+
+        // List of annotations to immediately mark as anchored, as opposed to
+        // waiting for the guest to report the status. This is used for
+        // annotations associated with content that is different from what is
+        // currently loaded in the guest frame (eg. different EPUB chapter).
+        //
+        // For these annotations, we optimistically assume they will anchor
+        // when the appropriate content is loaded.
+        const anchorImmediately = [];
+
+        for (const annotation of added) {
+          const frame = frameForAnnotation(frames, annotation);
+          if (
+            !frame ||
+            (frame.segment &&
+              !annotationMatchesSegment(annotation, frame.segment))
+          ) {
+            anchorImmediately.push(annotation.$tag);
+            continue;
+          }
+          const anns = addedByFrame.get(frame.id) ?? [];
+          anns.push(annotation);
+          addedByFrame.set(frame.id, anns);
+        }
+
+        for (const [frameId, anns] of addedByFrame) {
+          this._siteRPC.call('loadVideoAnnotations', anns.map(formatAnnot));
+        }
+      }
+
+      // Remove deleted annotations from frames.
+      deleted.forEach(annot => {
+        // Delete from all frames. If a guest is not displaying a particular
+        // annotation, it will just ignore the request.
+        this._siteRPC.call('deleteVideoAnnotation', annot.$tag);
+        this._inFrame.delete(annot.$tag);
+      });
+
+      // Update elements in host page which display annotation counts.
+      if (frames.length > 0) {
+        if (frames.every(frame => frame.isAnnotationFetchComplete)) {
+          if (publicAnns === 0 || publicAnns !== prevPublicAnns) {
+            this._siteRPC.call('publicVideoAnnotationCountChanged', publicAnns);
+            prevPublicAnns = publicAnns;
+          }
+        }
+      }
+    };
+
+    watch(
+      this._store.subscribe,
+      () => [this._store.allVideoAnnotations(), this._store.frames()] as const,
+      ([annotations, frames], [prevAnnotations]) => {
+      onStoreVideoAnnotationsChanged(annotations, frames, prevAnnotations)},
+      shallowEqual
+    );
   }
 
   /**

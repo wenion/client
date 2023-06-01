@@ -52,7 +52,8 @@ export class PortFinder {
       (this._source === 'guest' && target === 'host') ||
       (this._source === 'guest' && target === 'sidebar') ||
       (this._source === 'sidebar' && target === 'host') ||
-      (this._source === 'notebook' && target === 'sidebar')
+      (this._source === 'notebook' && target === 'sidebar') ||
+      (this._source === 'site' && target === 'sidebar')
     ) {
       isValidRequest = true;
     }

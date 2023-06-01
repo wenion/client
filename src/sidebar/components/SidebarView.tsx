@@ -12,7 +12,9 @@ import LoginPromptPanel from './LoginPromptPanel';
 import SelectionTabs from './SelectionTabs';
 import SidebarContentError from './SidebarContentError';
 import ThreadList from './ThreadList';
+import VideoThreadList from './VideoThreadList';
 import { useRootThread } from './hooks/use-root-thread';
+import { useRootVideoThread } from './hooks/use-root-video-thread';
 
 export type SidebarViewProps = {
   onLogin: () => void;
@@ -35,6 +37,7 @@ function SidebarView({
   streamer,
 }: SidebarViewProps) {
   const rootThread = useRootThread();
+  const rootVideoThread = useRootVideoThread();
 
   // Store state values
   const store = useSidebarStore();
@@ -53,6 +56,7 @@ function SidebarView({
     : 'annotation';
 
   const searchUris = store.searchUris();
+  const selectedTab = store.selectedTab();
   const sidebarHasOpened = store.hasSidebarOpened();
   const userId = store.profile().userid;
 
@@ -144,7 +148,11 @@ function SidebarView({
         <SidebarContentError errorType="group" onLoginRequest={onLogin} />
       )}
       {showTabs && <SelectionTabs isLoading={isLoading} />}
-      <ThreadList threads={rootThread.children} />
+      {selectedTab === 'videoAnnotation' ? (
+          <VideoThreadList threads={rootVideoThread.children} />
+        ) : (
+          <ThreadList threads={rootThread.children} />
+      )}
       {showLoggedOutMessage && <LoggedOutMessage onLogin={onLogin} />}
     </div>
   );
