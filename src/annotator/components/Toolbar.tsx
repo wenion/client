@@ -31,7 +31,6 @@ type ToolbarButtonProps = PresentationalProps &
  * Style an IconButton for use on the Toolbar
  */
 function ToolbarButton({ icon: Icon, isActivated=false, ...buttonProps}: ToolbarButtonProps) {
-  console.log('isActivated', isActivated)
   return (
     <ButtonBase
       classes={classnames(
