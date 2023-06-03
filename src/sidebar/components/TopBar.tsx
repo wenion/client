@@ -1,5 +1,4 @@
 import {
-  FolderIcon,
   GlobeAltIcon,
   HelpIcon,
   IconButton,
@@ -20,7 +19,6 @@ import GroupList from './GroupList';
 import PendingUpdatesButton from './PendingUpdatesButton';
 import SearchInput from './SearchInput';
 import SortMenu from './SortMenu';
-import ThirdPartyMenu from './ThirdPartyMenu';
 import StreamSearchInput from './StreamSearchInput';
 import UserMenu from './UserMenu';
 
@@ -140,7 +138,7 @@ function TopBar({
                 onSearch={store.setFilterQuery}
               />
               <SortMenu />
-              <ThirdPartyMenu />
+              {/* <ThirdPartyMenu /> */}
             </>
           )}
           <IconButton

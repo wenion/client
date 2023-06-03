@@ -23,7 +23,7 @@ import { APIService } from '../sidebar/services/api';
 import { APIRoutesService } from '../sidebar/services/api-routes';
 import { AuthService } from '../sidebar/services/auth';
 import { AutosaveService } from '../sidebar/services/autosave';
-// import { FileTreeService } from '../sidebar/services/file-tree';
+import { FileTreeService } from '../sidebar/services/file-tree';
 import { FrameSyncService } from '../sidebar/services/frame-sync';
 import { GroupsService } from '../sidebar/services/groups';
 import { LoadAnnotationsService } from '../sidebar/services/load-annotations';
@@ -123,13 +123,13 @@ function startApp(settings: SidebarSettings, appEl: HTMLElement) {
   // Register services.
   container
     .register('annotationsService', AnnotationsService)
-    .register('videoAnnotationsService', VideoAnnotationsService)
+    // .register('videoAnnotationsService', VideoAnnotationsService)
     .register('annotationActivity', AnnotationActivityService)
     .register('api', APIService)
     .register('apiRoutes', APIRoutesService)
     .register('auth', AuthService)
     .register('autosaveService', AutosaveService)
-    // .register('fileTreeService', FileTreeService)
+    .register('fileTreeService', FileTreeService)
     .register('frameSync', FrameSyncService)
     .register('groups', GroupsService)
     .register('loadAnnotationsService', LoadAnnotationsService)
@@ -143,7 +143,7 @@ function startApp(settings: SidebarSettings, appEl: HTMLElement) {
     .register('tags', TagsService)
     .register('threadsService', ThreadsService)
     .register('toastMessenger', ToastMessengerService)
-    // .register('videoAnnotationsService', VideoAnnotationsService)
+    .register('videoAnnotationsService', VideoAnnotationsService)
     .register('queryService', QueryService)
     .register('store', { factory: createSidebarStore });
 

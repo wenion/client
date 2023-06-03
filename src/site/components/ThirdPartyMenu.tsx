@@ -1,11 +1,11 @@
 import { SocialFacebookIcon } from '@hypothesis/frontend-shared';
 
-import { useSidebarStore } from '../store';
-import { withServices } from '../service-context';
-import { FileTreeService } from '../services/file-tree';
-import type { FrameSyncService } from '../services/frame-sync';
-import Menu from './Menu';
-import MenuItem from './MenuItem';
+import { useSidebarStore } from '../../sidebar/store';
+import { withServices } from '../../sidebar/service-context';
+import { FileTreeService } from '../../sidebar/services/file-tree';
+import type { FrameSyncService } from '../../sidebar/services/frame-sync';
+import Menu from '../../sidebar/components/Menu';
+import MenuItem from '../../sidebar/components/MenuItem';
 
 export type ThirdPartyMenuProps = {
   // injected
@@ -19,7 +19,6 @@ export type ThirdPartyMenuProps = {
 export function ThirdPartyMenu({fileTreeService, frameSync,}: ThirdPartyMenuProps) {
   const store = useSidebarStore();
   const sortKeysAvailable = ['import from Google drive', 'import from Slack'];
-  const mainFrame = store.mainFrame();
 
   const onClick = async (option: string) => {
     const link = await fileTreeService.getClientURL();
@@ -28,14 +27,14 @@ export function ThirdPartyMenu({fileTreeService, frameSync,}: ThirdPartyMenuProp
       return;
     }
       
-    if (mainFrame?.uri != link) {
+    if (!window.location.href.startsWith(link)) {
       alert('We need to redirect to homepage to require Google drive access. Please click the button again');
-      window.parent.location = link;
+      window.location.href = link;
     }
     else {
       if (option == 'import from Google drive') {
-        frameSync.notifyHost('closeSidebar');
-        window.parent.postMessage('Google drive auth', link);
+        // frameSync.notifyHost('closeSidebar');
+        window.postMessage('Google drive auth', link);
       }
     }
   }
@@ -48,7 +47,6 @@ export function ThirdPartyMenu({fileTreeService, frameSync,}: ThirdPartyMenuProp
         link: [{href: event.data.data.docs[0].embedUrl}],
       }
       fileTreeService.uploadFile(event.data.blob, meta);
-
     }
   });
 

@@ -19,6 +19,7 @@ import type { ToastMessengerService } from '../../sidebar/services/toast-messeng
 import { useSidebarStore } from '../../sidebar/store';
 import QueryView from './QueryView';
 import VideoView from './VideoView';
+import FileTreeView from './FileTreeView';
 
 import type {
   SidebarToSiteEvent,
@@ -260,6 +261,10 @@ function SiteApp({
           options={videoJsOptions}
           onReady={handlePlayerReady}
           sidebarRPC={_sidebarRPC} />
+        <FileTreeView path="/files"
+          onLogin={login}
+          onSignUp={signUp}
+          onLogout={logout} />
       </Router>
     </div>
   );

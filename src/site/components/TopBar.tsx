@@ -1,4 +1,6 @@
 import {
+  FolderIcon,
+  IconButton,
   LinkButton,
 } from '@hypothesis/frontend-shared';
 import { useEffect, useRef } from 'preact/hooks';
@@ -6,9 +8,11 @@ import { useEffect, useRef } from 'preact/hooks';
 import type { SidebarSettings } from '../../types/config';
 import { applyTheme } from '../../sidebar/helpers/theme';
 import { withServices } from '../../sidebar/service-context';
-import type { QueryService } from '../../sidebar/services/query';
+import type { FileTreeService } from '../../sidebar/services/file-tree';
 import type { FrameSyncService } from '../../sidebar/services/frame-sync';
+import type { QueryService } from '../../sidebar/services/query';
 import { useSidebarStore } from '../../sidebar/store';
+import ThirdPartyMenu from './ThirdPartyMenu';
 import Search from './Search';
 import UserMenu from './UserMenu';
 import LogoIcon from '../static/logo-monash';
@@ -27,6 +31,7 @@ export type TopBarProps = {
   onSignUp: () => void;
 
   // injected
+  fileTreeService: FileTreeService;
   frameSync: FrameSyncService;
   queryService: QueryService;
   settings: SidebarSettings;
@@ -52,6 +57,10 @@ function TopBar({
   const hasFetchedProfile = store.hasFetchedProfile();
   const inputRef = useRef<HTMLInputElement | null>(null);
 
+  const toggleFileTreeView = () => {
+    window.location.href = '/files';
+  };
+
   const param = window.location.search.match(/[\?&]q=([^&]+)/);
   useEffect(() => {
     if (param) {
@@ -72,7 +81,19 @@ function TopBar({
           <Search inputRef={inputRef} />
           <nav className="nav-bar-links mx-14">
             {isLoggedIn ? (
-              <UserMenu onLogout={onLogout} />
+              <>
+                <ThirdPartyMenu />
+                <span class='p-1'>
+                  <IconButton
+                    icon={FolderIcon}
+                    // expanded={isFileTreePanelOpen}
+                    onClick={toggleFileTreeView}
+                    size="xs"
+                    title="Browser cloud repository"
+                  />
+                </span>
+                <UserMenu onLogout={onLogout} />
+              </>
             ) : (
               <div
                 className="flex items-center text-md font-medium space-x-1 nav-bar-links__item"
@@ -107,4 +128,4 @@ function TopBar({
   );
 }
 
-export default withServices(TopBar, ['frameSync', 'settings', 'queryService']);
+export default withServices(TopBar, ['fileTreeService', 'frameSync', 'settings', 'queryService']);
