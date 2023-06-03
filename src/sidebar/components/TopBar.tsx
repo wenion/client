@@ -1,8 +1,8 @@
 import {
-  GlobeAltIcon,
-  HelpIcon,
   IconButton,
+  GlobeAltIcon,
   LinkButton,
+  HelpIcon,
   ShareIcon,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
@@ -12,7 +12,7 @@ import { serviceConfig } from '../config/service-config';
 import { isThirdPartyService } from '../helpers/is-third-party-service';
 import { applyTheme } from '../helpers/theme';
 import { withServices } from '../service-context';
-import { FileTreeService } from '../services/file-tree';
+import type { FileTreeService } from '../services/file-tree';
 import type { FrameSyncService } from '../services/frame-sync';
 import { useSidebarStore } from '../store';
 import GroupList from './GroupList';
@@ -65,10 +65,6 @@ function TopBar({
   const toggleSharePanel = () => {
     store.toggleSidebarPanel('shareGroupAnnotations');
   };
-
-  const toggleFileTreePanel = () => {
-    store.toggleSidebarPanel('fileTree');
-  }
 
   const toggleSavePanel = (e: Event) => {
     fileTreeService.uploadFile();
@@ -124,12 +120,6 @@ function TopBar({
               <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M816-672v456q0 29.7-21.15 50.85Q773.7-144 744-144H216q-29.7 0-50.85-21.15Q144-186.3 144-216v-528q0-29.7 21.15-50.85Q186.3-816 216-816h456l144 144Zm-72 30L642-744H216v528h528v-426ZM480-252q45 0 76.5-31.5T588-360q0-45-31.5-76.5T480-468q-45 0-76.5 31.5T372-360q0 45 31.5 76.5T480-252ZM264-552h336v-144H264v144Zm-48-77v413-528 115Z"/></svg>
             </span>
           </button>
-          {/* <IconButton
-            icon={ShareIcon}
-            onClick={toggleSavePanel}
-            size="xs"
-            title="Save the page to your repository"
-          /> */}
           {isSidebar && (
             <>
               <PendingUpdatesButton />
@@ -138,7 +128,15 @@ function TopBar({
                 onSearch={store.setFilterQuery}
               />
               <SortMenu />
-              {/* <ThirdPartyMenu /> */}
+              {showSharePageButton && (
+                <IconButton
+                  icon={ShareIcon}
+                  expanded={isAnnotationsPanelOpen}
+                  onClick={toggleSharePanel}
+                  size="xs"
+                  title="Share annotations on this page"
+                />
+              )}
             </>
           )}
           <IconButton
