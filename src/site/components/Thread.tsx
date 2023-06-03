@@ -11,6 +11,7 @@ import { useEffect, useLayoutEffect, useMemo, useState } from 'preact/hooks';
 
 import type { Thread as IThread } from '../helpers/build-thread';
 import { withServices } from '../../sidebar/service-context';
+import type { FrameSyncService } from '../../sidebar/services/frame-sync';
 import type { QueryService } from '../../sidebar/services/query';
 import type { ThreadsService } from '../../sidebar/services/threads';
 import MarkdownView from './MarkdownView';
@@ -19,6 +20,7 @@ export type ThreadProps = {
   thread: IThread;
 
   // injected
+  frameSync: FrameSyncService;
   threadsService: ThreadsService;
   queryService: QueryService;
 };
@@ -29,6 +31,13 @@ export type ThreadProps = {
  *
  */
 function Thread({ thread, threadsService, queryService}: ThreadProps) {
+  const onClickResult = (thread: IThread) => {
+    console.log('onClickResult thread', thread)
+    if (thread.url) {
+      window.location.href = thread.url;
+    }
+  }
+
   return (
     <>
       <div class="flex min-h-max">
@@ -59,11 +68,12 @@ function Thread({ thread, threadsService, queryService}: ThreadProps) {
                 data-testid="thread-content"
               >
                 {thread.url? (
-                  <a href={thread.url}>
-                    <h1 class="text-2xl font-robo">
-                      {thread.title}
-                    </h1>
-                  </a>
+                  <h1
+                    class="text-2xl font-robo finger-cursor hover:text-red-400"
+                    onClick={() => onClickResult(thread)}
+                  >
+                    {thread.title}
+                  </h1>
                 ) : (
                   <h1 class="text-2xl font-robo">
                     {thread.title}
@@ -93,4 +103,4 @@ function Thread({ thread, threadsService, queryService}: ThreadProps) {
   );
 }
 
-export default withServices(Thread, ['threadsService', 'queryService']);
+export default withServices(Thread, ['frameSync', 'threadsService', 'queryService']);
