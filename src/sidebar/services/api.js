@@ -364,6 +364,23 @@ export class APIService {
     this.typing = /** @type {APICall<{ q: string }, void, TypingResponse[]>} */ (
       apiCall('typing')
     );
+
+    /**
+     * @typedef RecommandationData
+     * @prop {string} id
+     * @prop {string} url
+     * @prop {string} type
+     * @prop {string} title
+     * @prop {string} context
+     *
+     */
+    this.push_recommandation = /** @type {APICall<{}, RecommandationData>} */ (
+      apiCall('push_recommandation')
+    );
+
+    this.pull_recommandation = /** @type {APICall<{url: string}, void, RecommandationData>} */ (
+      apiCall('pull_recommandation')
+    );
   }
 
   /**

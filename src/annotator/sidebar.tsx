@@ -367,6 +367,11 @@ export class Sidebar implements Destroyable {
     sidebarTrigger(document.body, () => this.open());
 
     this._sidebarRPC.on(
+      'pullRecommandation',
+      (data: {id:string, title: string, context: string}) => {this.notification.addMessage(data);}
+    );
+
+    this._sidebarRPC.on(
       'featureFlagsUpdated',
       (flags: Record<string, boolean>) => this.features.update(flags)
     );

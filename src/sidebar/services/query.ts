@@ -20,6 +20,10 @@ export class QueryService {
     this._store = store;
   }
 
+  async getRecommandation(url: string) {
+    return await this._api.pull_recommandation({url: encodeURIComponent(url)});
+  }
+
   getQueryWord() {
     return this._store.queryingWord();
   }
@@ -64,4 +68,9 @@ export class QueryService {
     let result = await this._api.typing({q: query});
     this._store.addSuggestResults(result);
   }
+
+  async pushRecommandation(data: {id:string, title:string, context:string, type:string, url:string}) {
+    let result = await this._api.push_recommandation({}, data);
+  }
+
 }

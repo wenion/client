@@ -54,6 +54,9 @@ export class NotificationController {
   }
 
   addMessage(newMessage: Data) {
+    if (newMessage.id === '') {
+      return;
+    }
     this.currentMessageList.map(child => {
       child.isLatest = false;
     })

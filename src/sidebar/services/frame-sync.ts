@@ -733,6 +733,10 @@ export class FrameSyncService {
     this._siteRPC.call(method, ...args);
   }
 
+  notification(data: {id:string, title: string, context: string}) {
+    this._hostRPC.call('pullRecommandation', data);
+  }
+
   /**
    * Mark annotation as hovered.
    *

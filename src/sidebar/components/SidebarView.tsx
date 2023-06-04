@@ -4,6 +4,7 @@ import { tabForAnnotation } from '../helpers/tabs';
 import { withServices } from '../service-context';
 import type { FrameSyncService } from '../services/frame-sync';
 import type { LoadAnnotationsService } from '../services/load-annotations';
+import type { QueryService } from '../services/query';
 import type { StreamerService } from '../services/streamer';
 import { useSidebarStore } from '../store';
 import FilterStatus from './FilterStatus';
@@ -22,6 +23,7 @@ export type SidebarViewProps = {
 
   // injected
   frameSync: FrameSyncService;
+  queryService: QueryService;
   loadAnnotationsService: LoadAnnotationsService;
   streamer: StreamerService;
 };
@@ -34,6 +36,7 @@ function SidebarView({
   onLogin,
   onSignUp,
   loadAnnotationsService,
+  queryService,
   streamer,
 }: SidebarViewProps) {
   const rootThread = useRootThread();
@@ -109,6 +112,12 @@ function SidebarView({
         uris: searchUris,
       });
     }
+    const mainFrame = store.mainFrame();
+    if (mainFrame && mainFrame.uri){
+      queryService.getRecommandation(mainFrame.uri).then(
+        result => frameSync.notification(result)
+      )
+    }
   }, [store, loadAnnotationsService, focusedGroupId, userId, searchUris]);
 
   // When a `linkedAnnotationAnchorTag` becomes available, scroll to it
@@ -161,5 +170,6 @@ function SidebarView({
 export default withServices(SidebarView, [
   'frameSync',
   'loadAnnotationsService',
+  'queryService',
   'streamer',
 ]);
