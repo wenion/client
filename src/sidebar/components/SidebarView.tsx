@@ -114,7 +114,7 @@ function SidebarView({
     }
     const mainFrame = store.mainFrame();
     if (mainFrame && mainFrame.uri){
-      queryService.getRecommandation(mainFrame.uri).then(
+      queryService.getRecommendation(mainFrame.uri).then(
         result => frameSync.notification(result)
       )
     }

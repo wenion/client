@@ -31,7 +31,7 @@ export type ThreadProps = {
 function Thread({ thread, threadsService, queryService}: ThreadProps) {
   const onClickResult = (thread: IThread) => {
     if (thread.url) {
-      queryService.pushRecommandation({
+      queryService.pushRecommendation({
         id: thread.id,
         title: 'Highlights',
         context: thread.highlights,

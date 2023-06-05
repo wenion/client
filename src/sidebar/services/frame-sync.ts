@@ -734,7 +734,7 @@ export class FrameSyncService {
   }
 
   notification(data: {id:string, title: string, context: string}) {
-    this._hostRPC.call('pullRecommandation', data);
+    this._hostRPC.call('pullRecommendation', data);
   }
 
   /**

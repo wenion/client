@@ -366,7 +366,7 @@ export class APIService {
     );
 
     /**
-     * @typedef RecommandationData
+     * @typedef RecommendationData
      * @prop {string} id
      * @prop {string} url
      * @prop {string} type
@@ -374,12 +374,12 @@ export class APIService {
      * @prop {string} context
      *
      */
-    this.push_recommandation = /** @type {APICall<{}, RecommandationData>} */ (
-      apiCall('push_recommandation')
+    this.push_recommendation = /** @type {APICall<{}, RecommendationData>} */ (
+      apiCall('push_recommendation')
     );
 
-    this.pull_recommandation = /** @type {APICall<{url: string}, void, RecommandationData>} */ (
-      apiCall('pull_recommandation')
+    this.pull_recommendation = /** @type {APICall<{url: string}, void, RecommendationData>} */ (
+      apiCall('pull_recommendation')
     );
   }
 

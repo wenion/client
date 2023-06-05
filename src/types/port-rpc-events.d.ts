@@ -165,7 +165,7 @@ export type SidebarToGuestEvent =
  * Events that the sidebar sends to the host
  */
 export type SidebarToHostEvent =
-  |'pullRecommandation'
+  |'pullRecommendation'
   /**
    * The sidebar relays to the host to close the sidebar.
    */
