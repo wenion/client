@@ -128,8 +128,11 @@ function FileTreeView({
     fileTreeService.goBack();
   }
 
-  const onDeleteClick = (path: string) => {
-    const result = fileTreeService.delete(path);
+  const onDeleteClick = (path: string, filename: string) => {
+    const result = window.confirm('Are you sure you want to delte' + filename +'?')
+    if (result) {
+      fileTreeService.delete(path);
+    }
   }
 
   return (
@@ -146,14 +149,18 @@ function FileTreeView({
             onDrop={onDrop}
             onDragLeave={onDragLeave}
             onDragOver={onDragOver}
+            className={classnames(
+              'w-full mt-8',
+            )}
           >
             {dragging ? (
               <div
-                className={classnames([
-                  'h-[20rem] flex justify-center',
-                ])}
+                className={classnames(
+                  'h-[32rem] flex justify-center',
+                  'bg-clip-padding bg-blue-400 border-4 border-violet-300 border-dashed'
+                )}
               >
-                <h3 className={classnames('text-xl')}>Drop the file over here to upload</h3>
+                <h3 className={classnames('text-4xl text-zinc-500 self-center')}>Drop the file over here to upload</h3>
               </div>
             ) : (
               <Scroll>
@@ -197,7 +204,7 @@ function FileTreeView({
                             </div>
                             <ButtonBase
                               classes={classnames('border bg-grey-0 hover:bg-red-400 m-1' )}
-                              onClick={ () => onDeleteClick(child.path)}>
+                              onClick={ () => onDeleteClick(child.path, child.name)}>
                               <CancelIcon className="w-3 h-3"/>
                             </ButtonBase>
                           </div>
