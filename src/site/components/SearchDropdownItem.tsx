@@ -177,13 +177,15 @@ export default function SearchDropdownItem({
     'w-full nav-bar__search',// min-w-[150px] 
     'flex items-center select-none',
     'border-b',
+    'text-green-700',
+    'font-bold',
     // Set this container as a "group" so that children may style based on its
     // layout state.
     // See https://tailwindcss.com/docs/hover-focus-and-other-states#styling-based-on-parent-state
     'group',
     {
-      'min-h-[30px] font-normal': isSubmenuItem,
-      'min-h-[40px] font-medium': !isSubmenuItem,
+      'min-h-[30px]': isSubmenuItem,
+      'min-h-[40px]': !isSubmenuItem,
       'bg-grey-1 hover:bg-grey-3': isSubmenuItem || isExpanded,
       'bg-white hover:bg-grey-1': !isSubmenuItem && !isExpanded,
       // visual "padding" on the right is part of SubmenuToggle when rendered,
@@ -199,8 +201,8 @@ export default function SearchDropdownItem({
       'pl-[4px]': !isSelected,
       'border-b-grey-3': isExpanded,
       'border-b-transparent': !isExpanded,
-      'text-color-text-light': isDisabled,
-      'text-color-text': !isDisabled,
+      // 'text-color-text-light': isDisabled,
+      // 'text-color-text': !isDisabled,
     }
   );
 
