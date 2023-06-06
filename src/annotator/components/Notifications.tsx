@@ -3,6 +3,8 @@ import { Panel } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import type { JSX, RefObject } from 'preact';
 
+import MarkdownView from './MarkdownView';
+
 export type Data = {
   id: string;
   title: string;
@@ -33,13 +35,17 @@ export default function Notification({
   return (
     <div
       className={classnames(
-        'absolute -left-96 w-80 top-2 rounded-lg z-2',
+        'absolute -left-96 w-96 top-2 rounded-lg z-2',
         'text-px-base leading-none' // non-scaling sizing
       )}
       ref={notification.element}
     >
       <Panel title={notification.data.title} onClose={()=> onClose(notification)}>
-        {notification.data.context}
+        <MarkdownView
+          markdown={notification.data.context}
+          classes="text-lg leading-relaxed font-sans"
+          // style={textStyle}
+        />
       </Panel>
     </div>
   );

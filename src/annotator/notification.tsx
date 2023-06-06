@@ -43,7 +43,6 @@ export class NotificationController {
   }
 
   onClose(element: NotificationElement) {
-    console.log('close', element);
     element.element.current?.remove();
     element.element.current = null;
   }
