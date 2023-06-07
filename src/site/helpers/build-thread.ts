@@ -38,6 +38,13 @@ function getWrongResponse(status: string) {
   return true;
 }
 
+function processHighlight(context: string) {
+  if (context && context.includes("\n")) {
+    context = "* "+ context.replace(/\n/g, "\n* ");
+  }
+  return context;
+}
+
 /**
  * Transfer Response format to Thread format.
  */
@@ -67,7 +74,7 @@ export function convertResponseToThread() {
             url: item.metadata.url ? item.metadata.url : item.metadata['video url'],
 
             summary: item.metadata.summary ? item.metadata.summary : getFirst100Words(item.page_content),
-            highlights: item.metadata.highlights,
+            highlights: processHighlight(item.metadata.highlights),
             repository: item.metadata.repository ? item.metadata.repository : "",
           })
         });
