@@ -79,9 +79,11 @@ export class FileTreeService {
 
   /* upload file to repository*/
   async uploadFile(data?: Blob, metadata?: DocumentMetadata) {
+    /** for drag file */
     if (data && metadata) {
       return this._api.upload({}, data, metadata);
     }
+    /** the file from Google drive */
     const mainFrame = this._store.mainFrame();
     if (mainFrame && mainFrame.uri) {
       fetch(mainFrame!.uri)

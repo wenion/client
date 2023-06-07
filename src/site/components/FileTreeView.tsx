@@ -85,12 +85,17 @@ function FileTreeView({
           const link: Link = {
             href: '',
           }
-          const metadata: DocumentMetadata = {
-            title: file!.name,
-            link: [link,],
-          };
-          fileTreeService.uploadFile(file!, metadata);
-          console.log(">>>> test >>>>>",file)
+          if (file) {
+            fileTreeService.uploadFile(
+              file, {
+              title: file.name,
+              link: [link,],
+            }).then(
+              response => {
+                console.log(">>>> test >>>>>",file)
+              }
+            )
+          }
         }
       });
     }
@@ -129,7 +134,7 @@ function FileTreeView({
   }
 
   const onDeleteClick = (path: string, filename: string) => {
-    const result = window.confirm('Are you sure you want to delte' + filename +'?')
+    const result = window.confirm('Are you sure you want to delte "' + filename +'"?')
     if (result) {
       fileTreeService.delete(path);
     }
