@@ -1,5 +1,5 @@
 import {Table, TableHead, TableBody, TableRow, Scroll, Input } from '@hypothesis/frontend-shared';
-import {FolderIcon, FilePdfIcon, LinkIcon, ButtonBase, CancelIcon} from '@hypothesis/frontend-shared';
+import {FolderIcon, FilePdfIcon, LinkIcon, ButtonBase, CancelIcon, SpinnerSpokesIcon} from '@hypothesis/frontend-shared';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import classnames from 'classnames';
 
@@ -12,28 +12,6 @@ import type { ToastMessengerService } from '../../sidebar/services/toast-messeng
 import { useSidebarStore } from '../../sidebar/store';
 import TopBar from './TopBar';
 
-export type Link = {
-  rel?: string;
-  type?: string;
-  href: string;
-};
-
-export type DocumentMetadata = {
-  title: string;
-  link: Link[];
-
-  // HTML only
-  dc?: Record<string, string[]>;
-  eprints?: Record<string, string[]>;
-  facebook?: Record<string, string[]>;
-  highwire?: Record<string, string[]>;
-  prism?: Record<string, string[]>;
-  twitter?: Record<string, string[]>;
-  favicon?: string;
-
-  // HTML + PDF
-  documentFingerprint?: string;
-};
 
 export type FileNode = {
   id : string;
@@ -79,11 +57,13 @@ function FileTreeView({
   const fileTree = store.getFileTree();
 
   const [dragging, setDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [clickTimes, setClickTimes] = useState(0);
 
   const currentTree = useMemo(() => {
     const ret = find(fileTree, currentPath);
     return ret;
-  }, [currentPath]);
+  }, [currentPath, fileTree, clickTimes]);
 
   function joinPaths(...segments: string[]): string{
     return segments.join('/').replace(/\/{2,}/g, '/');
@@ -125,14 +105,26 @@ function FileTreeView({
             href: '',
           }
           if (file) {
+            setIsUploading(true);
             fileTreeService.uploadFile(
               file, {
-              title: file.name,
-              link: [link,],
+                id: currentPath,
+                depth: currentTree? currentTree.depth : 0,
+                name: file.name,
+                path: joinPaths(currentPath, file.name),
+                type:"file",
+                children:[],
             }).then(
               response => {
-                console.log(">>>> test >>>>>",file)
+                console.log(">>>> test >>>>>",file, response)
+                if (response.succ) {
+                  fileTreeService.addFileNode(response.succ, response.succ.id)
+                }
               }
+            ).catch(
+              error => console.log("upload error", error)
+            ).finally(() =>
+              {setIsUploading(false);}
             )
           }
         }
@@ -149,6 +141,7 @@ function FileTreeView({
 
   const onDragLeave = (e: Event) => {
     e.preventDefault();
+    setClickTimes(previousState => {return previousState + 1});
     setDragging(false);
   }
 
@@ -176,7 +169,17 @@ function FileTreeView({
   const onDeleteClick = (path: string, filename: string) => {
     const result = window.confirm('Are you sure you want to delte "' + filename +'"?')
     if (result) {
-      fileTreeService.delete(path);
+      fileTreeService.delete(path).then(
+        response => {
+          console.log(">>>> test >>>>>",path, response)
+          if (response.succ) {
+            fileTreeService.removeFileNode(response.succ.filepath, response.succ.parent_filepath);
+            setClickTimes(previousState => {return previousState + 1});
+          }
+        }).catch(
+          error => console.log("error", error)
+        ).finally(
+        )
     }
   }
 
@@ -207,6 +210,15 @@ function FileTreeView({
               >
                 <h3 className={classnames('text-4xl text-zinc-500 self-center')}>Drop the file over here to upload</h3>
               </div>
+            ) : isUploading ? (
+              <div
+                className={classnames(
+                  'h-[32rem] flex justify-center',
+                  'bg-slate-300'
+                )}
+              >
+                <SpinnerSpokesIcon className={classnames('self-center')}/>
+              </div>
             ) : (
               <Scroll>
                 <Table
@@ -228,34 +240,33 @@ function FileTreeView({
                         </div>
                       </TableRow>
                     )}
-                    {
-                      currentTree?.children.map(child => (
-                        <TableRow
-                          key={child.id}
-                          onDblClick={() => onDblClick(child.id, child.type, child.link)}
-                          >
-                          <div className={classnames('flex justify-between', 'h-6')}>
-                            <div className="text-lg items-center flex gap-x-2" id={child.id}>
-                              {child.type === 'dir' ? (
-                                <FolderIcon className="w-em h-em" />
+                    {currentTree && currentTree.children.map(child => (
+                      <TableRow
+                        id={child.path}
+                        key={child.path}
+                        onDblClick={() => onDblClick(child.id, child.type, child.link)}
+                        >
+                        <div className={classnames('flex justify-between', 'h-6')}>
+                          <div className="text-lg items-center flex gap-x-2" id={child.path}>
+                            {child.type === 'dir' ? (
+                              <FolderIcon className="w-em h-em" />
+                            ) : (
+                              child.type === 'file' ? (
+                                <FilePdfIcon className="w-em h-em" />
                               ) : (
-                                child.type === 'file' ? (
-                                  <FilePdfIcon className="w-em h-em" />
-                                ) : (
-                                  <LinkIcon className="w-em h-em" />
-                                )
-                              )}
-                              {child.name}
-                            </div>
-                            <ButtonBase
-                              classes={classnames('border bg-grey-0 hover:bg-red-400 m-1' )}
-                              onClick={ () => onDeleteClick(child.path, child.name)}>
-                              <CancelIcon className="w-3 h-3"/>
-                            </ButtonBase>
+                                <LinkIcon className="w-em h-em" />
+                              )
+                            )}
+                            {child.name}
                           </div>
-                        </TableRow>
-                      ))
-                    }
+                          <ButtonBase
+                            classes={classnames('border bg-grey-0 hover:bg-red-400 m-1' )}
+                            onClick={ () => onDeleteClick(child.path, child.name)}>
+                            <CancelIcon className="w-3 h-3"/>
+                          </ButtonBase>
+                        </div>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </Scroll>

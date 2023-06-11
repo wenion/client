@@ -1,33 +1,7 @@
 import type { SidebarSettings } from '../../types/config';
 import type { APIService } from './api';
 import type { SidebarStore } from '../store';
-
-/**
- * Metadata collected from a `<link>` element on a document, or equivalent
- * source of related-URL information.
- */
-export type Link = {
-  rel?: string;
-  type?: string;
-  href: string;
-};
-
-export type DocumentMetadata = {
-  title: string;
-  link: Link[];
-
-  // HTML only
-  dc?: Record<string, string[]>;
-  eprints?: Record<string, string[]>;
-  facebook?: Record<string, string[]>;
-  highwire?: Record<string, string[]>;
-  prism?: Record<string, string[]>;
-  twitter?: Record<string, string[]>;
-  favicon?: string;
-
-  // HTML + PDF
-  documentFingerprint?: string;
-};
+import type { FileNode } from '../../types/api';
 
 /**
  * Send messages to configured ancestor frame on annotation activity
@@ -59,8 +33,16 @@ export class FileTreeService {
     this._store.changeCurrentPath(path);
   }
 
+  addFileNode(newfileNode: FileNode, parentPath: string) {
+    this._store.addFileNode(newfileNode, parentPath)
+  }
+
+  removeFileNode(newfilepath: string, parentPath: string) {
+    this._store.removeFileNode(newfilepath, parentPath)
+  }
+
   /* upload file to repository*/
-  async uploadFile(data?: Blob, metadata?: DocumentMetadata) {
+  async uploadFile(data?: Blob, metadata?: FileNode) {
     /** for drag file */
     if (data && metadata) {
       return this._api.upload({}, data, metadata);
@@ -92,17 +74,7 @@ export class FileTreeService {
 
     /* delete file to repository*/
     async delete(path: string) {
-        this._api.delete({file: path}).then(
-          response => {
-            this.initFileTree();
-          }
-        );
-        /**
-         *  TODO check and handle the return
-         *  in_param file meta
-         *  const result = this._api.delete(file_meta)
-         *  call file-tree service to remove current_dir according json return
-         */
+      return this._api.delete({file: path});
     }
 
   /* TODO temporally put it here */
