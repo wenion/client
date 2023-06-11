@@ -360,6 +360,7 @@ export type FileNode = {
   path: string;
   type: string;
   link?: string;
+  depth: number;
   children: FileNode[];
 };
 

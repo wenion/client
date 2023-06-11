@@ -35,6 +35,16 @@ export type DocumentMetadata = {
   documentFingerprint?: string;
 };
 
+export type FileNode = {
+  id : string;
+  name : string;
+  path: string;
+  type: string;
+  link?: string;
+  depth: number;
+  children: FileNode[];
+};
+
 type FileTreeViewProps = {
   /** Callback invoked when user clicks "Login" button */
   onLogin: () => void;
@@ -63,15 +73,44 @@ function FileTreeView({
   session,
   settings }: FileTreeViewProps) {
   const store = useSidebarStore();
-  const profile = store.profile();
-  const currentTree = store.getCurrentFileNode();
-  const isTopDirectory = store.isTopDirectory();
+  const isLoggedIn = store.isLoggedIn();
+
+  const currentPath = store.getCurrentPath();
+  const fileTree = store.getFileTree();
 
   const [dragging, setDragging] = useState(false);
 
+  const currentTree = useMemo(() => {
+    const ret = find(fileTree, currentPath);
+    return ret;
+  }, [currentPath]);
+
+  function joinPaths(...segments: string[]): string{
+    return segments.join('/').replace(/\/{2,}/g, '/');
+  }
+
+  function find(fileNode: FileNode| null, path: string): FileNode|null {
+    if (fileNode == null)
+      return null;
+
+    if (path == fileNode.path) {
+      return fileNode;
+    }
+
+    for (const child of fileNode.children) {
+      let newPath = joinPaths(fileNode.path , child.name)
+      if (path.startsWith(newPath)) {
+        return find(child, path);
+      }
+    }
+    return null;
+  };
+
   useEffect(() => {
-    fileTreeService.initFileTree();
-  }, [profile, settings, dragging, store]);
+    if (isLoggedIn) {
+      fileTreeService.initFileTree();
+    }
+  }, [session, isLoggedIn]);
 
   const onDrop = (e: Event) => {
     e.preventDefault();
@@ -120,7 +159,7 @@ function FileTreeView({
 
   const onDblClick = (id: string, type: string, link?: string) => {
     if (type == 'dir') {
-      fileTreeService.findFile(id);
+      fileTreeService.changeCurrentPath(id)
     }
     else {
       if (link) {
@@ -130,7 +169,8 @@ function FileTreeView({
   }
 
   const onGoBack = () => {
-    fileTreeService.goBack();
+    const parentPath = currentPath.split("/").slice(0, -1).join("/");
+    fileTreeService.changeCurrentPath(parentPath)
   }
 
   const onDeleteClick = (path: string, filename: string) => {
@@ -177,7 +217,7 @@ function FileTreeView({
                     <Input aria-label="Input example" value={currentTree?.path} />
                   </TableHead>
                   <TableBody>
-                    {!isTopDirectory && (
+                    {currentTree && currentTree.depth != 0 && (
                       <TableRow
                         onDblClick={() => onGoBack()}
                         >

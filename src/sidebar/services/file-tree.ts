@@ -51,30 +51,12 @@ export class FileTreeService {
   }
 
   async initFileTree() {
-    if (this._store.isLoggedIn()) {
-      const result = await this._api.repository({});
-      this._store.addFileTree(result);
-    }
+    const result = await this._api.repository({});
+    this._store.initFileTree(result);
   }
 
-  findFile(path: string) {
-    // let objectNode = Object.assign({}, this._store.getFileTree());
-    // console.log('objectNode', objectNode);
-    return this._store.find(this._store.getFileTree()!, path);
-  }
-
-  goBack() {
-    if (this._store.getCurrentFileNode() == this._store.getFileTree()) {
-      return;
-    }
-
-    let parentPath = this._store.getCurrentFileNode()!.path;
-    const lastIndex = parentPath.lastIndexOf('/');
-    if (lastIndex != -1) {
-      parentPath = parentPath.slice(0, lastIndex);
-      console.log('parentPath', parentPath, lastIndex)
-      return this._store.find(this._store.getFileTree()!, parentPath);
-    }
+  changeCurrentPath(path: string) {
+    this._store.changeCurrentPath(path);
   }
 
   /* upload file to repository*/
