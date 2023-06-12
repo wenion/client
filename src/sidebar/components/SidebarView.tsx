@@ -113,7 +113,7 @@ function SidebarView({
       });
     }
     const mainFrame = store.mainFrame();
-    if (mainFrame && mainFrame.uri){
+    if (isLoggedIn && mainFrame && mainFrame.uri){
       queryService.getRecommendation(mainFrame.uri).then(
         result => frameSync.notification(result)
       )
