@@ -905,7 +905,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
   async _handlePageEvent(type: string, url: string, tagName: string, textContent: string) {
     const userEvent: EventData = {
       event_type: type,
-      hostpage_time_stamp: Date.now(),
+      timestamp: Date.now(),
       base_url: url,
       tag_name: tagName,
       text_content: textContent,

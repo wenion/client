@@ -313,7 +313,7 @@ export type SearchResponse = {
  */
 export type EventData = {
   event_type: string;
-  hostpage_time_stamp: number;
+  timestamp: number;
   base_url: string;
   tag_name: string;
   text_content: string;

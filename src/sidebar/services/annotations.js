@@ -162,7 +162,7 @@ export class AnnotationsService {
 
     const userEventData = {
       ...eventData,
-      user: userid,
+      userid: userid,
     }
     this._api.event({}, userEventData);
   }
