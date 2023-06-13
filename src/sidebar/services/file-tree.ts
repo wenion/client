@@ -47,10 +47,10 @@ export class FileTreeService {
     if (data && metadata) {
       return this._api.upload({}, data, metadata);
     }
-    /** the file from Google drive */
+    /** the file from Save Panel */
     const mainFrame = this._store.mainFrame();
     if (mainFrame && mainFrame.uri) {
-      fetch(mainFrame!.uri)
+      fetch(mainFrame.uri)
         .then(response => {
           if (response.ok) {
             return response.blob();
@@ -59,7 +59,16 @@ export class FileTreeService {
           }
         })
         .then(blob => {
-          return this._api.upload({}, blob, mainFrame.metadata);
+          const metadata = {
+            id: "",
+            name: mainFrame.metadata.title,
+            path: "",
+            type: "html",
+            link: mainFrame.uri,
+            depth: 0,
+            children: [],
+          }
+          return this._api.upload({}, blob, metadata);
         })
           .then(response => {
             console.log('response', response)

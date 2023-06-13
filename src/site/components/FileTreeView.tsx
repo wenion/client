@@ -1,5 +1,5 @@
 import {Table, TableHead, TableBody, TableRow, Scroll, Input } from '@hypothesis/frontend-shared';
-import {FolderIcon, FilePdfIcon, LinkIcon, ButtonBase, CancelIcon, SpinnerSpokesIcon} from '@hypothesis/frontend-shared';
+import {FolderIcon, FilePdfIcon, FileGenericIcon, LinkIcon, ButtonBase, CancelIcon, SpinnerSpokesIcon} from '@hypothesis/frontend-shared';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import classnames from 'classnames';
 
@@ -252,7 +252,11 @@ function FileTreeView({
                               <FolderIcon className="w-em h-em" />
                             ) : (
                               child.type === 'file' ? (
+                                child.name.endsWith(".pdf") ? (
                                 <FilePdfIcon className="w-em h-em" />
+                                ) : (
+                                <FileGenericIcon className="w-em h-em" />
+                                )
                               ) : (
                                 <LinkIcon className="w-em h-em" />
                               )
@@ -261,7 +265,7 @@ function FileTreeView({
                           </div>
                           <ButtonBase
                             classes={classnames('border bg-grey-0 hover:bg-red-400 m-1' )}
-                            onClick={ () => onDeleteClick(child.path, child.name)}>
+                            onClick={() => onDeleteClick(child.path, child.name)}>
                             <CancelIcon className="w-3 h-3"/>
                           </ButtonBase>
                         </div>
