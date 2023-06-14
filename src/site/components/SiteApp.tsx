@@ -20,6 +20,7 @@ import { useSidebarStore } from '../../sidebar/store';
 import QueryView from './QueryView';
 import VideoView from './VideoView';
 import FileTreeView from './FileTreeView';
+import HomeView from './HomeView';
 
 import type {
   SidebarToSiteEvent,
@@ -244,10 +245,7 @@ function SiteApp({
       style={backgroundStyle}
     >
       <Router>
-        <div path="/">
-          <h1>Homepage is building.</h1>
-          <h4><a href='/query'>Welcome to KMASS, please click link to query page.</a></h4>
-        </div>
+        <HomeView path="/" />
         <QueryView path="/query"
           onLogin={login}
           onSignUp={signUp}
