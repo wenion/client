@@ -119,6 +119,12 @@ function FileTreeView({
                 console.log(">>>> test >>>>>",file, response)
                 if (response.succ) {
                   fileTreeService.addFileNode(response.succ, response.succ.id)
+                  if (response.tab) {
+                    alert("The file was uploaded. But the ingestion failed. Reason:\n" + response.tab)
+                  }
+                }
+                if (response.error) {
+                  alert("Sorry, something went wrong. Reason:\n" + response.error);
                 }
               }
             ).catch(
@@ -167,7 +173,7 @@ function FileTreeView({
   }
 
   const onDeleteClick = (path: string, filename: string) => {
-    const result = window.confirm('Are you sure you want to delte "' + filename +'"?')
+    const result = window.confirm('Are you sure you want to delete "' + filename +'"?')
     if (result) {
       fileTreeService.delete(path).then(
         response => {
@@ -218,6 +224,7 @@ function FileTreeView({
                 )}
               >
                 <SpinnerSpokesIcon className={classnames('self-center')}/>
+                <h3 className={classnames('text-xl text-zinc-500 self-center')}>The file is currently being uploaded. Please wait...</h3>
               </div>
             ) : (
               <Scroll>
