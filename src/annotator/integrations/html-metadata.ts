@@ -274,6 +274,11 @@ export class HTMLMetadata {
     // Use the current document location if it has a recognized scheme.
     const scheme = new URL(href).protocol;
     if (allowedSchemes.includes(scheme)) {
+      const pathname = new URL(href).pathname;
+      const videoURL = new URLSearchParams(this.document.location.search).get("file");
+      if (pathname == "/video" && videoURL) {
+        return videoURL;
+      }
       return href;
     }
 
