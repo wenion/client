@@ -124,7 +124,10 @@ function NotebookView({ loadAnnotationsService, queryService, streamer }: Notebo
           Search results for: {queryService.getQueryWord()}
         </h1>
         <p className="text-xl font-sans mb-8">
-          {responseData.isErrorOccurred ? 'Sorry, error occurred! Error message: ' + responseData.status : responseData.children.length + ' results found'}
+          {
+            responseData.isErrorOccurred ? 'Sorry, error occurred! Error message: ' + responseData.status :
+              responseData.children.length == 0 ? '' : responseData.children.length + ' results found'
+          }
         </p>
         <hr class="mx-auto bg-black mb-8" />
       </header>
