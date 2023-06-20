@@ -171,8 +171,8 @@ function VideoView({
           >
             <div ref={videoRef} />
           </div>
-          <div className="flex justify-center">
-            <Button class={classnames('flex-none m-4')} onClick={() => onClick(playerRef as RefObject<VideoJsPlayer>)}>
+          <div className="flex justify-center m-4">
+            <Button class={classnames('flex-none')} onClick={() => onClick(playerRef as RefObject<VideoJsPlayer>)}>
               Create annotation
             </Button>
           </div>
