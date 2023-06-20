@@ -21,7 +21,7 @@ export class QueryService {
   }
 
   async getRecommendation(url: string) {
-    return await this._api.pull_recommendation({url: encodeURIComponent(url)});
+    return await this._api.pull_recommendation({url: url});
   }
 
   getQueryWord() {
@@ -69,9 +69,19 @@ export class QueryService {
     this._store.addSuggestResults(result);
   }
 
-  async pushRecommendation(data: {id:string, title:string, context:string, type:string, url:string}) {
+  async pushRecommendation(data: {id:string, title:string, context:string, type:string, url:string, query:string}) {
     try {
       await this._api.push_recommendation({}, data);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async postRating(data: {timestamp:number, base_url:string, relevance:string, timeliness:string}) {
+    try {
+      data.base_url = this._store.mainFrame()!.uri;
+      data.timestamp = Math.floor(Date.now() / 1000);
+      await this._api.rating({}, data);
     } catch (err) {
       console.error(err);
     }

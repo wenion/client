@@ -2,7 +2,7 @@ import { createRef, render } from 'preact';
 import type { RefObject } from 'preact';
 
 import { isTouchDevice } from '../shared/user-agent';
-import type { Destroyable } from '../types/annotator';
+import type { Destroyable, PullingData } from '../types/annotator';
 // import AdderToolbar from './components/AdderToolbar';
 import  Notification from './components/Notifications';
 
@@ -20,31 +20,29 @@ type Target = {
   arrowDirection: ArrowDirection;
 };
 
-export type Data = {
-  id: string;
-  title: string;
-  context: string;
+export type ToolbarOptions = {
+  onClose: (data: PullingData) => void;
 };
 
 export type NotificationElement = {
-  element: RefObject<HTMLDivElement>;
-  data: Data;
+  // element: RefObject<HTMLDivElement>;
+  data: PullingData;
   isLatest: boolean;
 };
 
-export class NotificationController {
+export class NotificationController implements Destroyable {
   private _notificationContainer: HTMLDivElement;
-  currentMessageList: NotificationElement[];
+  private _data: PullingData;
+  private _onClose: (data: PullingData) => void;
 
-  constructor(container: HTMLElement) {
+  constructor(container: HTMLElement, options: ToolbarOptions) {
+    console.log("NotificationController construct")
     this._notificationContainer = document.createElement('div');
     container.appendChild(this._notificationContainer);
-    this.currentMessageList = []; // this._notificationList = createRef<HTMLDivElement>();
-  }
 
-  onClose(element: NotificationElement) {
-    element.element.current?.remove();
-    element.element.current = null;
+    const { onClose } = options;
+    this._data = {id: "", title: "", context: "", timeliness: "", relevance: "", timestamp: 0, base_url: ""};
+    this._onClose = onClose;
   }
 
   destroy() {
@@ -52,25 +50,41 @@ export class NotificationController {
     this._notificationContainer.remove();
   }
 
-  addMessage(newMessage: Data) {
+  addMessage(newMessage: PullingData, ) {
     if (newMessage.id === '') {
       return;
     }
-    this.currentMessageList.map(child => {
-      child.isLatest = false;
-    })
 
-    const el = createRef<HTMLDivElement>();
-    this.currentMessageList.push({data: newMessage, element: el, isLatest: true});
-    const first = this.currentMessageList.shift();
-    if (first) {
-      this.render(first, this.onClose);
-    }
+    this._data = newMessage;
+    this._render();
   }
 
-  render(notification: NotificationElement, onClose: (element: NotificationElement) => void) {
+  onChange() {
+    this._render();
+  }
+
+  private _render() {
+    const onClose = () => {
+      this._onClose(this._data);
+      render(null, this._notificationContainer);
+    }
+
+    const onChange = (ratingType: string, value: string) => {
+      if (ratingType === "relevant") {
+        this._data.relevance = value;
+      }
+      else if (ratingType === "timeliness") {
+        this._data.timeliness = value;
+      }
+      this.onChange();
+    }
+
     render(
-      <Notification notification={notification} onClose={this.onClose}/>,
+      <Notification
+        notification={this._data}
+        onClose={onClose}
+        onChange={onChange}
+      />,
       this._notificationContainer
     );
   }

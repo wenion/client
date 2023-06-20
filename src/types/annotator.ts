@@ -326,3 +326,13 @@ export type DocumentInfo = {
    */
   persistent: boolean;
 };
+
+export type PullingData = {
+  id: string;
+  title: string;
+  context: string;
+  timestamp: number;
+  base_url: string;
+  relevance: string;
+  timeliness: string;
+};

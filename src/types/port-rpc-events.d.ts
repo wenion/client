@@ -107,6 +107,7 @@ export type HostToGuestEvent =
  * Events that the host sends to the sidebar
  */
 export type HostToSidebarEvent =
+  | 'postRating'
   /**
    * Highlights have been toggled on/off.
    */

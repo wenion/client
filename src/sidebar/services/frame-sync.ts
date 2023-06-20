@@ -11,7 +11,7 @@ import {
   isMessageEqual,
 } from '../../shared/messaging';
 import type { Message } from '../../shared/messaging';
-import type { AnnotationData, DocumentInfo } from '../../types/annotator';
+import type { AnnotationData, DocumentInfo, PullingData } from '../../types/annotator';
 import type { Annotation, EventData } from '../../types/api';
 import type {
   SidebarToHostEvent,
@@ -31,6 +31,7 @@ import { watch } from '../util/watch';
 import type { AnnotationsService } from './annotations';
 import type { VideoAnnotationsService } from './video-annotations';
 import type { ToastMessengerService } from './toast-messenger';
+import type { QueryService } from './query';
 
 /**
  * Return a minimal representation of an annotation that can be sent from the
@@ -105,6 +106,7 @@ function frameForAnnotation(frames: Frame[], ann: Annotation): Frame | null {
 export class FrameSyncService {
   private _annotationsService: AnnotationsService;
   private _videoAnnotationsService: VideoAnnotationsService;
+  private _queryService: QueryService;
 
   /**
    * Map of guest frame ID to channel for communicating with guest.
@@ -180,12 +182,14 @@ export class FrameSyncService {
     $window: Window,
     annotationsService: AnnotationsService,
     videoAnnotationsService: VideoAnnotationsService,
+    queryService: QueryService,
     store: SidebarStore,
     toastMessenger: ToastMessengerService
   ) {
     this._window = $window;
     this._annotationsService = annotationsService;
     this._videoAnnotationsService = videoAnnotationsService;
+    this._queryService = queryService;
     this._store = store;
     this._toastMessenger = toastMessenger;
     this._portFinder = new PortFinder({
@@ -526,6 +530,10 @@ export class FrameSyncService {
     this._hostRPC.on('setHighlightsVisible', (visible: boolean) => {
       this._highlightsVisible = visible;
       this._guestRPC.forEach(rpc => rpc.call('setHighlightsVisible', visible));
+    });
+
+    this._hostRPC.on('postRating', (data: PullingData) => {
+      this._queryService.postRating(data);
     });
   }
 

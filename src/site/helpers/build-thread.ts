@@ -1,13 +1,24 @@
 import { useSidebarStore } from '../../sidebar/store';
-import type { Metadata } from '../../types/api'
 
-export type Thread = Metadata & {
+export type Thread = {
   /**
    * Whether this thread should be visible when rendered. true when the thread's
    * annotation matches current annotation filters.
    */
+  id: string;
+  title: string;
+  url: string | undefined;
+  summary: string;
+  highlights: string;
+  deleted?: boolean | undefined;
+  expired?: boolean | undefined;
+  repository: string;
+  query: string | null;
+
   visible: boolean;
   dataType: string;
+  score: number;
+  pageContent: string;
   isBookmark: boolean;
 };
 
@@ -69,6 +80,9 @@ export function convertResponseToThread() {
             visible: true,
             dataType: getDataType(item.metadata.url, item.metadata.title),
             isBookmark: item.is_bookmark ? item.is_bookmark : false,
+            pageContent: item.page_content,
+            score: Number(item.metadata.score),
+            query: query,
 
             title: item.metadata.title ? item.metadata.title : (item.metadata['video name'] ? item.metadata['video name'] : 'untitled'),
             url: item.metadata.url ? item.metadata.url : item.metadata['video url'],

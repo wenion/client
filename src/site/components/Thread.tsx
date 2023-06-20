@@ -34,9 +34,11 @@ function Thread({ thread, threadsService, queryService}: ThreadProps) {
       queryService.pushRecommendation({
         id: thread.id,
         title: 'Highlights',
-        context: thread.highlights,
+        context: thread.pageContent,
         type:'self',
-        url: encodeURIComponent(thread.url),})
+        query: thread.query ? thread.query: '',
+        url: thread.url,
+      })
       window.location.href = thread.url;
     }
   }

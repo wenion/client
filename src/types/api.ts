@@ -330,6 +330,7 @@ export type Metadata = {
   url?: string,
   "video name"?: string,
   "video url"?: string,
+  score: string,
   summary: string,
   highlights: string,
   deleted?: boolean,

@@ -307,7 +307,7 @@ export class APIService {
     /**
      * @typedef UserEventData
      * @prop {string} [event_type]
-     * @prop {number} [hostpage_time_stamp]
+     * @prop {number} [timestamp]
      * @prop {string} [base_url]
      * @prop {string} [tag_name]
      * @prop {string} [text_content]
@@ -349,17 +349,26 @@ export class APIService {
      * @prop {string} id
      * @prop {string} query
      * @prop {boolean} is_bookmark
-     *
      */
     this.bookmark = /** @type {APICall<{}, BookmarkData>} */(
       apiCall('bookmark')
     );
 
     /**
+     * @typedef RatingkData
+     * @prop {number} [timestamp]
+     * @prop {string} [base_url]
+     * @prop {string} [relevance]
+     * @prop {string} [timeliness]
+     */
+      this.rating = /** @type {APICall<{}, RatingkData>} */(
+        apiCall('rating')
+      );
+
+    /**
      * @typedef TypingResponse
      * @prop {string} id
      * @prop {string} text
-     *
      */
     this.typing = /** @type {APICall<{ q: string }, void, TypingResponse[]>} */ (
       apiCall('typing')
@@ -371,8 +380,8 @@ export class APIService {
      * @prop {string} url
      * @prop {string} type
      * @prop {string} title
+     * @prop {string} query
      * @prop {string} context
-     *
      */
     this.push_recommendation = /** @type {APICall<{}, RecommendationData>} */ (
       apiCall('push_recommendation')

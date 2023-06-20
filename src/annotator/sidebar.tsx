@@ -10,6 +10,7 @@ import type {
   AnchorPosition,
   SidebarLayout,
   Destroyable,
+  PullingData,
 } from '../types/annotator';
 import type { Service } from '../types/config';
 import type {
@@ -211,7 +212,9 @@ export class Sidebar implements Destroyable {
     this._listeners = new ListenerCollection();
 
     const notificationContainer = document.createElement('div');
-    this.notification = new NotificationController(notificationContainer);
+    this.notification = new NotificationController(notificationContainer, {
+      onClose: (data: PullingData) => this.onNotificationClose(data),
+    });
 
     this._disableOpen = false;
     // Set up the toolbar on the left edge of the sidebar.
@@ -368,7 +371,7 @@ export class Sidebar implements Destroyable {
 
     this._sidebarRPC.on(
       'pullRecommendation',
-      (data: {id:string, title: string, context: string}) => {this.notification.addMessage(data);}
+      (data: PullingData) => {this.notification.addMessage(data);}
     );
 
     this._sidebarRPC.on(
@@ -684,5 +687,9 @@ export class Sidebar implements Destroyable {
    */
   hide() {
     this.iframeContainer?.classList.add('is-hidden');
+  }
+
+  onNotificationClose(data: PullingData) {
+    this._sidebarRPC.call('postRating', data)
   }
 }
