@@ -25,7 +25,10 @@ export class QueryService {
   }
 
   getQueryWord() {
-    return this._store.queryingWord();
+    const query = this._store.queryingWord();
+    if (query) {
+      return decodeURIComponent(query);
+    }
   }
 
   getSuggestResult() {

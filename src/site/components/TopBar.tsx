@@ -66,7 +66,7 @@ function TopBar({
     if (param) {
       const el = inputRef.current!;
       const queryWord = param[1]!.replace(/\+/g, ' ');
-      el.value = queryWord;
+      el.value = decodeURIComponent(queryWord);
       queryService.queryActivity(queryWord);
     }
   }, [param]);

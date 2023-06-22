@@ -18,7 +18,7 @@ export type ThirdPartyMenuProps = {
  */
 export function ThirdPartyMenu({fileTreeService, frameSync,}: ThirdPartyMenuProps) {
   const store = useSidebarStore();
-  const sortKeysAvailable = ['import from Google drive', 'import from Slack'];
+  const sortKeysAvailable = ['import from Google drive', ];
 
   const onClick = async (option: string) => {
     const link = await fileTreeService.getClientURL();
@@ -42,11 +42,16 @@ export function ThirdPartyMenu({fileTreeService, frameSync,}: ThirdPartyMenuProp
   window.addEventListener('message', event=> {
     if (event.data && event.data.data && event.data.data.action === 'picked') {
       console.log('Received message from parent:', event.data, event.origin);
-      const meta = {
-        title: event.data.data.docs[0].name,
-        link: [{href: event.data.data.docs[0].embedUrl}],
+      const metadata = {
+        id: "",
+        path: "",
+        type: "",
+        depth: 0,
+        name: event.data.data.docs[0].name,
+        link: event.data.data.docs[0].embedUrl,
+        children: [],
       }
-      fileTreeService.uploadFile(event.data.blob, meta);
+      // fileTreeService.uploadFile(event.data.blob, metadata);
     }
   });
 
