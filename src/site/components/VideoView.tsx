@@ -148,6 +148,7 @@ function VideoView({
       $tag: generateRandomString(16),
     };
 
+    player.current?.pause();
     sidebarRPC.call('createVideoAnnotation', annotation);
 
     onAnchor(annotation);
