@@ -39,7 +39,7 @@ function Thread({ thread, threadsService, queryService}: ThreadProps) {
         query: thread.query ? thread.query: '',
         url: thread.url,
       })
-      window.location.href = thread.url;
+      window.open(thread.url);
     }
   }
 
