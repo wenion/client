@@ -101,9 +101,9 @@ function FileTreeView({
         // If dropped items aren't files, reject them
         if (item.kind === 'file') {
           const file = item.getAsFile();
-          const link: Link = {
-            href: '',
-          }
+          // const link: Link = {
+          //   href: '',
+          // }
           if (file) {
             setIsUploading(true);
             fileTreeService.uploadFile(
@@ -162,7 +162,8 @@ function FileTreeView({
     }
     else {
       if (link) {
-        window.parent.location = link;
+        // window.parent.location = link;
+        window.open(link);
       }
     }
   }
