@@ -36,7 +36,6 @@ export class NotificationController implements Destroyable {
   private _onClose: (data: PullingData) => void;
 
   constructor(container: HTMLElement, options: ToolbarOptions) {
-    console.log("NotificationController construct")
     this._notificationContainer = document.createElement('div');
     container.appendChild(this._notificationContainer);
 

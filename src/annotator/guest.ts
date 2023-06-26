@@ -173,6 +173,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
   private _listeners: ListenerCollection;
 
   private _lastScrollTop: number;
+  private _lastScrollTime: number;
 
   /**
    * Tags of currently hovered annotations. This is used to set the hovered
@@ -276,6 +277,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     this._setupElementEvents();
 
     this._lastScrollTop =  window.pageYOffset || document.documentElement.scrollTop;
+    this._lastScrollTime = 0;
 
     this._hoveredAnnotations = new Set();
   }
@@ -297,6 +299,50 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       }
       this._sidebarRPC.call('closeSidebar');
     };
+
+    const originalOpen = window.open;
+    window.open = (url, target, features) => {
+      // Call the original window.open function
+      const newWindow = originalOpen.call(window, url, target, features);
+      // Custom logic after opening the window
+      if (typeof url === 'string') {
+        this._handlePageEvent('open', url, "OPEN", "open page string");
+      }
+      else if (url instanceof URL) {
+        this._handlePageEvent('open', url.href, "OPEN", "open page url");
+      }
+      else {
+        this._handlePageEvent('open', window.location.href, "OPEN", "open page undefined");
+      }
+      // Return the newly opened window object
+      return newWindow;
+    };
+
+    // this._listeners.add(window, 'load', event => {
+    //   // Perform actions or show a confirmation dialog here
+    //   this._integration.uri().then(
+    //     response => {
+    //       this._handlePageEvent('load', response, "OPEN", "open page");
+    //     }
+    //   ).catch(
+    //     error => {
+    //       this._handlePageEvent('load', window.location.href, "OPEN", "open page error" + error.toString());
+    //     }
+    //   )
+    // });
+
+    this._listeners.add(window, 'beforeunload', event => {
+      // Perform actions or show a confirmation dialog here
+      this._integration.uri().then(
+        response => {
+          this._handlePageEvent('beforeunload', response, "CLOSE", "close page");
+        }
+      ).catch(
+        error => {
+          this._handlePageEvent('beforeunload', window.location.href, "CLOSE", "close page error" + error.toString());
+        }
+      )
+    });
 
     this._listeners.add(this.element, 'click', event => {
       const clickElement = event.target as Element;
@@ -326,18 +372,27 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     });
 
     this._listeners.add(window, 'scroll', event => {
-      let direction = "down";
+      let direction = "DOWN";
       let st = window.pageYOffset || document.documentElement.scrollTop;
       if (st > this._lastScrollTop) {
-        direction = "down";
+        direction = "DOWN";
       } else if (st < this._lastScrollTop) {
-        direction = "up";
+        direction = "UP";
       } // else was horizontal scroll
       this._lastScrollTop = st <= 0 ? 0 : st; // For Mobile or negative scrolling
+      const delay = 100
+      const currentTime = Date.now()
 
-      const target = event.target as Document;
-      /* TODO */
-      // this._sidebarRPC.call('createUserEvent', userEvent);
+      if (currentTime - this._lastScrollTime > delay) {
+        // const date = new Date(currentTime);
+        // const minutes = ('0' + date.getMinutes()).slice(-2);
+        // const seconds = ('0' + date.getSeconds()).slice(-2);
+        // const milliseconds = ('00' + date.getMilliseconds()).slice(-3);
+        // const formattedDate = `${minutes}:${seconds}.${milliseconds}`;
+        // console.log("cur time", formattedDate)
+        this._handlePageEvent('scroll', window.location.href, "SCROLL " + direction, "offset:" + window.pageYOffset);
+      }
+      this._lastScrollTime = currentTime;
     });
 
     this._listeners.add(this.element, 'submit', event => {
