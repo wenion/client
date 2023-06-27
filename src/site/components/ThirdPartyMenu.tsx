@@ -45,13 +45,14 @@ export function ThirdPartyMenu({fileTreeService, frameSync,}: ThirdPartyMenuProp
       const metadata = {
         id: "",
         path: "",
-        type: "",
+        type: "google",
         depth: 0,
         name: event.data.data.docs[0].name,
         link: event.data.data.docs[0].embedUrl,
         children: [],
       }
-      // fileTreeService.uploadFile(event.data.blob, metadata);
+      console.log("meta", metadata)
+      fileTreeService.uploadFile(event.data.blob, metadata);
     }
   });
 
