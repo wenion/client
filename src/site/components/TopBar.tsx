@@ -69,7 +69,7 @@ function TopBar({
       el.value = decodeURIComponent(queryWord);
       queryService.queryActivity(queryWord);
     }
-  }, [param]);
+  }, []);
 
   return (
     <div>
