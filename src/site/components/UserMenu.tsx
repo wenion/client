@@ -106,7 +106,7 @@ function UserMenu({ frameSync, onLogout, settings }: UserMenuProps) {
         </MenuSection>
         {isLogoutEnabled && (
           <MenuSection>
-            <MenuItem label="Log out" onClick={onLogout} />
+            <MenuItem label="Log out" onClick={() => {onLogout(); window.location.href = '/logout'}} />
           </MenuSection>
         )}
       </Menu>
