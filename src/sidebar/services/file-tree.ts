@@ -34,11 +34,15 @@ export class FileTreeService {
   }
 
   addFileNode(newfileNode: FileNode, parentPath: string) {
-    this._store.addFileNode(newfileNode, parentPath)
+    this._store.addFileNode(newfileNode, parentPath);
   }
 
   removeFileNode(newfilepath: string, parentPath: string) {
-    this._store.removeFileNode(newfilepath, parentPath)
+    this._store.removeFileNode(newfilepath, parentPath);
+  }
+
+  changePath() {
+    this._store.changePath();
   }
 
   /* upload file to repository*/

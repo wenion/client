@@ -20,6 +20,37 @@ export function ThirdPartyMenu({fileTreeService, frameSync,}: ThirdPartyMenuProp
   const store = useSidebarStore();
   const sortKeysAvailable = ['import from Google drive', ];
 
+  const receiveMessage = (event) => {
+    if (event.data && event.data.data && event.data.data.action === 'picked') {
+      window.removeEventListener('message', receiveMessage);
+      console.log("received event removed", event)
+      const metadata = {
+        id: "",
+        path: "",
+        type: "google",
+        depth: 0,
+        name: event.data.data.docs[0].name,
+        link: event.data.data.docs[0].embedUrl,
+        children: [],
+      }
+      console.log("meta", metadata)
+      fileTreeService.uploadFile(event.data.blob, metadata)
+      .then(response => {
+        console.log('then here')
+        if(response.succ) {
+          fileTreeService.addFileNode(response.succ, response.succ.id);
+          fileTreeService.changePath();
+          if (response.tab) {
+            alert("The file was uploaded. But the ingestion failed. Reason:\n" + response.tab)
+          }
+        }
+        if (response.error) {
+          alert("Sorry, something went wrong. Reason:\n" + response.error);
+        }
+      })
+    }
+  }
+
   const onClick = async (option: string) => {
     const link = await fileTreeService.getClientURL();
     if (!link) {
@@ -35,26 +66,28 @@ export function ThirdPartyMenu({fileTreeService, frameSync,}: ThirdPartyMenuProp
       if (option == 'import from Google drive') {
         // frameSync.notifyHost('closeSidebar');
         window.postMessage('Google drive auth', link);
+        window.addEventListener('message', receiveMessage, false);
       }
     }
   }
 
-  window.addEventListener('message', event=> {
-    if (event.data && event.data.data && event.data.data.action === 'picked') {
-      console.log('Received message from parent:', event.data, event.origin);
-      const metadata = {
-        id: "",
-        path: "",
-        type: "google",
-        depth: 0,
-        name: event.data.data.docs[0].name,
-        link: event.data.data.docs[0].embedUrl,
-        children: [],
-      }
-      console.log("meta", metadata)
-      fileTreeService.uploadFile(event.data.blob, metadata);
-    }
-  });
+  // window.addEventListener('message', event=> {
+  //   if (event.data && event.data.data && event.data.data.action === 'picked') {
+  //     console.log("received event", event)
+  //     console.log('Received message from parent:', event.data, event.origin);
+  //     const metadata = {
+  //       id: "",
+  //       path: "",
+  //       type: "google",
+  //       depth: 0,
+  //       name: event.data.data.docs[0].name,
+  //       link: event.data.data.docs[0].embedUrl,
+  //       children: [],
+  //     }
+  //     console.log("meta", metadata)
+  //     fileTreeService.uploadFile(event.data.blob, metadata);
+  //   }
+  // });
 
   const menuItems = sortKeysAvailable.map(sortOption => {
     return (

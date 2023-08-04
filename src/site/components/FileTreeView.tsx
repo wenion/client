@@ -56,6 +56,8 @@ function FileTreeView({
   const currentPath = store.getCurrentPath();
   const fileTree = store.getFileTree();
 
+  const pathChanged = store.getPathChangedStatus();
+
   const [dragging, setDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [clickTimes, setClickTimes] = useState(0);
@@ -63,7 +65,7 @@ function FileTreeView({
   const currentTree = useMemo(() => {
     const ret = find(fileTree, currentPath);
     return ret;
-  }, [currentPath, fileTree, clickTimes]);
+  }, [currentPath, fileTree, clickTimes, pathChanged]);
 
   function joinPaths(...segments: string[]): string{
     return segments.join('/').replace(/\/{2,}/g, '/');

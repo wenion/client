@@ -2,9 +2,11 @@ import { createStoreModule, makeAction } from '../create-store';
 import type { FileNode } from '../../../types/api';
 
 const initialState = {
+  pathChanged: false,
   currentPath: "",
   fileTree: null,
 } as {
+  pathChanged: boolean;
   currentPath: string;
   fileTree: FileNode | null;
 };
@@ -91,6 +93,15 @@ const reducers = {
       currentPath: action.currentPath,
     };
   },
+
+  UPDATE_PATHSTATUS(
+    state: State,
+    action: {}
+  ):  Partial<State> {
+    return {
+      pathChanged: !state.pathChanged,
+    };
+  },
 };
 
 function initFileTree(fileTree: FileNode) {
@@ -109,8 +120,16 @@ function removeFileNode(filePath: string, parentPath: string){
   return makeAction(reducers, 'REMOVE_NODE', {filePath, parentPath});
 }
 
+function changePath(){
+  return makeAction(reducers, 'UPDATE_PATHSTATUS', {});
+}
+
 function getCurrentPath(state: State){
   return state.currentPath;
+}
+
+function getPathChangedStatus(state: State) {
+  return state.pathChanged;
 }
 
 function getFileTree(state: State){
@@ -125,9 +144,11 @@ export const fileTreeModule = createStoreModule(initialState, {
     changeCurrentPath,
     addFileNode,
     removeFileNode,
+    changePath,
   },
   selectors: {
     getFileTree,
     getCurrentPath,
+    getPathChangedStatus,
   },
 });

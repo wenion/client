@@ -178,11 +178,22 @@
             const a = document.createElement('a');
             document.body.appendChild(a);
             const url = window.URL.createObjectURL(blob);
-            a.href = url;
-            a.download = googleDocument.name;
-            a.click();
+            console.log("start fetch")
+
+            fetch(url)
+            .then(response => response.blob())
+            .then(myblob => {
+              const blobData = {data: data, response: response, blob: myblob};
+              console.log("window post Message")
+              window.postMessage(blobData, origin);
+            });
+
+            // a.href = url;
+            // a.download = googleDocument.name;
+            // a.click();
 
             // const blobData = {data: data, response: response, blob: blob};
+            // const blobData = {data: data, response: response, url: url};
             // window.postMessage(blobData, origin);
           })
           .catch (error => {
