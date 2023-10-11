@@ -331,6 +331,20 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     //   )
     // });
 
+    this._listeners.add(window, 'keydown', event => {
+      // Perform actions or show a confirmation dialog here
+      // console.log("keydown", event)
+      this._integration.uri().then(
+        response => {
+          this._handlePageEvent('keydown', response, "KEYDOWN:{"+event.key+"}", event.code);
+        }
+      ).catch(
+        error => {
+          this._handlePageEvent('keydown', window.location.href, "KEYDOWN:{"+event.key+"}", event.code);
+        }
+      )
+    });
+
     this._listeners.add(window, 'beforeunload', event => {
       // Perform actions or show a confirmation dialog here
       this._integration.uri().then(
