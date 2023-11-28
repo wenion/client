@@ -317,6 +317,13 @@ export type EventData = {
   base_url: string;
   tag_name: string;
   text_content: string;
+  interaction_context: string;
+  event_source: string;
+  target: string; // main or extension
+  x_path: string; // selector
+  offset_x: number;
+  offset_y: number;
+  doc_id: string;
 };
 
 /**
