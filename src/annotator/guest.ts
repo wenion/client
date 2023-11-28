@@ -398,7 +398,6 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     });
 
     this._listeners.add(window, 'scroll', event => {
-      console.log("event", event)
       let element = event.target as HTMLDocument;
       let direction = "DOWN";
       let st = window.pageYOffset || document.documentElement.scrollTop;
@@ -427,11 +426,8 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     });
 
     this._listeners.add(this.element, 'submit', event => {
-      event.preventDefault()
-      console.log("submit event", event)
+      // event.preventDefault()
       const target = event.target as HTMLFormElement;
-      console.log("target", target)
-      console.log("action", target.action)
       let formContent: {name: string, value: string}[] = [];
       if (target) {
         const formElements = Array.from(target.elements);
@@ -471,7 +467,6 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
           //   this._handlePageEvent('submit-textArea', target.baseURI, tagName, value);
           // }
         })
-        console.log(JSON.stringify(formContent))
         this._handlePageEvent('submit', target.action, "SUBMIT", JSON.stringify(formContent),
         target.action, "SUBMIT", "", "", 0, 0, "")
       }
