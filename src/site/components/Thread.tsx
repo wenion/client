@@ -59,28 +59,21 @@ function Thread({ thread, threadsService, queryService}: ThreadProps) {
 
   useEffect(() => {
     if (content.current && isExpanded) {
-      content.current.className = "block"
+      content.current.className = "block hover:text-red-400"
     }
     else if (content.current && !isExpanded) {
-      content.current.className = "hidden"
+      content.current.className = "hidden hover:text-red-400"
     }
   }, [isExpanded])
 
   return (
     <>
       <header class="flex">
-        {thread.url? (
-          <h1
-            class="grow self-center text-left ml-10 text-2xl font-robo finger-cursor hover:text-red-400"
-            onClick={() => onClickResult(thread)}
-          >
-            {thread.title}
-          </h1>
-        ) : (
-          <h1 class="grow self-center text-left ml-10 text-2xl font-robo">
-            {thread.title}
-          </h1>
-        )}
+        <h1
+          class="grow self-center text-left ml-10 text-2xl font-robo"
+        >
+          {thread.title}
+        </h1>
         <div className="grow-0 p-4 finger-cursor" onClick={ e => { queryService.setBookmark(thread.id, !thread.isBookmark) }}>
           { thread.isBookmark ? <BookmarkFilledIcon /> : <BookmarkIcon />}
         </div>
@@ -88,9 +81,9 @@ function Thread({ thread, threadsService, queryService}: ThreadProps) {
           { isExpanded ? <MenuCollapseIcon /> : <MenuExpandIcon />}
         </div>
       </header>
-      <div ref={content}>
-        <div class="flex gap-4">
-          <div class="flex-none self-center items-center">
+      <div class="finger-cursor hover:text-blue-400" ref={content} onClick={() => onClickResult(thread)}>
+        <div class="grid grid-cols-6 gap-4 finger-cursor">
+          <div class="flex self-center justify-center">
             {thread.dataType === "pdf" ? (
               <FilePdfIcon className="w-8 h-8"
               />
@@ -110,18 +103,18 @@ function Thread({ thread, threadsService, queryService}: ThreadProps) {
             className={classnames(
               // Set a max-width to ensure that annotation content does not exceed
               // the width of the container
-              'grow max-w-full gap-8 p-2'
+              'col-span-5'
             )}
             data-testid="thread-content"
           >
             <MarkdownView
               markdown={thread.summary}
-              classes="text-lg leading-relaxed font-sans"
+              classes="cursor-pointer text-lg leading-relaxed font-sans"
               // style={textStyle}
             />
           </div>
         </div>
-        <footer className="mb-8">
+        <footer className="my-8">
           <p className="ml-16 font-bold"><em>source</em>: {thread.repository}</p>
         </footer>
       </div>
