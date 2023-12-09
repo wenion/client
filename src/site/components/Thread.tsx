@@ -59,10 +59,10 @@ function Thread({ thread, threadsService, queryService}: ThreadProps) {
 
   useEffect(() => {
     if (content.current && isExpanded) {
-      content.current.className = "block hover:text-red-400"
+      content.current.className = "block hover:text-gray-300"
     }
     else if (content.current && !isExpanded) {
-      content.current.className = "hidden hover:text-red-400"
+      content.current.className = "hidden hover:text-gray-300"
     }
   }, [isExpanded])
 
@@ -70,7 +70,7 @@ function Thread({ thread, threadsService, queryService}: ThreadProps) {
     <>
       <header class="flex">
         <h1
-          class="grow self-center text-left ml-10 text-2xl font-robo"
+          class="grow self-center text-left ml-10 text-xl font-robo"
         >
           {thread.title}
         </h1>
