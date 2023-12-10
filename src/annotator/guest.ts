@@ -275,6 +275,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     // Setup event handlers on the root element
     this._listeners = new ListenerCollection();
     this._setupElementEvents();
+    this._setupElementEvents();
 
     this._lastScrollTop =  window.pageYOffset || document.documentElement.scrollTop;
     this._lastScrollTime = 0;
@@ -282,24 +283,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     this._hoveredAnnotations = new Set();
   }
 
-  // Add DOM event listeners for clicks, taps etc. on the document and
-  // highlights.
-  _setupElementEvents() {
-    // Hide the sidebar in response to a document click or tap, so it doesn't obscure
-    // the document content.
-    const maybeCloseSidebar = (element: Element) => {
-      if (this._sideBySideActive) {
-        // Don't hide the sidebar if event was disabled because the sidebar
-        // doesn't overlap the content.
-        return;
-      }
-      if (annotationsAt(element).length) {
-        // Don't hide the sidebar if the event comes from an element that contains a highlight
-        return;
-      }
-      this._sidebarRPC.call('closeSidebar');
-    };
-
+  _setupExtendEvents() {
     const originalOpen = window.open;
     window.open = (url, target, features) => {
       // Call the original window.open function
@@ -368,33 +352,14 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
 
     this._listeners.add(this.element, 'click', event => {
       const clickElement = event.target as Element;
-      if (clickElement && clickElement instanceof HTMLInputElement) {
-        this._handlePageEvent(event.type, clickElement.baseURI, clickElement.tagName, clickElement.innerText,
-          "", "CLICK", "", "", event.offsetX, event.offsetY, "");
-      }
-      // if (clickElement) {
-      //   const linkElement = clickElement.closest('a');
-      //   if (linkElement) {
-      //     this._handlePageEvent('click-href', linkElement.baseURI, linkElement.tagName, linkElement.href);
-      //     return;
-      //   }
-      //   const submitElement = clickElement.closest('input[type="submit"]') as HTMLInputElement;
-      //   if (submitElement) {
-      //     this._handlePageEvent('click-submit', submitElement.baseURI, submitElement.tagName, submitElement.value);
-      //     return;
-      //   }
-      //   const inputElement = clickElement.closest('input[type="button"]') as HTMLInputElement;
-      //   if (inputElement) {
-      //     this._handlePageEvent('click-input', inputElement.baseURI, inputElement.tagName, inputElement.value);
-      //     return;
-      //   }
-      //   const buttonElement = clickElement.closest('button');
-      //   if (buttonElement) {
-      //     let value = buttonElement.textContent ? buttonElement.textContent : buttonElement.value;
-      //     this._handlePageEvent('click-button', buttonElement.baseURI, buttonElement.tagName, value);
-      //     return;
-      //   }
-      // }
+      this._integration.uri().then(
+        response => {
+          if (clickElement && clickElement instanceof HTMLInputElement) {
+            this._handlePageEvent(event.type, response, clickElement.tagName, clickElement.innerText,
+              "", "CLICK", "", "", event.offsetX, event.offsetY, "");
+          }
+        }
+      )
     });
 
     this._listeners.add(window, 'scroll', event => {
@@ -417,10 +382,14 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
         // const milliseconds = ('00' + date.getMilliseconds()).slice(-3);
         // const formattedDate = `${minutes}:${seconds}.${milliseconds}`;
         // console.log("cur time", formattedDate)
-        this._handlePageEvent('scroll', window.location.href, "SCROLL " + direction, "offset:" + window.pageYOffset,
-        "", "", "", "",
-        element.defaultView?.pageXOffset == undefined ? 0: element.defaultView?.pageXOffset,
-        element.defaultView?.pageYOffset == undefined ? 0: element.defaultView?.pageYOffset, "");
+        this._integration.uri().then(
+          response => {
+            this._handlePageEvent('scroll', response, "SCROLL " + direction, "offset:" + window.pageYOffset,
+            "", "", "", "",
+            element.defaultView?.pageXOffset == undefined ? 0: element.defaultView?.pageXOffset,
+            element.defaultView?.pageYOffset == undefined ? 0: element.defaultView?.pageYOffset, "");
+          }
+        )
       }
       this._lastScrollTime = currentTime;
     });
@@ -432,45 +401,34 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       if (target) {
         const formElements = Array.from(target.elements);
         formElements.map((element, index) => {
-          let value = '';
-          let tagName = '';
-          let eventType = '';
           if (element instanceof HTMLInputElement) {
             if (element.name.toLowerCase() != "password")
               formContent.push({name: element.name, value: element.value})
           }
-          // if (element instanceof HTMLInputElement) {
-          //   if (element.type === 'text') {
-          //     value = element.value;
-          //     tagName = element.tagName;
-          //     console.log("text name", element.name)
-          //     console.log("text input", element.name, value)
-          //     this._handlePageEvent('submit-text', target.baseURI, tagName, value);
-          //   }
-          //   else if (element.type === "checkbox") {
-          //     value = element.value;
-          //     tagName = element.tagName;
-          //     console.log("checkbot input", element.name, value)
-          //     this._handlePageEvent('submit-checkbox', target.baseURI, tagName, value);
-          //   }
-          // }
-          // else if (element instanceof HTMLSelectElement) {
-          //   value = element.value;
-          //   tagName = element.tagName;
-          //   console.log("select input", element.name, value)
-          //   this._handlePageEvent('submit-select', target.baseURI, tagName, value);
-          // }
-          // else if (element instanceof HTMLTextAreaElement) {
-          //   value = element.value;
-          //   tagName = element.tagName;
-          //   console.log("textarea input", element.name, value)
-          //   this._handlePageEvent('submit-textArea', target.baseURI, tagName, value);
-          // }
         })
         this._handlePageEvent('submit', target.action, "SUBMIT", JSON.stringify(formContent),
         target.action, "SUBMIT", "", "", 0, 0, "")
       }
     });
+  }
+
+  // Add DOM event listeners for clicks, taps etc. on the document and
+  // highlights.
+  _setupElementEvents() {
+    // Hide the sidebar in response to a document click or tap, so it doesn't obscure
+    // the document content.
+    const maybeCloseSidebar = (element: Element) => {
+      if (this._sideBySideActive) {
+        // Don't hide the sidebar if event was disabled because the sidebar
+        // doesn't overlap the content.
+        return;
+      }
+      if (annotationsAt(element).length) {
+        // Don't hide the sidebar if the event comes from an element that contains a highlight
+        return;
+      }
+      this._sidebarRPC.call('closeSidebar');
+    };
 
     this._listeners.add(this.element, 'mouseup', event => {
       const { target, metaKey, ctrlKey } = event;
@@ -899,8 +857,13 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
 
     this.selectedRanges = [annotatableRange];
     this._hostRPC.call('textSelected');
-    this._handlePageEvent('select', document.location.origin, 'SELECT', selection.toString(),
-    "", "SELECT", "", "", 0, 0, "")
+
+    this._integration.uri().then(
+      response => {
+        this._handlePageEvent('select', response, 'SELECT', selection.toString(),
+        "", "SELECT", "", "", 0, 0, "")
+      }
+    )
 
     this._adder.annotationsForSelection = annotationsForSelection();
     this._isAdderVisible = true;
