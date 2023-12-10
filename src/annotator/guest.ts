@@ -275,7 +275,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     // Setup event handlers on the root element
     this._listeners = new ListenerCollection();
     this._setupElementEvents();
-    this._setupElementEvents();
+    this._setupExtendEvents();
 
     this._lastScrollTop =  window.pageYOffset || document.documentElement.scrollTop;
     this._lastScrollTime = 0;

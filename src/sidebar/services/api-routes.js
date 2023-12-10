@@ -40,6 +40,9 @@ export class APIRoutesService {
 
     /** @type {Promise<LinksResponse>|null} */
     this._linkCache = null;
+
+    /** @type {Promise<string[]>|null} */
+    this._whitelistCache = null;
   }
 
   /**
@@ -74,5 +77,21 @@ export class APIRoutesService {
       });
     }
     return this._linkCache;
+  }
+
+  /**
+   * Fetch and cache service page links from the API.
+   *
+   * @return {Promise<string[]>}
+   */
+  whitelist() {
+    if (!this._whitelistCache) {
+      this._whitelistCache = this.routes().then(async routes => {
+        const linksRoute = /** @type {RouteMetadata} */ (routes.whitelist);
+        const links = await getJSON(linksRoute.url);
+        return /** @type {string[]} */ (links);
+      });
+    }
+    return this._whitelistCache;
   }
 }

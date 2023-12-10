@@ -164,7 +164,20 @@ export class AnnotationsService {
       ...eventData,
       userid: userid,
     }
-    this._api.event({}, userEventData);
+
+    if (userEventData.base_url.includes("://")) {
+      let url = new URL(userEventData.base_url)
+
+      Object.entries(this._store.getWhitelist()).forEach(([key, value]) => {
+        if (value == url.host) {
+          this._api.event({}, userEventData);
+          return;
+        }
+      });
+    }
+    else {
+      this._api.event({}, userEventData);
+    }
   }
 
   /**

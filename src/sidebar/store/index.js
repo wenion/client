@@ -23,6 +23,7 @@ import { viewerModule } from './modules/viewer';
 import { resultModule } from './modules/results';
 import { queryModule } from './modules/query';
 import { useStore } from './use-store';
+import { whitelistModule } from './modules/whitelist';
 
 /** @typedef {ReturnType<createSidebarStore>} SidebarStore */
 
@@ -65,6 +66,7 @@ export function createSidebarStore(settings) {
     viewerModule,
     resultModule,
     queryModule,
+    whitelistModule,
   ]);
   return createStore(modules, [settings], middleware);
 }
