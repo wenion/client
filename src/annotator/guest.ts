@@ -292,15 +292,15 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       // TODO need to double checks
       // Set viewport
       if (typeof url === 'string' && target != undefined) {
-        this._handlePageEvent('open', url, "OPEN", "open page string", "OPEN", "OPEN", target,
+        this._handlePageEvent('open', url, "OPEN", "open page string", "RESOURCE PAGE", "OTHER", target,
         "", 0, 0, "");
       }
       else if (url instanceof URL && target != undefined) {
-        this._handlePageEvent('open', url.href, "OPEN", "open page url", "OPEN", "OPEN", target,
+        this._handlePageEvent('open', url.href, "OPEN", "open page url", "RESOURCE PAGE", "OTHER", target,
         "", 0, 0, "");
       }
       else {
-        this._handlePageEvent('open', window.location.href, "OPEN", "open page undefined", "OPEN", "OPEN", target == undefined? "undefined": target,
+        this._handlePageEvent('open', window.location.href, "OPEN", "open page undefined", "RESOURCE PAGE", "OTHER", target == undefined? "undefined": target,
         "", 0, 0, "");
       }
       // Return the newly opened window object
@@ -327,7 +327,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
           const element = event.target as Element;
           if (element && element.tagName) {
             this._handlePageEvent('keydown', response, element.tagName, event.key,
-            event.code, "KEYDOWN", "", "", 0, 0, "");
+            event.code, "KEYBOARD", "", "", 0, 0, "");
           }
         }
       ).catch(
@@ -341,11 +341,11 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       // Perform actions or show a confirmation dialog here
       this._integration.uri().then(
         response => {
-          this._handlePageEvent('beforeunload', response, "CLOSE", "close page", "", "", "", "", 0, 0, "");
+          this._handlePageEvent('beforeunload', response, "CLOSE", "close page", "RESOURCE PAGE", "OTHER", "", "", 0, 0, "");
         }
       ).catch(
         error => {
-          this._handlePageEvent('beforeunload', window.location.href, "CLOSE", "close page error" + error.toString(), "", "", "", "", 0, 0, "");
+          this._handlePageEvent('beforeunload', window.location.href, "CLOSE", "close page error" + error.toString(), "RESOURCE PAGE", "OTHER", "", "", 0, 0, "");
         }
       )
     });
@@ -356,7 +356,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
         response => {
           if (clickElement && clickElement instanceof HTMLInputElement) {
             this._handlePageEvent(event.type, response, clickElement.tagName, clickElement.innerText,
-              "", "CLICK", "", "", event.offsetX, event.offsetY, "");
+              "", "MOUSE", "", "", event.offsetX, event.offsetY, "");
           }
         }
       )
@@ -385,7 +385,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
         this._integration.uri().then(
           response => {
             this._handlePageEvent('scroll', response, "SCROLL " + direction, "offset:" + window.pageYOffset,
-            "", "", "", "",
+            "", "MOUSE", "", "",
             element.defaultView?.pageXOffset == undefined ? 0: element.defaultView?.pageXOffset,
             element.defaultView?.pageYOffset == undefined ? 0: element.defaultView?.pageYOffset, "");
           }
