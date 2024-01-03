@@ -407,7 +407,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
           }
         })
         this._handlePageEvent('submit', target.action, "SUBMIT", JSON.stringify(formContent),
-        target.action, "SUBMIT", "", "", 0, 0, "")
+        target.action, "OTHER", "", "", 0, 0, "")
       }
     });
   }
@@ -861,7 +861,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     this._integration.uri().then(
       response => {
         this._handlePageEvent('select', response, 'SELECT', selection.toString(),
-        "", "SELECT", "", "", 0, 0, "")
+        "", "OTHER", "", "", 0, 0, "")
       }
     )
 
@@ -972,7 +972,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     interaction_context: string,
     event_source: string,
     target: string,
-    x_path: string,
+    x_path: string, // TODO https://stackoverflow.com/questions/2631820/how-do-i-ensure-saved-click-coordinates-can-be-reload-to-the-same-place-even-if/2631931#2631931
     offset_x: number,
     offset_y: number,
     doc_id: string,
