@@ -1,6 +1,6 @@
 import type { TinyEmitter } from 'tiny-emitter';
 
-import type { Annotation, Selector, Target } from './api';
+import type { APIAnnotationData, Selector, Target } from './api';
 import type { ClientAnnotationData } from './shared';
 
 /**
@@ -66,7 +66,7 @@ export type SegmentInfo = {
  * the document.
  */
 export type AnnotationData = ClientAnnotationData &
-  Pick<Annotation, 'target' | 'uri'> & {
+  Pick<APIAnnotationData, 'target' | 'uri'> & {
     document?: DocumentMetadata;
   };
 
@@ -108,12 +108,12 @@ export type AnchoringImpl = {
   anchor(
     root: HTMLElement,
     selectors: Selector[],
-    options: unknown
+    options: unknown,
   ): Promise<Range>;
   describe(
     root: HTMLElement,
     range: Range,
-    options: unknown
+    options: unknown,
   ): Selector[] | Promise<Selector[]>;
 };
 
@@ -134,6 +134,7 @@ export type Annotator = {
   anchors: Anchor[];
   anchor(ann: AnnotationData): Promise<Anchor[]>;
   features: FeatureFlags;
+  sideBySide?: SideBySideOptions;
 };
 
 /**
@@ -181,6 +182,16 @@ export type IntegrationBase = {
    * false otherwise.
    */
   fitSideBySide(layout: SidebarLayout): boolean;
+
+  /**
+   * Return true if side-by-side mode is currently active.
+   *
+   * In most cases this will only change when `fitSideBySide` is called, but in
+   * some integrations this may change at other times. For example this can
+   * happen if the content layout changed and there is more or less room than
+   * before.
+   */
+  sideBySideActive(): boolean;
 
   /**
    * Return a DOM Range representing the extent of annotatable content within
@@ -326,6 +337,26 @@ export type DocumentInfo = {
    */
   persistent: boolean;
 };
+
+/**
+ * `auto`: The client will decide if side-by-side is enabled. If enabled, it
+ *         will apply some heuristics to determine how the content is affected.
+ *         This is default value.
+ * `manual`: The host app wants to manually take full control of side-by-side,
+ *           effectively disabling the logic in client.
+ */
+export type SideBySideOptions =
+  | { mode: 'auto' }
+  | {
+      mode: 'manual';
+      /**
+       * A callback that Hypothesis will call to determine whether side-by-side
+       * layout has been applied or not.
+       */
+      isActive?: () => boolean;
+    };
+
+export type SideBySideMode = SideBySideOptions['mode'];
 
 export type PullingData = {
   id: string;

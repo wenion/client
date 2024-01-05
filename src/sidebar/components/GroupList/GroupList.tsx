@@ -41,19 +41,22 @@ function GroupList({ settings }: GroupListProps) {
   const focusedGroup = store.focusedGroup();
   const userid = store.profile().userid;
 
+  // Prevent changing groups during an import
+  const disabled = store.importsPending() > 0;
+
   const myGroupsSorted = useMemo(
     () => groupsByOrganization(myGroups),
-    [myGroups]
+    [myGroups],
   );
 
   const featuredGroupsSorted = useMemo(
     () => groupsByOrganization(featuredGroups),
-    [featuredGroups]
+    [featuredGroups],
   );
 
   const currentGroupsSorted = useMemo(
     () => groupsByOrganization(currentGroups),
-    [currentGroups]
+    [currentGroups],
   );
 
   const defaultAuthority = store.defaultAuthority();
@@ -80,21 +83,28 @@ function GroupList({ settings }: GroupListProps) {
     label = (
       <span
         className={classnames(
-          // Don't allow this label to shrink (wrap to next line)
-          'shrink-0 flex items-center gap-x-1 text-md text-color-text font-bold'
+          // Add some vertical padding so that the dropdown has some space
+          'py-1',
         )}
       >
-        {icon && (
-          <img
-            className={classnames(
-              // Tiny adjustment to make H logo align better with group name
-              'relative top-[1px]'
-            )}
-            src={icon}
-            alt={altName}
-          />
-        )}
-        {focusedGroup.name}
+        <span
+          className={classnames(
+            // Don't allow this label to shrink (wrap to next line)
+            'shrink-0 flex items-center gap-x-1 text-md text-color-text font-bold',
+          )}
+        >
+          {icon && (
+            <img
+              className={classnames(
+                // Tiny adjustment to make H logo align better with group name
+                'relative top-[1px] w-4 h-4',
+              )}
+              src={icon}
+              alt={altName}
+            />
+          )}
+          {focusedGroup.name}
+        </span>
       </span>
     );
   } else {
@@ -119,6 +129,7 @@ function GroupList({ settings }: GroupListProps) {
     <Menu
       align="left"
       contentClass="min-w-[250px]"
+      disabled={disabled}
       label={label}
       onOpenChanged={() => setExpandedGroup(null)}
       title={menuTitle}

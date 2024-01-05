@@ -1,15 +1,9 @@
-import {
-  IconButton,
-  GlobeAltIcon,
-  LinkButton,
-  HelpIcon,
-  ShareIcon,
-} from '@hypothesis/frontend-shared';
+import { LinkButton, HelpIcon, ShareIcon } from '@hypothesis/frontend-shared';
+import { IconButton, GlobeAltIcon } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 
 import type { SidebarSettings } from '../../types/config';
 import { serviceConfig } from '../config/service-config';
-import { isThirdPartyService } from '../helpers/is-third-party-service';
 import { applyTheme } from '../helpers/theme';
 import { withServices } from '../service-context';
 import type { FileTreeService } from '../services/file-tree';
@@ -17,10 +11,12 @@ import type { FrameSyncService } from '../services/frame-sync';
 import { useSidebarStore } from '../store';
 import GroupList from './GroupList';
 import PendingUpdatesButton from './PendingUpdatesButton';
-import SearchInput from './SearchInput';
+import PressableIconButton from './PressableIconButton';
 import SortMenu from './SortMenu';
-import StreamSearchInput from './StreamSearchInput';
 import UserMenu from './UserMenu';
+import SearchInput from './old-search/SearchInput';
+import SearchIconButton from './search/SearchIconButton';
+import StreamSearchInput from './search/StreamSearchInput';
 
 export type TopBarProps = {
   /** Flag indicating whether the app is in a sidebar context */
@@ -54,13 +50,13 @@ function TopBar({
   frameSync,
   settings,
 }: TopBarProps) {
-  const showSharePageButton = !isThirdPartyService(settings);
   const loginLinkStyle = applyTheme(['accentColor'], settings);
 
   const store = useSidebarStore();
   const filterQuery = store.filterQuery();
   const isLoggedIn = store.isLoggedIn();
   const hasFetchedProfile = store.hasFetchedProfile();
+  const searchPanelEnabled = store.isFeatureEnabled('search_panel');
 
   const toggleSharePanel = () => {
     store.toggleSidebarPanel('shareGroupAnnotations');
@@ -72,9 +68,9 @@ function TopBar({
 
   const isHelpPanelOpen = store.isSidebarPanelOpen('help');
   const isAnnotationsPanelOpen = store.isSidebarPanelOpen(
-    'shareGroupAnnotations'
+    'shareGroupAnnotations',
   );
-  const isFileTreePanelOpen = store.isSidebarPanelOpen('fileTree');
+  // const isFileTreePanelOpen = store.isSidebarPanelOpen('fileTree');
 
   /**
    * Open the help panel, or, if a service callback is configured to handle
@@ -101,7 +97,7 @@ function TopBar({
     <div
       className={classnames(
         'absolute h-10 left-0 top-0 right-0 z-4',
-        'text-grey-7 border-b theme-clean:border-b-0 bg-white'
+        'text-grey-7 border-b theme-clean:border-b-0 bg-white',
       )}
       data-testid="top-bar"
     >
@@ -109,7 +105,7 @@ function TopBar({
         className={classnames(
           'container flex items-center h-full',
           // Text sizing will size icons in buttons correctly
-          'text-[16px]'
+          'text-[16px]',
         )}
         data-testid="top-bar-content"
       >
@@ -123,47 +119,45 @@ function TopBar({
           {isSidebar && (
             <>
               <PendingUpdatesButton />
-              <SearchInput
-                query={filterQuery || null}
-                onSearch={store.setFilterQuery}
-              />
-              <SortMenu />
-              {showSharePageButton && (
-                <IconButton
-                  icon={ShareIcon}
-                  expanded={isAnnotationsPanelOpen}
-                  onClick={toggleSharePanel}
-                  size="xs"
-                  title="Share annotations on this page"
+              {!searchPanelEnabled && (
+                <SearchInput
+                  query={filterQuery || null}
+                  onSearch={store.setFilterQuery}
                 />
               )}
+              {searchPanelEnabled && <SearchIconButton />}
+              <SortMenu />
+              <PressableIconButton
+                icon={ShareIcon}
+                expanded={isAnnotationsPanelOpen}
+                pressed={isAnnotationsPanelOpen}
+                onClick={toggleSharePanel}
+                size="xs"
+                title="Share annotations on this page"
+                data-testid="share-icon-button"
+              />
             </>
           )}
-          <IconButton
+          <PressableIconButton
             icon={GlobeAltIcon}
             onClick={requestQuery}
             size="xs"
             title="Go to the querying page"
           />
-          <IconButton
+          <PressableIconButton
             icon={HelpIcon}
             expanded={isHelpPanelOpen}
+            pressed={isHelpPanelOpen}
             onClick={requestHelp}
             size="xs"
             title="Help"
+            data-testid="help-icon-button"
           />
-          {/* <IconButton
-            icon={FolderIcon}
-            expanded={isFileTreePanelOpen}
-            onClick={toggleFileTreePanel}
-            size="xs"
-            title="Browser cloud repository"
-          /> */}
           {isLoggedIn ? (
             <UserMenu onLogout={onLogout} />
           ) : (
             <div
-              className="flex items-center text-md font-medium space-x-1"
+              className="flex items-center text-md font-medium space-x-1 pl-1"
               data-testid="login-links"
             >
               {!isLoggedIn && !hasFetchedProfile && <span>⋯</span>}
@@ -173,6 +167,7 @@ function TopBar({
                     classes="inline"
                     onClick={onSignUp}
                     style={loginLinkStyle}
+                    underline="none"
                   >
                     Sign up
                   </LinkButton>
@@ -181,6 +176,7 @@ function TopBar({
                     classes="inline"
                     onClick={onLogin}
                     style={loginLinkStyle}
+                    underline="none"
                   >
                     Log in
                   </LinkButton>

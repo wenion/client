@@ -1,8 +1,10 @@
 import { ProfileIcon } from '@hypothesis/frontend-shared';
+import {
+  checkAccessibility,
+  mockImportedComponents,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import { checkAccessibility } from '../../../test-util/accessibility';
-import { mockImportedComponents } from '../../../test-util/mock-imported-components';
 import FilterSelect, { $imports } from '../FilterSelect';
 
 describe('FilterSelect', () => {
@@ -15,7 +17,7 @@ describe('FilterSelect', () => {
         options={someOptions}
         title="Select one"
         {...props}
-      />
+      />,
     );
   };
 
@@ -55,7 +57,7 @@ describe('FilterSelect', () => {
     assert.calledOnce(fakeOnSelect);
     assert.calledWith(
       fakeOnSelect,
-      sinon.match({ value: 'onevalue', display: 'One Value' })
+      sinon.match({ value: 'onevalue', display: 'One Value' }),
     );
   });
 
@@ -108,6 +110,6 @@ describe('FilterSelect', () => {
           });
         },
       },
-    ])
+    ]),
   );
 });

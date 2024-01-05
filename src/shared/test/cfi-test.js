@@ -1,4 +1,9 @@
-import { compareCFIs, documentCFI, stripCFIAssertions } from '../cfi';
+import {
+  cfiInRange,
+  compareCFIs,
+  documentCFI,
+  stripCFIAssertions,
+} from '../cfi';
 
 describe('sidebar/util/cfi', () => {
   describe('stripCFIAssertions', () => {
@@ -10,7 +15,7 @@ describe('sidebar/util/cfi', () => {
       assert.equal(stripCFIAssertions('/1/2[chap4ref]'), '/1/2');
       assert.equal(
         stripCFIAssertions('/1[part1ref]/2[chapter2ref]/3[subsectionref]'),
-        '/1/2/3'
+        '/1/2/3',
       );
     });
 
@@ -97,7 +102,7 @@ describe('sidebar/util/cfi', () => {
         assert.equal(
           compareCFIs(a, b),
           expected,
-          `comparing CFIs "${a}" and "${b}" failed`
+          `comparing CFIs "${a}" and "${b}" failed`,
         );
       });
     });
@@ -115,8 +120,52 @@ describe('sidebar/util/cfi', () => {
     it('strips assertions', () => {
       assert.equal(
         documentCFI('/6/152[;vnd.vst.idref=ch13_01]!/4/2[ch13_sec_1]'),
-        '/6/152'
+        '/6/152',
       );
+    });
+  });
+
+  describe('cfiInRange', () => {
+    [
+      // CFI before start of range
+      {
+        cfi: '/2',
+        start: '/4',
+        end: '/6',
+        expected: false,
+      },
+      // CFI at start of range
+      {
+        cfi: '/2',
+        start: '/2',
+        end: '/3',
+        expected: true,
+      },
+      // CFI in middle of range
+      {
+        cfi: '/4',
+        start: '/2',
+        end: '/6',
+        expected: true,
+      },
+      // CFI at start and end of empty range
+      {
+        cfi: '/2',
+        start: '/2',
+        end: '/2',
+        expected: false,
+      },
+      // CFI after end of range
+      {
+        cfi: '/6',
+        start: '/2',
+        end: '/4',
+        expected: false,
+      },
+    ].forEach(({ cfi, start, end, expected }) => {
+      it('should return true if the cfi is in the range [start, end)', () => {
+        assert.equal(cfiInRange(cfi, start, end), expected);
+      });
     });
   });
 });

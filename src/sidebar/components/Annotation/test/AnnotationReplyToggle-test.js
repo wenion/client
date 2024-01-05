@@ -1,7 +1,7 @@
+import { checkAccessibility } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 import { act } from 'preact/test-utils';
 
-import { checkAccessibility } from '../../../../test-util/accessibility';
 import AnnotationReplyToggle from '../AnnotationReplyToggle';
 
 describe('AnnotationReplyToggle', () => {
@@ -14,7 +14,7 @@ describe('AnnotationReplyToggle', () => {
         replyCount={5}
         threadIsCollapsed={true}
         {...props}
-      />
+      />,
     );
   }
 
@@ -56,6 +56,6 @@ describe('AnnotationReplyToggle', () => {
     'should pass a11y checks',
     checkAccessibility({
       content: () => createComponent(),
-    })
+    }),
   );
 });

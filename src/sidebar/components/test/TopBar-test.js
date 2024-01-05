@@ -1,7 +1,9 @@
+import {
+  checkAccessibility,
+  mockImportedComponents,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import { checkAccessibility } from '../../../test-util/accessibility';
-import { mockImportedComponents } from '../../../test-util/mock-imported-components';
 import TopBar, { $imports } from '../TopBar';
 
 describe('TopBar', () => {
@@ -9,12 +11,9 @@ describe('TopBar', () => {
   let fakeFrameSync;
   let fakeStore;
   let fakeStreamer;
-  let fakeIsThirdPartyService;
   let fakeServiceConfig;
 
   beforeEach(() => {
-    fakeIsThirdPartyService = sinon.stub().returns(false);
-
     fakeStore = {
       filterQuery: sinon.stub().returns(null),
       hasFetchedProfile: sinon.stub().returns(false),
@@ -22,6 +21,7 @@ describe('TopBar', () => {
       isSidebarPanelOpen: sinon.stub().returns(false),
       setFilterQuery: sinon.stub(),
       toggleSidebarPanel: sinon.stub(),
+      isFeatureEnabled: sinon.stub().returns(false),
     };
 
     fakeFrameSync = {
@@ -38,10 +38,12 @@ describe('TopBar', () => {
 
     $imports.$mock({
       '../store': { useSidebarStore: () => fakeStore },
-      '../helpers/is-third-party-service': {
-        isThirdPartyService: fakeIsThirdPartyService,
-      },
       '../config/service-config': { serviceConfig: fakeServiceConfig },
+    });
+    $imports.$restore({
+      // `PressableIconButton` is a presentation-only component. Not mocking it
+      // allows to get it covered.
+      './PressableIconButton': true,
     });
   });
 
@@ -49,11 +51,11 @@ describe('TopBar', () => {
     $imports.$restore();
   });
 
-  // Helper to retrieve an `Button` by icon name, for convenience
-  function getButton(wrapper, iconName) {
+  // Helper to retrieve an `Button` by test ID, for convenience
+  function getButton(wrapper, testId) {
     return wrapper
-      .find('IconButton')
-      .filterWhere(n => n.find(iconName).exists());
+      .find('PressableIconButton')
+      .filterWhere(n => n.find(`[data-testid="${testId}"]`).exists());
   }
 
   function createTopBar(props = {}) {
@@ -64,7 +66,7 @@ describe('TopBar', () => {
         settings={fakeSettings}
         streamer={fakeStreamer}
         {...props}
-      />
+      />,
     );
   }
 
@@ -72,7 +74,7 @@ describe('TopBar', () => {
     context('no help service handler configured in services (default)', () => {
       it('toggles Help Panel on click', () => {
         const wrapper = createTopBar();
-        const helpButton = getButton(wrapper, 'HelpIcon');
+        const helpButton = getButton(wrapper, 'help-icon-button');
 
         helpButton.props().onClick();
 
@@ -82,7 +84,7 @@ describe('TopBar', () => {
       it('displays a help icon active state when help panel active', () => {
         fakeStore.isSidebarPanelOpen.withArgs('help').returns(true);
         const wrapper = createTopBar();
-        const helpButton = getButton(wrapper, 'HelpIcon');
+        const helpButton = getButton(wrapper, 'help-icon-button');
 
         wrapper.update();
 
@@ -94,7 +96,7 @@ describe('TopBar', () => {
           fakeServiceConfig.returns({ onHelpRequestProvided: true });
           const wrapper = createTopBar();
 
-          const helpButton = getButton(wrapper, 'HelpIcon');
+          const helpButton = getButton(wrapper, 'help-icon-button');
 
           helpButton.props().onClick();
 
@@ -149,13 +151,6 @@ describe('TopBar', () => {
     });
   });
 
-  it("checks whether we're using a third-party service", () => {
-    createTopBar();
-
-    assert.called(fakeIsThirdPartyService);
-    assert.alwaysCalledWithExactly(fakeIsThirdPartyService, fakeSettings);
-  });
-
   context('when using a first-party service', () => {
     it('shows the share annotations button', () => {
       const wrapper = createTopBar();
@@ -163,22 +158,9 @@ describe('TopBar', () => {
     });
   });
 
-  context('when using a third-party service', () => {
-    beforeEach(() => {
-      fakeIsThirdPartyService.returns(true);
-    });
-
-    it("doesn't show the share annotations button", () => {
-      const wrapper = createTopBar();
-      assert.isFalse(
-        wrapper.exists('[title="Share annotations on this page"]')
-      );
-    });
-  });
-
   it('toggles the share annotations panel when "Share" is clicked', () => {
     const wrapper = createTopBar();
-    const shareButton = getButton(wrapper, 'ShareIcon');
+    const shareButton = getButton(wrapper, 'share-icon-button');
 
     shareButton.props().onClick();
 
@@ -190,7 +172,7 @@ describe('TopBar', () => {
       .withArgs('shareGroupAnnotations')
       .returns(true);
     const wrapper = createTopBar();
-    const shareButton = getButton(wrapper, 'ShareIcon');
+    const shareButton = getButton(wrapper, 'share-icon-button');
 
     assert.isTrue(shareButton.prop('expanded'));
   });
@@ -222,6 +204,17 @@ describe('TopBar', () => {
     });
   });
 
+  context('when sidebar panel feature is enabled', () => {
+    it('displays search input in the sidebar', () => {
+      fakeStore.isFeatureEnabled.returns(true);
+
+      const wrapper = createTopBar();
+
+      assert.isFalse(wrapper.exists('SearchInput'));
+      assert.isTrue(wrapper.exists('SearchIconButton'));
+    });
+  });
+
   it(
     'should pass a11y checks',
     checkAccessibility([
@@ -233,6 +226,6 @@ describe('TopBar', () => {
         name: 'in stream / single annotation view',
         content: () => createTopBar({ isSidebar: false }),
       },
-    ])
+    ]),
   );
 });

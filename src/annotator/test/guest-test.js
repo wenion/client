@@ -1,6 +1,6 @@
+import { delay } from '@hypothesis/frontend-testing';
 import { TinyEmitter } from 'tiny-emitter';
 
-import { delay } from '../../test-util/wait';
 import { Guest, $imports } from '../guest';
 
 class FakeAdder {
@@ -42,13 +42,11 @@ describe('Guest', () => {
   let fakeHighlightClusterController;
   let FakeHighlightClusterController;
   let fakeCreateIntegration;
-  let fakeFindClosestOffscreenAnchor;
   let fakeFrameFillsAncestor;
   let fakeIntegration;
   let fakePortFinder;
   let FakePortRPC;
   let fakePortRPCs;
-  let fakeSelectedRange;
 
   const createGuest = (config = {}) => {
     const element = document.createElement('div');
@@ -69,12 +67,14 @@ describe('Guest', () => {
     return fakePortRPCs[1];
   };
 
+  // Simulate event from host frame.
+  //
+  // Returns the result of the guest's event handler. That result would normally
+  // not be used, but is useful as a way for the guest to indicate to tests
+  // when async handling is done, by returning a promise.
   const emitHostEvent = (event, ...args) => {
-    for (let [evt, fn] of hostRPC().on.args) {
-      if (event === evt) {
-        fn(...args);
-      }
-    }
+    const [, callback] = hostRPC().on.args.find(args => args[0] === event);
+    return callback?.(...args);
   };
 
   const emitSidebarEvent = (event, ...args) => {
@@ -83,6 +83,34 @@ describe('Guest', () => {
         fn(...args);
       }
     }
+  };
+
+  const simulateSelectionWithText = () => {
+    rangeUtil.selectionFocusRect.returns({
+      left: 0,
+      top: 0,
+      width: 5,
+      height: 5,
+    });
+
+    const element = document.createElement('div');
+    element.textContent = 'foobar';
+    const range = new Range();
+    range.selectNodeContents(element);
+
+    rangeUtil.selectedRange.returns(range);
+    notifySelectionChanged(range);
+  };
+
+  const simulateSelectionWithoutText = () => {
+    rangeUtil.selectionFocusRect.returns(null);
+
+    const element = document.createElement('div');
+    const range = new Range();
+    range.selectNodeContents(element);
+
+    rangeUtil.selectedRange.returns(range);
+    notifySelectionChanged(range);
   };
 
   beforeEach(() => {
@@ -103,6 +131,7 @@ describe('Guest', () => {
       itemsForRange: sinon.stub().returns([]),
       isSelectionBackwards: sinon.stub(),
       selectionFocusRect: sinon.stub(),
+      selectedRange: sinon.stub().returns(null),
     };
 
     FakeAdder.instance = null;
@@ -133,8 +162,6 @@ describe('Guest', () => {
       .stub()
       .returns(fakeHighlightClusterController);
 
-    fakeFindClosestOffscreenAnchor = sinon.stub();
-
     fakeFrameFillsAncestor = sinon.stub().returns(true);
 
     fakeIntegration = Object.assign(new TinyEmitter(), {
@@ -152,6 +179,7 @@ describe('Guest', () => {
       navigateToSegment: sinon.stub(),
       scrollToAnchor: sinon.stub().resolves(),
       showContentInfo: sinon.stub(),
+      sideBySideActive: sinon.stub().returns(false),
       uri: sinon.stub().resolves('https://example.com/test.pdf'),
     });
 
@@ -168,8 +196,6 @@ describe('Guest', () => {
         this.disconnect = sinon.stub();
       }
     }
-
-    fakeSelectedRange = sinon.stub();
 
     $imports.$mock({
       '../shared/messaging': {
@@ -193,10 +219,6 @@ describe('Guest', () => {
       './range-util': rangeUtil,
       './selection-observer': {
         SelectionObserver: FakeSelectionObserver,
-        selectedRange: fakeSelectedRange,
-      },
-      './util/buckets': {
-        findClosestOffscreenAnchor: fakeFindClosestOffscreenAnchor,
       },
       './util/frame': {
         frameFillsAncestor: fakeFrameFillsAncestor,
@@ -232,6 +254,30 @@ describe('Guest', () => {
 
         assert.notCalled(fakeIntegration.fitSideBySide);
       });
+
+      it('emits a "hypothesis:layoutchange" DOM event', () => {
+        const guest = createGuest();
+        const dummyLayout = {
+          expanded: true,
+          width: 100,
+          height: 300,
+          toolbarWidth: 10,
+        };
+        const listener = sinon.stub();
+
+        guest.element.addEventListener('hypothesis:layoutchange', listener);
+
+        emitHostEvent('sidebarLayoutChanged', dummyLayout);
+
+        assert.calledWith(
+          listener,
+          sinon.match({
+            detail: sinon.match({
+              sidebarLayout: dummyLayout,
+            }),
+          }),
+        );
+      });
     });
 
     describe('on "hoverAnnotations" event', () => {
@@ -245,29 +291,6 @@ describe('Guest', () => {
 
         assert.calledWith(guest._hoverAnnotations, tags);
         assert.calledWith(sidebarRPC().call, 'hoverAnnotations', tags);
-      });
-    });
-
-    describe('on "scrollToClosestOffScreenAnchor" event', () => {
-      it('scrolls to the nearest off-screen anchor"', () => {
-        const guest = createGuest();
-        guest.anchors = [
-          { annotation: { $tag: 't1' } },
-          { annotation: { $tag: 't2' } },
-        ];
-        const anchor = {};
-        fakeFindClosestOffscreenAnchor.returns(anchor);
-        const tags = ['t1', 't2'];
-        const direction = 'down';
-
-        emitHostEvent('scrollToClosestOffScreenAnchor', tags, direction);
-
-        assert.calledWith(
-          fakeFindClosestOffscreenAnchor,
-          guest.anchors,
-          direction
-        );
-        assert.calledWith(fakeIntegration.scrollToAnchor, anchor);
       });
     });
 
@@ -287,68 +310,38 @@ describe('Guest', () => {
     });
   });
 
-  describe('events from sidebar frame', () => {
-    describe('on "hoverAnnotations" event', () => {
-      it('marks associated highlights as focused', () => {
-        const highlight0 = document.createElement('span');
-        const highlight1 = document.createElement('span');
-        const guest = createGuest();
-        guest.anchors = [
-          { annotation: { $tag: 'tag1' }, highlights: [highlight0] },
-          { annotation: { $tag: 'tag2' }, highlights: [highlight1] },
-        ];
+  describe('on "scrollToAnnotation" event from host or sidebar', () => {
+    const setupGuest = () => {
+      const highlight = document.createElement('span');
+      const guest = createGuest();
+      const fakeRange = sinon.stub();
+      guest.anchors = [
+        {
+          annotation: { $tag: 'tag1' },
+          highlights: [highlight],
+          range: new FakeTextRange(fakeRange),
+        },
+      ];
+      return guest;
+    };
 
-        emitSidebarEvent('hoverAnnotations', ['tag1']);
+    ['host', 'sidebar'].forEach(source => {
+      const triggerScroll = async () => {
+        if (source === 'sidebar') {
+          emitSidebarEvent('scrollToAnnotation', 'tag1');
+        } else {
+          emitHostEvent('scrollToAnnotation', 'tag1');
+        }
 
-        assert.calledWith(
-          highlighter.setHighlightsFocused,
-          guest.anchors[0].highlights,
-          true
-        );
-      });
+        // The call to `scrollToAnchor` on the integration happens
+        // asynchronously. Wait for the minimum delay before this happens.
+        await delay(0);
+      };
 
-      it('marks highlights of other annotations as not focused', () => {
-        const highlight0 = document.createElement('span');
-        const highlight1 = document.createElement('span');
-        const guest = createGuest();
-        guest.anchors = [
-          { annotation: { $tag: 'tag1' }, highlights: [highlight0] },
-          { annotation: { $tag: 'tag2' }, highlights: [highlight1] },
-        ];
+      it('scrolls to the anchor with the matching tag', async () => {
+        const guest = setupGuest();
 
-        emitSidebarEvent('hoverAnnotations', ['tag1']);
-
-        assert.calledWith(
-          highlighter.setHighlightsFocused,
-          guest.anchors[1].highlights,
-          false
-        );
-      });
-
-      it('updates hovered tag set', () => {
-        const guest = createGuest();
-
-        emitSidebarEvent('hoverAnnotations', ['tag1']);
-        emitSidebarEvent('hoverAnnotations', ['tag2', 'tag3']);
-
-        assert.deepEqual([...guest.hoveredAnnotationTags], ['tag2', 'tag3']);
-      });
-    });
-
-    describe('on "scrollToAnnotation" event', () => {
-      it('scrolls to the anchor with the matching tag', () => {
-        const highlight = document.createElement('span');
-        const guest = createGuest();
-        const fakeRange = sinon.stub();
-        guest.anchors = [
-          {
-            annotation: { $tag: 'tag1' },
-            highlights: [highlight],
-            range: new FakeTextRange(fakeRange),
-          },
-        ];
-
-        emitSidebarEvent('scrollToAnnotation', 'tag1');
+        await triggerScroll();
 
         assert.called(fakeIntegration.scrollToAnchor);
         assert.calledWith(fakeIntegration.scrollToAnchor, guest.anchors[0]);
@@ -376,36 +369,51 @@ describe('Guest', () => {
         });
       });
 
-      it('allows the default scroll behaviour to be prevented', () => {
-        const highlight = document.createElement('span');
-        const guest = createGuest();
-        const fakeRange = sandbox.stub();
-        guest.anchors = [
-          {
-            annotation: { $tag: 'tag1' },
-            highlights: [highlight],
-            range: new FakeTextRange(fakeRange),
-          },
-        ];
+      it('defers scrolling if "scrolltorange" event\'s `waitUntil` method is called', async () => {
+        const guest = setupGuest();
+        let contentReady;
+        const listener = event => {
+          event.waitUntil(
+            new Promise(resolve => {
+              contentReady = resolve;
+            }),
+          );
+        };
+        guest.element.addEventListener('scrolltorange', listener);
+
+        // Trigger scroll. `scrollToAnchor` shouldn't be called immediately
+        // because `ScrollToRangeEvent.waitUntil` was used to defer scrolling.
+        await triggerScroll();
+        assert.notCalled(fakeIntegration.scrollToAnchor);
+
+        // Resolve promise passed to `ScrollToRangeEvent.waitUntil`.
+        contentReady();
+        await delay(0);
+
+        assert.calledWith(fakeIntegration.scrollToAnchor, guest.anchors[0]);
+      });
+
+      it('allows the default scroll behaviour to be prevented', async () => {
+        const guest = setupGuest();
         guest.element.addEventListener('scrolltorange', event =>
-          event.preventDefault()
+          event.preventDefault(),
         );
 
-        emitSidebarEvent('scrollToAnnotation', 'tag1');
+        await triggerScroll();
 
         assert.notCalled(fakeIntegration.scrollToAnchor);
       });
 
-      it('does nothing if the anchor has no highlights', () => {
+      it('does nothing if the anchor has no highlights', async () => {
         const guest = createGuest();
 
         guest.anchors = [{ annotation: { $tag: 'tag1' } }];
-        emitSidebarEvent('scrollToAnnotation', 'tag1');
+        await triggerScroll();
 
         assert.notCalled(fakeIntegration.scrollToAnchor);
       });
 
-      it("does nothing if the anchor's range cannot be resolved", () => {
+      it("does nothing if the anchor's range cannot be resolved", async () => {
         const highlight = document.createElement('span');
         const guest = createGuest();
         guest.anchors = [
@@ -420,10 +428,59 @@ describe('Guest', () => {
         const eventEmitted = sandbox.stub();
         guest.element.addEventListener('scrolltorange', eventEmitted);
 
-        emitSidebarEvent('scrollToAnnotation', 'tag1');
+        await triggerScroll();
 
         assert.notCalled(eventEmitted);
         assert.notCalled(fakeIntegration.scrollToAnchor);
+      });
+    });
+  });
+
+  describe('events from sidebar frame', () => {
+    describe('on "hoverAnnotations" event', () => {
+      it('marks associated highlights as focused', () => {
+        const highlight0 = document.createElement('span');
+        const highlight1 = document.createElement('span');
+        const guest = createGuest();
+        guest.anchors = [
+          { annotation: { $tag: 'tag1' }, highlights: [highlight0] },
+          { annotation: { $tag: 'tag2' }, highlights: [highlight1] },
+        ];
+
+        emitSidebarEvent('hoverAnnotations', ['tag1']);
+
+        assert.calledWith(
+          highlighter.setHighlightsFocused,
+          guest.anchors[0].highlights,
+          true,
+        );
+      });
+
+      it('marks highlights of other annotations as not focused', () => {
+        const highlight0 = document.createElement('span');
+        const highlight1 = document.createElement('span');
+        const guest = createGuest();
+        guest.anchors = [
+          { annotation: { $tag: 'tag1' }, highlights: [highlight0] },
+          { annotation: { $tag: 'tag2' }, highlights: [highlight1] },
+        ];
+
+        emitSidebarEvent('hoverAnnotations', ['tag1']);
+
+        assert.calledWith(
+          highlighter.setHighlightsFocused,
+          guest.anchors[1].highlights,
+          false,
+        );
+      });
+
+      it('updates hovered tag set', () => {
+        const guest = createGuest();
+
+        emitSidebarEvent('hoverAnnotations', ['tag1']);
+        emitSidebarEvent('hoverAnnotations', ['tag2', 'tag3']);
+
+        assert.deepEqual([...guest.hoveredAnnotationTags], ['tag2', 'tag3']);
       });
     });
 
@@ -444,14 +501,14 @@ describe('Guest', () => {
         assert.calledWith(
           highlighter.setHighlightsVisible,
           guest.element,
-          true
+          true,
         );
 
         emitSidebarEvent('setHighlightsVisible', false);
         assert.calledWith(
           highlighter.setHighlightsVisible,
           guest.element,
-          false
+          false,
         );
       });
     });
@@ -468,12 +525,12 @@ describe('Guest', () => {
         assert.calledWith(
           sidebarRPC().call,
           'syncAnchoringStatus',
-          sinon.match({ target: [], uri: 'uri', $tag: 'tag1' })
+          sinon.match({ target: [], uri: 'uri', $tag: 'tag1' }),
         );
         assert.calledWith(
           sidebarRPC().call,
           'syncAnchoringStatus',
-          sinon.match({ target: [], uri: 'uri', $tag: 'tag2' })
+          sinon.match({ target: [], uri: 'uri', $tag: 'tag2' }),
         );
       });
     });
@@ -542,14 +599,18 @@ describe('Guest', () => {
   describe('document events', () => {
     let fakeHighlight;
     let fakeSidebarFrame;
-    let guest;
     let rootElement;
 
-    beforeEach(() => {
-      fakeSidebarFrame = null;
-      guest = createGuest();
+    const createGuest = (config = {}) => {
+      const guest = new Guest(rootElement, config, hostFrame);
       guest.setHighlightsVisible(true);
-      rootElement = guest.element;
+      guests.push(guest);
+      return guest;
+    };
+
+    beforeEach(() => {
+      rootElement = document.createElement('div');
+      fakeSidebarFrame = null;
 
       // Create a fake highlight as a target for hover and click events.
       fakeHighlight = document.createElement('hypothesis-highlight');
@@ -567,50 +628,89 @@ describe('Guest', () => {
       fakeSidebarFrame?.remove();
     });
 
-    it('hides sidebar on user "mousedown" or "touchstart" events in the document', () => {
-      for (let event of ['mousedown', 'touchstart']) {
-        rootElement.dispatchEvent(new Event(event));
-        assert.calledWith(sidebarRPC().call, 'closeSidebar');
-        sidebarRPC().call.resetHistory();
-      }
+    function sidebarClosed() {
+      return sidebarRPC().call.calledWith('closeSidebar');
+    }
+
+    context('clicks/taps on the document', () => {
+      const simulateClick = (element = rootElement, clientX = 0) =>
+        element.dispatchEvent(
+          new PointerEvent('pointerdown', { bubbles: true, clientX }),
+        );
+
+      it('hides sidebar', () => {
+        createGuest();
+        simulateClick();
+        assert.isTrue(sidebarClosed());
+      });
+
+      it('does not hide sidebar if target is a highlight', () => {
+        const guest = createGuest();
+        guest.setHighlightsVisible(true);
+        simulateClick(fakeHighlight);
+        assert.isFalse(sidebarClosed());
+      });
+
+      it('does not hide sidebar if side-by-side mode is active', () => {
+        createGuest();
+        fakeIntegration.sideBySideActive.returns(true);
+        simulateClick();
+        assert.isFalse(sidebarClosed());
+      });
+
+      it('does not hide sidebar if host page reports side-by-side is active', () => {
+        const isActive = sinon.stub().returns(true);
+        createGuest({
+          sideBySide: {
+            mode: 'manual',
+            isActive,
+          },
+        });
+
+        simulateClick();
+
+        assert.calledOnce(isActive);
+        assert.isFalse(sidebarClosed());
+
+        isActive.returns(false);
+
+        simulateClick();
+
+        assert.isTrue(sidebarClosed());
+        assert.calledTwice(isActive);
+      });
+
+      it('does not hide sidebar if event is within the bounds of the sidebar', () => {
+        createGuest();
+        emitHostEvent('sidebarLayoutChanged', { expanded: true, width: 300 });
+
+        // Simulate click on the left edge of the sidebar.
+        simulateClick(rootElement, window.innerWidth - 295);
+
+        assert.isFalse(sidebarClosed());
+      });
     });
 
-    it('does not hide sidebar if side-by-side mode is active', () => {
-      for (let event of ['mousedown', 'touchstart']) {
-        // Activate side-by-side mode
-        fakeIntegration.fitSideBySide.returns(true);
-        guest.fitSideBySide({ expanded: true, width: 100 });
-
-        rootElement.dispatchEvent(new Event(event));
-
-        assert.notCalled(sidebarRPC().call);
-        sidebarRPC().call.resetHistory();
-      }
+    it('does not reposition the adder if hidden when the window is resized', () => {
+      createGuest();
+      window.dispatchEvent(new Event('resize'));
+      assert.notCalled(FakeAdder.instance.show);
     });
 
-    it('does not reposition the adder on window "resize" event if the adder is hidden', () => {
-      sandbox.stub(guest, '_repositionAdder').callThrough();
-      sandbox.stub(guest, '_onSelection'); // Calling _onSelect makes the adder to reposition
+    it('repositions the adder when the window is resized', () => {
+      createGuest();
+      simulateSelectionWithText();
+      assert.calledOnce(FakeAdder.instance.show);
+      FakeAdder.instance.show.resetHistory();
 
       window.dispatchEvent(new Event('resize'));
 
-      assert.called(guest._repositionAdder);
-      assert.notCalled(guest._onSelection);
-    });
-
-    it('reposition the adder on window "resize" event if the adder is shown', () => {
-      sandbox.stub(guest, '_repositionAdder').callThrough();
-      sandbox.stub(guest, '_onSelection'); // Calling _onSelect makes the adder to reposition
-
-      guest._isAdderVisible = true;
-      sandbox.stub(window, 'getSelection').returns({ getRangeAt: () => true });
-
-      window.dispatchEvent(new Event('resize'));
-
-      assert.called(guest._onSelection);
+      assert.called(FakeAdder.instance.show);
     });
 
     it('focuses annotations in the sidebar when hovering highlights in the document', () => {
+      createGuest();
+
       // Hover the highlight
       fakeHighlight.dispatchEvent(new Event('mouseover', { bubbles: true }));
       assert.calledWith(highlighter.getHighlightsContainingNode, fakeHighlight);
@@ -624,6 +724,7 @@ describe('Guest', () => {
     });
 
     it('does not focus annotations in the sidebar when a non-highlight element is hovered', () => {
+      createGuest();
       rootElement.dispatchEvent(new Event('mouseover', { bubbles: true }));
 
       assert.calledWith(highlighter.getHighlightsContainingNode, rootElement);
@@ -631,6 +732,7 @@ describe('Guest', () => {
     });
 
     it('does not focus or select annotations in the sidebar if highlights are hidden', () => {
+      const guest = createGuest();
       guest.setHighlightsVisible(false);
 
       fakeHighlight.dispatchEvent(new Event('mouseover', { bubbles: true }));
@@ -641,6 +743,7 @@ describe('Guest', () => {
     });
 
     it('selects annotations in the sidebar when clicking on a highlight', () => {
+      createGuest();
       fakeHighlight.dispatchEvent(new Event('mouseup', { bubbles: true }));
 
       assert.calledWith(sidebarRPC().call, 'showAnnotations', [
@@ -650,8 +753,9 @@ describe('Guest', () => {
     });
 
     it('toggles selected annotations in the sidebar when Ctrl/Cmd-clicking a highlight', () => {
+      createGuest();
       fakeHighlight.dispatchEvent(
-        new MouseEvent('mouseup', { bubbles: true, ctrlKey: true })
+        new MouseEvent('mouseup', { bubbles: true, ctrlKey: true }),
       );
 
       assert.calledWith(sidebarRPC().call, 'toggleAnnotationSelection', [
@@ -662,34 +766,6 @@ describe('Guest', () => {
   });
 
   describe('when the selection changes', () => {
-    let container;
-
-    beforeEach(() => {
-      container = document.createElement('div');
-      container.innerHTML = 'test text';
-      document.body.appendChild(container);
-      window.getSelection().selectAllChildren(container);
-    });
-
-    afterEach(() => {
-      container.remove();
-    });
-
-    const simulateSelectionWithText = () => {
-      rangeUtil.selectionFocusRect.returns({
-        left: 0,
-        top: 0,
-        width: 5,
-        height: 5,
-      });
-      notifySelectionChanged({});
-    };
-
-    const simulateSelectionWithoutText = () => {
-      rangeUtil.selectionFocusRect.returns(null);
-      notifySelectionChanged({});
-    };
-
     it('shows the adder if the selection contains text', () => {
       createGuest();
       simulateSelectionWithText();
@@ -699,10 +775,10 @@ describe('Guest', () => {
     it('sets the annotations associated with the selection', () => {
       createGuest();
       const ann = { $tag: 't1' };
-      container._annotation = ann;
-      rangeUtil.itemsForRange.callsFake((range, callback) => [
-        callback(range.startContainer),
-      ]);
+      rangeUtil.itemsForRange.callsFake((range, callback) => {
+        range.startContainer._annotation = ann;
+        return [callback(range.startContainer)];
+      });
       simulateSelectionWithText();
 
       assert.deepEqual(FakeAdder.instance.annotationsForSelection, ['t1']);
@@ -758,7 +834,6 @@ describe('Guest', () => {
 
         // Guest has text selected
         simulateSelectionWithText();
-        fakeSelectedRange.returns({});
 
         hostRPC().call.resetHistory();
         emitHostEvent('clearSelection');
@@ -782,7 +857,7 @@ describe('Guest', () => {
         guest.selectedRanges = [1];
 
         // Guest has no text selected
-        fakeSelectedRange.returns(null);
+        rangeUtil.selectedRange.returns(null);
 
         hostRPC().call.resetHistory();
         emitHostEvent('clearSelection');
@@ -816,7 +891,7 @@ describe('Guest', () => {
       assert.calledWith(
         sidebarRPC().call,
         'createAnnotation',
-        sinon.match({ $highlight: true })
+        sinon.match({ $highlight: true }),
       );
     });
 
@@ -831,7 +906,7 @@ describe('Guest', () => {
         sidebarRPC().call,
         'showAnnotations',
         tags,
-        true // Focus annotation in sidebar
+        true, // Focus annotation in sidebar
       );
     });
   });
@@ -847,7 +922,7 @@ describe('Guest', () => {
         sidebarRPC().call,
         'showAnnotations',
         tags,
-        false // Don't focus annotation in sidebar
+        false, // Don't focus annotation in sidebar
       );
     });
 
@@ -878,7 +953,7 @@ describe('Guest', () => {
         sidebarRPC().call,
         'showAnnotations',
         tags,
-        true // Focus in sidebar
+        true, // Focus in sidebar
       );
     });
   });
@@ -926,7 +1001,7 @@ describe('Guest', () => {
       assert.equal(annotation.uri, await fakeIntegration.uri());
       assert.deepEqual(
         annotation.document,
-        await fakeIntegration.getMetadata()
+        await fakeIntegration.getMetadata(),
       );
     });
 
@@ -1085,7 +1160,7 @@ describe('Guest', () => {
         ],
       };
       fakeIntegration.anchor.returns(
-        Promise.reject(new Error('Failed to anchor'))
+        Promise.reject(new Error('Failed to anchor')),
       );
 
       return guest
@@ -1102,7 +1177,7 @@ describe('Guest', () => {
         ],
       };
       fakeIntegration.anchor.returns(
-        Promise.reject(new Error('Failed to anchor'))
+        Promise.reject(new Error('Failed to anchor')),
       );
 
       return guest
@@ -1171,7 +1246,7 @@ describe('Guest', () => {
 
       assert.equal(
         highlighter.highlightRange.lastCall.args[1],
-        'user-annotations'
+        'user-annotations',
       );
     });
 
@@ -1233,7 +1308,7 @@ describe('Guest', () => {
 
       // Hover the annotation (in the sidebar) before it is anchored in the page.
       const [, hoverAnnotationsCallback] = sidebarRPC().on.args.find(
-        args => args[0] === 'hoverAnnotations'
+        args => args[0] === 'hoverAnnotations',
       );
       hoverAnnotationsCallback([annotation.$tag]);
       const anchors = await guest.anchor(annotation);
@@ -1243,7 +1318,7 @@ describe('Guest', () => {
       assert.calledWith(
         highlighter.setHighlightsFocused,
         anchors[0].highlights,
-        true
+        true,
       );
     });
 
@@ -1260,6 +1335,27 @@ describe('Guest', () => {
       await delay(0);
 
       assert.lengthOf(guest.anchors, 0);
+    });
+
+    it('waits for content to be ready before anchoring', async () => {
+      const events = [];
+      fakeIntegration.anchor = async () => {
+        events.push('fakeIntegration.anchor');
+        return range;
+      };
+      const contentReady = delay(1).then(() => {
+        events.push('contentReady');
+      });
+
+      const guest = createGuest({ contentReady });
+
+      const annotation = {
+        $tag: 'tag1',
+        target: [{ selector: [{ type: 'TextQuoteSelector', exact: 'hello' }] }],
+      };
+      await guest.anchor(annotation);
+
+      assert.deepEqual(events, ['contentReady', 'fakeIntegration.anchor']);
     });
   });
 
@@ -1304,7 +1400,7 @@ describe('Guest', () => {
 
       assert.include(guest.anchors, anchorB);
       assert.isFalse(
-        highlighter.removeHighlights.calledWith(anchorB.highlights)
+        highlighter.removeHighlights.calledWith(anchorB.highlights),
       );
     });
 
@@ -1397,7 +1493,7 @@ describe('Guest', () => {
     assert.calledOnce(fakeIntegration.showContentInfo);
     assert.calledWith(
       fakeIntegration.showContentInfo,
-      config.contentInfoBanner
+      config.contentInfoBanner,
     );
   });
 
@@ -1527,19 +1623,6 @@ describe('Guest', () => {
 
       assert.calledWith(fakeIntegration.fitSideBySide, layout);
     });
-
-    it('enables closing sidebar on document click if side-by-side is not activated', () => {
-      const guest = createGuest();
-      fakeIntegration.fitSideBySide.returns(false);
-      const layout = { expanded: true, width: 100 };
-
-      guest.fitSideBySide(layout);
-      assert.isFalse(guest.sideBySideActive);
-
-      fakeIntegration.fitSideBySide.returns(true);
-      guest.fitSideBySide(layout);
-      assert.isTrue(guest.sideBySideActive);
-    });
   });
 
   describe('keyboard shortcuts', () => {
@@ -1553,7 +1636,7 @@ describe('Guest', () => {
           ctrlKey: true,
           shiftKey: true,
           key: 'h',
-        })
+        }),
       );
       assert.equal(guest.highlightsVisible, false);
       assert.calledWith(hostRPC().call, 'highlightsVisibleChanged', false);
@@ -1563,7 +1646,7 @@ describe('Guest', () => {
           ctrlKey: true,
           shiftKey: true,
           key: 'h',
-        })
+        }),
       );
       assert.equal(guest.highlightsVisible, true);
       assert.calledWith(hostRPC().call, 'highlightsVisibleChanged', true);

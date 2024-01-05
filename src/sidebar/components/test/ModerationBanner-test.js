@@ -1,7 +1,9 @@
+import {
+  checkAccessibility,
+  mockImportedComponents,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import { checkAccessibility } from '../../../test-util/accessibility';
-import { mockImportedComponents } from '../../../test-util/mock-imported-components';
 import * as fixtures from '../../test/annotation-fixtures';
 import ModerationBanner, { $imports } from '../ModerationBanner';
 
@@ -17,7 +19,7 @@ describe('ModerationBanner', () => {
         api={fakeApi}
         toastMessenger={fakeToastMessenger}
         {...props}
-      />
+      />,
     );
   }
 
@@ -153,13 +155,13 @@ describe('ModerationBanner', () => {
       }),
     });
     fakeApi.annotation.unhide.returns(
-      Promise.reject(new Error('Network Error'))
+      Promise.reject(new Error('Network Error')),
     );
     wrapper.find('button').simulate('click');
     setTimeout(() => {
       assert.calledWith(
         fakeToastMessenger.error,
-        'Failed to unhide annotation'
+        'Failed to unhide annotation',
       );
       done();
     }, 0);
@@ -174,6 +176,6 @@ describe('ModerationBanner', () => {
             flagCount: 10,
           }),
         }),
-    })
+    }),
   );
 });

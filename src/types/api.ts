@@ -38,6 +38,19 @@ export type IndexResponse = {
 export type LinksResponse = Record<string, string>;
 
 /**
+ * Selector which indicates the time range within a video or audio file that
+ * an annotation refers to.
+ */
+export type MediaTimeSelector = {
+  type: 'MediaTimeSelector';
+
+  /** Offset from start of media in seconds. */
+  start: number;
+  /** Offset from start of media in seconds. */
+  end: number;
+};
+
+/**
  * Selector which identifies a document region using the selected text plus
  * the surrounding context.
  */
@@ -134,6 +147,7 @@ export type Selector =
   | RangeSelector
   | EPUBContentSelector
   | VideoPositionSelector
+  | MediaTimeSelector
   | PageSelector;
 
 /**
@@ -151,20 +165,16 @@ export type UserInfo = {
   display_name: string | null;
 };
 
-export type Annotation = ClientAnnotationData & {
+/**
+ * Represents an annotation as returned by the h API.
+ * API docs: https://h.readthedocs.io/en/latest/api-reference/#tag/annotations
+ */
+export type APIAnnotationData = {
   /**
    * The server-assigned ID for the annotation. This is only set once the
    * annotation has been saved to the backend.
    */
   id?: string;
-
-  /**
-   * A locally-generated unique identifier for annotations.
-   *
-   * This is set for all annotations, whether they have been saved to the
-   * backend or not.
-   */
-  $tag: string;
 
   references?: string[];
   created: string;
@@ -210,7 +220,22 @@ export type Annotation = ClientAnnotationData & {
   };
 
   user_info?: UserInfo;
+
+  /**
+   * An opaque object that contains metadata about the current context,
+   * provided by the embedder via the `annotationMetadata` config.
+   *
+   * The Hypothesis LMS app uses this field to attach information about the
+   * current assignment, course etc. to annotations.
+   */
+  metadata?: object;
 };
+
+/**
+ * Augmented annotation including what's returned by `h` API + client-internal
+ * properties
+ */
+export type Annotation = ClientAnnotationData & APIAnnotationData;
 
 /**
  * An annotation which has been saved to the backend and assigned an ID.
@@ -324,6 +349,7 @@ export type EventData = {
   offset_x: number;
   offset_y: number;
   doc_id: string;
+  userid: string;
 };
 
 /**

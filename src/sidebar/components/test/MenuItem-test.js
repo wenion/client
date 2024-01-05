@@ -1,9 +1,11 @@
 import { EditIcon } from '@hypothesis/frontend-shared';
+import {
+  checkAccessibility,
+  mockImportedComponents,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 import { act } from 'preact/test-utils';
 
-import { checkAccessibility } from '../../../test-util/accessibility';
-import { mockImportedComponents } from '../../../test-util/mock-imported-components';
 import MenuItem, { $imports } from '../MenuItem';
 
 describe('MenuItem', () => {
@@ -77,7 +79,7 @@ describe('MenuItem', () => {
       const wrapper = createMenuItem({ isSelected: true });
       assert.equal(
         wrapper.find(menuItemSelector).prop('role'),
-        'menuitemradio'
+        'menuitemradio',
       );
       assert.equal(wrapper.find(menuItemSelector).prop('aria-checked'), true);
       // aria-haspopup should be false without a submenu
@@ -100,7 +102,7 @@ describe('MenuItem', () => {
       assert.equal(leftChannel.text(), 'Hi');
       assert.isFalse(
         wrapper.exists('EditIcon'),
-        'Icon ignored if left channel content provided'
+        'Icon ignored if left channel content provided',
       );
     });
 
@@ -108,7 +110,7 @@ describe('MenuItem', () => {
       const wrapper = createMenuItem();
       assert.equal(
         wrapper.find('[data-testid="left-item-container"]').length,
-        0
+        0,
       );
     });
 
@@ -144,7 +146,7 @@ describe('MenuItem', () => {
       // aria-expanded should be undefined
       assert.equal(
         wrapper.find(menuItemSelector).prop('aria-expanded'),
-        undefined
+        undefined,
       );
     });
 
@@ -193,7 +195,7 @@ describe('MenuItem', () => {
       assert.equal(wrapper.find('Slider').prop('direction'), 'in');
       assert.equal(
         wrapper.find('MenuKeyboardNavigation').prop('visible'),
-        true
+        true,
       );
       assert.equal(wrapper.find('Slider').children().text(), 'Submenu content');
     });
@@ -206,7 +208,7 @@ describe('MenuItem', () => {
       assert.equal(wrapper.find('Slider').prop('direction'), 'out');
       assert.equal(
         wrapper.find('MenuKeyboardNavigation').prop('visible'),
-        false
+        false,
       );
 
       // The submenu content may still be rendered if the submenu is currently
@@ -246,7 +248,7 @@ describe('MenuItem', () => {
         clock.tick(1);
         assert.equal(
           document.activeElement.getAttribute('data-testid'),
-          'menu-item'
+          'menu-item',
         );
       } finally {
         clock.restore();
@@ -326,6 +328,6 @@ describe('MenuItem', () => {
           </div>
         ),
       },
-    ])
+    ]),
   );
 });

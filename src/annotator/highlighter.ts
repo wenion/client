@@ -67,7 +67,7 @@ function getPDFCanvas(highlightEl: HighlightElement): HTMLCanvasElement | null {
  */
 function drawHighlightsAbovePDFCanvas(
   highlightEls: HighlightElement[],
-  cssClass?: string
+  cssClass?: string,
 ) {
   if (highlightEls.length === 0) {
     return;
@@ -81,7 +81,7 @@ function drawHighlightsAbovePDFCanvas(
   }
 
   let svgHighlightLayer = canvasEl.parentElement.querySelector(
-    '.hypothesis-highlight-layer'
+    '.hypothesis-highlight-layer',
   ) as SVGSVGElement | null;
 
   if (!svgHighlightLayer) {
@@ -122,7 +122,7 @@ function drawHighlightsAbovePDFCanvas(
     rect.setAttribute('height', highlightRect.height.toString());
     rect.setAttribute(
       'class',
-      classnames('hypothesis-svg-highlight', cssClass)
+      classnames('hypothesis-svg-highlight', cssClass),
     );
 
     // Make the highlight in the text layer transparent.
@@ -169,7 +169,7 @@ function wholeTextNodesInRange(range: Range): Text[] {
   const textNodes = [];
   const nodeIter = root!.ownerDocument!.createNodeIterator(
     root,
-    NodeFilter.SHOW_TEXT // Only return `Text` nodes.
+    NodeFilter.SHOW_TEXT, // Only return `Text` nodes.
   );
   let node;
   while ((node = nodeIter.nextNode())) {
@@ -206,7 +206,7 @@ function wholeTextNodesInRange(range: Range): Text[] {
  */
 export function highlightRange(
   range: Range,
-  cssClass?: string
+  cssClass?: string,
 ): HighlightElement[] {
   const textNodes = wholeTextNodesInRange(range);
 
@@ -234,10 +234,17 @@ export function highlightRange(
   // inserting highlight elements in places that can only contain a restricted
   // subset of nodes such as table rows and lists.
   const whitespace = /^\s*$/;
-  textNodeSpans = textNodeSpans.filter(span =>
-    // Check for at least one text node with non-space content.
-    span.some(node => !whitespace.test(node.data))
-  );
+  textNodeSpans = textNodeSpans.filter(span => {
+    const parentElement = span[0].parentElement;
+    return (
+      // Whitespace <span>s should be highlighted since they affect layout in
+      // some code editors
+      (parentElement?.childNodes.length === 1 &&
+        parentElement?.tagName === 'SPAN') ||
+      // Otherwise ignore white-space only Text node spans
+      span.some(node => !whitespace.test(node.data))
+    );
+  });
 
   // Wrap each text node span with a `<hypothesis-highlight>` element.
   const highlights: HighlightElement[] = [];
@@ -340,7 +347,7 @@ function setSVGHighlightFocused(svgEl: SVGElement, focused: boolean) {
     parent.append(focusedHighlight);
   } else {
     const focusedHighlight = parent.querySelector(
-      `[data-focused-id="${focusedId}"][data-is-focused]`
+      `[data-focused-id="${focusedId}"][data-is-focused]`,
     );
     focusedHighlight?.remove();
     svgEl.removeAttribute('data-focused-id');
@@ -356,7 +363,7 @@ function setSVGHighlightFocused(svgEl: SVGElement, focused: boolean) {
  */
 export function setHighlightsFocused(
   highlights: HighlightElement[],
-  focused: boolean
+  focused: boolean,
 ) {
   highlights.forEach(h => {
     // In PDFs the visible highlight is created by an SVG element, so the focused
@@ -456,10 +463,11 @@ function getHighlights(element: Element) {
     highlights = Array.from(element.children).filter(isHighlightElement);
   } else {
     highlights = Array.from(
-      element.getElementsByTagName('hypothesis-highlight')
+      element.getElementsByTagName('hypothesis-highlight'),
     ).filter(
       highlight =>
-        !highlight.parentElement || !isHighlightElement(highlight.parentElement)
+        !highlight.parentElement ||
+        !isHighlightElement(highlight.parentElement),
     );
   }
   return highlights as HighlightElement[];
@@ -476,13 +484,13 @@ function getSVGHighlights(root?: Element): Map<Element, HighlightElement[]> {
   const svgHighlights: Map<Element, HighlightElement[]> = new Map();
 
   for (const layer of (root ?? document).getElementsByClassName(
-    'hypothesis-highlight-layer'
+    'hypothesis-highlight-layer',
   )) {
     svgHighlights.set(
       layer,
       Array.from(
-        layer.querySelectorAll('.hypothesis-svg-highlight')
-      ) as HighlightElement[]
+        layer.querySelectorAll('.hypothesis-svg-highlight'),
+      ) as HighlightElement[],
     );
   }
 
@@ -514,7 +522,7 @@ function setNestingData(
   highlightEls: HighlightElement[],
   parentCluster = '',
   nestingLevel = 0,
-  parentClusterLevel = 0
+  parentClusterLevel = 0,
 ) {
   for (const hEl of highlightEls) {
     const elCluster =
@@ -535,7 +543,7 @@ function setNestingData(
       getHighlights(hEl),
       elCluster /* parentCluster */,
       nestingLevel + 1 /* nestingLevel */,
-      elClusterLevel /* parentClusterLevel */
+      elClusterLevel /* parentClusterLevel */,
     );
   }
 }

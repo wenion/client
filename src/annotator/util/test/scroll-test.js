@@ -128,5 +128,22 @@ describe('annotator/util/scroll', () => {
         delete document.body.tagName;
       }
     });
+
+    it('opens containing `<details>` tag to make content visible', async () => {
+      const container = createContainer();
+      const details = document.createElement('details');
+      container.append(details);
+
+      const summary = document.createElement('summary');
+      summary.append('Summary');
+      details.append(summary);
+
+      const target = document.createElement('div');
+      details.append(target);
+
+      assert.isFalse(details.open);
+      await scrollElementIntoView(target, { maxDuration: 1 });
+      assert.isTrue(details.open);
+    });
   });
 });

@@ -1,9 +1,11 @@
+import {
+  checkAccessibility,
+  mockImportedComponents,
+  waitFor,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 import { act } from 'preact/test-utils';
 
-import { checkAccessibility } from '../../../../test-util/accessibility';
-import { mockImportedComponents } from '../../../../test-util/mock-imported-components';
-import { waitFor } from '../../../../test-util/wait';
 import * as fixtures from '../../../test/annotation-fixtures';
 import AnnotationEditor, { $imports } from '../AnnotationEditor';
 
@@ -29,7 +31,7 @@ describe('AnnotationEditor', () => {
         tags={fakeTagsService}
         toastMessenger={fakeToastMessenger}
         {...props}
-      />
+      />,
     );
   }
 
@@ -88,7 +90,7 @@ describe('AnnotationEditor', () => {
       const wrapper = createComponent();
       assert.deepEqual(
         wrapper.find('MarkdownEditor').prop('textStyle'),
-        textStyle
+        textStyle,
       );
     });
 
@@ -186,7 +188,7 @@ describe('AnnotationEditor', () => {
 
       await act(
         async () =>
-          await wrapper.find('AnnotationPublishControl').props().onSave()
+          await wrapper.find('AnnotationPublishControl').props().onSave(),
       );
 
       const draftCall = fakeStore.createDraft.getCall(0);
@@ -220,7 +222,7 @@ describe('AnnotationEditor', () => {
       assert.calledOnce(fakeAnnotationsService.save);
       assert.calledWith(
         fakeAnnotationsService.save,
-        wrapper.props().annotation
+        wrapper.props().annotation,
       );
     });
 
@@ -237,7 +239,7 @@ describe('AnnotationEditor', () => {
       assert.calledOnce(fakeAnnotationsService.save);
       assert.calledWith(
         fakeAnnotationsService.save,
-        wrapper.props().annotation
+        wrapper.props().annotation,
       );
     });
 
@@ -257,7 +259,7 @@ describe('AnnotationEditor', () => {
         const wrapper = createComponent();
 
         assert.isTrue(
-          wrapper.find('AnnotationPublishControl').props().isDisabled
+          wrapper.find('AnnotationPublishControl').props().isDisabled,
         );
       });
 
@@ -267,7 +269,7 @@ describe('AnnotationEditor', () => {
         const wrapper = createComponent({ draft });
 
         assert.isFalse(
-          wrapper.find('AnnotationPublishControl').props().isDisabled
+          wrapper.find('AnnotationPublishControl').props().isDisabled,
         );
       });
 
@@ -305,7 +307,7 @@ describe('AnnotationEditor', () => {
           assert.calledWith(
             fakeStore.setDefault,
             'annotationPrivacy',
-            'shared'
+            'shared',
           );
         });
 
@@ -375,6 +377,6 @@ describe('AnnotationEditor', () => {
         // a11y should be more deeply checked on the leaf components
         content: () => createComponent(),
       },
-    ])
+    ]),
   );
 });

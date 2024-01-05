@@ -4,7 +4,6 @@ import classnames from 'classnames';
 import type { ComponentChildren } from 'preact';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
-import MenuArrow from './MenuArrow';
 import MenuKeyboardNavigation from './MenuKeyboardNavigation';
 
 /**
@@ -20,13 +19,6 @@ export type MenuProps = {
    * of the toggle element.
    */
   align?: 'left' | 'right';
-
-  /**
-   * Additional CSS class for the arrow caret at the edge of the menu content
-   * that "points" toward the menu's toggle button. This can be used to adjust
-   * the position of that caret respective to the toggle button.
-   */
-  arrowClass?: string;
 
   /**
    * Label element or string for the toggle button that hides and shows the menu
@@ -50,6 +42,8 @@ export type MenuProps = {
    * present.
    */
   defaultOpen?: boolean;
+
+  disabled?: boolean;
 
   /** Whether to render an (arrow) indicator next to the Menu label */
   menuIndicator?: boolean;
@@ -93,11 +87,11 @@ const noop = () => {};
  */
 export default function Menu({
   align = 'left',
-  arrowClass = '',
   children,
   containerPositioned = true,
   contentClass,
   defaultOpen = false,
+  disabled = false,
   label,
   open,
   onOpenChanged,
@@ -194,13 +188,14 @@ export default function Menu({
         aria-haspopup={true}
         className={classnames(
           'focus-visible-ring',
-          'flex items-center justify-center rounded-sm transition-colors',
+          'flex items-center justify-center rounded transition-colors',
           {
             'text-grey-7 hover:text-grey-9': !isOpen,
             'text-brand': isOpen,
-          }
+          },
         )}
         data-testid="menu-toggle-button"
+        disabled={disabled}
         onMouseDown={toggleMenu}
         onClick={toggleMenu}
         aria-label={title}
@@ -223,38 +218,28 @@ export default function Menu({
         </span>
       </button>
       {isOpen && (
-        <>
-          <MenuArrow
-            direction="up"
-            classes={classnames(
-              // Position menu-arrow caret near bottom right of menu label/toggle control
-              'right-0 top-[calc(100%-3px)] w-[15px]',
-              arrowClass
-            )}
-          />
-          <div
-            className={classnames(
-              'focus-visible-ring',
-              // Position menu content near bottom of menu label/toggle control
-              'absolute top-[calc(100%+5px)] z-1 border shadow',
-              'bg-white text-md',
-              {
-                'left-0': align === 'left',
-                'right-0': align === 'right',
-              },
-              contentClass
-            )}
-            data-testid="menu-content"
-            role="menu"
-            tabIndex={-1}
-            onClick={closeMenu}
-            onKeyDown={handleMenuKeyDown}
-          >
-            <MenuKeyboardNavigation visible={true}>
-              {children}
-            </MenuKeyboardNavigation>
-          </div>
-        </>
+        <div
+          className={classnames(
+            'focus-visible-ring',
+            // Position menu content near bottom of menu label/toggle control
+            'absolute top-[calc(100%+3px)] z-1',
+            'border shadow-intense rounded-lg overflow-hidden bg-white text-md',
+            {
+              'left-0': align === 'left',
+              'right-0': align === 'right',
+            },
+            contentClass,
+          )}
+          data-testid="menu-content"
+          role="menu"
+          tabIndex={-1}
+          onClick={closeMenu}
+          onKeyDown={handleMenuKeyDown}
+        >
+          <MenuKeyboardNavigation visible={true}>
+            {children}
+          </MenuKeyboardNavigation>
+        </div>
       )}
     </div>
   );

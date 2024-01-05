@@ -20,7 +20,7 @@ export class QueryService {
     this._store = store;
   }
 
-  async getRecommendation(url: string) {
+  async getRecommendation(url: string): Promise<{id: string; url: string; type: string; title: string; query: string; context: string}>{
     return await this._api.pull_recommendation({url: url});
   }
 

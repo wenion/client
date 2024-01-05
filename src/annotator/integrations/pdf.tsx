@@ -94,6 +94,8 @@ export class PDFIntegration extends TinyEmitter implements Integration {
   private _reanchoringMaxWait: number;
   private _updateAnnotationLayerVisibility: () => void;
 
+  private _sideBySideActive: boolean;
+
   /**
    * @param annotator
    * @param options
@@ -102,7 +104,8 @@ export class PDFIntegration extends TinyEmitter implements Integration {
    */
   constructor(
     annotator: Annotator,
-    options: { reanchoringMaxWait?: number } = {}
+    /* istanbul ignore next */
+    options: { reanchoringMaxWait?: number } = {},
   ) {
     super();
 
@@ -137,6 +140,7 @@ export class PDFIntegration extends TinyEmitter implements Integration {
     };
     this._updateBannerState(this._bannerState);
     this._checkForSelectableText();
+    this._sideBySideActive = false;
 
     // Hide annotation layer when the user is making a selection. The annotation
     // layer appears above the invisible text layer and can interfere with text
@@ -148,7 +152,7 @@ export class PDFIntegration extends TinyEmitter implements Integration {
       // layers are then hidden by a CSS rule in `pdfjs-overrides.scss`.
       this._pdfViewer.viewer.classList.toggle(
         'is-selecting',
-        !selection.isCollapsed
+        !selection.isCollapsed,
       );
     };
 
@@ -156,13 +160,21 @@ export class PDFIntegration extends TinyEmitter implements Integration {
     this._listeners.add(
       document,
       'selectionchange',
-      this._updateAnnotationLayerVisibility
+      this._updateAnnotationLayerVisibility,
     );
 
     this._destroyed = false;
   }
 
   destroy() {
+    this.fitSideBySide({
+      // Dummy layout that will cause side-by-side mode to be undone.
+      expanded: false,
+      width: 0,
+      toolbarWidth: 0,
+      height: window.innerHeight,
+    });
+
     this._listeners.removeAll();
     this._pdfViewer.viewer.classList.remove('has-transparent-text-layer');
     this._observer.disconnect();
@@ -264,14 +276,14 @@ export class PDFIntegration extends TinyEmitter implements Integration {
    * Update banners shown above the PDF viewer.
    */
   _updateBannerState(
-    state: Partial<typeof PDFIntegration.prototype._bannerState>
+    state: Partial<typeof PDFIntegration.prototype._bannerState>,
   ) {
     this._bannerState = { ...this._bannerState, ...state };
 
     // Get a reference to the top-level DOM element associated with the PDF.js
     // viewer.
     const outerContainer = document.querySelector(
-      '#outerContainer'
+      '#outerContainer',
     ) as HTMLElement;
 
     const showBanner =
@@ -301,7 +313,7 @@ export class PDFIntegration extends TinyEmitter implements Integration {
         )}
         {this._bannerState.noTextWarning && <WarningBanner />}
       </Banners>,
-      this._banner.shadowRoot!
+      this._banner.shadowRoot!,
     );
 
     const bannerHeight = this._banner.getBoundingClientRect().height;
@@ -416,7 +428,13 @@ export class PDFIntegration extends TinyEmitter implements Integration {
     // This will cause PDF pages to re-render if their scaling has changed
     this._pdfViewer.update();
 
+    this._sideBySideActive = active;
+
     return active;
+  }
+
+  sideBySideActive() {
+    return this._sideBySideActive;
   }
 
   /**
@@ -445,7 +463,7 @@ export class PDFIntegration extends TinyEmitter implements Integration {
     if (inPlaceholder) {
       const anchor = await this._waitForAnnotationToBeAnchored(
         annotation,
-        this._reanchoringMaxWait
+        this._reanchoringMaxWait,
       );
       if (!anchor) {
         return;
@@ -463,7 +481,7 @@ export class PDFIntegration extends TinyEmitter implements Integration {
    */
   async _waitForAnnotationToBeAnchored(
     annotation: AnnotationData,
-    maxWait: number
+    maxWait: number,
   ): Promise<Anchor | null> {
     const start = Date.now();
     let anchor;

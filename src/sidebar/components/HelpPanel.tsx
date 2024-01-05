@@ -1,7 +1,7 @@
-import { Link, LinkButton } from '@hypothesis/frontend-shared';
-import { ArrowRightIcon, ExternalIcon } from '@hypothesis/frontend-shared';
-import type { ComponentChildren as Children } from 'preact';
-import { useCallback, useMemo, useState } from 'preact/hooks';
+import { Card, Link, Tab } from '@hypothesis/frontend-shared';
+import { ExternalIcon } from '@hypothesis/frontend-shared';
+import classnames from 'classnames';
+import { useCallback, useId, useMemo, useState } from 'preact/hooks';
 
 import { username } from '../helpers/account-id';
 import { VersionData } from '../helpers/version-data';
@@ -11,28 +11,8 @@ import { useSidebarStore } from '../store';
 import SidebarPanel from './SidebarPanel';
 import Tutorial from './Tutorial';
 import VersionInfo from './VersionInfo';
-
-type HelpPanelNavigationButtonProps = {
-  children: Children;
-  onClick: (e: Event) => void;
-};
-
-/**
- * Navigation link-button to swap between sub-panels in the help panel
- */
-function HelpPanelNavigationButton({
-  children,
-  onClick,
-}: HelpPanelNavigationButtonProps) {
-  return (
-    <LinkButton color="brand" onClick={onClick} underline="hover">
-      <div className="flex items-center gap-x-1">
-        {children}
-        <ArrowRightIcon className="w-em h-em" />
-      </div>
-    </LinkButton>
-  );
-}
+import TabHeader from './tabs/TabHeader';
+import TabPanel from './tabs/TabPanel';
 
 type HelpPanelTabProps = {
   /** What the tab's link should say. */
@@ -42,7 +22,7 @@ type HelpPanelTabProps = {
 };
 
 /**
- * External link "tabs" inside of the help panel.
+ * External link "tabs" at the bottom of the help panel.
  */
 function HelpPanelTab({ linkText, url }: HelpPanelTabProps) {
   return (
@@ -51,7 +31,7 @@ function HelpPanelTab({ linkText, url }: HelpPanelTabProps) {
       // a flex container (centered on both axes)
       className="flex-1 flex items-center justify-center border-r last-of-type:border-r-0 text-md font-medium"
     >
-      <Link color="text-light" href={url} target="_blank">
+      <Link variant="text-light" href={url} target="_blank" underline="none">
         <div className="flex items-center gap-x-2">
           <span>{linkText}</span> <ExternalIcon className="w-3 h-3" />
         </div>
@@ -64,6 +44,8 @@ type HelpPanelProps = {
   session: SessionService;
 };
 
+type PanelKey = 'tutorial' | 'versionInfo';
+
 /**
  * A help sidebar panel with two sub-panels: tutorial and version info.
  */
@@ -74,6 +56,10 @@ function HelpPanel({ session }: HelpPanelProps) {
   const profile = store.profile();
   const displayName =
     profile.user_info?.display_name ?? username(profile.userid);
+  const tutorialTabId = useId();
+  const tutorialPanelId = useId();
+  const versionTabId = useId();
+  const versionPanelId = useId();
 
   // Should this panel be auto-opened at app launch? Note that the actual
   // auto-open triggering of this panel is owned by the `HypothesisApp` component.
@@ -81,12 +67,6 @@ function HelpPanel({ session }: HelpPanelProps) {
   // (permanently for this user) when it is closed.
   const hasAutoDisplayPreference =
     !!store.profile().preferences.show_sidebar_tutorial;
-
-  const subPanelTitles = {
-    tutorial: 'Getting started',
-    versionInfo: 'About this version',
-  };
-  type PanelKey = keyof typeof subPanelTitles;
 
   // The "Tutorial" (getting started) subpanel is the default panel shown
   const [activeSubPanel, setActiveSubPanel] = useState<PanelKey>('tutorial');
@@ -107,18 +87,13 @@ function HelpPanel({ session }: HelpPanelProps) {
 
     return new VersionData(
       { userid: profile.userid, displayName },
-      documentFrames
+      documentFrames,
     );
   }, [profile, displayName, frames, mainFrame]);
 
   // The support ticket URL encodes some version info in it to pre-fill in the
   // create-new-ticket form
   const supportTicketURL = `https://web.hypothes.is/get-help/?sys_info=${versionData.asEncodedURLString()}`;
-
-  const openSubPanel = (e: Event, panelName: PanelKey) => {
-    e.preventDefault();
-    setActiveSubPanel(panelName);
-  };
 
   const onActiveChanged = useCallback(
     (active: boolean) => {
@@ -129,7 +104,7 @@ function HelpPanel({ session }: HelpPanelProps) {
         session.dismissSidebarTutorial();
       }
     },
-    [session, hasAutoDisplayPreference]
+    [session, hasAutoDisplayPreference],
   );
 
   return (
@@ -137,41 +112,63 @@ function HelpPanel({ session }: HelpPanelProps) {
       title="Help"
       panelName="help"
       onActiveChanged={onActiveChanged}
+      variant="custom"
     >
-      <div className="space-y-4">
-        <div className="flex items-center">
-          <h3 className="grow text-md font-medium" data-testid="subpanel-title">
-            {subPanelTitles[activeSubPanel]}
-          </h3>
-          {activeSubPanel === 'versionInfo' && (
-            <HelpPanelNavigationButton
-              onClick={e => openSubPanel(e, 'tutorial')}
-            >
-              Getting started
-            </HelpPanelNavigationButton>
-          )}
-          {activeSubPanel === 'tutorial' && (
-            <HelpPanelNavigationButton
-              onClick={e => openSubPanel(e, 'versionInfo')}
-            >
-              About this version
-            </HelpPanelNavigationButton>
-          )}
-        </div>
-        <div className="border-y py-4">
-          {activeSubPanel === 'tutorial' && <Tutorial />}
-          {activeSubPanel === 'versionInfo' && (
+      <TabHeader>
+        <Tab
+          id={tutorialTabId}
+          aria-controls={tutorialPanelId}
+          variant="tab"
+          textContent="Help"
+          selected={activeSubPanel === 'tutorial'}
+          onClick={() => setActiveSubPanel('tutorial')}
+          data-testid="tutorial-tab"
+        >
+          Help
+        </Tab>
+        <Tab
+          id={versionTabId}
+          aria-controls={versionPanelId}
+          variant="tab"
+          textContent="Version"
+          selected={activeSubPanel === 'versionInfo'}
+          onClick={() => setActiveSubPanel('versionInfo')}
+          data-testid="version-info-tab"
+        >
+          Version
+        </Tab>
+      </TabHeader>
+      <Card
+        classes={classnames({
+          'rounded-tl-none': activeSubPanel === 'tutorial',
+        })}
+      >
+        <div className="border-b">
+          <TabPanel
+            id={tutorialPanelId}
+            aria-labelledby={tutorialTabId}
+            active={activeSubPanel === 'tutorial'}
+            title="Getting started"
+          >
+            <Tutorial />
+          </TabPanel>
+          <TabPanel
+            id={versionPanelId}
+            aria-labelledby={versionTabId}
+            active={activeSubPanel === 'versionInfo'}
+            title="Version details"
+          >
             <VersionInfo versionData={versionData} />
-          )}
+          </TabPanel>
         </div>
-        <div className="flex items-center">
+        <div className="flex items-center p-3">
           <HelpPanelTab
             linkText="Help topics"
             url="https://web.hypothes.is/help/"
           />
           <HelpPanelTab linkText="New support ticket" url={supportTicketURL} />
         </div>
-      </div>
+      </Card>
     </SidebarPanel>
   );
 }

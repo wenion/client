@@ -1,16 +1,15 @@
 import {
-  ButtonBase,
+  Button,
   AnnotateIcon,
   CancelIcon,
   CaretRightIcon,
   CaretLeftIcon,
-  CodeIcon,
   HideIcon,
   NoteIcon,
   PinIcon,
   ShowIcon,
 } from '@hypothesis/frontend-shared';
-import type { ButtonCommonProps } from '@hypothesis/frontend-shared/lib/components/input/ButtonBase';
+import type { ButtonProps } from '@hypothesis/frontend-shared/lib/components/input/Button';
 import type {
   IconComponent,
   PresentationalProps,
@@ -21,7 +20,7 @@ import type { JSX, RefObject } from 'preact';
 // TODO: ToolbarButton should be extracted as a shared design pattern or
 // component
 type ToolbarButtonProps = PresentationalProps &
-  ButtonCommonProps &
+  ButtonProps &
   Omit<JSX.HTMLAttributes<HTMLButtonElement>, 'icon' | 'size'> & {
     icon: IconComponent;
     isActivated: boolean
@@ -32,23 +31,24 @@ type ToolbarButtonProps = PresentationalProps &
  */
 function ToolbarButton({ icon: Icon, isActivated=false, ...buttonProps}: ToolbarButtonProps) {
   return (
-    <ButtonBase
+    <Button
       classes={classnames(
-        'w-[30px] h-[30px]', // These buttons have precise dimensions
-        'rounded-px', // size of border radius in absolute units
-        'flex items-center justify-center',
-        'border bg-white text-grey-6 hover:text-grey-9',
-        'shadow transition-colors'
+        'justify-center rounded',
+        'w-[30px] h-[30px]',
+        'shadow border bg-white text-grey-6 hover:text-grey-9',
       )}
       {...buttonProps}
+      size="custom"
+      variant="custom"
     >
-      <Icon className={classnames(
-        {
-          'text-blue-600': isActivated,
-        }
-      )}
+      <Icon
+        className={classnames(
+          {
+            'text-blue-600': isActivated,
+          },
+        )}
       />
-    </ButtonBase>
+    </Button>
   );
 }
 
@@ -141,7 +141,7 @@ export default function Toolbar({
     <div
       className={classnames(
         'absolute left-[-33px] w-[33px] z-2',
-        'text-px-base leading-none' // non-scaling sizing
+        'text-px-base leading-none', // non-scaling sizing
       )}
     >
       {/* In the clean theme (`useMinimalControls` is `true`),
@@ -150,8 +150,9 @@ export default function Toolbar({
           absolutely positioned some way down the edge of the sidebar.
       */}
       {useMinimalControls && isSidebarOpen && (
-        <ButtonBase
+        <Button
           classes={classnames(
+            'transition-colors focus-visible-ring ring-inset',
             'w-[27px] h-[27px] mt-[140px] ml-px-1.5',
             'flex items-center justify-center bg-white border',
             'text-grey-6 hover:text-grey-9 transition-colors',
@@ -159,33 +160,36 @@ export default function Toolbar({
             'border-r-0',
             // A more intense shadow than other ToolbarButtons, to match that
             // of the edge of the sidebar in clean theme
-            'shadow-sidebar'
+            'shadow-sidebar',
           )}
           title="Close annotation sidebar"
           onClick={closeSidebar}
+          unstyled
         >
           <CancelIcon />
-        </ButtonBase>
+        </Button>
       )}
       {!useMinimalControls && (
         <>
-          <ButtonBase
+          <Button
             classes={classnames(
+              'transition-colors focus-visible-ring ring-inset',
               // Height and width to align with the sidebar's top bar
-              'h-[40px] w-[33px] pl-[6px]',
+              'h-[40px] w-[33px] pl-[6px] rounded-bl',
               'bg-white text-grey-5 hover:text-grey-9',
               // Turn on left and bottom borders to continue the
               // border of the sidebar's top bar
-              'border-l border-b'
+              'border-l border-b',
             )}
             elementRef={toggleSidebarRef}
             title="Annotation sidebar"
             expanded={isSidebarOpen}
             pressed={isSidebarOpen}
             onClick={toggleSidebar}
+            unstyled
           >
             {isSidebarOpen ? <CaretRightIcon /> : <CaretLeftIcon />}
-          </ButtonBase>
+          </Button>
           <div className="space-y-px-1.5 mt-px-2">
             <ToolbarButton
               title="Pin"

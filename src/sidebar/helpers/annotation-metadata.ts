@@ -1,5 +1,8 @@
 import type {
+  APIAnnotationData,
   Annotation,
+  EPUBContentSelector,
+  PageSelector,
   SavedAnnotation,
   VideoAnnotation,
   TextQuoteSelector,
@@ -19,7 +22,9 @@ export type DocumentMetadata = {
 /**
  * Extract document metadata from an annotation.
  */
-export function documentMetadata(annotation: Annotation): DocumentMetadata {
+export function documentMetadata(
+  annotation: APIAnnotationData,
+): DocumentMetadata {
   const uri = annotation.uri;
 
   let domain;
@@ -122,7 +127,7 @@ function titleTextFromAnnotation(annotation: Annotation): string {
 /**
  * Return `true` if the given annotation is a reply, `false` otherwise.
  */
-export function isReply(annotation: Annotation): boolean {
+export function isReply(annotation: APIAnnotationData): boolean {
   return (annotation.references || []).length > 0;
 }
 
@@ -344,7 +349,7 @@ export function flagCount(annotation: Annotation): number | null {
 /**
  * Return the text quote that an annotation refers to.
  */
-export function quote(annotation: Annotation): string | null {
+export function quote(annotation: APIAnnotationData): string | null {
   if (annotation.target.length === 0) {
     return null;
   }
@@ -370,6 +375,32 @@ export function videoQuote(videoAnnotation: VideoAnnotation): number[] | null {
     | VideoPositionSelector
     | undefined;
   return quoteSel ? [quoteSel.start, quoteSel.end,] : null;
+}
+
+/**
+ * Return the EPUB Canonical Fragment Identifier for the table of contents entry
+ * associated with the part of the book / document that an annotation was made
+ * on.
+ *
+ * See {@link EPUBContentSelector}.
+ */
+export function cfi(annotation: APIAnnotationData): string | undefined {
+  const epubSel = annotation.target[0]?.selector?.find(
+    s => s.type === 'EPUBContentSelector',
+  ) as EPUBContentSelector | undefined;
+  return epubSel?.cfi;
+}
+
+/**
+ * Return the label of the page that an annotation comes from.
+ *
+ * This is usually a 1-based page number, but can also be roman numerals etc.
+ */
+export function pageLabel(annotation: APIAnnotationData): string | undefined {
+  const pageSel = annotation.target[0]?.selector?.find(
+    s => s.type === 'PageSelector',
+  ) as PageSelector | undefined;
+  return pageSel?.label;
 }
 
 /**

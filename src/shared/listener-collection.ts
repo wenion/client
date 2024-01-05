@@ -2,6 +2,7 @@ type Listener = {
   eventTarget: EventTarget;
   eventType: string;
   listener: (event: Event) => void;
+  options?: AddEventListenerOptions;
 };
 
 /**
@@ -15,7 +16,7 @@ type Listener = {
  */
 type EventType<
   Target extends EventTarget,
-  Type extends string
+  Type extends string,
 > = `on${Type}` extends keyof Target
   ? Target[`on${Type}`] extends ((...args: any[]) => void) | null
     ? Parameters<NonNullable<Target[`on${Type}`]>>[0]
@@ -40,7 +41,7 @@ export class ListenerCollection {
     eventTarget: Target,
     eventType: Type,
     listener: (event: EventType<Target, Type>) => void,
-    options?: AddEventListenerOptions
+    options?: AddEventListenerOptions,
   ) {
     eventTarget.addEventListener(eventType, listener as EventListener, options);
     const symbol = Symbol();
@@ -49,6 +50,7 @@ export class ListenerCollection {
       eventType,
       // eslint-disable-next-line object-shorthand
       listener: listener as EventListener,
+      options,
     });
     return symbol;
   }
@@ -59,15 +61,15 @@ export class ListenerCollection {
   remove(listenerId: symbol) {
     const event = this._listeners.get(listenerId);
     if (event) {
-      const { eventTarget, eventType, listener } = event;
-      eventTarget.removeEventListener(eventType, listener);
+      const { eventTarget, eventType, listener, options } = event;
+      eventTarget.removeEventListener(eventType, listener, options);
       this._listeners.delete(listenerId);
     }
   }
 
   removeAll() {
-    this._listeners.forEach(({ eventTarget, eventType, listener }) => {
-      eventTarget.removeEventListener(eventType, listener);
+    this._listeners.forEach(({ eventTarget, eventType, listener, options }) => {
+      eventTarget.removeEventListener(eventType, listener, options);
     });
     this._listeners.clear();
   }

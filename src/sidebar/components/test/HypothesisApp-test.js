@@ -1,6 +1,6 @@
+import { mockImportedComponents } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import { mockImportedComponents } from '../../../test-util/mock-imported-components';
 import HypothesisApp, { $imports } from '../HypothesisApp';
 
 describe('HypothesisApp', () => {
@@ -14,6 +14,7 @@ describe('HypothesisApp', () => {
   let fakeShouldAutoDisplayTutorial = null;
   let fakeSettings = null;
   let fakeToastMessenger = null;
+  let fakeIsThirdPartyService;
 
   const createComponent = (props = {}) => {
     return mount(
@@ -24,7 +25,7 @@ describe('HypothesisApp', () => {
         session={fakeSession}
         toastMessenger={fakeToastMessenger}
         {...props}
-      />
+      />,
     );
   };
 
@@ -53,6 +54,7 @@ describe('HypothesisApp', () => {
       route: sinon.stub().returns('sidebar'),
 
       getLink: sinon.stub(),
+      isFeatureEnabled: sinon.stub().returns(true),
     };
 
     fakeAuth = {};
@@ -76,6 +78,8 @@ describe('HypothesisApp', () => {
 
     fakeConfirm = sinon.stub().resolves(false);
 
+    fakeIsThirdPartyService = sinon.stub().returns(false);
+
     $imports.$mock(mockImportedComponents());
     $imports.$mock({
       '../config/service-config': { serviceConfig: fakeServiceConfig },
@@ -85,6 +89,9 @@ describe('HypothesisApp', () => {
       },
       '../helpers/theme': { applyTheme: fakeApplyTheme },
       '../../shared/prompts': { confirm: fakeConfirm },
+      '../helpers/is-third-party-service': {
+        isThirdPartyService: fakeIsThirdPartyService,
+      },
     });
   });
 
@@ -240,7 +247,7 @@ describe('HypothesisApp', () => {
 
       assert.equal(fakeFrameSync.notifyHost.callCount, 1);
       assert.isTrue(
-        fakeFrameSync.notifyHost.calledWithExactly('loginRequested')
+        fakeFrameSync.notifyHost.calledWithExactly('loginRequested'),
       );
     });
   });
@@ -398,6 +405,18 @@ describe('HypothesisApp', () => {
       const container = wrapper.find(appSelector);
 
       assert.isFalse(container.hasClass('theme-clean'));
+    });
+  });
+
+  describe('search panel', () => {
+    [true, false].forEach(searchPanelEnabled => {
+      it('renders SearchPanel when feature is enabled', () => {
+        fakeStore.isFeatureEnabled.returns(searchPanelEnabled);
+
+        const wrapper = createComponent();
+
+        assert.equal(wrapper.exists('SearchPanel'), searchPanelEnabled);
+      });
     });
   });
 });

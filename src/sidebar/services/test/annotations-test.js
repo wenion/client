@@ -5,6 +5,7 @@ describe('AnnotationsService', () => {
   let fakeAnnotationActivity;
   let fakeApi;
   let fakeMetadata;
+  let fakeSettings;
   let fakeStore;
 
   let fakeDefaultPermissions;
@@ -46,6 +47,8 @@ describe('AnnotationsService', () => {
       isPublic: sinon.stub(),
     };
 
+    fakeSettings = {};
+
     fakeStore = {
       addAnnotations: sinon.stub(),
       annotationSaveFinished: sinon.stub(),
@@ -77,7 +80,12 @@ describe('AnnotationsService', () => {
       },
     });
 
-    svc = new AnnotationsService(fakeAnnotationActivity, fakeApi, fakeStore);
+    svc = new AnnotationsService(
+      fakeAnnotationActivity,
+      fakeApi,
+      fakeSettings,
+      fakeStore,
+    );
   });
 
   afterEach(() => {
@@ -118,6 +126,21 @@ describe('AnnotationsService', () => {
       assert.equal(annotation.user, 'acct:foo@bar.com');
       assert.isOk(annotation.$tag);
       assert.isString(annotation.$tag);
+
+      // `annotationMetadata` config not set, so this field should also not be set.
+      assert.isUndefined(annotation.metadata);
+    });
+
+    it('adds metadata from `annotationMetadata` setting to annotation', () => {
+      fakeStore.focusedGroupId.returns('mygroup');
+      fakeSettings.annotationMetadata = {
+        lms: { assignment_id: '1234' },
+      };
+
+      svc.create({}, now);
+
+      const annotation = getLastAddedAnnotation();
+      assert.deepEqual(annotation.metadata, fakeSettings.annotationMetadata);
     });
 
     describe('annotation permissions', () => {
@@ -133,7 +156,7 @@ describe('AnnotationsService', () => {
           fakeDefaultPermissions,
           'acct:foo@bar.com',
           'mygroup',
-          'private'
+          'private',
         );
         assert.equal(annotation.permissions, 'private-permissions');
       });
@@ -150,7 +173,7 @@ describe('AnnotationsService', () => {
           fakeDefaultPermissions,
           'acct:foo@bar.com',
           'mygroup',
-          'shared'
+          'shared',
         );
         assert.equal(annotation.permissions, 'default permissions');
       });
@@ -279,7 +302,11 @@ describe('AnnotationsService', () => {
       const annotation = getLastAddedAnnotation();
 
       assert.equal(annotation.uri, 'http://www.example.com');
-      assert.deepEqual(annotation.target, []);
+      assert.deepEqual(annotation.target, [
+        {
+          source: 'http://www.example.com',
+        },
+      ]);
     });
   });
 
@@ -367,7 +394,7 @@ describe('AnnotationsService', () => {
 
       assert.equal(
         reply.references[reply.references.length - 1],
-        annotation.id
+        annotation.id,
       );
       assert.equal(reply.group, annotation.group);
       assert.equal(reply.target[0].source, annotation.target[0].source);
@@ -423,7 +450,7 @@ describe('AnnotationsService', () => {
       assert.calledWith(
         fakeAnnotationActivity.reportActivity,
         'create',
-        savedAnnotation
+        savedAnnotation,
       );
     });
 
@@ -448,7 +475,7 @@ describe('AnnotationsService', () => {
       assert.calledWith(
         fakeAnnotationActivity.reportActivity,
         'update',
-        savedAnnotation
+        savedAnnotation,
       );
     });
 

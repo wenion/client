@@ -1,9 +1,11 @@
 import * as fixtures from '../../test/annotation-fixtures';
 import * as annotationMetadata from '../annotation-metadata';
 import {
+  cfi,
   documentMetadata,
   domainAndTitle,
   isSaved,
+  pageLabel,
 } from '../annotation-metadata';
 
 describe('sidebar/helpers/annotation-metadata', () => {
@@ -27,7 +29,7 @@ describe('sidebar/helpers/annotation-metadata', () => {
           const annotation = fakeAnnotation();
           assert.equal(
             documentMetadata(annotation).uri,
-            'http://example.com/a/page'
+            'http://example.com/a/page',
           );
         });
       });
@@ -42,7 +44,7 @@ describe('sidebar/helpers/annotation-metadata', () => {
 
           assert.equal(
             documentMetadata(annotation).title,
-            annotation.document.title[0]
+            annotation.document.title[0],
           );
         });
       });
@@ -74,21 +76,21 @@ describe('sidebar/helpers/annotation-metadata', () => {
       it('returns annotation.uri for the uri', () => {
         assert.equal(
           documentMetadata(annotationNoDocument).uri,
-          annotationNoDocument.uri
+          annotationNoDocument.uri,
         );
       });
 
       it('returns the hostname of annotation.uri for the domain', () => {
         assert.equal(
           documentMetadata(annotationNoDocument).domain,
-          'example.com'
+          'example.com',
         );
       });
 
       it('returns the hostname of annotation.uri for the title', () => {
         assert.equal(
           documentMetadata(annotationNoDocument).title,
-          'example.com'
+          'example.com',
         );
       });
     });
@@ -116,7 +118,7 @@ describe('sidebar/helpers/annotation-metadata', () => {
 
         assert.equal(
           domainAndTitle(annotation).titleLink,
-          'https://example.com'
+          'https://example.com',
         );
       });
     });
@@ -131,10 +133,10 @@ describe('sidebar/helpers/annotation-metadata', () => {
 
           assert.equal(
             domainAndTitle(annotation).titleLink,
-            'https://example.com'
+            'https://example.com',
           );
         });
-      }
+      },
     );
 
     context('when the annotation title is shorter than 30 characters', () => {
@@ -148,7 +150,7 @@ describe('sidebar/helpers/annotation-metadata', () => {
 
         assert.equal(
           domainAndTitle(annotation).titleText,
-          'A Short Document Title'
+          'A Short Document Title',
         );
       });
     });
@@ -163,7 +165,7 @@ describe('sidebar/helpers/annotation-metadata', () => {
 
         assert.equal(
           domainAndTitle(annotation).titleText,
-          'My Really Really Long Document…'
+          'My Really Really Long Document…',
         );
       });
     });
@@ -236,7 +238,7 @@ describe('sidebar/helpers/annotation-metadata', () => {
             },
           ],
         }),
-        { cfi: undefined, position: 100 }
+        { cfi: undefined, position: 100 },
       );
     });
 
@@ -259,7 +261,7 @@ describe('sidebar/helpers/annotation-metadata', () => {
             },
           ],
         }),
-        { cfi: '/2/4', position: 200 }
+        { cfi: '/2/4', position: 200 },
       );
     });
 
@@ -272,7 +274,7 @@ describe('sidebar/helpers/annotation-metadata', () => {
             },
           ],
         }),
-        { cfi: undefined, position: undefined }
+        { cfi: undefined, position: undefined },
       );
     });
   });
@@ -341,7 +343,7 @@ describe('sidebar/helpers/annotation-metadata', () => {
       it(`returns ${testcase.expect} for isHighlight when annotation is: ${testcase.desc}`, () => {
         assert.equal(
           annotationMetadata.isHighlight(testcase.annotation),
-          testcase.expect
+          testcase.expect,
         );
       });
     });
@@ -352,7 +354,7 @@ describe('sidebar/helpers/annotation-metadata', () => {
       assert.isTrue(
         annotationMetadata.isPageNote({
           target: [],
-        })
+        }),
       );
     });
 
@@ -360,7 +362,7 @@ describe('sidebar/helpers/annotation-metadata', () => {
       assert.isTrue(
         annotationMetadata.isPageNote({
           target: [{ selector: undefined }],
-        })
+        }),
       );
     });
 
@@ -368,7 +370,7 @@ describe('sidebar/helpers/annotation-metadata', () => {
       assert.isTrue(
         annotationMetadata.isPageNote({
           target: undefined,
-        })
+        }),
       );
     });
 
@@ -377,7 +379,7 @@ describe('sidebar/helpers/annotation-metadata', () => {
         annotationMetadata.isPageNote({
           target: [],
           references: ['xyz'],
-        })
+        }),
       );
     });
   });
@@ -387,7 +389,7 @@ describe('sidebar/helpers/annotation-metadata', () => {
       assert.isTrue(
         annotationMetadata.isAnnotation({
           target: [{ selector: [] }],
-        })
+        }),
       );
     });
 
@@ -418,17 +420,17 @@ describe('sidebar/helpers/annotation-metadata', () => {
       ];
       assert.equal(
         annotationMetadata.annotationRole(annotationAnnotation),
-        'Annotation'
+        'Annotation',
       );
 
       assert.equal(
         annotationMetadata.annotationRole(highlightAnnotation),
-        'Highlight'
+        'Highlight',
       );
 
       assert.equal(
         annotationMetadata.annotationRole(pageNoteAnnotation),
-        'Page note'
+        'Page note',
       );
 
       replyAnnotations.forEach(reply => {
@@ -584,6 +586,48 @@ describe('sidebar/helpers/annotation-metadata', () => {
         ],
       };
       assert.equal(annotationMetadata.quote(ann), null);
+    });
+  });
+
+  describe('pageLabel', () => {
+    it('returns page label for annotation', () => {
+      const ann = {
+        target: [
+          {
+            source: 'https://publisher.org/article.pdf',
+            selector: [{ type: 'PageSelector', index: 10, label: '11' }],
+          },
+        ],
+      };
+      assert.equal(pageLabel(ann), '11');
+    });
+
+    it('returns undefined if annotation has no `PageSelector` selector', () => {
+      const anns = [fixtures.newPageNote(), fixtures.newAnnotation()];
+      for (const ann of anns) {
+        assert.isUndefined(pageLabel(ann));
+      }
+    });
+  });
+
+  describe('cfi', () => {
+    it('returns CFI for annotation', () => {
+      const ann = {
+        target: [
+          {
+            source: 'https://publisher.org/article.pdf',
+            selector: [{ type: 'EPUBContentSelector', cfi: '/2/4' }],
+          },
+        ],
+      };
+      assert.equal(cfi(ann), '/2/4');
+    });
+
+    it('returns undefined if annotation has no `EPUBContentSelector` selector', () => {
+      const anns = [fixtures.newPageNote(), fixtures.newAnnotation()];
+      for (const ann of anns) {
+        assert.isUndefined(pageLabel(ann));
+      }
     });
   });
 

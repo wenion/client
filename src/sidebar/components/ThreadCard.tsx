@@ -27,14 +27,14 @@ function ThreadCard({ frameSync, thread }: ThreadCardProps) {
   const setThreadHovered = useMemo(
     () =>
       debounce((ann: Annotation | null) => frameSync.hoverAnnotation(ann), 10),
-    [frameSync]
+    [frameSync],
   );
 
   const scrollToAnnotation = useCallback(
     (ann: Annotation) => {
       frameSync.scrollToAnnotation(ann);
     },
-    [frameSync]
+    [frameSync],
   );
 
   /**
@@ -63,7 +63,6 @@ function ThreadCard({ frameSync, thread }: ThreadCardProps) {
   }, [focusRequest, store, thread.id]);
 
   return (
-    /* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */
     <Card
       active={isHovered}
       classes="cursor-pointer focus-visible-ring theme-clean:border-none"

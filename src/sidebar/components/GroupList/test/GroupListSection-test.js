@@ -1,6 +1,6 @@
+import { mockImportedComponents } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import { mockImportedComponents } from '../../../../test-util/mock-imported-components';
 import GroupListSection, { $imports } from '../GroupListSection';
 
 describe('GroupListSection', () => {
@@ -21,7 +21,7 @@ describe('GroupListSection', () => {
     ...props
   } = {}) => {
     return mount(
-      <GroupListSection groups={groups} heading={heading} {...props} />
+      <GroupListSection groups={groups} heading={heading} {...props} />,
     );
   };
 

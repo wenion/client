@@ -1,4 +1,5 @@
-import { delay } from '../../../test-util/wait';
+import { delay } from '@hypothesis/frontend-testing';
+
 import { FeatureFlags } from '../../features';
 import { HTMLIntegration, $imports } from '../html';
 
@@ -64,8 +65,41 @@ describe('HTMLIntegration', () => {
     $imports.$restore();
   });
 
-  function createIntegration() {
-    return new HTMLIntegration({ features });
+  function createIntegration(sideBySideOptions) {
+    return new HTMLIntegration({ features, sideBySideOptions });
+  }
+
+  function getMargins() {
+    const bodyStyle = document.body.style;
+    const leftMargin = bodyStyle.marginLeft
+      ? parseInt(bodyStyle.marginLeft)
+      : null;
+    const rightMargin = bodyStyle.marginRight
+      ? parseInt(bodyStyle.marginRight)
+      : null;
+    return [leftMargin, rightMargin];
+  }
+
+  // Fixed amount of padding used in side-by-side mode. See
+  // `HTMLIntegration._activateSideBySide`.
+  const sideBySidePadding = 12;
+
+  // Value used for width of sidebar in various tests.
+  const sidebarWidth = 200;
+
+  // Generate a dummy response for `guessMainContentArea`. This response
+  // is what would be returned when the content fills the full width of the
+  // viewport, minus space for an open sidebar and some padding.
+  //
+  // The sidebar space is included because `fitSideBySide` adjusts the margins
+  // on the body before calling `guessMainContentArea`.
+  function fullWidthContentRect() {
+    return new DOMRect(
+      0,
+      0,
+      window.innerWidth - sidebarWidth - sideBySidePadding,
+      window.innerHeight,
+    );
   }
 
   it('implements `anchor` and `destroy` using HTML anchoring', async () => {
@@ -100,7 +134,7 @@ describe('HTMLIntegration', () => {
 
     it('returns null if range-trimming encounters a RangeError', () => {
       fakeTrimmedRange.throws(
-        new RangeError('Range contains no non-whitespace text')
+        new RangeError('Range contains no non-whitespace text'),
       );
       const integration = createIntegration();
       const range = new Range();
@@ -123,6 +157,22 @@ describe('HTMLIntegration', () => {
   });
 
   describe('#destroy', () => {
+    it('undoes side-by-side mode changes', () => {
+      const padding = sideBySidePadding;
+
+      features.update({ html_side_by_side: true });
+      fakeGuessMainContentArea.returns(fullWidthContentRect());
+
+      const integration = createIntegration();
+      integration.fitSideBySide({ expanded: true, width: sidebarWidth });
+      assert.isTrue(integration.sideBySideActive());
+      assert.deepEqual(getMargins(), [padding, sidebarWidth + padding]);
+
+      integration.destroy();
+
+      assert.deepEqual(getMargins(), [null, null]);
+    });
+
     it('cleans up feature flag listeners', () => {
       sinon.spy(features, 'on');
       sinon.spy(features, 'off');
@@ -140,35 +190,6 @@ describe('HTMLIntegration', () => {
   });
 
   describe('#fitSideBySide', () => {
-    function getMargins() {
-      const bodyStyle = document.body.style;
-      const leftMargin = bodyStyle.marginLeft
-        ? parseInt(bodyStyle.marginLeft)
-        : null;
-      const rightMargin = bodyStyle.marginRight
-        ? parseInt(bodyStyle.marginRight)
-        : null;
-      return [leftMargin, rightMargin];
-    }
-
-    const sidebarWidth = 200;
-    const padding = 12;
-
-    // Generate a dummy response for `guessMainContentArea`. This response
-    // is what would be returned when the content fills the full width of the
-    // viewport, mins space for an open sidebar and some padding.
-    //
-    // The sidebar space is included because `fitSideBySide` adjusts the margins
-    // on the body before calling `guessMainContentArea`.
-    function fullWidthContentRect() {
-      return new DOMRect(
-        0,
-        0,
-        window.innerWidth - sidebarWidth - padding,
-        window.innerHeight
-      );
-    }
-
     beforeEach(() => {
       // By default, pretend that the content fills the page.
       fakeGuessMainContentArea.returns(fullWidthContentRect());
@@ -183,6 +204,7 @@ describe('HTMLIntegration', () => {
     it('does nothing when disabled', () => {
       const integration = createIntegration();
       integration.fitSideBySide({});
+      assert.isFalse(integration.sideBySideActive());
     });
 
     context('when enabled', () => {
@@ -195,7 +217,11 @@ describe('HTMLIntegration', () => {
 
         integration.fitSideBySide({ expanded: true, width: sidebarWidth });
 
-        assert.deepEqual(getMargins(), [padding, sidebarWidth + padding]);
+        assert.isTrue(integration.sideBySideActive());
+        assert.deepEqual(getMargins(), [
+          sideBySidePadding,
+          sidebarWidth + sideBySidePadding,
+        ]);
       });
 
       it('does not set left and right margins if there is not enough room to enable', () => {
@@ -205,6 +231,7 @@ describe('HTMLIntegration', () => {
         // window.innerWidth (800) - 321 = 479 --> too small
         integration.fitSideBySide({ expanded: true, width: 321 });
 
+        assert.isFalse(integration.sideBySideActive());
         assert.deepEqual(getMargins(), [null, null]);
       });
 
@@ -212,6 +239,7 @@ describe('HTMLIntegration', () => {
         const integration = createIntegration();
 
         const contentRect = fullWidthContentRect();
+
         // Pretend there is some content to the right of the main content
         // in the document (eg. related stories, ads).
         contentRect.width -= 100;
@@ -219,7 +247,10 @@ describe('HTMLIntegration', () => {
 
         integration.fitSideBySide({ expanded: true, width: sidebarWidth });
 
-        assert.deepEqual(getMargins(), [padding, sidebarWidth + padding - 100]);
+        assert.deepEqual(getMargins(), [
+          sideBySidePadding,
+          sidebarWidth + sideBySidePadding - 100,
+        ]);
       });
 
       it('does nothing if the content area cannot be determined', () => {
@@ -255,10 +286,10 @@ describe('HTMLIntegration', () => {
 
         function getComputedMargins(element) {
           const leftMargin = Math.floor(
-            parseInt(window.getComputedStyle(element).marginLeft, 10)
+            parseInt(window.getComputedStyle(element).marginLeft, 10),
           );
           const rightMargin = Math.floor(
-            parseInt(window.getComputedStyle(element).marginRight, 10)
+            parseInt(window.getComputedStyle(element).marginRight, 10),
           );
           return [leftMargin, rightMargin];
         }
@@ -332,11 +363,31 @@ describe('HTMLIntegration', () => {
           // margin re-adjust to the available amount of space (move to the left):
           const updatedMargins = getComputedMargins(document.body);
           const expectedLeftMargin = Math.floor(
-            window.innerWidth - bodyWidth - 262
+            window.innerWidth - bodyWidth - 262,
           );
           assert.equal(updatedMargins[0], expectedLeftMargin);
           assert.isBelow(updatedMargins[0], autoMargin);
         });
+      });
+
+      it('sets an html class on the element if side by side is activated', () => {
+        const integration = createIntegration();
+
+        integration.fitSideBySide({ expanded: true, width: 100 });
+
+        assert.isTrue(
+          integration.container.classList.contains(
+            'hypothesis-sidebyside-active',
+          ),
+        );
+
+        integration.fitSideBySide({ expanded: false, width: 100 });
+
+        assert.isFalse(
+          integration.container.classList.contains(
+            'hypothesis-sidebyside-active',
+          ),
+        );
       });
     });
 
@@ -355,6 +406,18 @@ describe('HTMLIntegration', () => {
       assert.isTrue(isSideBySideActive());
 
       features.update({ html_side_by_side: false });
+      assert.isFalse(isSideBySideActive());
+    });
+
+    it('manual side-by-side is not changed by enabled feature flag', () => {
+      features.update({ html_side_by_side: true });
+      const integration = createIntegration({ mode: 'manual' });
+
+      integration.fitSideBySide({ expanded: true, width: sidebarWidth });
+      assert.isFalse(isSideBySideActive());
+
+      // Even if the feature flag is enabled, side-by-side stays disabled/manual
+      features.update({ html_side_by_side: true });
       assert.isFalse(isSideBySideActive());
     });
   });

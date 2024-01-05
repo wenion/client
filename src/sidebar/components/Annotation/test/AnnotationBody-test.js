@@ -1,8 +1,10 @@
+import {
+  checkAccessibility,
+  mockImportedComponents,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 import { act } from 'preact/test-utils';
 
-import { checkAccessibility } from '../../../../test-util/accessibility';
-import { mockImportedComponents } from '../../../../test-util/mock-imported-components';
 import * as fixtures from '../../../test/annotation-fixtures';
 import AnnotationBody, { $imports } from '../AnnotationBody';
 
@@ -34,7 +36,7 @@ describe('AnnotationBody', () => {
         annotation={fakeAnnotation}
         settings={fakeSettings}
         {...props}
-      />
+      />,
     );
   }
 
@@ -127,7 +129,7 @@ describe('AnnotationBody', () => {
     assert.isOk(button.exists());
     assert.equal(
       button.props().title,
-      'Toggle visibility of full annotation text: Show More'
+      'Toggle visibility of full annotation text: Show More',
     );
     assert.isFalse(button.props().expanded);
   });
@@ -152,7 +154,7 @@ describe('AnnotationBody', () => {
 
     assert.equal(
       buttonProps.title,
-      'Toggle visibility of full annotation text: Show Less'
+      'Toggle visibility of full annotation text: Show Less',
     );
     assert.isTrue(buttonProps.expanded);
   });
@@ -207,6 +209,6 @@ describe('AnnotationBody', () => {
           return wrapper;
         },
       },
-    ])
+    ]),
   );
 });

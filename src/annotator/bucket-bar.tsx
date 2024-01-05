@@ -3,39 +3,51 @@ import { render } from 'preact';
 import type { AnchorPosition, Destroyable } from '../types/annotator';
 import Buckets from './components/Buckets';
 import { computeBuckets } from './util/buckets';
+import { createShadowRoot } from './util/shadow-root';
 
 export type BucketBarOptions = {
   onFocusAnnotations: (tags: string[]) => void;
-  onScrollToClosestOffScreenAnchor: (
-    tags: string[],
-    direction: 'down' | 'up'
-  ) => void;
+  onScrollToAnnotation: (tag: string) => void;
   onSelectAnnotations: (tags: string[], toggle: boolean) => void;
 };
 
 /**
- * Controller for the "bucket bar" shown alongside the sidebar indicating where
- * annotations are in the document.
+ * Controller for the "bucket bar" showing where annotations are in the document.
+ *
+ * This is usually positioned along the edge of the sidebar but can be
+ * rendered elsewhere for certain content viewers.
  */
 export class BucketBar implements Destroyable {
-  private _bucketsContainer: HTMLDivElement;
+  private _bucketsContainer: HTMLElement;
   private _onFocusAnnotations: BucketBarOptions['onFocusAnnotations'];
-  private _onScrollToClosestOffScreenAnchor: BucketBarOptions['onScrollToClosestOffScreenAnchor'];
+  private _onScrollToAnnotation: BucketBarOptions['onScrollToAnnotation'];
   private _onSelectAnnotations: BucketBarOptions['onSelectAnnotations'];
 
   constructor(
     container: HTMLElement,
     {
       onFocusAnnotations,
-      onScrollToClosestOffScreenAnchor,
+      onScrollToAnnotation,
       onSelectAnnotations,
-    }: BucketBarOptions
+    }: BucketBarOptions,
   ) {
-    this._bucketsContainer = document.createElement('div');
+    this._bucketsContainer = document.createElement('hypothesis-bucket-bar');
+    Object.assign(this._bucketsContainer.style, {
+      display: 'block',
+      flexGrow: '1',
+
+      // The bucket bar uses absolute positioning for the buckets and does not
+      // currently have an intrinsic width. This should be revisited so that
+      // host pages using a custom bucket bar container don't need to hardcode
+      // assumptions about its width.
+      width: '100%',
+    });
+
+    createShadowRoot(this._bucketsContainer);
     container.appendChild(this._bucketsContainer);
 
     this._onFocusAnnotations = onFocusAnnotations;
-    this._onScrollToClosestOffScreenAnchor = onScrollToClosestOffScreenAnchor;
+    this._onScrollToAnnotation = onScrollToAnnotation;
     this._onSelectAnnotations = onSelectAnnotations;
 
     // Immediately render the bucket bar
@@ -48,21 +60,19 @@ export class BucketBar implements Destroyable {
   }
 
   update(positions: AnchorPosition[]) {
-    const buckets = computeBuckets(positions);
+    const buckets = computeBuckets(positions, this._bucketsContainer);
     render(
       <Buckets
         above={buckets.above}
         below={buckets.below}
         buckets={buckets.buckets}
         onFocusAnnotations={tags => this._onFocusAnnotations(tags)}
-        onScrollToClosestOffScreenAnchor={(tags, direction) =>
-          this._onScrollToClosestOffScreenAnchor(tags, direction)
-        }
+        onScrollToAnnotation={tag => this._onScrollToAnnotation(tag)}
         onSelectAnnotations={(tags, toogle) =>
           this._onSelectAnnotations(tags, toogle)
         }
       />,
-      this._bucketsContainer
+      this._bucketsContainer.shadowRoot!,
     );
   }
 }

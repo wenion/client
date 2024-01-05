@@ -1,7 +1,10 @@
+import { Dialog } from '@hypothesis/frontend-shared';
+import {
+  checkAccessibility,
+  mockImportedComponents,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import { checkAccessibility } from '../../../test-util/accessibility';
-import { mockImportedComponents } from '../../../test-util/mock-imported-components';
 import SidebarPanel, { $imports } from '../SidebarPanel';
 
 describe('SidebarPanel', () => {
@@ -36,7 +39,7 @@ describe('SidebarPanel', () => {
       icon: 'restricted',
     });
 
-    const dialog = wrapper.find('Dialog');
+    const dialog = wrapper.find(Dialog);
 
     assert.equal(dialog.props().icon, 'restricted');
     assert.equal(dialog.props().title, 'My Panel');
@@ -45,7 +48,7 @@ describe('SidebarPanel', () => {
   it('provides an `onClose` handler that closes the panel', () => {
     const wrapper = createSidebarPanel({ panelName: 'flibberty' });
 
-    wrapper.find('Dialog').props().onClose();
+    wrapper.find(Dialog).props().onClose();
 
     assert.calledWith(fakeStore.toggleSidebarPanel, 'flibberty', false);
   });
@@ -59,7 +62,7 @@ describe('SidebarPanel', () => {
   it('hides content if not active', () => {
     fakeStore.isSidebarPanelOpen.returns(false);
     const wrapper = createSidebarPanel();
-    assert.isFalse(wrapper.find('Dialog').exists());
+    assert.isFalse(wrapper.find(Dialog).exists());
   });
 
   context('when panel state changes', () => {
@@ -118,6 +121,6 @@ describe('SidebarPanel', () => {
     'should pass a11y checks',
     checkAccessibility({
       content: () => createSidebarPanel(),
-    })
+    }),
   );
 });

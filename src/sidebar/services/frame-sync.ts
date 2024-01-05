@@ -1,8 +1,8 @@
+import type { ToastMessage } from '@hypothesis/frontend-shared';
 import debounce from 'lodash.debounce';
 import type { DebouncedFunction } from 'lodash.debounce';
 import shallowEqual from 'shallowequal';
 
-import type { ToastMessage } from '../../shared/components/BaseToastMessages';
 import { ListenerCollection } from '../../shared/listener-collection';
 import {
   PortFinder,
@@ -184,7 +184,7 @@ export class FrameSyncService {
     videoAnnotationsService: VideoAnnotationsService,
     queryService: QueryService,
     store: SidebarStore,
-    toastMessenger: ToastMessengerService
+    toastMessenger: ToastMessengerService,
   ) {
     this._window = $window;
     this._annotationsService = annotationsService;
@@ -210,7 +210,7 @@ export class FrameSyncService {
 
     this._scheduleAnchorStatusUpdate = debounce(() => {
       const records = Object.fromEntries(
-        this._pendingAnchorStatusUpdates.entries()
+        this._pendingAnchorStatusUpdates.entries(),
       );
       this._store.updateAnchorStatus(records);
       this._pendingAnchorStatusUpdates.clear();
@@ -238,7 +238,7 @@ export class FrameSyncService {
     const onStoreAnnotationsChanged = (
       annotations: Annotation[],
       frames: Frame[],
-      prevAnnotations: Annotation[]
+      prevAnnotations: Annotation[],
     ) => {
       let publicAnns = 0;
       const inSidebar = new Set<string>();
@@ -261,7 +261,7 @@ export class FrameSyncService {
         }
       });
       const deleted = prevAnnotations.filter(
-        annot => !inSidebar.has(annot.$tag)
+        annot => !inSidebar.has(annot.$tag),
       );
 
       // Send added annotations to matching frame.
@@ -332,7 +332,7 @@ export class FrameSyncService {
       () => [this._store.allAnnotations(), this._store.frames()] as const,
       ([annotations, frames], [prevAnnotations]) =>
         onStoreAnnotationsChanged(annotations, frames, prevAnnotations),
-      shallowEqual
+      shallowEqual,
     );
 
     watch(
@@ -344,7 +344,7 @@ export class FrameSyncService {
         this._guestRPC.forEach(guest => {
           guest.call('showContentInfo', contentInfo);
         });
-      }
+      },
     );
   }
 
@@ -353,7 +353,7 @@ export class FrameSyncService {
    */
   private _updateAnchorStatus(
     tag: string | string[],
-    state: 'orphan' | 'anchored'
+    state: 'orphan' | 'anchored',
   ) {
     const tags = Array.isArray(tag) ? tag : [tag];
     for (const tag of tags) {
@@ -411,16 +411,22 @@ export class FrameSyncService {
 
     // A new annotation, note or highlight was created in the frame
     guestRPC.on('createAnnotation', (annot: AnnotationData) => {
-      // If user is not logged in, we can't really create a meaningful highlight
-      // or annotation. Instead, we need to open the sidebar, show an error,
-      // and delete the (unsaved) annotation so it gets un-selected in the
-      // target document
-      if (!this._store.isLoggedIn()) {
+      // If user is not logged in, or groups haven't loaded yet, we can't create
+      // a meaningful highlight or annotation. Instead, we need to open the
+      // sidebar, show an error, and delete the (unsaved) annotation so it gets
+      // un-selected in the target document
+      const isLoggedIn = this._store.isLoggedIn();
+      const hasGroup = this._store.focusedGroup() !== null;
+
+      if (!isLoggedIn || !hasGroup) {
         this._hostRPC.call('openSidebar');
-        this._store.openSidebarPanel('loginPrompt');
+        if (!isLoggedIn) {
+          this._store.openSidebarPanel('loginPrompt');
+        }
         this._guestRPC.forEach(rpc => rpc.call('deleteAnnotation', annot.$tag));
         return;
       }
+
       this._inFrame.add(annot.$tag);
 
       // Open the sidebar so that the user can immediately edit the draft
@@ -476,7 +482,7 @@ export class FrameSyncService {
           // if the user has no interacted with the frame since it loaded.
           window.focus();
         }
-      }
+      },
     );
 
     guestRPC.on('hoverAnnotations', (tags: string[]) => {
@@ -499,7 +505,7 @@ export class FrameSyncService {
 
     // Synchronize highlight visibility in this guest with the sidebar's controls.
     guestRPC.call('setHighlightsVisible', this._highlightsVisible);
-    guestRPC.call('featureFlagsUpdated', this._store.profile().features);
+    guestRPC.call('featureFlagsUpdated', this._store.features());
 
     // If we have content banner data, send it to the guest. If there are
     // multiple guests the banner is likely only appropriate for the main one.
@@ -657,7 +663,7 @@ export class FrameSyncService {
    * Set up synchronization of feature flags to host and guest frames.
    */
   private _setupFeatureFlagSync() {
-    const getFlags = () => this._store.profile().features;
+    const getFlags = () => this._store.features();
 
     const sendFlags = (flags: Record<string, boolean>) => {
       this._hostRPC.call('featureFlagsUpdated', flags);

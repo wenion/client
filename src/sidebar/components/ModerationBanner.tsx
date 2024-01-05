@@ -1,4 +1,4 @@
-import { ButtonBase, FlagIcon, HideIcon } from '@hypothesis/frontend-shared';
+import { Button, FlagIcon, HideIcon } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 
 import type { Annotation } from '../../types/api';
@@ -77,7 +77,7 @@ function ModerationBanner({
           '-mt-3 -ml-3 -mr-3': !annotationMetadata.isReply(annotation),
           // For replies, break out of the right padding only
           '-mr-3': annotationMetadata.isReply(annotation),
-        }
+        },
       )}
     >
       <div
@@ -102,11 +102,12 @@ function ModerationBanner({
         {annotation.hidden && <span>Hidden from users</span>}
       </div>
       <div className="self-center pr-2">
-        <ButtonBase
+        <Button
           classes={classnames(
-            'px-1.5 py-1 bg-slate-1 text-grey-7 bg-grey-2',
+            'px-1.5 py-1',
+            'bg-slate-1 text-grey-7 bg-grey-2',
             'enabled:hover:text-grey-9 enabled:hover:bg-grey-3 disabled:text-grey-5',
-            'aria-pressed:bg-grey-3 aria-expanded:bg-grey-3'
+            'aria-pressed:bg-grey-3 aria-expanded:bg-grey-3',
           )}
           onClick={annotation.hidden ? unhideAnnotation : hideAnnotation}
           title={
@@ -114,9 +115,11 @@ function ModerationBanner({
               ? 'Make this annotation visible to everyone'
               : 'Hide this annotationn from non-moderators'
           }
+          size="custom"
+          variant="custom"
         >
           {annotation.hidden ? 'Unhide' : 'Hide'}
-        </ButtonBase>
+        </Button>
       </div>
     </div>
   );

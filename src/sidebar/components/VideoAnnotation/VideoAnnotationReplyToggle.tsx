@@ -1,4 +1,4 @@
-import { ButtonBase } from '@hypothesis/frontend-shared';
+import { Button } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 
 export type AnnotationReplyToggleProps = {
@@ -19,7 +19,7 @@ function VideoAnnotationReplyToggle({
   const toggleText = `${toggleAction} (${replyCount})`;
 
   return (
-    <ButtonBase
+    <Button
       classes={classnames(
         // This button has a non-standard color combination: it uses a lighter
         // text color than other LinkButtons
@@ -28,9 +28,10 @@ function VideoAnnotationReplyToggle({
       )}
       onClick={onToggleReplies}
       title={toggleText}
+      variant="custom"
     >
       {toggleText}
-    </ButtonBase>
+    </Button>
   );
 }
 

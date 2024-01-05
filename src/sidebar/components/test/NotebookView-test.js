@@ -1,8 +1,10 @@
+import {
+  checkAccessibility,
+  mockImportedComponents,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 import { act } from 'preact/test-utils';
 
-import { checkAccessibility } from '../../../test-util/accessibility';
-import { mockImportedComponents } from '../../../test-util/mock-imported-components';
 import { ResultSizeError } from '../../search-client';
 import NotebookView, { $imports } from '../NotebookView';
 
@@ -55,7 +57,7 @@ describe('NotebookView', () => {
       <NotebookView
         loadAnnotationsService={fakeLoadAnnotationsService}
         streamer={fakeStreamer}
-      />
+      />,
     );
   }
 
@@ -71,7 +73,7 @@ describe('NotebookView', () => {
         sortBy: 'updated',
         sortOrder: 'desc',
         onError: sinon.match.func,
-      })
+      }),
     );
     assert.calledWith(fakeStore.setSortKey, 'Newest');
   });
@@ -90,7 +92,7 @@ describe('NotebookView', () => {
         sortBy: 'updated',
         sortOrder: 'desc',
         onError: sinon.match.func,
-      })
+      }),
     );
   });
 
@@ -123,7 +125,7 @@ describe('NotebookView', () => {
 
     assert.equal(
       wrapper.find('[data-testid="notebook-group-name"]').text(),
-      'Hallo'
+      'Hallo',
     );
   });
 
@@ -133,7 +135,7 @@ describe('NotebookView', () => {
 
     assert.equal(
       wrapper.find('[data-testid="notebook-group-name"]').text(),
-      '…'
+      '…',
     );
   });
 
@@ -220,6 +222,6 @@ describe('NotebookView', () => {
           return createComponent();
         },
       },
-    ])
+    ]),
   );
 });

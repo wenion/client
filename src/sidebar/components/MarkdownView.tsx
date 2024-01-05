@@ -22,7 +22,7 @@ export default function MarkdownView({
 }: MarkdownViewProps) {
   const html = useMemo(
     () => (markdown ? renderMathAndMarkdown(markdown) : ''),
-    [markdown]
+    [markdown],
   );
   const content = useRef<HTMLDivElement | null>(null);
 
@@ -41,7 +41,7 @@ export default function MarkdownView({
   // some overflow calculations in the `Excerpt` element. This could be worth
   // a review in the future.
   return (
-    <div className="w-full break-words cursor-text">
+    <div className="w-full break-anywhere cursor-text">
       <StyledText>
         <div
           className={classes}

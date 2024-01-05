@@ -8,7 +8,6 @@ export default {
   content: [
     './src/sidebar/components/**/*.{js,ts,tsx}',
     './src/annotator/components/**/*.{js,ts,tsx}',
-    './src/shared/components/**/*.{js,ts,tsx}',
     './dev-server/ui-playground/components/**/*.{js,ts,tsx}',
     './node_modules/@hypothesis/frontend-shared/lib/**/*.{js,ts,tsx}',
     // This module references `sidebar-frame` and related classes
@@ -28,16 +27,10 @@ export default {
         'slide-in-from-right-slow': 'right-to-left 1s forwards ease-in-out',
         'slide-in-from-left-slow': 'left-to-right 1s forwards ease-in-out',
       },
-      borderRadius: {
-        // Tailwind provides a default set of border-radius utility styles
-        // in rem units. Add some values for places where border radius needs
-        // to be a fixed size and not scale with changes to root font size
-        // example: bucket bar indicator buttons
-        'px-sm': '2px',
-        px: '4px',
-      },
       boxShadow: {
-        'adder-toolbar': '0px 2px 10px 0px rgba(0, 0, 0, 0.25)',
+        // A more prominent shadow than the one used by tailwind, intended for
+        // popovers and menus
+        intense: '0px 2px 10px 0px rgb(0 0 0 / 0.25)',
         focus: `0 0 0 2px ${focusBlue}`,
         'focus-inner': `inset 0 0 0 2px ${focusBlue}`,
         // The shadow shown along the edge of the sidebar in the clean theme
@@ -243,13 +236,17 @@ export default {
       addVariant('theme-clean', '.theme-clean &');
     }),
     plugin(({ addComponents, addUtilities }) => {
-      // Tailwind does not provide hyphens-related utility classes.
       addUtilities({
+        // Tailwind does not provide hyphens-related utility classes.
         '.hyphens-none': {
           hyphens: 'none',
         },
         '.hyphens-auto': {
           hyphens: 'auto',
+        },
+        // Tailwind does not provide this specific break utility: https://tailwindcss.com/docs/word-break
+        '.break-anywhere': {
+          'overflow-wrap': 'anywhere',
         },
       });
       addComponents({

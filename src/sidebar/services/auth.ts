@@ -14,6 +14,16 @@ type RefreshOptions = {
   persist: boolean;
 };
 
+const isTokenInfo = (token: unknown): token is TokenInfo =>
+  !!token &&
+  typeof token === 'object' &&
+  'accessToken' in token &&
+  typeof token.accessToken === 'string' &&
+  'refreshToken' in token &&
+  typeof token.refreshToken === 'string' &&
+  'expiresAt' in token &&
+  typeof token.expiresAt === 'number';
+
 /**
  * Authorization service.
  *
@@ -58,7 +68,7 @@ export class AuthService extends TinyEmitter {
     apiRoutes: APIRoutesService,
     localStorage: LocalStorageService,
     settings: SidebarSettings,
-    toastMessenger: ToastMessengerService
+    toastMessenger: ToastMessengerService,
   ) {
     super();
 
@@ -96,12 +106,7 @@ export class AuthService extends TinyEmitter {
   private _loadToken() {
     const token = this._localStorage.getObject(this._storageKey());
 
-    if (
-      !token ||
-      typeof token.accessToken !== 'string' ||
-      typeof token.refreshToken !== 'string' ||
-      typeof token.expiresAt !== 'number'
-    ) {
+    if (!isTokenInfo(token)) {
       return null;
     }
 
@@ -156,7 +161,7 @@ export class AuthService extends TinyEmitter {
         `Hypothesis login lost: You must reload the page to annotate.`,
         {
           autoDismiss: false,
-        }
+        },
       );
       throw err;
     }
@@ -198,7 +203,7 @@ export class AuthService extends TinyEmitter {
    */
   private async _refreshAccessToken(
     refreshToken: string,
-    options: RefreshOptions
+    options: RefreshOptions,
   ): Promise<TokenInfo | null> {
     const client = await this._oauthClient();
 

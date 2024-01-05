@@ -11,7 +11,7 @@ const EXTERNAL_CONTAINER_SELECTOR = 'test-external-container';
 describe('Sidebar', () => {
   const sidebarURL = new URL(
     '/base/annotator/test/empty.html',
-    window.location.href
+    window.location.href,
   ).toString();
 
   const sandbox = sinon.createSandbox();
@@ -229,7 +229,7 @@ describe('Sidebar', () => {
     const sidebar = createSidebar({ annotations: '1234' });
     assert.equal(
       getConfigString(sidebar),
-      addConfigFragment(sidebarURL, { annotations: '1234' })
+      addConfigFragment(sidebarURL, { annotations: '1234' }),
     );
   });
 
@@ -610,7 +610,7 @@ describe('Sidebar', () => {
         sidebar._onPan({ type: 'panstart' });
 
         assert.isTrue(
-          sidebar.iframeContainer.classList.contains('sidebar-no-transition')
+          sidebar.iframeContainer.classList.contains('sidebar-no-transition'),
         );
         assert.equal(sidebar.iframeContainer.style.pointerEvents, 'none');
       });
@@ -629,7 +629,7 @@ describe('Sidebar', () => {
         sidebar._gestureState = { final: 0 };
         sidebar._onPan({ type: 'panend' });
         assert.isFalse(
-          sidebar.iframeContainer.classList.contains('sidebar-no-transition')
+          sidebar.iframeContainer.classList.contains('sidebar-no-transition'),
         );
         assert.equal(sidebar.iframeContainer.style.pointerEvents, '');
       });
@@ -917,7 +917,7 @@ describe('Sidebar', () => {
         assert.calledWith(
           guestRPC().call,
           'sidebarLayoutChanged',
-          sinon.match.any
+          sinon.match.any,
         );
         assertLayoutValues(guestRPC().call.lastCall.args[1], {
           expanded: true,
@@ -942,7 +942,7 @@ describe('Sidebar', () => {
           sinon.match({
             expanded: true,
             width: DEFAULT_WIDTH + fakeToolbar.getWidth(),
-          })
+          }),
         );
       });
 
@@ -1053,9 +1053,12 @@ describe('Sidebar', () => {
   });
 
   describe('bucket bar', () => {
-    it('displays the bucket bar by default', () => {
+    it('displays the bucket bar alongside the sidebar by default', () => {
       const sidebar = createSidebar();
       assert.isNotNull(sidebar.bucketBar);
+      assert.calledOnce(FakeBucketBar);
+      const container = FakeBucketBar.args[0][0];
+      assert.equal(container.getAttribute('data-testid'), 'sidebar-edge');
     });
 
     it('does not display the bucket bar if using the "clean" theme', () => {
@@ -1070,6 +1073,37 @@ describe('Sidebar', () => {
       assert.isNull(sidebar.bucketBar);
     });
 
+    it('creates bucket bar in specified container if `bucketContainerSelector` config is supplied', () => {
+      const bucketBarContainer = document.createElement('div');
+      bucketBarContainer.id = 'bucket-bar-container';
+      document.body.append(bucketBarContainer);
+
+      try {
+        const sidebar = createSidebar({
+          bucketContainerSelector: '#bucket-bar-container',
+        });
+        assert.ok(sidebar.bucketBar);
+        assert.calledWith(FakeBucketBar, bucketBarContainer, sinon.match.any);
+      } finally {
+        bucketBarContainer.remove();
+      }
+    });
+
+    it('warns if `bucketContainerSelector` config is supplied but invalid', () => {
+      sinon.stub(console, 'warn');
+      try {
+        createSidebar({
+          bucketContainerSelector: '#invalid-selector',
+        });
+        assert.calledWith(
+          console.warn,
+          `Custom bucket container "#invalid-selector" not found`,
+        );
+      } finally {
+        console.warn.restore();
+      }
+    });
+
     it('calls the "hoverAnnotations" RPC method', () => {
       const sidebar = createSidebar();
       connectGuest(sidebar);
@@ -1081,22 +1115,15 @@ describe('Sidebar', () => {
       assert.calledWith(guestRPC().call, 'hoverAnnotations', tags);
     });
 
-    it('calls the "scrollToClosestOffScreenAnchor" RPC method', () => {
+    it('calls the "scrollToAnnotation" RPC method', () => {
       const sidebar = createSidebar();
       connectGuest(sidebar);
-      const { onScrollToClosestOffScreenAnchor } =
-        FakeBucketBar.getCall(0).args[1];
-      const tags = ['t1', 't2'];
-      const direction = 'down';
+      const { onScrollToAnnotation } = FakeBucketBar.getCall(0).args[1];
+      const tag = 't1';
 
-      onScrollToClosestOffScreenAnchor(tags, direction);
+      onScrollToAnnotation(tag);
 
-      assert.calledWith(
-        guestRPC().call,
-        'scrollToClosestOffScreenAnchor',
-        tags,
-        direction
-      );
+      assert.calledWith(guestRPC().call, 'scrollToAnnotation', tag);
     });
 
     it('calls the "selectAnnotations" RPC method', () => {

@@ -4,6 +4,7 @@ import { useEffect, useMemo } from 'preact/hooks';
 import { confirm } from '../../shared/prompts';
 import type { SidebarSettings } from '../../types/config';
 import { serviceConfig } from '../config/service-config';
+import { isThirdPartyService } from '../helpers/is-third-party-service';
 import { shouldAutoDisplayTutorial } from '../helpers/session';
 import { applyTheme } from '../helpers/theme';
 import { withServices } from '../service-context';
@@ -17,11 +18,12 @@ import HelpPanel from './HelpPanel';
 import FileTreePanel from './FileTreePanel';
 import NotebookView from './NotebookView';
 import ProfileView from './ProfileView';
-import ShareAnnotationsPanel from './ShareAnnotationsPanel';
+import ShareDialog from './ShareDialog';
 import SidebarView from './SidebarView';
 import StreamView from './StreamView';
 import ToastMessages from './ToastMessages';
 import TopBar from './TopBar';
+import SearchPanel from './search/SearchPanel';
 
 export type HypothesisAppProps = {
   auth: AuthService;
@@ -51,7 +53,7 @@ function HypothesisApp({
 
   const backgroundStyle = useMemo(
     () => applyTheme(['appBackgroundColor'], settings),
-    [settings]
+    [settings],
   );
   const isThemeClean = settings.theme === 'clean';
 
@@ -62,6 +64,10 @@ function HypothesisApp({
       store.openSidebarPanel('help');
     }
   }, [isSidebar, profile, settings, store]);
+
+  const isThirdParty = isThirdPartyService(settings);
+
+  const searchPanelEnabled = store.isFeatureEnabled('search_panel');
 
   const login = async () => {
     if (serviceConfig(settings)) {
@@ -134,7 +140,7 @@ function HypothesisApp({
   return (
     <div
       className={classnames(
-        'h-full min-h-full overflow-scroll',
+        'h-full min-h-full overflow-auto',
         // Precise padding to align with annotation cards in content
         // Larger padding on bottom for wide screens
         'lg:pb-16 bg-grey-2',
@@ -145,7 +151,7 @@ function HypothesisApp({
           // but not in the Notebook or Profile, which don't use the TopBar
           'pt-[49px]': !isModalRoute,
           'p-4 lg:p-12': isModalRoute,
-        }
+        },
       )}
       data-testid="hypothesis-app"
       style={backgroundStyle}
@@ -161,8 +167,8 @@ function HypothesisApp({
       <div className="container">
         <ToastMessages />
         <HelpPanel />
-        <ShareAnnotationsPanel />
-        {/* <FileTreePanel/> */}
+        {searchPanelEnabled && <SearchPanel />}
+        <ShareDialog shareTab={!isThirdParty} />
 
         {route && (
           <main>

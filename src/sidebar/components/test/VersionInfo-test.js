@@ -1,7 +1,9 @@
+import {
+  checkAccessibility,
+  mockImportedComponents,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import { checkAccessibility } from '../../../test-util/accessibility';
-import { mockImportedComponents } from '../../../test-util/mock-imported-components';
 import VersionInfo from '../VersionInfo';
 import { $imports } from '../VersionInfo';
 
@@ -23,7 +25,7 @@ describe('VersionInfo', () => {
         toastMessenger={fakeToastMessenger}
         versionData={fakeVersionData}
         {...props}
-      />
+      />,
     );
   }
 
@@ -90,7 +92,7 @@ describe('VersionInfo', () => {
 
       assert.calledWith(
         fakeToastMessenger.success,
-        'Copied version info to clipboard'
+        'Copied version info to clipboard',
       );
     });
 
@@ -102,7 +104,7 @@ describe('VersionInfo', () => {
 
       assert.calledWith(
         fakeToastMessenger.error,
-        'Unable to copy version info'
+        'Unable to copy version info',
       );
     });
   });
@@ -111,6 +113,6 @@ describe('VersionInfo', () => {
     'should pass a11y checks',
     checkAccessibility({
       content: () => createComponent(),
-    })
+    }),
   );
 });

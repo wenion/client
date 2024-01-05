@@ -1,4 +1,4 @@
-import { ButtonBase, IconButton, LinkBase } from '@hypothesis/frontend-shared';
+import { Button, IconButton, Link } from '@hypothesis/frontend-shared';
 import {
   EditorLatexIcon,
   EditorQuoteIcon,
@@ -60,7 +60,7 @@ const SHORTCUT_KEYS: Record<Command, string> = {
  */
 function handleToolbarCommand(
   command: Command,
-  inputEl: HTMLInputElement | HTMLTextAreaElement
+  inputEl: HTMLInputElement | HTMLTextAreaElement,
 ) {
   const update = (newStateFn: (prevState: EditorState) => EditorState) => {
     // Apply the toolbar command to the current state of the input field.
@@ -113,14 +113,12 @@ function handleToolbarCommand(
       break;
     case 'numlist':
       update(state =>
-        toggleBlockStyle(state, lineIndex => `${lineIndex + 1}. `)
+        toggleBlockStyle(state, lineIndex => `${lineIndex + 1}. `),
       );
       break;
     case 'list':
       update(state => toggleBlockStyle(state, '* '));
       break;
-    default:
-      throw new Error(`Unknown toolbar command "${command}"`);
   }
 }
 
@@ -156,12 +154,14 @@ function ToolbarButton({
 
   if (label) {
     return (
-      <ButtonBase
-        classes="text-grey-7 hover:text-grey-9 p-1.5"
+      <Button
+        classes="p-1.5 text-grey-7 hover:text-grey-9"
         {...buttonProps}
+        size="custom"
+        variant="custom"
       >
         {label}
-      </ButtonBase>
+      </Button>
     );
   }
   return (
@@ -186,10 +186,10 @@ function TextArea({
   return (
     <textarea
       className={classnames(
-        'border rounded-sm p-2',
+        'border rounded p-2',
         'text-color-text-light bg-grey-0',
         'focus:bg-white focus:outline-none focus:shadow-focus-inner',
-        classes
+        classes,
       )}
       {...restProps}
       ref={containerRef}
@@ -229,7 +229,7 @@ function Toolbar({ isPreviewing, onCommand, onTogglePreview }: ToolbarProps) {
         // For touch interfaces, allow height to scale to larger button targets.
         // Don't wrap buttons but instead scroll horizontally. Add bottom
         // padding to provide some space for scrollbar.
-        'touch:h-auto touch:overflow-x-scroll touch:flex-nowrap touch:pb-2.5'
+        'touch:h-auto touch:overflow-x-scroll touch:flex-nowrap touch:pb-2.5',
       )}
       data-testid="markdown-toolbar"
       role="toolbar"
@@ -292,20 +292,25 @@ function Toolbar({ isPreviewing, onCommand, onTogglePreview }: ToolbarProps) {
         title="Bulleted list"
       />
       <div className="grow flex justify-end">
-        <LinkBase
-          classes={classnames(
-            'flex justify-center items-center',
-            'text-grey-7 hover:!text-grey-7',
-            'touch:h-touch-minimum touch:w-touch-minimum',
-            'px-2 py-2.5'
-          )}
+        <Link
+          classes="text-grey-7 hover:!text-grey-7"
           href="https://web.hypothes.is/help/formatting-annotations-with-markdown/"
           target="_blank"
           title="Formatting help"
           aria-label="Formatting help"
+          underline="none"
+          variant="custom"
         >
-          <HelpIcon className="w-2.5 h-2.5" />
-        </LinkBase>
+          <div
+            className={classnames(
+              'flex justify-center items-center',
+              'touch:h-touch-minimum touch:w-touch-minimum',
+              'px-2 py-2.5 touch:p-0',
+            )}
+          >
+            <HelpIcon className="w-2.5 h-2.5" />
+          </div>
+        </Link>
 
         <ToolbarButton
           label={isPreviewing ? 'Write' : 'Preview'}
@@ -324,7 +329,7 @@ export type MarkdownEditorProps = {
   textStyle?: Record<string, string>;
 
   /** The markdown text to edit */
-  text?: string;
+  text: string;
 
   onEditText?: (text: string) => void;
 };
@@ -333,9 +338,9 @@ export type MarkdownEditorProps = {
  * Viewer/editor for the body of an annotation in markdown format.
  */
 export default function MarkdownEditor({
-  label = '',
+  label,
   onEditText = () => {},
-  text = '',
+  text,
   textStyle = {},
 }: MarkdownEditorProps) {
   // Whether the preview mode is currently active.
@@ -395,7 +400,7 @@ export default function MarkdownEditor({
             // Turn off border-radius on top edges to align with toolbar above
             'rounded-t-none',
             // Larger font on touch devices
-            'text-base touch:text-touch-base'
+            'text-base touch:text-touch-base',
           )}
           containerRef={input}
           onClick={(e: Event) => e.stopPropagation()}

@@ -1,4 +1,5 @@
-import { delay } from '../../../test-util/wait';
+import { delay } from '@hypothesis/frontend-testing';
+
 import { RenderingStates } from '../../anchoring/pdf';
 import { createPlaceholder } from '../../anchoring/placeholder';
 import { FakePDFViewerApplication } from '../../anchoring/test/fake-pdf-viewer-application';
@@ -116,7 +117,7 @@ describe('annotator/integrations/pdf', () => {
 
     function pdfViewerHasClass(className) {
       return fakePDFViewerApplication.pdfViewer.viewer.classList.contains(
-        className
+        className,
       );
     }
 
@@ -205,7 +206,7 @@ describe('annotator/integrations/pdf', () => {
 
       it('returns null if range-trimming encounters a RangeError', () => {
         fakeTrimmedRange.throws(
-          new RangeError('Range contains no non-whitespace text')
+          new RangeError('Range contains no non-whitespace text'),
         );
         const range = new Range();
         assert.isNull(pdfIntegration.getAnnotatableRange(range));
@@ -240,9 +241,22 @@ describe('annotator/integrations/pdf', () => {
 
         assert.isFalse(
           fakePDFViewerApplication.pdfViewer.viewer.classList.contains(
-            'has-transparent-text-layer'
-          )
+            'has-transparent-text-layer',
+          ),
         );
+      });
+
+      it('undoes side-by-side layout changes', () => {
+        pdfIntegration = createPDFIntegration();
+        pdfIntegration.fitSideBySide({
+          expanded: true,
+          width: 100,
+        });
+        assert.isTrue(pdfIntegration.sideBySideActive());
+
+        pdfIntegration.destroy();
+
+        assert.isFalse(pdfIntegration.sideBySideActive());
       });
     });
 
@@ -316,7 +330,7 @@ describe('annotator/integrations/pdf', () => {
       assert.isNotNull(banner);
       assert.include(
         banner.shadowRoot.textContent,
-        'This PDF does not contain selectable text'
+        'This PDF does not contain selectable text',
       );
     });
 
@@ -398,6 +412,7 @@ describe('annotator/integrations/pdf', () => {
       it('resizes and activates side-by-side mode when sidebar expanded', () => {
         sandbox.stub(window, 'innerWidth').value(1350);
         pdfIntegration = createPDFIntegration();
+        assert.isFalse(pdfIntegration.sideBySideActive());
 
         const active = pdfIntegration.fitSideBySide({
           expanded: true,
@@ -406,6 +421,7 @@ describe('annotator/integrations/pdf', () => {
         });
 
         assert.isTrue(active);
+        assert.isTrue(pdfIntegration.sideBySideActive());
         assert.calledOnce(fakePDFViewerApplication.pdfViewer.update);
         assert.equal(pdfContainer().style.width, 'calc(100% - 428px)');
       });
@@ -430,6 +446,7 @@ describe('annotator/integrations/pdf', () => {
           });
 
           assert.isTrue(active);
+          assert.isTrue(pdfIntegration.sideBySideActive());
           assert.calledOnce(fakePDFViewerApplication.pdfViewer.update);
           assert.equal(pdfContainer().style.width, 'calc(100% - 428px)');
         });
@@ -447,6 +464,7 @@ describe('annotator/integrations/pdf', () => {
         });
 
         assert.isFalse(active);
+        assert.isFalse(pdfIntegration.sideBySideActive());
         assert.equal(pdfContainer().style.width, 'calc(100% - 115px)');
       });
 
@@ -462,6 +480,7 @@ describe('annotator/integrations/pdf', () => {
         });
 
         assert.isFalse(active);
+        assert.isFalse(pdfIntegration.sideBySideActive());
         assert.calledOnce(fakePDFViewerApplication.pdfViewer.update);
         assert.equal(pdfContainer().style.width, 'calc(100% - 115px)');
       });
@@ -483,7 +502,7 @@ describe('annotator/integrations/pdf', () => {
         assert.calledWith(
           fakeScrollUtils.scrollElement,
           integration.contentContainer(),
-          offset
+          offset,
         );
       });
 
@@ -523,7 +542,7 @@ describe('annotator/integrations/pdf', () => {
         assert.calledWith(
           fakeScrollUtils.scrollElement,
           integration.contentContainer(),
-          50
+          50,
         );
 
         // Simulate a delay while rendering of the text layer for the page happens
@@ -547,7 +566,7 @@ describe('annotator/integrations/pdf', () => {
         assert.calledWith(
           fakeScrollUtils.scrollElement,
           integration.contentContainer(),
-          150
+          150,
         );
       });
 

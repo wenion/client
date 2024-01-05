@@ -1,6 +1,6 @@
+import { checkAccessibility } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import { checkAccessibility } from '../../../test-util/accessibility';
 import Toolbar from '../Toolbar';
 
 const noop = () => {};
@@ -16,9 +16,8 @@ describe('Toolbar', () => {
         isSidebarOpen={false}
         showHighlights={false}
         newAnnotationType="note"
-        useMinimalControls={false}
         {...props}
-      />
+      />,
     );
 
   const findButton = (wrapper, label) =>
@@ -106,6 +105,6 @@ describe('Toolbar', () => {
             isSidebarOpen: false,
           }),
       },
-    ])
+    ]),
   );
 });

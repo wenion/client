@@ -1,7 +1,7 @@
+import { checkAccessibility } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 import { act } from 'preact/test-utils';
 
-import { checkAccessibility } from '../../../../test-util/accessibility';
 import AnnotationTimestamps, { $imports } from '../AnnotationTimestamps';
 
 describe('AnnotationTimestamps', () => {
@@ -16,7 +16,7 @@ describe('AnnotationTimestamps', () => {
         annotationURL="http://www.example.com"
         withEditedTimestamp={false}
         {...props}
-      />
+      />,
     );
 
   beforeEach(() => {
@@ -102,6 +102,6 @@ describe('AnnotationTimestamps', () => {
 
         return createComponent();
       },
-    })
+    }),
   );
 });

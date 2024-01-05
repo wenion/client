@@ -19,6 +19,7 @@ import {
 import { ServiceContext } from './service-context';
 import { AnnotationActivityService } from './services/annotation-activity';
 import { AnnotationsService } from './services/annotations';
+import { AnnotationsExporter } from './services/annotations-exporter';
 import { APIService } from './services/api';
 import { APIRoutesService } from './services/api-routes';
 import { AuthService } from './services/auth';
@@ -26,6 +27,7 @@ import { AutosaveService } from './services/autosave';
 import { FileTreeService } from './services/file-tree';
 import { FrameSyncService } from './services/frame-sync';
 import { GroupsService } from './services/groups';
+import { ImportAnnotationsService } from './services/import-annotations';
 import { LoadAnnotationsService } from './services/load-annotations';
 import { LocalStorageService } from './services/local-storage';
 import { PersistedDefaultsService } from './services/persisted-defaults';
@@ -78,7 +80,7 @@ function setupApi(api: APIService, streamer: StreamerService) {
 function setupRoute(
   groups: GroupsService,
   session: SessionService,
-  router: RouterService
+  router: RouterService,
 ) {
   groups.load();
   session.load();
@@ -96,7 +98,7 @@ function setupRoute(
 function initServices(
   autosaveService: AutosaveService,
   persistedDefaults: PersistedDefaultsService,
-  serviceURL: ServiceURLService
+  serviceURL: ServiceURLService,
 ) {
   autosaveService.init();
   persistedDefaults.init();
@@ -104,11 +106,24 @@ function initServices(
 }
 
 /**
+ * Setup connection between sidebar and host page.
+ *
  * @inject
  */
-function setupFrameSync(frameSync: FrameSyncService, store: SidebarStore) {
+function setupFrameSync(
+  frameSync: FrameSyncService,
+  store: SidebarStore,
+  toastMessenger: ToastMessengerService,
+) {
   if (store.route() === 'sidebar') {
-    frameSync.connect();
+    frameSync.connect().catch(() => {
+      toastMessenger.error(
+        'Hypothesis failed to connect to the web page. Try reloading the page.',
+        {
+          autoDismiss: false,
+        },
+      );
+    });
   }
 }
 
@@ -122,6 +137,7 @@ function startApp(settings: SidebarSettings, appEl: HTMLElement) {
 
   // Register services.
   container
+    .register('annotationsExporter', AnnotationsExporter)
     .register('annotationsService', AnnotationsService)
     .register('annotationActivity', AnnotationActivityService)
     .register('api', APIService)
@@ -131,6 +147,7 @@ function startApp(settings: SidebarSettings, appEl: HTMLElement) {
     .register('fileTreeService', FileTreeService)
     .register('frameSync', FrameSyncService)
     .register('groups', GroupsService)
+    .register('importAnnotationsService', ImportAnnotationsService)
     .register('loadAnnotationsService', LoadAnnotationsService)
     .register('localStorage', LocalStorageService)
     .register('persistedDefaults', PersistedDefaultsService)
@@ -166,7 +183,7 @@ function startApp(settings: SidebarSettings, appEl: HTMLElement) {
     <ServiceContext.Provider value={container}>
       <HypothesisApp />
     </ServiceContext.Provider>,
-    appEl
+    appEl,
   );
 }
 

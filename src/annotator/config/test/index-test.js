@@ -16,6 +16,7 @@ describe('annotator/config/index', () => {
       showHighlights: 'fakeValue',
       sidebarAppUrl: 'fakeValue',
       query: 'fakeValue',
+      sideBySide: { mode: 'auto' },
     });
     fakeIsBrowserExtension = sinon.stub();
 
@@ -50,7 +51,7 @@ describe('annotator/config/index', () => {
 
         assert.equal(config[settingName], 'SETTING_VALUE');
       });
-    }
+    },
   );
 
   context("when there's no application/annotator+html <link>", () => {
@@ -77,8 +78,10 @@ describe('annotator/config/index', () => {
             appType: 'fakeValue',
             annotations: 'fakeValue',
             branding: null,
+            bucketContainerSelector: null,
             clientUrl: 'fakeValue',
             contentInfoBanner: null,
+            contentReady: 'fakeValue',
             enableExperimentalNewNoteButton: null,
             externalContainerSelector: null,
             focus: null,
@@ -95,8 +98,9 @@ describe('annotator/config/index', () => {
             subFrameIdentifier: 'fakeValue',
             theme: null,
             usernameUrl: null,
+            sideBySide: { mode: 'auto' },
           },
-          config
+          config,
         );
       });
     });
@@ -110,8 +114,10 @@ describe('annotator/config/index', () => {
             appType: 'fakeValue',
             annotations: 'fakeValue',
             branding: 'fakeValue',
+            bucketContainerSelector: 'fakeValue',
             clientUrl: 'fakeValue',
             contentInfoBanner: 'fakeValue',
+            contentReady: 'fakeValue',
             enableExperimentalNewNoteButton: 'fakeValue',
             externalContainerSelector: 'fakeValue',
             focus: 'fakeValue',
@@ -128,8 +134,9 @@ describe('annotator/config/index', () => {
             subFrameIdentifier: 'fakeValue',
             theme: 'fakeValue',
             usernameUrl: 'fakeValue',
+            sideBySide: { mode: 'auto' },
           },
-          config
+          config,
         );
       });
     });
@@ -167,8 +174,10 @@ describe('annotator/config/index', () => {
         appType: null,
         annotations: null,
         branding: null,
+        bucketContainerSelector: null,
         clientUrl: null,
         contentInfoBanner: null,
+        contentReady: null,
         enableExperimentalNewNoteButton: null,
         externalContainerSelector: null,
         focus: null,
@@ -206,7 +215,7 @@ describe('annotator/config/index', () => {
 
         assert.equal(settingValue, settings[settingName]);
       });
-    }
+    },
   );
 
   describe('coerces values', () => {
@@ -224,7 +233,13 @@ describe('annotator/config/index', () => {
     [
       {
         app: 'annotator',
-        expectedKeys: ['clientUrl', 'contentInfoBanner', 'subFrameIdentifier'],
+        expectedKeys: [
+          'clientUrl',
+          'contentInfoBanner',
+          'contentReady',
+          'subFrameIdentifier',
+          'sideBySide',
+        ],
       },
       {
         app: 'sidebar',
@@ -232,6 +247,7 @@ describe('annotator/config/index', () => {
           'appType',
           'annotations',
           'branding',
+          'bucketContainerSelector',
           'enableExperimentalNewNoteButton',
           'externalContainerSelector',
           'focus',
@@ -269,11 +285,5 @@ describe('annotator/config/index', () => {
         assert.deepEqual(Object.keys(config), test.expectedKeys);
       });
     });
-  });
-
-  it(`throws an error if an invalid context was passed`, () => {
-    assert.throws(() => {
-      getConfig('fake', 'WINDOW');
-    }, 'Invalid application context used: "fake"');
   });
 });

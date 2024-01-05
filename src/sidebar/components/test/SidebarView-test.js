@@ -1,7 +1,9 @@
+import {
+  checkAccessibility,
+  mockImportedComponents,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import { checkAccessibility } from '../../../test-util/accessibility';
-import { mockImportedComponents } from '../../../test-util/mock-imported-components';
 import SidebarView, { $imports } from '../SidebarView';
 
 describe('SidebarView', () => {
@@ -21,7 +23,7 @@ describe('SidebarView', () => {
         loadAnnotationsService={fakeLoadAnnotationsService}
         streamer={fakeStreamer}
         {...props}
-      />
+      />,
     );
 
   beforeEach(() => {
@@ -60,6 +62,7 @@ describe('SidebarView', () => {
       profile: sinon.stub().returns({ userid: null }),
       searchUris: sinon.stub().returns([]),
       toggleFocusMode: sinon.stub(),
+      isFeatureEnabled: sinon.stub().returns(false),
     };
 
     fakeTabsUtil = {
@@ -193,7 +196,7 @@ describe('SidebarView', () => {
           wrapper
             .find('SidebarContentError')
             .filter({ errorType: 'annotation' })
-            .exists()
+            .exists(),
         );
       });
 
@@ -222,7 +225,7 @@ describe('SidebarView', () => {
         wrapper
           .find('SidebarContentError')
           .filter({ errorType: 'group' })
-          .exists()
+          .exists(),
       );
     });
 
@@ -238,9 +241,20 @@ describe('SidebarView', () => {
   });
 
   context('user-focus mode', () => {
-    it('shows filter status when focus mode configured', () => {
+    it('shows old filter status when focus mode configured', () => {
       const wrapper = createComponent();
+
       assert.isTrue(wrapper.find('FilterStatus').exists());
+      assert.isFalse(wrapper.find('FilterAnnotationsStatus').exists());
+    });
+
+    it('shows filter status when focus mode configured', () => {
+      fakeStore.isFeatureEnabled.returns(true);
+
+      const wrapper = createComponent();
+
+      assert.isFalse(wrapper.find('FilterStatus').exists());
+      assert.isTrue(wrapper.find('FilterAnnotationsStatus').exists());
     });
   });
 
@@ -260,11 +274,6 @@ describe('SidebarView', () => {
       wrapper.setProps({});
       assert.calledOnce(fakeStreamer.connect);
     });
-  });
-
-  it('renders the filter status', () => {
-    const wrapper = createComponent();
-    assert.isTrue(wrapper.find('FilterStatus').exists());
   });
 
   describe('selection tabs', () => {
@@ -295,6 +304,6 @@ describe('SidebarView', () => {
     'should pass a11y checks',
     checkAccessibility({
       content: () => createComponent(),
-    })
+    }),
   );
 });

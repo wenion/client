@@ -1,11 +1,14 @@
+import {
+  checkAccessibility,
+  mockImportedComponents,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import { checkAccessibility } from '../../../../test-util/accessibility';
-import { mockImportedComponents } from '../../../../test-util/mock-imported-components';
 import * as fixtures from '../../../test/annotation-fixtures';
 import AnnotationHeader, { $imports } from '../AnnotationHeader';
 
 describe('AnnotationHeader', () => {
+  let activeFeatures;
   let fakeAnnotationAuthorLink;
   let fakeAnnotationDisplayName;
   let fakeDomainAndTitle;
@@ -26,11 +29,15 @@ describe('AnnotationHeader', () => {
         threadIsCollapsed={false}
         settings={fakeSettings}
         {...props}
-      />
+      />,
     );
   };
 
   beforeEach(() => {
+    activeFeatures = {
+      client_display_names: true,
+    };
+
     fakeAnnotationAuthorLink = sinon
       .stub()
       .returns('http://www.example.com/user/');
@@ -52,10 +59,13 @@ describe('AnnotationHeader', () => {
 
     fakeStore = {
       defaultAuthority: sinon.stub().returns('example.com'),
-      isFeatureEnabled: sinon
-        .stub()
-        .withArgs('client_display_names')
-        .returns(true),
+      isFeatureEnabled: sinon.stub().callsFake(feature => {
+        const enabled = activeFeatures[feature];
+        if (enabled === undefined) {
+          throw new Error(`Unknown feature "${feature}"`);
+        }
+        return enabled;
+      }),
       getGroup: sinon.stub().returns(fakeGroup),
       getLink: sinon
         .stub()
@@ -120,7 +130,7 @@ describe('AnnotationHeader', () => {
 
       assert.equal(
         wrapper.find('AnnotationUser').props().authorLink,
-        'http://www.example.com/user/'
+        'http://www.example.com/user/',
       );
     });
 
@@ -136,7 +146,7 @@ describe('AnnotationHeader', () => {
       const wrapper = createAnnotationHeader();
       assert.equal(
         wrapper.find('AnnotationUser').props().displayName,
-        'Wackford Squeers'
+        'Wackford Squeers',
       );
     });
   });
@@ -284,7 +294,7 @@ describe('AnnotationHeader', () => {
 
       assert.equal(
         wrapper.find('[data-testid="extended-header-info"]').length,
-        1
+        1,
       );
     });
 
@@ -296,7 +306,7 @@ describe('AnnotationHeader', () => {
 
       assert.equal(
         wrapper.find('[data-testid="extended-header-info"]').length,
-        0
+        0,
       );
     });
 
@@ -320,18 +330,27 @@ describe('AnnotationHeader', () => {
       });
     });
 
-    describe('Annotation share info', () => {
-      it('should render annotation share/group information if group is available', () => {
-        const wrapper = createAnnotationHeader();
-
-        assert.isTrue(wrapper.find('AnnotationShareInfo').exists());
+    describe('Annotation group info', () => {
+      [
+        { route: 'sidebar', groupVisible: false },
+        { route: 'notebook', groupVisible: true },
+      ].forEach(({ route, groupVisible }) => {
+        it('should render group if not in sidebar', () => {
+          fakeStore.route.returns(route);
+          const wrapper = createAnnotationHeader();
+          assert.equal(
+            wrapper.find('AnnotationGroupInfo').exists(),
+            groupVisible,
+          );
+        });
       });
 
-      it('should not render annotation share/group information if group is unavailable', () => {
+      it('should not render group if unavailable', () => {
+        fakeStore.route.returns('notebook');
         fakeStore.getGroup.returns(undefined);
         const wrapper = createAnnotationHeader();
 
-        assert.isFalse(wrapper.find('AnnotationShareInfo').exists());
+        assert.isFalse(wrapper.find('AnnotationGroupInfo').exists());
       });
     });
 
@@ -441,6 +460,34 @@ describe('AnnotationHeader', () => {
     });
   });
 
+  describe('page numbers', () => {
+    beforeEach(() => {
+      // Un-mock the `pageLabel` function.
+      $imports.$restore({
+        '../../helpers/annotation-metadata': true,
+      });
+    });
+
+    it('should not display page number if missing', () => {
+      const annotation = fixtures.defaultAnnotation();
+      const wrapper = createAnnotationHeader({ annotation });
+      assert.isFalse(wrapper.exists('[data-testid="page-number"]'));
+    });
+
+    it('should display page number if available', () => {
+      const annotation = fixtures.defaultAnnotation();
+      annotation.target[0].selector.push({
+        type: 'PageSelector',
+        index: 10,
+        label: '11',
+      });
+      const wrapper = createAnnotationHeader({ annotation });
+      const pageNumber = wrapper.find('[data-testid="page-number"]');
+      assert.isTrue(pageNumber.exists());
+      assert.equal(pageNumber.text(), 'p. 11');
+    });
+  });
+
   it(
     'should pass a11y checks',
     checkAccessibility([
@@ -460,6 +507,6 @@ describe('AnnotationHeader', () => {
             isEditing: true,
           }),
       },
-    ])
+    ]),
   );
 });

@@ -1,5 +1,6 @@
 import {
   guessMainContentArea,
+  isSideBySideMode,
   preserveScrollPosition,
 } from '../html-side-by-side';
 
@@ -153,7 +154,7 @@ the fighting was.`;
           scrollRoot.style.width = '150px';
         },
         scrollRoot,
-        scrollRoot.getBoundingClientRect()
+        scrollRoot.getBoundingClientRect(),
       );
 
       assert.notEqual(delta, 0);
@@ -162,7 +163,7 @@ the fighting was.`;
       // may be fractional.
       assert.equal(
         Math.floor(scrollRoot.scrollTop),
-        Math.floor(initialScrollTop + delta)
+        Math.floor(initialScrollTop + delta),
       );
     }
 
@@ -224,7 +225,7 @@ the fighting was.`;
           scrollRoot.style.width = '150px';
         },
         scrollRoot,
-        scrollRoot.getBoundingClientRect()
+        scrollRoot.getBoundingClientRect(),
       );
 
       assert.equal(delta, 0);
@@ -247,11 +248,26 @@ the fighting was.`;
         },
         scrollRoot,
         // Viewport
-        new DOMRect(0, 0, 800, 600)
+        new DOMRect(0, 0, 800, 600),
       );
 
       assert.equal(delta, 0);
       assert.equal(scrollRoot.scrollTop, initialScrollTop);
+    });
+  });
+
+  describe('isSideBySideMode', () => {
+    [
+      { mode: 'auto', expectedResult: true },
+      { mode: 'manual', expectedResult: true },
+      { mode: 'invalid', expectedResult: false },
+      { mode: 123, expectedResult: false },
+      { mode: {}, expectedResult: false },
+      { mode: false, expectedResult: false },
+    ].forEach(({ mode, expectedResult }) => {
+      it('returns expected result for different modes', () => {
+        assert.equal(expectedResult, isSideBySideMode(mode));
+      });
     });
   });
 });

@@ -1,6 +1,6 @@
+import { checkAccessibility } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import { checkAccessibility } from '../../../../test-util/accessibility';
 import AnnotationUser from '../AnnotationUser';
 
 describe('AnnotationUser', () => {
@@ -32,6 +32,6 @@ describe('AnnotationUser', () => {
     'should pass a11y checks',
     checkAccessibility({
       content: () => createAnnotationUser(),
-    })
+    }),
   );
 });

@@ -1,4 +1,5 @@
 import * as rangeUtil from '../range-util';
+import { isSelectionBackwards, selectedRange } from '../range-util';
 
 function createRange(node, start, end) {
   const range = node.ownerDocument.createRange();
@@ -21,7 +22,7 @@ function roundCoords(rect) {
   };
 }
 
-describe('annotator.range-util', () => {
+describe('annotator/range-util', () => {
   let selection;
   let testNode;
 
@@ -44,7 +45,7 @@ describe('annotator.range-util', () => {
     selection.addRange(range);
   }
 
-  describe('#isNodeInRange', () => {
+  describe('isNodeInRange', () => {
     it('returns true for a node in the range', () => {
       const range = createRange(testNode, 0, 1);
       assert.isTrue(rangeUtil.isNodeInRange(range, testNode.firstChild));
@@ -60,7 +61,7 @@ describe('annotator.range-util', () => {
       testNode.innerHTML = 'one <b>two</b> three';
       const range = createRange(testNode, 1, 2);
       assert.isFalse(
-        rangeUtil.isNodeInRange(range, testNode.childNodes.item(2))
+        rangeUtil.isNodeInRange(range, testNode.childNodes.item(2)),
       );
     });
 
@@ -79,7 +80,7 @@ describe('annotator.range-util', () => {
     });
   });
 
-  describe('#getTextBoundingBoxes', () => {
+  describe('getTextBoundingBoxes', () => {
     it('gets the bounding box of a range in a text node', () => {
       testNode.innerHTML = 'plain text';
       const rng = createRange(testNode.firstChild, 0, 5);
@@ -113,12 +114,12 @@ describe('annotator.range-util', () => {
 
       assert.deepEqual(
         roundCoords(rect),
-        roundCoords(testNode.getBoundingClientRect())
+        roundCoords(testNode.getBoundingClientRect()),
       );
     });
   });
 
-  describe('#selectionFocusRect', () => {
+  describe('selectionFocusRect', () => {
     it('returns null if the selection is empty', () => {
       assert.isNull(rangeUtil.selectionFocusRect(selection));
     });
@@ -144,8 +145,99 @@ describe('annotator.range-util', () => {
       assert.approximately(
         rect.top + rect.height,
         testNode.offsetTop + testNode.offsetHeight,
-        1
+        1,
       );
+    });
+  });
+
+  describe('selectedRange', () => {
+    it('returns `null` if selection has no ranges', () => {
+      window.getSelection().empty();
+      assert.isNull(selectedRange());
+    });
+
+    it('returns `null` if selected range is collapsed', () => {
+      const range = new Range();
+      range.setStart(document.body, 0);
+      range.setEnd(document.body, 0);
+
+      window.getSelection().addRange(range);
+
+      assert.isNull(selectedRange());
+    });
+
+    it('returns first range in selection if not collapsed', () => {
+      const range = new Range();
+      range.selectNodeContents(document.body);
+
+      window.getSelection().addRange(range);
+
+      assert.instanceOf(selectedRange(), Range);
+    });
+
+    // Test handling of a Firefox-specific issue where selection may contain
+    // multiple ranges. In spec-compliant browsers (eg. Chrome), the selection
+    // only contains zero or one range.
+    it('returns union of all ranges in selection if there are multiple', () => {
+      const parent = document.createElement('div');
+      const el1 = document.createElement('div');
+      el1.textContent = 'foo';
+      const el2 = document.createElement('div');
+      el2.textContent = 'bar';
+      const el3 = document.createElement('div');
+      el3.textContent = 'baz';
+      parent.append(el1, el2, el3);
+
+      const ranges = [new Range(), new Range(), new Range()];
+      ranges[0].selectNodeContents(el1);
+      ranges[1].selectNodeContents(el2);
+      ranges[2].selectNodeContents(el3);
+
+      const fakeSelection = {
+        rangeCount: 3,
+        getRangeAt: index => ranges[index],
+      };
+
+      let range = selectedRange(fakeSelection);
+      assert.equal(range.toString(), 'foobarbaz');
+
+      // Test with the ordering of ranges reversed. The merged range should
+      // be the same.
+      ranges.reverse();
+
+      range = selectedRange(fakeSelection);
+      assert.equal(range.toString(), 'foobarbaz');
+    });
+  });
+
+  describe('isSelectionBackwards', () => {
+    let container;
+
+    beforeEach(() => {
+      container = document.createElement('div');
+      container.append('first', 'second');
+      document.body.append(container);
+    });
+
+    afterEach(() => {
+      container.remove();
+    });
+
+    [
+      { nodeA: 0, offsetA: 5, nodeB: 0, offsetB: 2, backwards: true },
+      { nodeA: 0, offsetA: 2, nodeB: 0, offsetB: 5, backwards: false },
+      { nodeA: 1, offsetA: 0, nodeB: 0, offsetB: 0, backwards: true },
+      { nodeA: 0, offsetA: 0, nodeB: 1, offsetB: 0, backwards: false },
+    ].forEach(({ nodeA, offsetA, nodeB, offsetB, backwards }) => {
+      it('returns true if focus is before anchor', () => {
+        getSelection().setBaseAndExtent(
+          container.childNodes[nodeA],
+          offsetA,
+          container.childNodes[nodeB],
+          offsetB,
+        );
+        assert.equal(isSelectionBackwards(getSelection()), backwards);
+      });
     });
   });
 

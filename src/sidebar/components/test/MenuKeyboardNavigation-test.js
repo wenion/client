@@ -1,7 +1,9 @@
+import {
+  checkAccessibility,
+  mockImportedComponents,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import { checkAccessibility } from '../../../test-util/accessibility';
-import { mockImportedComponents } from '../../../test-util/mock-imported-components';
 import MenuKeyboardNavigation, { $imports } from '../MenuKeyboardNavigation';
 
 describe('MenuKeyboardNavigation', () => {
@@ -26,7 +28,7 @@ describe('MenuKeyboardNavigation', () => {
       </MenuKeyboardNavigation>,
       {
         attachTo: newContainer,
-      }
+      },
     );
   };
 
@@ -129,6 +131,6 @@ describe('MenuKeyboardNavigation', () => {
           </MenuKeyboardNavigation>
         </div>
       ),
-    })
+    }),
   );
 });

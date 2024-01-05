@@ -1,12 +1,8 @@
+import type { ToastMessage } from '@hypothesis/frontend-shared';
 import { TinyEmitter } from 'tiny-emitter';
 
 import { generateHexString } from '../../shared/random';
 import type { SidebarStore } from '../store';
-
-// How long toast messages should be displayed before they are dismissed, in ms
-const MESSAGE_DISPLAY_TIME = 5000;
-// Delay before removing the message entirely (allows animations to complete)
-const MESSAGE_DISMISS_DELAY = 500;
 
 /**
  * Additional control over the display of a particular message.
@@ -14,8 +10,6 @@ const MESSAGE_DISMISS_DELAY = 500;
 export type MessageOptions = {
   /** Whether the toast message automatically disappears. */
   autoDismiss?: boolean;
-  /** Optional URL for users to visit for "more info" */
-  moreInfoURL?: string;
 
   /**
    * When `true`, message will be visually hidden but still available to screen
@@ -41,9 +35,8 @@ type MessageData = {
 };
 
 /**
- * A service for managing toast messages. The service will auto-dismiss and
- * remove toast messages created with `#success()` or `#error()`. Added
- * messages may be manually dismissed with the `#dismiss()` method.
+ * A service for managing toast messages. Added messages may be manually
+ * dismissed with the `#dismiss()` method.
  */
 // @inject
 export class ToastMessengerService extends TinyEmitter {
@@ -65,7 +58,7 @@ export class ToastMessengerService extends TinyEmitter {
 
     this._window.addEventListener('focus', () => {
       this._delayedMessageQueue.forEach(({ type, messageText, options }) =>
-        this._addMessage(type, messageText, options)
+        this._addMessage(type, messageText, options),
       );
       this._delayedMessageQueue = [];
     });
@@ -81,12 +74,9 @@ export class ToastMessengerService extends TinyEmitter {
    */
   dismiss(messageId: string) {
     const message = this._store.getToastMessage(messageId);
-    if (message && !message.isDismissed) {
-      this._store.updateToastMessage({ ...message, isDismissed: true });
+    if (message) {
+      this._store.removeToastMessage(messageId);
       this.emit('toastMessageDismissed', messageId);
-      setTimeout(() => {
-        this._store.removeToastMessage(messageId);
-      }, MESSAGE_DISMISS_DELAY);
     }
   }
 
@@ -101,10 +91,9 @@ export class ToastMessengerService extends TinyEmitter {
     messageText: string,
     {
       autoDismiss = true,
-      moreInfoURL = '',
       visuallyHidden = false,
       delayed = false,
-    }: MessageOptions = {}
+    }: MessageOptions = {},
   ) {
     // Do not add duplicate messages (messages with the same type and text)
     if (this._store.hasToastMessage(type, messageText)) {
@@ -114,34 +103,21 @@ export class ToastMessengerService extends TinyEmitter {
     if (delayed && !this._window.document.hasFocus()) {
       // Ignore the "delayed" option to avoid an infinite loop of re-enqueuing
       // the same messages over and over
-      const options = { autoDismiss, moreInfoURL, visuallyHidden };
+      const options = { autoDismiss, visuallyHidden };
       this._delayedMessageQueue.push({ type, messageText, options });
       return;
     }
 
     const id = generateHexString(10);
-    const message = {
+    const message: ToastMessage = {
       type,
       id,
       message: messageText,
-      moreInfoURL,
       visuallyHidden,
     };
 
-    this._store.addToastMessage({
-      isDismissed: false,
-      ...message,
-    });
+    this._store.addToastMessage(message);
     this.emit('toastMessageAdded', message);
-
-    if (autoDismiss) {
-      // Attempt to dismiss message after a set time period. NB: The message may
-      // have been removed by other mechanisms at this point; do not assume its
-      // presence.
-      setTimeout(() => {
-        this.dismiss(id);
-      }, MESSAGE_DISPLAY_TIME);
-    }
   }
 
   /**

@@ -1,7 +1,9 @@
+import {
+  checkAccessibility,
+  mockImportedComponents,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import { checkAccessibility } from '../../../test-util/accessibility';
-import { mockImportedComponents } from '../../../test-util/mock-imported-components';
 import SelectionTabs, { $imports } from '../SelectionTabs';
 
 describe('SelectionTabs', () => {
@@ -22,7 +24,7 @@ describe('SelectionTabs', () => {
         settings={fakeSettings}
         {...defaultProps}
         {...props}
-      />
+      />,
     );
   }
 
@@ -80,7 +82,7 @@ describe('SelectionTabs', () => {
       const wrapper = createComponent();
       assert.equal(
         wrapper.find('Button[data-testid="new-note-button"]').length,
-        0
+        0,
       );
     });
   });
@@ -109,7 +111,7 @@ describe('SelectionTabs', () => {
         const wrapper = createComponent();
 
         assert.isFalse(
-          wrapper.find('LabeledButton[data-testid="new-note-button"]').exists()
+          wrapper.find('LabeledButton[data-testid="new-note-button"]').exists(),
         );
       });
 
@@ -120,7 +122,7 @@ describe('SelectionTabs', () => {
         const wrapper = createComponent();
 
         assert.isTrue(
-          wrapper.find('Button[data-testid="new-note-button"]').exists()
+          wrapper.find('Button[data-testid="new-note-button"]').exists(),
         );
       });
 
@@ -199,7 +201,7 @@ describe('SelectionTabs', () => {
         isLoading: true,
       });
       assert.isFalse(
-        wrapper.exists('[data-testid="annotations-unavailable-message"]')
+        wrapper.exists('[data-testid="annotations-unavailable-message"]'),
       );
     });
 
@@ -210,7 +212,7 @@ describe('SelectionTabs', () => {
         isLoading: true,
       });
       assert.isFalse(
-        wrapper.exists('[data-testid="notes-unavailable-message"]')
+        wrapper.exists('[data-testid="notes-unavailable-message"]'),
       );
     });
 
@@ -221,7 +223,7 @@ describe('SelectionTabs', () => {
         isLoading: false,
       });
       assert.isFalse(
-        wrapper.exists('[data-testid="annotations-unavailable-message"]')
+        wrapper.exists('[data-testid="annotations-unavailable-message"]'),
       );
     });
 
@@ -232,7 +234,7 @@ describe('SelectionTabs', () => {
 
       assert.include(
         wrapper.find('Card[data-testid="notes-unavailable-message"]').text(),
-        'There are no page notes in this group'
+        'There are no page notes in this group',
       );
     });
 
@@ -243,14 +245,14 @@ describe('SelectionTabs', () => {
         wrapper
           .find('Card[data-testid="annotations-unavailable-message"]')
           .text(),
-        'There are no annotations in this group'
+        'There are no annotations in this group',
       );
     });
   });
 
   const findButton = (wrapper, label) =>
     wrapper.findWhere(
-      el => el.type() === 'button' && el.text().includes(label)
+      el => el.type() === 'button' && el.text().includes(label),
     );
 
   [
@@ -292,6 +294,6 @@ describe('SelectionTabs', () => {
         fakeStore.orphanCount.returns(3);
         return createComponent({});
       },
-    })
+    }),
   );
 });

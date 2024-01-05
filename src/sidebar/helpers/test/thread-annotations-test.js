@@ -18,7 +18,7 @@ const fixtures = immutable({
 describe('sidebar/helpers/thread-annotations', () => {
   let fakeBuildThread;
   let fakeFilterAnnotations;
-  let fakeSearchFilter;
+  let fakeQueryParser;
   let fakeThreadState;
 
   beforeEach(() => {
@@ -38,14 +38,14 @@ describe('sidebar/helpers/thread-annotations', () => {
 
     fakeBuildThread = sinon.stub().returns(fixtures.emptyThread);
     fakeFilterAnnotations = sinon.stub();
-    fakeSearchFilter = {
-      generateFacetedFilter: sinon.stub(),
+    fakeQueryParser = {
+      parseFilterQuery: sinon.stub(),
     };
 
     $imports.$mock({
       './build-thread': { buildThread: fakeBuildThread },
-      '../util/search-filter': fakeSearchFilter,
-      './view-filter': { filterAnnotations: fakeFilterAnnotations },
+      './query-parser': fakeQueryParser,
+      './filter-annotations': { filterAnnotations: fakeFilterAnnotations },
     });
   });
 
@@ -94,7 +94,7 @@ describe('sidebar/helpers/thread-annotations', () => {
           expanded: fakeThreadState.selection.expanded,
           forcedVisible: fakeThreadState.selection.forcedVisible,
           selected: fakeThreadState.selection.selected,
-        })
+        }),
       );
     });
 
@@ -139,13 +139,13 @@ describe('sidebar/helpers/thread-annotations', () => {
 
             const threadFilterFn = fakeBuildThread.args[0][1].threadFilterFn;
             const filteredThreads = fakeThreads.filter(thread =>
-              threadFilterFn(thread)
+              threadFilterFn(thread),
             );
 
             assert.lengthOf(filteredThreads, 1);
             assert.equal(
               filteredThreads[0].annotation,
-              annotations[selectedTab]
+              annotations[selectedTab],
             );
           });
         });
@@ -187,11 +187,11 @@ describe('sidebar/helpers/thread-annotations', () => {
         const filterFn = fakeBuildThread.args[0][1].filterFn;
 
         assert.isFunction(filterFn);
-        assert.calledOnce(fakeSearchFilter.generateFacetedFilter);
+        assert.calledOnce(fakeQueryParser.parseFilterQuery);
         assert.calledWith(
-          fakeSearchFilter.generateFacetedFilter,
+          fakeQueryParser.parseFilterQuery,
           fakeThreadState.selection.filterQuery,
-          fakeThreadState.selection.filters
+          fakeThreadState.selection.filters,
         );
         assert.isTrue(filterFn(annotation));
       });
@@ -203,9 +203,9 @@ describe('sidebar/helpers/thread-annotations', () => {
 
         assert.isFunction(fakeBuildThread.args[0][1].filterFn);
         assert.calledWith(
-          fakeSearchFilter.generateFacetedFilter,
+          fakeQueryParser.parseFilterQuery,
           sinon.match.any,
-          sinon.match({ user: 'somebody' })
+          sinon.match({ user: 'somebody' }),
         );
       });
     });

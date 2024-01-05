@@ -1,7 +1,8 @@
+import type { ToastMessage } from '@hypothesis/frontend-shared';
+import classnames from 'classnames';
 import * as Hammer from 'hammerjs';
 import { render } from 'preact';
 
-import type { ToastMessage } from '../shared/components/BaseToastMessages';
 import { addConfigFragment } from '../shared/config-fragment';
 import { sendErrorsTo } from '../shared/frame-error-capture';
 import { ListenerCollection } from '../shared/listener-collection';
@@ -45,6 +46,9 @@ export type SidebarConfig = { sidebarAppUrl: string } & Record<string, unknown>;
  * Client configuration used by the sidebar container ({@link Sidebar}).
  */
 export type SidebarContainerConfig = {
+  /** CSS selector for the container of the bucket bar. */
+  bucketContainerSelector?: string;
+
   /**
    * Details of the annotation service the client should connect to.
    * This includes callbacks provided by the host page to handle certain actions
@@ -72,7 +76,7 @@ function createSidebarIframe(config: SidebarConfig): HTMLIFrameElement {
   const sidebarURL = config.sidebarAppUrl;
   const sidebarAppSrc = addConfigFragment(
     sidebarURL,
-    createAppConfig(sidebarURL, config)
+    createAppConfig(sidebarURL, config),
   );
 
   const sidebarFrame = document.createElement('iframe');
@@ -149,7 +153,7 @@ export class Sidebar implements Destroyable {
   constructor(
     element: HTMLElement,
     eventBus: EventBus,
-    config: SidebarContainerConfig & SidebarConfig
+    config: SidebarContainerConfig & SidebarConfig,
   ) {
     this._emitter = eventBus.createEmitter();
     this._guestWithSelection = null;
@@ -172,16 +176,57 @@ export class Sidebar implements Destroyable {
       if (config.theme === 'clean') {
         this.iframeContainer.classList.add('theme-clean');
       } else {
-        this.bucketBar = new BucketBar(this.iframeContainer, {
+        let bucketBarContainer: HTMLElement | undefined;
+        if (config.bucketContainerSelector) {
+          bucketBarContainer = document.querySelector(
+            config.bucketContainerSelector,
+          ) as HTMLElement | undefined;
+          if (!bucketBarContainer) {
+            console.warn(
+              `Custom bucket container "${config.bucketContainerSelector}" not found`,
+            );
+          }
+        }
+
+        // Create the background for the bucket bar and toolbar. This also
+        // serves as the default container for the bucket bar.
+        const sidebarEdge = document.createElement('div');
+        sidebarEdge.setAttribute('data-testid', 'sidebar-edge');
+        sidebarEdge.className = classnames(
+          // Position the background along the left edge of the sidebar.
+          //
+          // `width` is 1px more than `left` to avoid a gap on iOS.
+          // See https://github.com/hypothesis/client/pull/2750.
+          'absolute top-0 bottom-0 w-[23px] left-[-22px]',
+
+          // Make the bucket bar fill the container, with large padding on top
+          // so that buckets are below the toolbar, and small padding on the
+          // right to align the right edge of the buckets with the right edge
+          // of toolbar icons.
+          'flex flex-col pt-[110px] pr-[5px]',
+
+          // Use a grey background, with lower opacity with the sidebar is
+          // collapsed, so the page content behind it can be read.
+          'bg-grey-2 sidebar-collapsed:bg-black/[.08]',
+
+          // Allow pointer events to go through this container to page elements
+          // (eg. scroll bar thumbs) which are behind it.
+          'pointer-events-none',
+        );
+        this.iframeContainer.append(sidebarEdge);
+
+        if (!bucketBarContainer) {
+          bucketBarContainer = sidebarEdge;
+        }
+
+        this.bucketBar = new BucketBar(bucketBarContainer, {
           onFocusAnnotations: tags =>
             this._guestRPC.forEach(rpc => rpc.call('hoverAnnotations', tags)),
-          onScrollToClosestOffScreenAnchor: (tags, direction) =>
-            this._guestRPC.forEach(rpc =>
-              rpc.call('scrollToClosestOffScreenAnchor', tags, direction)
-            ),
+          onScrollToAnnotation: tag =>
+            this._guestRPC.forEach(rpc => rpc.call('scrollToAnnotation', tag)),
           onSelectAnnotations: (tags, toggle) =>
             this._guestRPC.forEach(rpc =>
-              rpc.call('selectAnnotations', tags, toggle)
+              rpc.call('selectAnnotations', tags, toggle),
             ),
         });
       }
@@ -205,7 +250,6 @@ export class Sidebar implements Destroyable {
 
     // Register the sidebar as a handler for Hypothesis errors in this frame.
     if (this.iframe.contentWindow) {
-      window.sidebarWindow = this.iframe.contentWindow;
       sendErrorsTo(this.iframe.contentWindow);
     }
 
@@ -376,7 +420,7 @@ export class Sidebar implements Destroyable {
 
     this._sidebarRPC.on(
       'featureFlagsUpdated',
-      (flags: Record<string, boolean>) => this.features.update(flags)
+      (flags: Record<string, boolean>) => this.features.update(flags),
     );
 
     this._sidebarRPC.on('connect', () => {
@@ -399,7 +443,7 @@ export class Sidebar implements Destroyable {
     });
 
     this._sidebarRPC.on('showHighlights', () =>
-      this.setHighlightsVisible(true)
+      this.setHighlightsVisible(true),
     );
 
     this._sidebarRPC.on('openSidebar', () => this.open());
@@ -463,10 +507,10 @@ export class Sidebar implements Destroyable {
       this._hammerManager.on(
         'panstart panend panleft panright',
         /* istanbul ignore next */
-        event => this._onPan(event)
+        event => this._onPan(event),
       );
       this._hammerManager.add(
-        new Hammer.Pan({ direction: Hammer.DIRECTION_HORIZONTAL })
+        new Hammer.Pan({ direction: Hammer.DIRECTION_HORIZONTAL }),
       );
     }
   }
@@ -556,7 +600,7 @@ export class Sidebar implements Destroyable {
     this.onLayoutChange?.(layoutState);
 
     this._guestRPC.forEach(rpc =>
-      rpc.call('sidebarLayoutChanged', layoutState)
+      rpc.call('sidebarLayoutChanged', layoutState),
     );
   }
 
@@ -590,7 +634,7 @@ export class Sidebar implements Destroyable {
         frame.style.pointerEvents = 'none';
 
         this._gestureState.initial = parseInt(
-          getComputedStyle(frame).marginLeft
+          getComputedStyle(frame).marginLeft,
         );
 
         break;

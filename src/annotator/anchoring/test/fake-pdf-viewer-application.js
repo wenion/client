@@ -76,7 +76,7 @@ class FakePDFPageProxy {
   getTextContent(params = {}) {
     if (!params.normalizeWhitespace) {
       return Promise.reject(
-        new Error('Expected `normalizeWhitespace` to be true')
+        new Error('Expected `normalizeWhitespace` to be true'),
       );
     }
 
@@ -135,6 +135,7 @@ class FakePDFPageView {
       ? RenderingStates.FINISHED
       : RenderingStates.INITIAL;
     this.pdfPage = new FakePDFPageProxy(text, config);
+    this.pageLabel = null;
   }
 
   dispose() {
@@ -201,7 +202,7 @@ class FakePDFViewer {
         new FakePDFPageView(text, {
           rendered: idx >= index && idx <= lastRenderedPage,
           config: this._config,
-        })
+        }),
     );
 
     this._container.innerHTML = '';
@@ -222,7 +223,7 @@ class FakePDFViewer {
       this.eventBus.emit(eventName);
     } else if (eventDispatch === 'dom') {
       this._container.dispatchEvent(
-        new CustomEvent(eventName, { bubbles: true })
+        new CustomEvent(eventName, { bubbles: true }),
       );
     }
   }

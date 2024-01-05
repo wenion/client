@@ -144,14 +144,14 @@ function AnnotationShareControl({
         <div
           // Position this Card above its IconButton. Account for larger
           // IconButtons in touch interfaces
-          className="absolute bottom-8 right-1 touch:bottom-touch-minimum"
+          className="absolute bottom-8 right-0 touch:bottom-touch-minimum"
         >
           <Card
             classes={classnames(
               // Prefer width 96 (24rem) but ensure that component isn't wider
               // than 85vw
               'w-96 max-w-[85vw]',
-              'space-y-2 p-2'
+              'space-y-2 p-2',
             )}
             width="custom"
           >
@@ -162,7 +162,7 @@ function AnnotationShareControl({
               className={classnames(
                 // Slightly larger font size for touch devices to correspond with
                 // larger button and input sizes
-                'flex w-full text-xs touch:text-base'
+                'flex w-full text-xs touch:text-base',
               )}
             >
               <InputGroup>
@@ -195,7 +195,7 @@ function AnnotationShareControl({
             {showShareLinks && <ShareLinks shareURI={shareUri} />}
             <MenuArrow
               direction="down"
-              classes="bottom-[-8px] right-1 touch:right-[9px]"
+              classes="bottom-[-8px] right-2 touch:right-[9px]"
             />
           </Card>
         </div>

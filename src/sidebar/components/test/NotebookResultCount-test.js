@@ -1,6 +1,6 @@
+import { checkAccessibility } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import { checkAccessibility } from '../../../test-util/accessibility';
 import NotebookResultCount, { $imports } from '../NotebookResultCount';
 
 describe('NotebookResultCount', () => {
@@ -15,7 +15,7 @@ describe('NotebookResultCount', () => {
         isLoading={false}
         resultCount={0}
         {...props}
-      />
+      />,
     );
   };
 
@@ -162,6 +162,6 @@ describe('NotebookResultCount', () => {
           return createComponent({ isLoading: true });
         },
       },
-    ])
+    ]),
   );
 });

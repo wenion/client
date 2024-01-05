@@ -1,9 +1,9 @@
 import {
-  ButtonBase,
+  Button,
   ArrowLeftIcon,
   ArrowRightIcon,
 } from '@hypothesis/frontend-shared';
-import type { ButtonCommonProps } from '@hypothesis/frontend-shared/lib/components/input/ButtonBase';
+import type { ButtonProps } from '@hypothesis/frontend-shared/lib/components/input/Button';
 import type { PresentationalProps } from '@hypothesis/frontend-shared/lib/types';
 import classnames from 'classnames';
 import type { JSX } from 'preact';
@@ -11,19 +11,22 @@ import type { JSX } from 'preact';
 import { pageNumberOptions } from '../util/pagination';
 
 type NavigationButtonProps = PresentationalProps &
-  ButtonCommonProps &
+  ButtonProps &
   Omit<JSX.HTMLAttributes<HTMLButtonElement>, 'icon' | 'size'>;
 
 function NavigationButton({ ...buttonProps }: NavigationButtonProps) {
   return (
-    <ButtonBase
+    <Button
       classes={classnames(
-        'px-3.5 py-2.5 gap-x-1 font-semibold',
+        'px-3.5 py-2.5 gap-x-1',
+        'font-semibold rounded',
         // These colors are the same as the "dark" variant of IconButton
         'text-grey-7 bg-grey-2 enabled:hover:text-grey-9 enabled:hover:bg-grey-3',
-        'disabled:text-grey-5 aria-pressed:bg-grey-3 aria-expanded:bg-grey-3'
+        'disabled:text-grey-5 aria-pressed:bg-grey-3 aria-expanded:bg-grey-3',
       )}
       {...buttonProps}
+      size="custom"
+      variant="custom"
     />
   );
 }
@@ -96,7 +99,7 @@ function PaginationNavigation({
           // For slightly wider screens, they are shown in a horizontal row
           'md:flex md:items-center md:justify-center md:gap-x-2',
           // when visible, this element should stretch to fill available space
-          'md:grow'
+          'md:grow',
         )}
       >
         {pageNumbers.map((page, idx) => (
@@ -121,7 +124,7 @@ function PaginationNavigation({
           'w-28 h-10 flex justify-end',
           // When page buttons are not shown, this element should grow to fill
           // available space. But when page buttons are shown, it should not.
-          'grow md:grow-0'
+          'grow md:grow-0',
         )}
       >
         {hasNextPage && (

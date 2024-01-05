@@ -24,6 +24,14 @@ const modifiers = {
  * would be "!" instead. See also https://github.com/w3c/uievents/issues/247.
  */
 export function matchShortcut(event: KeyboardEvent, shortcut: string): boolean {
+  // Work around an issue where Chrome autofill can dispatch "keydown" events
+  // with an argument that is not a `KeyboardEvent`.
+  //
+  // See https://bugs.chromium.org/p/chromium/issues/detail?id=739792.
+  if (!(event instanceof KeyboardEvent)) {
+    return false;
+  }
+
   const parts = shortcut.split('+').map(p => p.toLowerCase());
 
   let requiredModifiers = 0;
@@ -82,14 +90,23 @@ export function installShortcut(
     // which is used as a root element in some other places because the body
     // element is not keyboard-focusable in XHTML documents in Safari/Chrome.
     // See https://github.com/hypothesis/client/issues/4364.
-    rootElement = document.documentElement,
-  }: ShortcutOptions = {}
+    //
+    // nb. `documentElement` is non-null in TS types, but it can be null if
+    // the root element is explicitly removed. We don't know how this happens,
+    // but it has been observed on some ChromeOS devices. See
+    // https://hypothesis.sentry.io/issues/3987992034.
+    rootElement = (document.documentElement as HTMLElement | null) ?? undefined,
+  }: ShortcutOptions = {},
 ) {
   const onKeydown = (event: KeyboardEvent) => {
     if (matchShortcut(event, shortcut)) {
       onPress(event);
     }
   };
+  /* istanbul ignore next */
+  if (!rootElement) {
+    return () => {};
+  }
   rootElement.addEventListener('keydown', onKeydown);
   return () => rootElement.removeEventListener('keydown', onKeydown);
 }
@@ -111,7 +128,7 @@ export function installShortcut(
 export function useShortcut(
   shortcut: string | null,
   onPress: (e: KeyboardEvent) => void,
-  { rootElement }: ShortcutOptions = {}
+  { rootElement }: ShortcutOptions = {},
 ) {
   useEffect(() => {
     if (!shortcut) {

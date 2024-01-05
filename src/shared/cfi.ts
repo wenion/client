@@ -15,7 +15,7 @@
  */
 function compareArrays(
   a: Array<number | string>,
-  b: Array<number | string>
+  b: Array<number | string>,
 ): number {
   for (let i = 0; i < Math.min(a.length, b.length); i++) {
     if (a[i] === b[i]) {
@@ -113,6 +113,13 @@ export function compareCFIs(a: string, b: string): number {
       });
   };
   return compareArrays(parseCFI(a), parseCFI(b));
+}
+
+/**
+ * Return true if the CFI `cfi` lies in the range [start, end).
+ */
+export function cfiInRange(cfi: string, start: string, end: string): boolean {
+  return compareCFIs(cfi, start) >= 0 && compareCFIs(cfi, end) < 0;
 }
 
 /**

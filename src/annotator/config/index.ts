@@ -35,12 +35,19 @@ type Context = 'sidebar' | 'notebook' | 'profile' | 'annotator' | 'all';
  * Returns the configuration keys that are relevant to a particular context.
  */
 function configurationKeys(context: Context): string[] {
-  const contexts = {
-    annotator: ['clientUrl', 'contentInfoBanner', 'subFrameIdentifier'],
+  const contexts: Record<Exclude<Context, 'all'>, string[]> = {
+    annotator: [
+      'clientUrl',
+      'contentInfoBanner',
+      'contentReady',
+      'subFrameIdentifier',
+      'sideBySide',
+    ],
     sidebar: [
       'appType',
       'annotations',
       'branding',
+      'bucketContainerSelector',
       'enableExperimentalNewNoteButton',
       'externalContainerSelector',
       'focus',
@@ -67,21 +74,12 @@ function configurationKeys(context: Context): string[] {
     profile: ['profileAppUrl'],
   };
 
-  switch (context) {
-    case 'annotator':
-      return contexts.annotator;
-    case 'sidebar':
-      return contexts.sidebar;
-    case 'notebook':
-      return contexts.notebook;
-    case 'profile':
-      return contexts.profile;
-    case 'all':
-      // Complete list of configuration keys used for testing.
-      return Object.values(contexts).flat();
-    default:
-      throw new Error(`Invalid application context used: "${context}"`);
+  if (context === 'all') {
+    // Complete list of configuration keys used for testing.
+    return Object.values(contexts).flat();
   }
+
+  return contexts[context];
 }
 
 const getHostPageSetting: ValueGetter = (settings, name) =>
@@ -106,6 +104,11 @@ const configDefinitions: ConfigDefinitionMap = {
     allowInBrowserExt: false,
     getValue: getHostPageSetting,
   },
+  bucketContainerSelector: {
+    defaultValue: null,
+    allowInBrowserExt: false,
+    getValue: getHostPageSetting,
+  },
   // URL of the client's boot script. Used when injecting the client into
   // child iframes.
   clientUrl: {
@@ -115,6 +118,11 @@ const configDefinitions: ConfigDefinitionMap = {
   },
   contentInfoBanner: {
     allowInBrowserExt: false,
+    defaultValue: null,
+    getValue: getHostPageSetting,
+  },
+  contentReady: {
+    allowInBrowserExt: true,
     defaultValue: null,
     getValue: getHostPageSetting,
   },
@@ -201,6 +209,10 @@ const configDefinitions: ConfigDefinitionMap = {
     defaultValue: null,
     getValue: getHostPageSetting,
   },
+  sideBySide: {
+    allowInBrowserExt: true,
+    getValue: settings => settings.sideBySide,
+  },
 };
 
 /**
@@ -224,7 +236,7 @@ export function getConfig(context: Context, window_: Window = window) {
     const configDef = configDefinitions[key];
     const hasDefault = configDef.defaultValue !== undefined; // A default could be null
     const isURLFromBrowserExtension = isBrowserExtension(
-      urlFromLinkTag(window_, 'sidebar', 'html')
+      urlFromLinkTag(window_, 'sidebar', 'html'),
     );
 
     // Only allow certain values in the browser extension context

@@ -352,6 +352,14 @@ loads.
     of that text when it is being viewed as well as the font-family of the
     editor as the annotation is being written.
 
+.. option:: contentReady
+
+  ``Promise``. A promise that signals to Hypothesis when the document's content
+  is ready. In web applications where the content loads asynchronously, this
+  allows Hypothesis to be loaded concurrently with the content, while making
+  sure that Hypothesis waits for the content to be ready before attempting to
+  locate annotated content in the document.
+
 .. option:: onLayoutChange
 
   ``function``. This function will be a registered callback to be invoked when the sidebar
@@ -450,6 +458,49 @@ loads.
                               // relative from the receiving iframe.
     }
 
+.. option:: sideBySide
+
+  ``Object``. This option lets you customize how side-by-side mode behaves.
+
+  .. note::
+
+    Side-by-side mode allows the space used by the web page's main content
+    area to be adapted while the sidebar is open, ensuring it does not overlap
+    with annotatable content.
+
+  For example:
+
+  .. code-block:: javascript
+
+     window.hypothesisConfig = () => ({
+       sideBySide: {
+         mode: 'manual'
+         isActive: () => {
+          // Return true if side-by-side is active.
+         }
+       }
+     });
+
+  The following keys are supported in the :option:`sideBySide` object.
+
+  .. option:: mode
+
+    ``auto`` or ``manual``. Auto is the default value, where the main page
+    content will be automatically resized to fit alongside the sidebar, while manual
+    indicates the web page wants to take full control of handling side-by-side.
+    This disables automatic resizing of the content.
+
+    When setting it to ``manual``, you should
+    `listen for layout changes </publishers/events/#cmdoption-arg-hypothesis-layoutchange>`_
+    and adapt content to fit alongside the sidebar, if it is reasonable to do so.
+
+  .. option:: isActive
+
+    When ``mode`` is set to ``manual``, Hypothesis will invoke this to determine
+    if side-by-side is active or not. This is called, for example, when the
+    user clicks somewhere in the document outside of the sidebar, so the client
+    can determine whether it should close the sidebar or not.
+
 Asset and Sidebar App Location
 ##############################
 
@@ -465,7 +516,7 @@ These settings configure where the client's assets are loaded from.
    the URL where the contents of the hypothesis package are hosted, including
    the trailing slash. (Default: for production builds:
    ``"https://cdn.hypothes.is/hypothesis/X.Y.Z/"``, for development builds:
-   ``"http://localhost:3001/hypothesis/X.Y.Z/""`.
+   ``"http://localhost:3001/hypothesis/X.Y.Z/"``.
    ``X.Y.Z`` is the package version from ``package.json``).
 
 .. option:: sidebarAppUrl

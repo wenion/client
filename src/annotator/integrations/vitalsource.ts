@@ -9,7 +9,11 @@ import type {
   SegmentInfo,
   SidebarLayout,
 } from '../../types/annotator';
-import type { EPUBContentSelector, Selector } from '../../types/api';
+import type {
+  EPUBContentSelector,
+  PageSelector,
+  Selector,
+} from '../../types/api';
 import type {
   ContentFrameGlobals,
   MosaicBookElement,
@@ -43,7 +47,7 @@ function findBookElement(document_ = document): MosaicBookElement | null {
  *   not part of the Bookshelf reader.
  */
 export function vitalSourceFrameRole(
-  window_ = window
+  window_ = window,
 ): 'container' | 'content' | null {
   if (findBookElement(window_.document)) {
     return 'container';
@@ -174,6 +178,23 @@ function makeContentFrameScrollable(frame: HTMLIFrameElement) {
 }
 
 /**
+ * Lookup options for fetching page metadata from VitalSource.
+ *
+ * Enabling this options involves some extra work, so should be skipped if
+ * the data is not needed.
+ */
+type PageInfoOptions = {
+  /** Whether to fetch the title. */
+  includeTitle?: boolean;
+
+  /**
+   * Whether to use a fallback strategy to get the page index if not available
+   * in the {@link MosaicBookElement.getCurrentPage} response.
+   */
+  includePageIndex?: boolean;
+};
+
+/**
  * Return a copy of URL with the origin removed.
  *
  * eg. "https://jigsaw.vitalsource.com/books/123/chapter.html?foo" =>
@@ -204,7 +225,15 @@ export class VitalSourceContentIntegration
   private _bookElement: MosaicBookElement;
   private _htmlIntegration: HTMLIntegration;
   private _listeners: ListenerCollection;
+
+  /** Hidden text layer. Only used in PDF books. */
   private _textLayer?: ImageTextLayer;
+
+  /**
+   * Whether side-by-side is active. Only used in PDF books. For EPUB books
+   * side-by-side delegates to the HTML integration.
+   */
+  private _sideBySideActive?: boolean;
 
   constructor(
     /* istanbul ignore next - defaults are overridden in tests */
@@ -213,7 +242,7 @@ export class VitalSourceContentIntegration
     options: {
       // Test seam
       bookElement?: MosaicBookElement;
-    } = {}
+    } = {},
   ) {
     super();
 
@@ -222,7 +251,7 @@ export class VitalSourceContentIntegration
     if (!bookElement) {
       /* istanbul ignore next */
       throw new Error(
-        'Failed to find <mosaic-book> element in container frame'
+        'Failed to find <mosaic-book> element in container frame',
       );
     }
     this._bookElement = bookElement;
@@ -281,7 +310,7 @@ export class VitalSourceContentIntegration
       this._textLayer = new ImageTextLayer(
         bookImage,
         charRects,
-        pageData.words
+        pageData.words,
       );
 
       // VitalSource has several DOM elements in the page which are raised
@@ -290,6 +319,8 @@ export class VitalSourceContentIntegration
       //
       // Set a z-index on our text layer to raise it above VS's own one.
       this._textLayer.container.style.zIndex = '100';
+
+      this._sideBySideActive = false;
     }
   }
 
@@ -298,7 +329,19 @@ export class VitalSourceContentIntegration
   }
 
   destroy() {
-    this._textLayer?.destroy();
+    if (this._textLayer) {
+      this._textLayer.destroy();
+
+      // Turn off side-by-side for PDF books. For EPUBs this is handled by
+      // `this._htmlIntegration.destroy()`.
+      this.fitSideBySide({
+        // Dummy layout. Setting `expanded: false` disables side-by-side mode.
+        expanded: false,
+        height: window.innerHeight,
+        width: 0,
+        toolbarWidth: 0,
+      });
+    }
     this._listeners.removeAll();
     this._htmlIntegration.destroy();
   }
@@ -316,32 +359,32 @@ export class VitalSourceContentIntegration
       page: pageLabel,
       title,
       url,
-    } = await this._getPageInfo(true /* includeTitle */);
+    } = await this._getPageInfo({ includeTitle: true, includePageIndex: true });
 
     // We generate an "EPUBContentSelector" with a CFI for all VS books,
     // although for PDF-based books the CFI is a string generated from the
     // page number.
-    const extraSelectors: Selector[] = [
-      {
-        type: 'EPUBContentSelector',
-        cfi,
-        url,
-        title,
-      },
-    ];
+    const cfiSelector: EPUBContentSelector = {
+      type: 'EPUBContentSelector',
+      cfi,
+      url,
+      title,
+    };
+    const extraSelectors: Selector[] = [cfiSelector];
 
-    // If this is a PDF-based book, add a page selector. PDFs always have page
-    // numbers available. EPUB-based books _may_ have information about how
-    // content maps to page numbers in a printed edition of the book. We
-    // currently limit page number selectors to PDFs until more is understood
-    // about when EPUB page numbers are reliable/likely to remain stable.
-    const bookInfo = this._bookElement.getBookInfo();
-    if (bookInfo.format === 'pbk' && typeof pageIndex === 'number') {
-      extraSelectors.push({
+    // Add page number if available. PDF-based books always have them.
+    // Publishers are encouraged to provide page numbers for EPUB-based books,
+    // but not all do. See mentions of page numbers in the "VitalSource ePub3
+    // Submission Guide" [1].
+    //
+    // [1] https://www.vitalsource.com/en-uk/products/vitalsource-epub3-implementation-guide-vitalsource-vvstdocsepub3implementguide?term=VST-DOCS-EPUB3IMPLEMENTGUIDE
+    if (typeof pageIndex === 'number') {
+      const pageSelector: PageSelector = {
         type: 'PageSelector',
         index: pageIndex,
         label: pageLabel,
-      });
+      };
+      extraSelectors.push(pageSelector);
     }
 
     selectors.push(...extraSelectors);
@@ -365,6 +408,7 @@ export class VitalSourceContentIntegration
       // `ImageTextLayer` will handle adjusting the text layer to match.
       const newWidth = window.innerWidth - layout.width;
 
+      this._sideBySideActive = false;
       preserveScrollPosition(() => {
         if (layout.expanded && newWidth > MIN_CONTENT_WIDTH) {
           // The VS book viewer sets `text-align: center` on the <body> element
@@ -372,6 +416,7 @@ export class VitalSourceContentIntegration
           // is open we need the image to be left-aligned.
           bookContainer.style.textAlign = 'left';
           bookImage.style.width = `${newWidth}px`;
+          this._sideBySideActive = true;
         } else {
           bookContainer.style.textAlign = '';
           bookImage.style.width = '';
@@ -383,9 +428,17 @@ export class VitalSourceContentIntegration
         textLayer.updateSync();
       });
 
-      return layout.expanded;
+      return this._sideBySideActive;
     } else {
       return this._htmlIntegration.fitSideBySide(layout);
+    }
+  }
+
+  sideBySideActive() {
+    if (typeof this._sideBySideActive === 'boolean') {
+      return this._sideBySideActive;
+    } else {
+      return this._htmlIntegration.sideBySideActive();
     }
   }
 
@@ -399,7 +452,7 @@ export class VitalSourceContentIntegration
 
   navigateToSegment(ann: AnnotationData) {
     const selector = ann.target[0].selector?.find(
-      s => s.type === 'EPUBContentSelector'
+      s => s.type === 'EPUBContentSelector',
     ) as EPUBContentSelector | undefined;
     if (selector?.cfi) {
       this._bookElement.goToCfi(selector.cfi);
@@ -419,14 +472,15 @@ export class VitalSourceContentIntegration
   /**
    * Retrieve information about the currently displayed content document or
    * page.
-   *
-   * @param includeTitle - Whether to fetch the title. This involves some extra
-   *   work so should be skipped when not required.
    */
-  async _getPageInfo(includeTitle: boolean) {
-    const [pageInfo, toc] = await Promise.all([
+  async _getPageInfo({
+    includeTitle = false,
+    includePageIndex = false,
+  }: PageInfoOptions = {}) {
+    const [pageInfo, toc, pages] = await Promise.all([
       this._bookElement.getCurrentPage(),
       includeTitle ? this._bookElement.getTOC() : undefined,
+      includePageIndex ? this._bookElement.getPages() : undefined,
     ]);
 
     // If changes in VitalSource ever mean that critical chapter/page metadata
@@ -442,7 +496,6 @@ export class VitalSourceContentIntegration
     }
 
     let title;
-
     if (toc) {
       title = pageInfo.chapterTitle;
 
@@ -451,16 +504,27 @@ export class VitalSourceContentIntegration
       // https://github.com/hypothesis/client/issues/4986.
       const pageCFI = documentCFI(pageInfo.cfi);
       const tocEntry = toc.data?.find(
-        entry => documentCFI(entry.cfi) === pageCFI
+        entry => documentCFI(entry.cfi) === pageCFI,
       );
       if (tocEntry) {
         title = tocEntry.title;
       }
     }
 
+    // For PDF-based books, the `pageInfo.index` property should be populated.
+    // For EPUB-based books, it may not be. In that case we try to find a
+    // page number in the complete page list instead.
+    let pageIndex = pageInfo.index;
+    if (pageIndex === undefined && pages) {
+      const index = pages.data?.findIndex(page => page.cfi === pageInfo.cfi);
+      if (index !== -1) {
+        pageIndex = index;
+      }
+    }
+
     return {
       cfi: pageInfo.cfi,
-      index: pageInfo.index,
+      index: pageIndex,
       page: pageInfo.page,
       title,
 
@@ -471,7 +535,7 @@ export class VitalSourceContentIntegration
   }
 
   async segmentInfo(): Promise<SegmentInfo> {
-    const { cfi, url } = await this._getPageInfo(false /* includeTitle */);
+    const { cfi, url } = await this._getPageInfo();
     return { cfi, url };
   }
 

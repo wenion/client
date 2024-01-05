@@ -1,23 +1,23 @@
+import { mockImportedComponents } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import { mockImportedComponents } from '../../../test-util/mock-imported-components';
 import ToastMessages, { $imports } from '../ToastMessages';
 
 describe('ToastMessages', () => {
   let fakeStore;
   let fakeToastMessenger;
 
-  const fakeMessage = () => ({
+  const fakeMessage = (id = 'someId') => ({
+    id,
     type: 'notice',
     message: 'you should know...',
-    id: 'someId',
     isDismissed: false,
     moreInfoURL: 'http://www.example.com',
   });
 
   function createComponent(props) {
     return mount(
-      <ToastMessages toastMessenger={fakeToastMessenger} {...props} />
+      <ToastMessages toastMessenger={fakeToastMessenger} {...props} />,
     );
   }
 
@@ -42,21 +42,21 @@ describe('ToastMessages', () => {
 
   it('should render all messages returned by the store', () => {
     fakeStore.getToastMessages.returns([
-      fakeMessage(),
-      fakeMessage(),
-      fakeMessage(),
+      fakeMessage('someId1'),
+      fakeMessage('someId2'),
+      fakeMessage('someId3'),
     ]);
 
     const wrapper = createComponent();
 
-    assert.lengthOf(wrapper.find('BaseToastMessages').prop('messages'), 3);
+    assert.lengthOf(wrapper.find('[messages]').prop('messages'), 3);
   });
 
   it('should dismiss the message when clicked', () => {
     fakeStore.getToastMessages.returns([fakeMessage()]);
 
     const wrapper = createComponent();
-    const messageContainer = wrapper.find('BaseToastMessages');
+    const messageContainer = wrapper.find('[onMessageDismiss]');
 
     messageContainer.prop('onMessageDismiss')();
 

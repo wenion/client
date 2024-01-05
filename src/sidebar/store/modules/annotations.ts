@@ -74,7 +74,7 @@ export type State = typeof initialState;
  */
 function excludeAnnotations(
   current: Annotation[],
-  annotations: AnnotationStub[]
+  annotations: AnnotationStub[],
 ) {
   const ids = new Set();
   const tags = new Set();
@@ -115,7 +115,7 @@ function findByTag(annotations: Annotation[], tag: string) {
 function initializeAnnotation(
   annotation: Omit<Annotation, '$anchorTimeout'>,
   tag: string,
-  currentUserId: string | null
+  currentUserId: string | null,
 ): Annotation {
   let orphan = annotation.$orphan;
 
@@ -144,7 +144,7 @@ const reducers = {
       annotations: Annotation[];
       currentAnnotationCount: number;
       currentUserId: string | null;
-    }
+    },
   ): Partial<State> {
     const updatedIDs = new Set();
     const updatedTags = new Set();
@@ -175,7 +175,7 @@ const reducers = {
         }
       } else {
         added.push(
-          initializeAnnotation(annot, 't' + nextTag, action.currentUserId)
+          initializeAnnotation(annot, 't' + nextTag, action.currentUserId),
         );
         ++nextTag;
       }
@@ -213,7 +213,7 @@ const reducers = {
 
   HIGHLIGHT_ANNOTATIONS(
     state: State,
-    action: Pick<State, 'highlighted'>
+    action: Pick<State, 'highlighted'>,
   ): Partial<State> {
     return { highlighted: action.highlighted };
   },
@@ -223,7 +223,7 @@ const reducers = {
     action: {
       annotationsToRemove: AnnotationStub[];
       remainingAnnotations: Annotation[];
-    }
+    },
   ): Partial<State> {
     return {
       annotations: [...action.remainingAnnotations],
@@ -242,7 +242,7 @@ const reducers = {
 
   UPDATE_ANCHOR_STATUS(
     state: State,
-    action: { statusUpdates: AnchorStatusUpdates }
+    action: { statusUpdates: AnchorStatusUpdates },
   ): Partial<State> {
     const annotations = state.annotations.map(annot => {
       if (!hasOwn(action.statusUpdates, annot.$tag)) {
@@ -261,7 +261,7 @@ const reducers = {
 
   UPDATE_FLAG_STATUS(
     state: State,
-    action: { id: string; isFlagged: boolean }
+    action: { id: string; isFlagged: boolean },
   ): Partial<State> {
     const annotations = state.annotations.map(annot => {
       const match = annot.id && annot.id === action.id;
@@ -302,7 +302,7 @@ function addAnnotations(annotations: Annotation[]) {
       annotations: State;
       route: RouteState;
       session: SessionState;
-    }
+    },
   ) {
     annotations = annotations.filter(annot => {
       return (
@@ -322,7 +322,7 @@ function addAnnotations(annotations: Annotation[]) {
         annotations,
         currentAnnotationCount: getState().annotations.annotations.length,
         currentUserId: profile.userid,
-      })
+      }),
     );
 
     // If we're not in the sidebar, we're done here.
@@ -355,7 +355,7 @@ function addAnnotations(annotations: Annotation[]) {
             updates[ann!.$tag] = 'timeout';
             return updates;
           },
-          {} as AnchorStatusUpdates
+          {} as AnchorStatusUpdates,
         );
         dispatch(updateAnchorStatus(anchorStatusUpdates));
       }, ANCHORING_TIMEOUT);
@@ -410,13 +410,13 @@ export function removeAnnotations(annotations: AnnotationStub[]) {
   return (dispatch: Dispatch, getState: () => { annotations: State }) => {
     const remainingAnnotations = excludeAnnotations(
       getState().annotations.annotations,
-      annotations
+      annotations,
     );
     dispatch(
       makeAction(reducers, 'REMOVE_ANNOTATIONS', {
         annotationsToRemove: annotations,
         remainingAnnotations,
-      })
+      }),
     );
   };
 }
@@ -452,7 +452,7 @@ function updateFlagStatus(id: string, isFlagged: boolean) {
  */
 const annotationCount = createSelector(
   (state: State) => state.annotations,
-  annotations => countIf(annotations, metadata.isAnnotation)
+  annotations => countIf(annotations, metadata.isAnnotation),
 );
 
 function allAnnotations(state: State) {
@@ -492,7 +492,7 @@ function findIDsForTags(state: State, tags: string[]) {
  */
 const hoveredAnnotations = createSelector(
   (state: State) => state.hovered,
-  hovered => trueKeys(hovered)
+  hovered => trueKeys(hovered),
 );
 
 /**
@@ -500,7 +500,7 @@ const hoveredAnnotations = createSelector(
  */
 const highlightedAnnotations = createSelector(
   (state: State) => state.highlighted,
-  highlighted => trueKeys(highlighted)
+  highlighted => trueKeys(highlighted),
 );
 
 /**
@@ -515,7 +515,7 @@ function isAnnotationHovered(state: State, $tag: string) {
  */
 const isWaitingToAnchorAnnotations = createSelector(
   (state: State) => state.annotations,
-  annotations => annotations.some(metadata.isWaitingToAnchor)
+  annotations => annotations.some(metadata.isWaitingToAnchor),
 );
 
 /**
@@ -525,7 +525,9 @@ const isWaitingToAnchorAnnotations = createSelector(
 const newAnnotations = createSelector(
   (state: State) => state.annotations,
   annotations =>
-    annotations.filter(ann => metadata.isNew(ann) && !metadata.isHighlight(ann))
+    annotations.filter(
+      ann => metadata.isNew(ann) && !metadata.isHighlight(ann),
+    ),
 );
 
 /**
@@ -535,7 +537,7 @@ const newAnnotations = createSelector(
 const newHighlights = createSelector(
   (state: State) => state.annotations,
   annotations =>
-    annotations.filter(ann => metadata.isNew(ann) && metadata.isHighlight(ann))
+    annotations.filter(ann => metadata.isNew(ann) && metadata.isHighlight(ann)),
 );
 
 /**
@@ -543,7 +545,7 @@ const newHighlights = createSelector(
  */
 const noteCount = createSelector(
   (state: State) => state.annotations,
-  annotations => countIf(annotations, metadata.isPageNote)
+  annotations => countIf(annotations, metadata.isPageNote),
 );
 
 /**
@@ -551,15 +553,16 @@ const noteCount = createSelector(
  */
 const orphanCount = createSelector(
   (state: State) => state.annotations,
-  annotations => countIf(annotations, metadata.isOrphan)
+  annotations => countIf(annotations, metadata.isOrphan),
 );
 
 /**
  * Return all loaded annotations which have been saved to the server
  */
-function savedAnnotations(state: State): SavedAnnotation[] {
-  return state.annotations.filter(ann => isSaved(ann)) as SavedAnnotation[];
-}
+const savedAnnotations = createSelector(
+  (state: State) => state.annotations,
+  annotations => annotations.filter(ann => isSaved(ann)) as SavedAnnotation[],
+);
 
 export const annotationsModule = createStoreModule(initialState, {
   namespace: 'annotations',

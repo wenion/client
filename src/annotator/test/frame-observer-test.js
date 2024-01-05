@@ -1,4 +1,5 @@
-import { delay, waitFor } from '../../test-util/wait';
+import { delay, waitFor } from '@hypothesis/frontend-testing';
+
 import {
   FrameObserver,
   onDocumentReady,
@@ -36,7 +37,7 @@ describe('annotator/frame-observer', () => {
 
     function createAnnotatableIFrame(
       attribute = 'enable-annotation',
-      value = ''
+      value = '',
     ) {
       const iframe = document.createElement('iframe');
       iframe.setAttribute(attribute, value);
@@ -46,7 +47,7 @@ describe('annotator/frame-observer', () => {
 
     function waitForIFrameUnload(iframe) {
       return new Promise(resolve =>
-        iframe.contentWindow.addEventListener('unload', resolve)
+        iframe.contentWindow.addEventListener('unload', resolve),
       );
     }
 
@@ -62,7 +63,7 @@ describe('annotator/frame-observer', () => {
       frameObserver = new FrameObserver(
         container,
         onFrameAdded,
-        onFrameRemoved
+        onFrameRemoved,
       );
     });
 
@@ -156,7 +157,7 @@ describe('annotator/frame-observer', () => {
 
   const sameOriginURL = new URL(
     '/base/annotator/test/empty.html',
-    document.location.href
+    document.location.href,
   ).href;
 
   // A cross-origin local URL that "loads" fast (whether the load succeeds or

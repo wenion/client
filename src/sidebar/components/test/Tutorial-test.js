@@ -1,7 +1,9 @@
+import {
+  checkAccessibility,
+  mockImportedComponents,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import { checkAccessibility } from '../../../test-util/accessibility';
-import { mockImportedComponents } from '../../../test-util/mock-imported-components';
 import Tutorial, { $imports } from '../Tutorial';
 
 describe('Tutorial', () => {
@@ -55,7 +57,7 @@ describe('Tutorial', () => {
       assert.isTrue(instruction.exists());
       assert.equal(
         instruction.find('[data-testid="command-name"]').text(),
-        testCase.commandName
+        testCase.commandName,
       );
     });
   });
@@ -64,6 +66,6 @@ describe('Tutorial', () => {
     'should pass a11y checks',
     checkAccessibility({
       content: () => createComponent(),
-    })
+    }),
   );
 });

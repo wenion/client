@@ -1,6 +1,9 @@
 import { parseJsonConfig } from '../../boot/parse-json-config';
 import { hasOwn } from '../../shared/has-own';
+import { isObject } from '../../shared/is-object';
 import { toBoolean } from '../../shared/type-coercions';
+import type { SideBySideOptions } from '../../types/annotator';
+import { isSideBySideMode } from '../integrations/html-side-by-side';
 import { configFuncSettingsFrom } from './config-func-settings-from';
 import { urlFromLinkTag } from './url-from-link-tag';
 
@@ -14,6 +17,7 @@ export type SettingsGetters = {
   notebookAppUrl: string;
   profileAppUrl: string;
   hostPageSetting: (name: string) => unknown;
+  sideBySide: SideBySideOptions;
 };
 
 /**
@@ -30,7 +34,7 @@ export function settingsFrom(window_: Window): SettingsGetters {
   const configFuncSettings = configFuncSettingsFrom(window_);
 
   const jsonConfigs: Record<string, unknown> = toBoolean(
-    configFuncSettings.ignoreOtherConfiguration
+    configFuncSettings.ignoreOtherConfiguration,
   )
     ? {}
     : parseJsonConfig(window_.document);
@@ -39,7 +43,7 @@ export function settingsFrom(window_: Window): SettingsGetters {
    * Return the `#annotations:*` ID from the given URL's fragment.
    *
    * If the URL contains a `#annotations:<ANNOTATION_ID>` fragment then return
-   * the annotation ID extracted from the fragment. Otherwise return `null`.
+   * the annotation ID extracted from the fragment. Otherwise, return `null`.
    *
    * @return The extracted ID, or null.
    */
@@ -49,7 +53,7 @@ export function settingsFrom(window_: Window): SettingsGetters {
       // Annotation IDs are url-safe-base64 identifiers
       // See https://tools.ietf.org/html/rfc4648#page-7
       const annotFragmentMatch = window_.location.href.match(
-        /#annotations:([A-Za-z0-9_-]+)$/
+        /#annotations:([A-Za-z0-9_-]+)$/,
       );
       if (annotFragmentMatch) {
         return annotFragmentMatch[1];
@@ -71,7 +75,7 @@ export function settingsFrom(window_: Window): SettingsGetters {
   function group(): string | null {
     function groupFromURL() {
       const groupFragmentMatch = window_.location.href.match(
-        /#annotations:group:([A-Za-z0-9_-]+)$/
+        /#annotations:group:([A-Za-z0-9_-]+)$/,
       );
       if (groupFragmentMatch) {
         return groupFragmentMatch[1];
@@ -99,16 +103,39 @@ export function settingsFrom(window_: Window): SettingsGetters {
     }
   }
 
+  function sideBySide(): SideBySideOptions {
+    const value = hostPageSetting('sideBySide');
+    if (!isObject(value)) {
+      return { mode: 'auto' };
+    }
+
+    const mode =
+      'mode' in value && isSideBySideMode(value.mode) ? value.mode : 'auto';
+    if (mode === 'auto') {
+      return { mode };
+    }
+
+    const isActive =
+      'isActive' in value && typeof value.isActive === 'function'
+        ? (value.isActive as () => boolean)
+        : undefined;
+
+    return {
+      mode,
+      isActive,
+    };
+  }
+
   /**
    * Return the config.query setting from the host page or from the URL.
    *
    * If the host page contains a js-hypothesis-config script containing a
    * query setting then return that.
    *
-   * Otherwise if the host page's URL has a `#annotations:query:*` (or
+   * Otherwise, if the host page's URL has a `#annotations:query:*` (or
    * `#annotations:q:*`) fragment then return the query value from that.
    *
-   * Otherwise return null.
+   * Otherwise, return null.
    *
    * @return The config.query setting, or null.
    */
@@ -116,7 +143,7 @@ export function settingsFrom(window_: Window): SettingsGetters {
     /** Return the query from the URL, or null. */
     function queryFromURL() {
       const queryFragmentMatch = window_.location.href.match(
-        /#annotations:(query|q):(.+)$/i
+        /#annotations:(query|q):(.+)$/i,
       );
       if (queryFragmentMatch) {
         try {
@@ -177,6 +204,9 @@ export function settingsFrom(window_: Window): SettingsGetters {
     },
     get query() {
       return query();
+    },
+    get sideBySide() {
+      return sideBySide();
     },
     hostPageSetting,
   };

@@ -1,7 +1,9 @@
+import {
+  checkAccessibility,
+  mockImportedComponents,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import { checkAccessibility } from '../../../test-util/accessibility';
-import { mockImportedComponents } from '../../../test-util/mock-imported-components';
 import ThreadCard, { $imports } from '../ThreadCard';
 
 describe('ThreadCard', () => {
@@ -16,7 +18,7 @@ describe('ThreadCard', () => {
   function createComponent(props) {
     return mount(
       <ThreadCard frameSync={fakeFrameSync} thread={fakeThread} {...props} />,
-      { attachTo: container }
+      { attachTo: container },
     );
   }
 
@@ -64,7 +66,7 @@ describe('ThreadCard', () => {
     const wrapper = createComponent();
 
     assert.isTrue(
-      wrapper.find('Card[data-testid="thread-card"]').props().active
+      wrapper.find('Card[data-testid="thread-card"]').props().active,
     );
   });
 
@@ -76,7 +78,7 @@ describe('ThreadCard', () => {
 
       assert.calledWith(
         fakeFrameSync.scrollToAnnotation,
-        fakeThread.annotation
+        fakeThread.annotation,
       );
     });
 
@@ -143,6 +145,6 @@ describe('ThreadCard', () => {
     'should pass a11y checks',
     checkAccessibility({
       content: () => createComponent(),
-    })
+    }),
   );
 });

@@ -1,8 +1,10 @@
+import {
+  checkAccessibility,
+  mockImportedComponents,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 import { act } from 'preact/test-utils';
 
-import { checkAccessibility } from '../../../test-util/accessibility';
-import { mockImportedComponents } from '../../../test-util/mock-imported-components';
 import Thread from '../Thread';
 import { $imports } from '../Thread';
 
@@ -72,7 +74,7 @@ describe('Thread', () => {
         thread={createThread()}
         threadsService={fakeThreadsService}
         {...props}
-      />
+      />,
     );
   };
 
@@ -309,7 +311,7 @@ describe('Thread', () => {
 
       assert.equal(
         wrapper.find(childListSelector).find('Thread').length,
-        threadWithChildren.replyCount
+        threadWithChildren.replyCount,
       );
     });
 
@@ -324,7 +326,7 @@ describe('Thread', () => {
       // all of the second child's replies plus the second child itself.
       assert.equal(
         wrapper.find(childListSelector).find('Thread').length,
-        threadWithChildren.children[1].replyCount + 1
+        threadWithChildren.children[1].replyCount + 1,
       );
     });
   });
@@ -340,7 +342,7 @@ describe('Thread', () => {
       'should pass a11y checks',
       checkAccessibility({
         content: () => createComponent({ thread: threadWithChildren }),
-      })
+      }),
     );
   });
 });

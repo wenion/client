@@ -1,7 +1,7 @@
+import { delay } from '@hypothesis/frontend-testing';
 import EventEmitter from 'tiny-emitter';
 
 import { Injector } from '../../../shared/injector';
-import { delay } from '../../../test-util/wait';
 import * as annotationFixtures from '../../test/annotation-fixtures';
 import { fakeReduxStore } from '../../test/fake-redux-store';
 import { FrameSyncService, $imports, formatAnnot } from '../frame-sync';
@@ -104,8 +104,8 @@ describe('FrameSyncService', () => {
     fakeStore = fakeReduxStore(
       {
         annotations: [],
+        features: {},
         frames: [],
-        profile: { features: {} },
         contentInfo: null,
       },
       {
@@ -115,7 +115,7 @@ describe('FrameSyncService', () => {
 
         connectFrame(frame) {
           const otherFrames = this.getState().frames.filter(
-            f => f.id !== frame.id
+            f => f.id !== frame.id,
           );
           const frames = [
             ...otherFrames,
@@ -132,12 +132,12 @@ describe('FrameSyncService', () => {
           this.setState({ frames: frames.filter(f => f.id !== frame.id) });
         },
 
-        frames() {
-          return this.getState().frames;
+        features() {
+          return this.getState().features;
         },
 
-        profile() {
-          return this.getState().profile;
+        frames() {
+          return this.getState().frames;
         },
 
         getContentInfo() {
@@ -149,6 +149,7 @@ describe('FrameSyncService', () => {
         },
 
         findIDsForTags: sinon.stub().returns([]),
+        focusedGroup: sinon.stub().returns({ id: 'foobar' }),
         hoverAnnotations: sinon.stub(),
         isLoggedIn: sinon.stub().returns(false),
         openSidebarPanel: sinon.stub(),
@@ -158,7 +159,7 @@ describe('FrameSyncService', () => {
         setSidebarOpened: sinon.stub(),
         toggleSelectedAnnotations: sinon.stub(),
         updateAnchorStatus: sinon.stub(),
-      }
+      },
     );
 
     fakeWindow = new FakeWindow();
@@ -222,7 +223,7 @@ describe('FrameSyncService', () => {
         requestId: 'abc',
         sourceId: frameId,
       },
-      [port1]
+      [port1],
     );
     await delay(0);
     return port1;
@@ -300,7 +301,7 @@ describe('FrameSyncService', () => {
       assert.calledWithMatch(
         guestRPC().call,
         'loadAnnotations',
-        sinon.match([formatAnnot(fixtures.ann)])
+        sinon.match([formatAnnot(fixtures.ann)]),
       );
     });
 
@@ -350,12 +351,12 @@ describe('FrameSyncService', () => {
       assert.calledWithMatch(
         mainGuestRPC.call,
         'loadAnnotations',
-        sinon.match([formatAnnot(mainFrameAnn), formatAnnot(unknownFrameAnn)])
+        sinon.match([formatAnnot(mainFrameAnn), formatAnnot(unknownFrameAnn)]),
       );
       assert.calledWithMatch(
         iframeGuestRPC.call,
         'loadAnnotations',
-        sinon.match([formatAnnot(iframeAnn)])
+        sinon.match([formatAnnot(iframeAnn)]),
       );
     });
 
@@ -381,7 +382,7 @@ describe('FrameSyncService', () => {
       assert.calledWithMatch(
         guestRPC().call,
         'loadAnnotations',
-        sinon.match([formatAnnot(annotation)])
+        sinon.match([formatAnnot(annotation)]),
       );
     });
 
@@ -441,7 +442,7 @@ describe('FrameSyncService', () => {
         assert.calledWithMatch(
           guestRPC().call,
           'loadAnnotations',
-          sinon.match([formatAnnot(chapter2ann)])
+          sinon.match([formatAnnot(chapter2ann)]),
         );
       });
 
@@ -477,7 +478,7 @@ describe('FrameSyncService', () => {
       assert.calledWithMatch(
         guestRPC().call,
         'loadAnnotations',
-        sinon.match([formatAnnot(ann2)])
+        sinon.match([formatAnnot(ann2)]),
       );
     });
 
@@ -508,7 +509,7 @@ describe('FrameSyncService', () => {
       assert.calledWithMatch(
         hostRPC().call,
         'publicAnnotationCountChanged',
-        sinon.match(1)
+        sinon.match(1),
       );
     });
 
@@ -526,7 +527,7 @@ describe('FrameSyncService', () => {
       assert.calledWithMatch(
         hostRPC().call,
         'publicAnnotationCountChanged',
-        sinon.match(0)
+        sinon.match(0),
       );
     });
 
@@ -583,7 +584,7 @@ describe('FrameSyncService', () => {
       assert.calledWith(hostRPC().call, 'showHighlights');
     });
 
-    context('when an authenticated user is present', () => {
+    context('user is logged in and there is a focused group', () => {
       beforeEach(async () => {
         frameSync.connect();
         await connectGuest();
@@ -619,13 +620,7 @@ describe('FrameSyncService', () => {
       });
     });
 
-    context('when no authenticated user is present', () => {
-      beforeEach(async () => {
-        fakeStore.isLoggedIn.returns(false);
-        frameSync.connect();
-        await connectGuest();
-      });
-
+    const addCommonNotReadyTests = () => {
       it('should not create an annotation in the sidebar', () => {
         emitGuestEvent('createAnnotation', { $tag: 't1', target: [] });
 
@@ -638,17 +633,38 @@ describe('FrameSyncService', () => {
         assert.calledWith(hostRPC().call, 'openSidebar');
       });
 
-      it('should open the login prompt panel', () => {
-        emitGuestEvent('createAnnotation', { $tag: 't1', target: [] });
-
-        assert.calledWith(fakeStore.openSidebarPanel, 'loginPrompt');
-      });
-
       it('should send a "deleteAnnotation" message to the frame', () => {
         emitGuestEvent('createAnnotation', { $tag: 't1', target: [] });
 
         assert.calledWith(guestRPC().call, 'deleteAnnotation');
       });
+    };
+
+    context('user is not logged in', () => {
+      beforeEach(async () => {
+        fakeStore.isLoggedIn.returns(false);
+        frameSync.connect();
+        await connectGuest();
+      });
+
+      addCommonNotReadyTests();
+
+      it('should open the login prompt panel', () => {
+        emitGuestEvent('createAnnotation', { $tag: 't1', target: [] });
+
+        assert.calledWith(fakeStore.openSidebarPanel, 'loginPrompt');
+      });
+    });
+
+    context('groups have not loaded', () => {
+      beforeEach(async () => {
+        fakeStore.isLoggedIn.returns(true);
+        fakeStore.focusedGroup.returns(null);
+        frameSync.connect();
+        await connectGuest();
+      });
+
+      addCommonNotReadyTests();
     });
   });
 
@@ -720,7 +736,7 @@ describe('FrameSyncService', () => {
             },
           ]);
         });
-      }
+      },
     );
 
     it("synchronizes highlight visibility in the guest with the sidebar's controls", async () => {
@@ -753,7 +769,7 @@ describe('FrameSyncService', () => {
 
         assert.equal(
           channel.call.calledWith('showContentInfo', contentInfo),
-          contentInfoAvailable
+          contentInfoAvailable,
         );
       });
     });
@@ -826,7 +842,7 @@ describe('FrameSyncService', () => {
       assert.calledWithMatch(
         guestRPC(1).call,
         'loadAnnotations',
-        sinon.match([formatAnnot(fixtures.ann)])
+        sinon.match([formatAnnot(fixtures.ann)]),
       );
     });
   });
@@ -850,7 +866,7 @@ describe('FrameSyncService', () => {
       emitGuestEvent(
         'showAnnotations',
         ['tag1', 'tag2', 'tag3'],
-        false /* focus */
+        false /* focus */,
       );
       assert.notCalled(fakeStore.setAnnotationFocusRequest);
     });
@@ -860,7 +876,7 @@ describe('FrameSyncService', () => {
       emitGuestEvent(
         'showAnnotations',
         ['tag1', 'tag2', 'tag3'],
-        true /* focus */
+        true /* focus */,
       );
       assert.calledWith(fakeStore.setAnnotationFocusRequest, 'id1');
     });
@@ -950,7 +966,7 @@ describe('FrameSyncService', () => {
       frameSync.hoverAnnotation(fixtures.ann);
       assert.calledWith(
         fakeStore.hoverAnnotations,
-        sinon.match.array.deepEquals([fixtures.ann.$tag])
+        sinon.match.array.deepEquals([fixtures.ann.$tag]),
       );
 
       frameSync.hoverAnnotation(null);
@@ -962,7 +978,7 @@ describe('FrameSyncService', () => {
       assert.calledWith(
         guestRPC().call,
         'hoverAnnotations',
-        sinon.match.array.deepEquals([fixtures.ann.$tag])
+        sinon.match.array.deepEquals([fixtures.ann.$tag]),
       );
     });
 
@@ -983,7 +999,7 @@ describe('FrameSyncService', () => {
       frameSync.hoverAnnotation(ann);
       assert.calledWith(
         fakeStore.hoverAnnotations,
-        sinon.match.array.deepEquals([ann.$tag])
+        sinon.match.array.deepEquals([ann.$tag]),
       );
       assert.isFalse(guestRPC().call.calledWith('hoverAnnotations'));
 
@@ -1019,7 +1035,7 @@ describe('FrameSyncService', () => {
       assert.calledWith(
         guestRPC().call,
         'scrollToAnnotation',
-        fixtures.ann.$tag
+        fixtures.ann.$tag,
       );
     });
 
@@ -1041,7 +1057,7 @@ describe('FrameSyncService', () => {
         sinon.match({
           $tag: ann.$tag,
           target: ann.target,
-        })
+        }),
       );
 
       // After the guest navigates and the original target of the
@@ -1063,7 +1079,7 @@ describe('FrameSyncService', () => {
       emitGuestEvent('documentInfoChanged', fixtures.epubDocumentInfo);
 
       const ann = createEPUBAnnotation(
-        fixtures.epubDocumentInfo.segmentInfo.cfi
+        fixtures.epubDocumentInfo.segmentInfo.cfi,
       );
       frameSync.scrollToAnnotation(ann);
 
@@ -1081,8 +1097,8 @@ describe('FrameSyncService', () => {
   });
 
   describe('sending feature flags to frames', () => {
-    const currentFlags = () => fakeStore.getState().profile.features;
-    const setFlags = features => fakeStore.setState({ profile: { features } });
+    const currentFlags = () => fakeStore.getState().features;
+    const setFlags = features => fakeStore.setState({ features });
 
     beforeEach(async () => {
       // Set some initial flags before the host frame is even connected.

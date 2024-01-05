@@ -1,6 +1,6 @@
 import {
   AnnotateIcon,
-  ButtonBase,
+  Button,
   HighlightIcon,
   PointerDownIcon,
   PointerUpIcon,
@@ -22,7 +22,7 @@ function NumberIcon({ badgeCount }: { badgeCount: number }) {
         'rounded px-1 py-0.5',
         // The background color is inherited from the current text color in
         // the containing button and will vary depending on hover state.
-        'bg-current'
+        'bg-current',
       )}
     >
       <span className="font-bold text-color-text-inverted">{badgeCount}</span>
@@ -48,7 +48,7 @@ function AdderToolbarArrow({
         {
           // Move the pointer to the top of the AdderToolbar
           'top-0 -translate-y-full': arrowDirection === 'up',
-        }
+        },
       )}
     >
       {arrowDirection === 'up' ? <PointerUpIcon /> : <PointerDownIcon />}
@@ -76,10 +76,8 @@ function ToolbarButton({
   const title = shortcut ? `${label} (${shortcut})` : label;
 
   return (
-    <ButtonBase
+    <Button
       classes={classnames(
-        'flex-col gap-y-1 py-2.5 px-2',
-        'text-annotator-sm leading-none',
         // Default color when the toolbar is not hovered
         'text-grey-7',
         // When the parent .group element is hovered (but this element itself is
@@ -89,15 +87,26 @@ function ToolbarButton({
         // When the parent .group element is hovered AND this element is
         // hovered, this is the "active" button. Intensify the text color, which
         // will also darken any descendant Icon
-        'hover:group-hover:text-grey-9'
+        'hover:group-hover:text-grey-9',
       )}
       onClick={onClick}
       title={title}
+      size="custom"
+      variant="custom"
     >
-      {Icon && <Icon className="text-annotator-lg" title={title} />}
-      {typeof badgeCount === 'number' && <NumberIcon badgeCount={badgeCount} />}
-      <span>{label}</span>
-    </ButtonBase>
+      <div
+        className={classnames(
+          'flex flex-col items-center gap-y-1 py-2.5 px-2',
+          'text-annotator-sm leading-none',
+        )}
+      >
+        {Icon && <Icon className="text-annotator-lg" title={title} />}
+        {typeof badgeCount === 'number' && (
+          <NumberIcon badgeCount={badgeCount} />
+        )}
+        <span data-testid="adder-button-label">{label}</span>
+      </div>
+    </Button>
   );
 }
 
@@ -229,13 +238,13 @@ export default function AdderToolbar({
         // default border values from Tailwind and have to be explicit about all
         // border attributes.
         'border border-solid border-grey-3',
-        'absolute select-none bg-white rounded shadow-adder-toolbar',
-        // Start at a very low opacity as we're going to fade in in the animation
+        'absolute select-none bg-white rounded shadow-intense',
+        // Start at a very low opacity as we're going to fade-in in the animation
         'opacity-5',
         {
           'animate-adder-pop-up': arrowDirection === 'up' && isVisible,
           'animate-adder-pop-down': arrowDirection === 'down' && isVisible,
-        }
+        },
       )}
       data-component="AdderToolbar"
       dir="ltr"
@@ -247,7 +256,7 @@ export default function AdderToolbar({
         className={classnames(
           // This group is used to manage hover state styling for descendant
           // buttons
-          'flex group'
+          'flex group',
         )}
       >
         <ToolbarButton
@@ -267,7 +276,7 @@ export default function AdderToolbar({
             <div
               className={classnames(
                 // Style a vertical separator line
-                'm-1.5 border-r border-grey-4 border-solid'
+                'm-1.5 border-r border-grey-4 border-solid',
               )}
             />
             <ToolbarButton

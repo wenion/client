@@ -1,7 +1,7 @@
+import { mockImportedComponents } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 import { act } from 'preact/test-utils';
 
-import { mockImportedComponents } from '../../../test-util/mock-imported-components';
 import UserMenu, { $imports } from '../UserMenu';
 
 describe('UserMenu', () => {
@@ -20,7 +20,7 @@ describe('UserMenu', () => {
         frameSync={fakeFrameSync}
         onLogout={fakeOnLogout}
         settings={fakeSettings}
-      />
+      />,
     );
   };
 
@@ -48,6 +48,7 @@ describe('UserMenu', () => {
       focusedGroupId: sinon.stub().returns('mygroup'),
       getLink: sinon.stub(),
       profile: sinon.stub().returns(fakeProfile),
+      importsPending: sinon.stub().returns(0),
       isFeatureEnabled: fakeIsFeatureEnabled,
     };
 
@@ -77,7 +78,7 @@ describe('UserMenu', () => {
 
         const profileMenuItem = findMenuItem(
           wrapper,
-          fakeProfile.user_info.display_name
+          fakeProfile.user_info.display_name,
         );
         assert.notOk(profileMenuItem.prop('isDisabled'));
       });
@@ -87,7 +88,7 @@ describe('UserMenu', () => {
 
         const profileMenuItem = findMenuItem(
           wrapper,
-          fakeProfile.user_info.display_name
+          fakeProfile.user_info.display_name,
         );
         assert.equal(profileMenuItem.prop('href'), 'profile-link');
       });
@@ -97,7 +98,7 @@ describe('UserMenu', () => {
 
         const profileMenuItem = findMenuItem(
           wrapper,
-          fakeProfile.user_info.display_name
+          fakeProfile.user_info.display_name,
         );
         assert.isFunction(profileMenuItem.prop('onClick'));
       });
@@ -115,7 +116,7 @@ describe('UserMenu', () => {
 
         const profileMenuItem = findMenuItem(
           wrapper,
-          fakeProfile.user_info.display_name
+          fakeProfile.user_info.display_name,
         );
         assert.isTrue(profileMenuItem.prop('isDisabled'));
       });
@@ -127,7 +128,7 @@ describe('UserMenu', () => {
 
         const profileMenuItem = findMenuItem(
           wrapper,
-          fakeProfile.user_info.display_name
+          fakeProfile.user_info.display_name,
         );
         assert.isTrue(profileMenuItem.prop('isDisabled'));
       });
@@ -139,7 +140,7 @@ describe('UserMenu', () => {
 
         const profileMenuItem = findMenuItem(
           wrapper,
-          fakeProfile.user_info.display_name
+          fakeProfile.user_info.display_name,
         );
         assert.notOk(profileMenuItem.prop('isDisabled'));
       });
@@ -151,7 +152,7 @@ describe('UserMenu', () => {
 
         const profileMenuItem = findMenuItem(
           wrapper,
-          fakeProfile.user_info.display_name
+          fakeProfile.user_info.display_name,
         );
         assert.isFunction(profileMenuItem.prop('onClick'));
       });
@@ -164,7 +165,7 @@ describe('UserMenu', () => {
         const wrapper = createUserMenu();
         const profileMenuItem = findMenuItem(
           wrapper,
-          fakeProfile.user_info.display_name
+          fakeProfile.user_info.display_name,
         );
         const onProfileSelected = profileMenuItem.prop('onClick');
 
@@ -179,7 +180,7 @@ describe('UserMenu', () => {
         const wrapper = createUserMenu();
         const profileMenuItem = findMenuItem(
           wrapper,
-          fakeProfile.user_info.display_name
+          fakeProfile.user_info.display_name,
         );
         const onProfileSelected = profileMenuItem.prop('onClick');
 
@@ -222,7 +223,7 @@ describe('UserMenu', () => {
 
           assert.equal(isFeatureEnabled, openProfileItem.exists());
         });
-      }
+      },
     );
 
     it('opens the profile when clicked', () => {
@@ -255,7 +256,7 @@ describe('UserMenu', () => {
           assert.equal(featureIsEnabled, fakeFrameSync.notifyHost.called);
           assert.equal(!featureIsEnabled, wrapper.find('Menu').props().open);
         });
-      }
+      },
     );
   });
 
@@ -296,6 +297,20 @@ describe('UserMenu', () => {
   });
 
   describe('log out menu item', () => {
+    it('is disabled if an import is in progress', () => {
+      fakeStore.importsPending.returns(1);
+      const wrapper = createUserMenu();
+
+      let logOutMenuItem = findMenuItem(wrapper, 'Log out');
+      assert.isTrue(logOutMenuItem.prop('isDisabled'));
+
+      fakeStore.importsPending.returns(0);
+      wrapper.setProps({});
+
+      logOutMenuItem = findMenuItem(wrapper, 'Log out');
+      assert.isFalse(logOutMenuItem.prop('isDisabled'));
+    });
+
     const tests = [
       {
         it: 'should be present for first-party user if no service configured',

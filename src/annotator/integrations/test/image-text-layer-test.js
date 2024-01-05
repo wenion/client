@@ -1,4 +1,5 @@
-import { delay } from '../../../test-util/wait';
+import { delay } from '@hypothesis/frontend-testing';
+
 import { ImageTextLayer } from '../image-text-layer';
 
 // Sizes and spacing between character bounding boxes in these tests, expressed
@@ -71,7 +72,7 @@ function expectedBoxOffsetAndSize(
   imageHeight,
   lineIndex,
   charIndex,
-  text
+  text,
 ) {
   const width =
     (text.length - 1) * charSpacing * imageWidth + charWidth * imageWidth;
@@ -175,7 +176,7 @@ describe('ImageTextLayer', () => {
     const textLayer = createTextLayer(
       image,
       createCharBoxes(imageText),
-      imageText
+      imageText,
     );
 
     assert.equal(textLayer.container.textContent, 'first line second line');
@@ -183,7 +184,7 @@ describe('ImageTextLayer', () => {
     assert.equal(wordBoxes.length, imageText.split(/\s+/).length);
     assert.deepEqual(
       wordBoxes.map(ws => ws.textContent),
-      ['first ', 'line ', 'second ', 'line']
+      ['first ', 'line ', 'second ', 'line'],
     );
 
     const imageBox = image.getBoundingClientRect();
@@ -215,14 +216,14 @@ describe('ImageTextLayer', () => {
     const textLayer = createTextLayer(
       image,
       createCharBoxes(imageText, [imageText.indexOf('second')]),
-      imageText
+      imageText,
     );
 
     assert.equal(textLayer.container.textContent, 'first linesecond line');
     const wordBoxes = getWordBoxes(textLayer);
     assert.deepEqual(
       wordBoxes.map(ws => ws.textContent),
-      ['first ', 'line', 'second ', 'line']
+      ['first ', 'line', 'second ', 'line'],
     );
   });
 
@@ -236,11 +237,11 @@ describe('ImageTextLayer', () => {
         ...createCharBoxes('first line\nsecond line\n'),
         ...createCharBoxes('third line\nfourth line'),
       ],
-      'first line\nsecond line\nthird line\nfourth line'
+      'first line\nsecond line\nthird line\nfourth line',
     );
 
     const columns = textLayer.container.querySelectorAll(
-      'hypothesis-text-column'
+      'hypothesis-text-column',
     );
     assert.equal(columns.length, 2);
     assert.equal(columns[0].textContent, 'first line second line ');
@@ -266,12 +267,12 @@ describe('ImageTextLayer', () => {
       const textLayer = createTextLayer(
         image,
         createCharBoxes(imageText),
-        imageText
+        imageText,
       );
       const textLayerEl = container.querySelector('hypothesis-text-layer');
 
       const originalBoxes = getWordBoxes(textLayer).map(box =>
-        untransformedBoundingRect(box)
+        untransformedBoundingRect(box),
       );
 
       // Rescale image to 3/5 of original size.
@@ -293,7 +294,7 @@ describe('ImageTextLayer', () => {
       // reflect the new scale of the image.
       const ratio = 3 / 5;
       const newBoxes = getWordBoxes(textLayer).map(box =>
-        untransformedBoundingRect(box)
+        untransformedBoundingRect(box),
       );
 
       const tolerance = 0.01;
@@ -312,12 +313,12 @@ describe('ImageTextLayer', () => {
         assert.approximately(
           newBox.width,
           originalBox.width * ratio,
-          tolerance
+          tolerance,
         );
         assert.approximately(
           newBox.height,
           originalBox.height * ratio,
-          tolerance
+          tolerance,
         );
       }
     } finally {
@@ -361,7 +362,7 @@ describe('ImageTextLayer', () => {
       const textLayer = createTextLayer(
         image,
         createCharBoxes(imageText),
-        imageText
+        imageText,
       );
 
       // Spy on logic that is invoked each time a resize event is handled.
@@ -382,7 +383,7 @@ describe('ImageTextLayer', () => {
       const textLayer = createTextLayer(
         image,
         createCharBoxes(imageText),
-        imageText
+        imageText,
       );
 
       textLayer.destroy();
@@ -397,7 +398,7 @@ describe('ImageTextLayer', () => {
       const textLayer = createTextLayer(
         image,
         createCharBoxes(imageText),
-        imageText
+        imageText,
       );
 
       // Trigger an error if ImageTextLayer's resize logic is run.

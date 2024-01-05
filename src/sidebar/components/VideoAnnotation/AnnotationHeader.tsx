@@ -12,6 +12,7 @@ import {
   isHighlight,
   isReply,
   hasBeenEdited,
+  pageLabel as getPageLabel,
 } from '../../helpers/annotation-metadata';
 import {
   annotationAuthorLink,
@@ -21,7 +22,7 @@ import { isPrivate } from '../../helpers/permissions';
 import { withServices } from '../../service-context';
 import { useSidebarStore } from '../../store';
 import AnnotationDocumentInfo from './AnnotationDocumentInfo';
-import AnnotationShareInfo from './AnnotationShareInfo';
+import AnnotationGroupInfo from './AnnotationGroupInfo';
 import AnnotationTimestamps from './AnnotationTimestamps';
 import AnnotationUser from './AnnotationUser';
 
@@ -101,7 +102,14 @@ function AnnotationHeader({
     // an ID.
     store.setExpanded(annotation.id!, true);
 
-  const group = store.getGroup(annotation.group);
+  // As part of the `page_numbers` feature, we are hiding the group on cards in
+  // contexts where it is the same for all cards and is shown elsewhere in the
+  // UI (eg. the top bar). This is to reduce visual clutter.
+  let group;
+  if (store.route() !== 'sidebar') {
+    group = store.getGroup(annotation.group);
+  }
+  const pageNumber = getPageLabel(annotation);
 
   return (
     <header>
@@ -115,7 +123,7 @@ function AnnotationHeader({
         <AnnotationUser authorLink={authorLink} displayName={authorName} />
         {replyCount > 0 && isCollapsedReply && (
           <LinkButton
-            color="text-light"
+            variant="text-light"
             onClick={onReplyCountClick}
             title="Expand replies"
             underline="hover"
@@ -141,24 +149,28 @@ function AnnotationHeader({
           className="flex gap-x-1 items-baseline flex-wrap-reverse"
           data-testid="extended-header-info"
         >
-          {group && (
-            <AnnotationShareInfo
-              group={group}
-              isPrivate={isPrivate(annotation.permissions)}
-            />
-          )}
+          {group && <AnnotationGroupInfo group={group} />}
           {!isEditing && isHighlight(annotation) && (
             <HighlightIcon
               title="This is a highlight. Click 'edit' to add a note or tag."
               className="w-[10px] h-[10px] text-color-text-light"
             />
           )}
-          {showDocumentInfo && (
-            <AnnotationDocumentInfo
-              domain={documentInfo.domain}
-              link={documentLink}
-              title={documentInfo.titleText}
-            />
+          {(showDocumentInfo || pageNumber) && (
+            <span className="flex">
+              {showDocumentInfo && (
+                <AnnotationDocumentInfo
+                  domain={documentInfo.domain}
+                  link={documentLink}
+                  title={documentInfo.titleText}
+                />
+              )}
+              {pageNumber && (
+                <span className="text-grey-6" data-testid="page-number">
+                  {showDocumentInfo && ', '}p. {pageNumber}
+                </span>
+              )}
+            </span>
           )}
         </div>
       )}

@@ -1,4 +1,5 @@
-import { delay } from '../../../test-util/wait';
+import { delay } from '@hypothesis/frontend-testing';
+
 import { ListenerCollection as ListenerCollection_ } from '../../listener-collection';
 import {
   PortFinder as PortFinder_,
@@ -64,7 +65,7 @@ describe('PortProvider-PortFinder-PortRPC integration', () => {
         hostRPC.call('ping', response => {
           assert.equal(response, 'pong');
           resolve();
-        })
+        }),
       );
     };
 
@@ -101,7 +102,7 @@ describe('PortProvider-PortFinder-PortRPC integration', () => {
         hostRPC.call('ping', response => {
           assert.equal(response, 'pong');
           resolve();
-        })
+        }),
       );
     };
 

@@ -1,4 +1,5 @@
-import { delay, waitFor } from '../../../test-util/wait';
+import { delay, waitFor } from '@hypothesis/frontend-testing';
+
 import {
   VitalSourceInjector,
   VitalSourceContentIntegration,
@@ -79,6 +80,8 @@ describe('annotator/integrations/vitalsource', () => {
       fitSideBySide: sinon.stub().returns(false),
       getAnnotatableRange: sinon.stub().returnsArg(0),
       scrollToAnchor: sinon.stub(),
+      sideBySideActive: sinon.stub().returns(false),
+
       sideBySideEnabled: false,
     };
 
@@ -105,7 +108,7 @@ describe('annotator/integrations/vitalsource', () => {
     it('returns "content" if the book container element is found in the parent document', () => {
       assert.equal(
         vitalSourceFrameRole(fakeViewer.contentFrame.contentWindow),
-        'content'
+        'content',
       );
     });
 
@@ -143,7 +146,7 @@ describe('annotator/integrations/vitalsource', () => {
         fakeInjectClient,
         fakeViewer.contentFrame,
         fakeConfig,
-        'vitalsource-content'
+        'vitalsource-content',
       );
     });
 
@@ -170,7 +173,7 @@ describe('annotator/integrations/vitalsource', () => {
         assert.calledWith(
           fakeInjectClient,
           fakeViewer.contentFrame,
-          fakeConfig
+          fakeConfig,
         );
       });
     });
@@ -195,7 +198,7 @@ describe('annotator/integrations/vitalsource', () => {
       // nothing as we've already handled the current frame.
       fakeViewer.contentFrame.insertAdjacentElement(
         'afterend',
-        document.createElement('div')
+        document.createElement('div'),
       );
       await delay(0);
 
@@ -233,7 +236,7 @@ describe('annotator/integrations/vitalsource', () => {
           absoluteURL: '/pages/chapter_02.xhtml',
           cfi: '/2',
           chapterTitle: 'Chapter two',
-          index: 1,
+          index: undefined,
           page: '20',
         };
       } else if (this._format === 'pbk') {
@@ -247,6 +250,12 @@ describe('annotator/integrations/vitalsource', () => {
       } else {
         throw new Error('Unknown book');
       }
+    }
+
+    async getPages() {
+      const pageData = await this.getCurrentPage();
+      const data = [pageData];
+      return { ok: true, data };
     }
 
     async getTOC() {
@@ -273,15 +282,28 @@ describe('annotator/integrations/vitalsource', () => {
   }
 
   describe('VitalSourceContentIntegration', () => {
+    // List of active integrations.
     let integrations;
+
     let fakeBookElement;
 
+    /** Create a new integration and add it to the active list. */
     function createIntegration() {
       const integration = new VitalSourceContentIntegration(document.body, {
         bookElement: fakeBookElement,
       });
       integrations.push(integration);
       return integration;
+    }
+
+    /** Destroy an integration and remove it from the active list. */
+    function destroyIntegration(integration) {
+      const idx = integrations.indexOf(integration);
+      if (idx === -1) {
+        throw new Error('Integration is not in list of active integrations');
+      }
+      integrations.splice(idx, 1);
+      integration.destroy();
     }
 
     beforeEach(() => {
@@ -313,11 +335,13 @@ describe('annotator/integrations/vitalsource', () => {
       assert.isTrue(htmlOptions.features.flagEnabled('html_side_by_side'));
 
       fakeHTMLIntegration.fitSideBySide.returns(true);
+      fakeHTMLIntegration.sideBySideActive.returns(true);
       const layout = { expanded: true, width: 150 };
       const isActive = integration.fitSideBySide(layout);
 
       assert.isTrue(isActive);
       assert.calledWith(fakeHTMLIntegration.fitSideBySide, layout);
+      assert.isTrue(integration.sideBySideActive());
     });
 
     it('stops mouse events from propagating to parent frame', () => {
@@ -374,7 +398,11 @@ describe('annotator/integrations/vitalsource', () => {
       });
 
       const pageSelector = selectors.find(s => s.type === 'PageSelector');
-      assert.notOk(pageSelector);
+      assert.deepEqual(pageSelector, {
+        type: 'PageSelector',
+        index: 0,
+        label: '20',
+      });
     });
 
     it('adds selector for current PDF book page', async () => {
@@ -428,7 +456,7 @@ describe('annotator/integrations/vitalsource', () => {
         assert.instanceOf(error, Error);
         assert.equal(
           error.message,
-          `Page metadata field "${field}" is missing`
+          `Page metadata field "${field}" is missing`,
         );
       });
     });
@@ -535,7 +563,7 @@ describe('annotator/integrations/vitalsource', () => {
         const uri = await integration.uri();
         assert.equal(
           uri,
-          'https://bookshelf.vitalsource.com/reader/books/TEST-BOOK-ID'
+          'https://bookshelf.vitalsource.com/reader/books/TEST-BOOK-ID',
         );
       });
 
@@ -629,7 +657,7 @@ describe('annotator/integrations/vitalsource', () => {
           assert.isFalse(frame.hasAttribute('scrolling'));
           assert.equal(
             getComputedStyle(frame).height,
-            `${window.innerHeight}px` // "100%" in pixels
+            `${window.innerHeight}px`, // "100%" in pixels
           );
 
           // Try re-adding the scrolling attribute. It should get re-removed.
@@ -651,7 +679,7 @@ describe('annotator/integrations/vitalsource', () => {
           FakeImageTextLayer,
           fakePageImage,
           sinon.match.array,
-          pageText
+          pageText,
         );
 
         const glyphs = FakeImageTextLayer.getCall(0).args[1].map(domRect => ({
@@ -681,6 +709,18 @@ describe('annotator/integrations/vitalsource', () => {
         assert.calledOnce(fakeImageTextLayer.destroy);
       });
 
+      it('disables side-by-side mode when destroyed', () => {
+        createPageImageAndData();
+        const integration = createIntegration();
+
+        integration.fitSideBySide({ expanded: true, width: 100 });
+        assert.isTrue(integration.sideBySideActive());
+
+        destroyIntegration(integration);
+
+        assert.isFalse(integration.sideBySideActive());
+      });
+
       context('when side-by-side mode is toggled', () => {
         it('resizes page image', () => {
           createPageImageAndData();
@@ -692,12 +732,16 @@ describe('annotator/integrations/vitalsource', () => {
           const sidebarWidth = window.innerWidth - 481;
           const expectedWidth = window.innerWidth - sidebarWidth;
           integration.fitSideBySide({ expanded: true, width: sidebarWidth });
+
+          assert.isTrue(integration.sideBySideActive());
           assert.equal(fakePageImage.parentElement.style.textAlign, 'left');
           assert.equal(fakePageImage.style.width, `${expectedWidth}px`);
           assert.calledOnce(fakeImageTextLayer.updateSync);
 
           // Deactivate side-by-side mode. Style overrides should be removed.
           integration.fitSideBySide({ expanded: false });
+
+          assert.isFalse(integration.sideBySideActive());
           assert.equal(fakePageImage.parentElement.style.textAlign, '');
           assert.equal(fakePageImage.style.width, '');
           assert.calledTwice(fakeImageTextLayer.updateSync);
@@ -710,6 +754,8 @@ describe('annotator/integrations/vitalsource', () => {
           // This will leave less than 480px available to the main content
           const sidebarWidth = window.innerWidth - 479;
           integration.fitSideBySide({ expanded: true, width: sidebarWidth });
+
+          assert.isFalse(integration.sideBySideActive());
           assert.equal(fakePageImage.parentElement.style.textAlign, '');
           assert.equal(fakePageImage.style.width, '');
         });

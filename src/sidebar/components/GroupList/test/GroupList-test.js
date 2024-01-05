@@ -1,7 +1,7 @@
+import { mockImportedComponents } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 import { act } from 'preact/test-utils';
 
-import { mockImportedComponents } from '../../../../test-util/mock-imported-components';
 import GroupList, { $imports } from '../GroupList';
 
 describe('GroupList', () => {
@@ -50,6 +50,7 @@ describe('GroupList', () => {
       getLink: sinon.stub().returns(''),
       getMyGroups: sinon.stub().returns([]),
       focusedGroup: sinon.stub().returns(testGroup),
+      importsPending: sinon.stub().returns(0),
       profile: sinon.stub().returns({ userid: null }),
     };
     fakeServiceConfig = sinon.stub().returns(null);
@@ -72,6 +73,13 @@ describe('GroupList', () => {
     assert.equal(menu.props().title, 'Select group (now viewing: Test group)');
   });
 
+  it('disables menu if imports are in progress', () => {
+    fakeStore.importsPending.returns(1);
+    const wrapper = createGroupList();
+    const menu = wrapper.find('Menu');
+    assert.isTrue(menu.prop('disabled'));
+  });
+
   it('adds descriptive label text if no currently-focused group', () => {
     fakeStore.focusedGroup.returns(undefined);
     const wrapper = createGroupList();
@@ -89,7 +97,7 @@ describe('GroupList', () => {
     fakeStore.getCurrentlyViewingGroups.returns([testGroup]);
     const wrapper = createGroupList();
     assert.isTrue(
-      wrapper.exists('GroupListSection[heading="Currently Viewing"]')
+      wrapper.exists('GroupListSection[heading="Currently Viewing"]'),
     );
   });
 
@@ -97,7 +105,7 @@ describe('GroupList', () => {
     fakeStore.getFeaturedGroups.returns([testGroup]);
     const wrapper = createGroupList();
     assert.isTrue(
-      wrapper.exists('GroupListSection[heading="Featured Groups"]')
+      wrapper.exists('GroupListSection[heading="Featured Groups"]'),
     );
   });
 
@@ -124,7 +132,7 @@ describe('GroupList', () => {
     sections.forEach(section => {
       assert.deepEqual(
         section.prop('groups'),
-        fakeGroupsByOrganization(testGroups)
+        fakeGroupsByOrganization(testGroups),
       );
     });
   });
@@ -147,7 +155,7 @@ describe('GroupList', () => {
       fakeStore.profile.returns({ userid });
       const wrapper = createGroupList();
       const newGroupButton = wrapper.find(
-        'MenuItem[label="New private group"]'
+        'MenuItem[label="New private group"]',
       );
       assert.equal(newGroupButton.length, expectNewGroupButton ? 1 : 0);
     });
@@ -231,7 +239,7 @@ describe('GroupList', () => {
     // Expand a group in one of the sections.
     act(() => {
       wrapper.find('GroupListSection').first().prop('onExpandGroup')(
-        testGroups[0]
+        testGroups[0],
       );
     });
     wrapper.update();
@@ -252,7 +260,7 @@ describe('GroupList', () => {
     // Expand one of the submenus.
     act(() => {
       wrapper.find('GroupListSection').first().prop('onExpandGroup')(
-        testGroups[0]
+        testGroups[0],
       );
     });
     wrapper.update();

@@ -40,7 +40,7 @@ jobs:
         path: node_modules
         key: ${{ runner.os }}-node_modules-${{ hashFiles('yarn.lock') }}
     - name: Install
-      run: yarn install --frozen-lockfile
+      run: yarn install --immutable
     - name: Get version
       run: |
         git fetch --tags --quiet
@@ -48,7 +48,9 @@ jobs:
         QA_VERSION=$(git tag --list | sort --version-sort --reverse | head -n1 | tail -c +2)-$LAST_COMMIT_HASH
         echo "QA_VERSION=$QA_VERSION" >> $GITHUB_ENV
     - name: Build app
-      run: yarn version --no-git-tag-version --new-version "$QA_VERSION"
+      run: |
+        yarn version "$QA_VERSION"
+        make clean build
     - name: Upload files to Sentry
       env:
         SENTRY_AUTH_TOKEN: ${{ secrets.sentry_auth_token }}
@@ -82,7 +84,7 @@ jobs:
         path: node_modules
         key: ${{ runner.os }}-node_modules-${{ hashFiles('yarn.lock') }}
     - name: Install
-      run: yarn install --frozen-lockfile
+      run: yarn install --immutable
     - name: Determine release version
       run: |
         git fetch --tags --quiet
@@ -95,7 +97,9 @@ jobs:
         git push https://github.com/hypothesis/client.git v$NEW_VERSION
         sleep 2  # Wait for GitHub to see new tag
     - name: Build app
-      run: yarn version --no-git-tag-version --new-version $NEW_VERSION
+      run: |
+        yarn version $NEW_VERSION
+        make clean build
     - name: Upload files to Sentry
       env:
         SENTRY_AUTH_TOKEN: ${{ secrets.sentry_auth_token }}
@@ -112,8 +116,8 @@ jobs:
       env:
         NPM_TOKEN: ${{ secrets.npm_token }}
       run: |
-        echo '//registry.npmjs.org/:_authToken=${{ env.NPM_TOKEN }}' >> $HOME/.npmrc
-        yarn publish --no-interactive --tag latest --new-version=$NEW_VERSION
+        echo 'npmAuthToken: "${{ env.NPM_TOKEN }}"' >> $HOME/.yarnrc.yml
+        yarn npm publish
         scripts/wait-for-npm-release.sh latest
     - name: Deploy to S3
       env:

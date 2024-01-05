@@ -1,7 +1,9 @@
+import {
+  checkAccessibility,
+  mockImportedComponents,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import { checkAccessibility } from '../../../../test-util/accessibility';
-import { mockImportedComponents } from '../../../../test-util/mock-imported-components';
 import * as fixtures from '../../../test/annotation-fixtures';
 import Annotation, { $imports } from '../Annotation';
 
@@ -32,7 +34,7 @@ describe('Annotation', () => {
         replyCount={0}
         threadIsCollapsed={true}
         {...props}
-      />
+      />,
     );
   };
 
@@ -82,7 +84,7 @@ describe('Annotation', () => {
 
       assert.equal(
         wrapper.find('article').props()['aria-label'],
-        'Annotation by Richard Lionheart'
+        'Annotation by Richard Lionheart',
       );
     });
 
@@ -91,7 +93,7 @@ describe('Annotation', () => {
 
       assert.equal(
         wrapper.find('article').props()['aria-label'],
-        'New annotation by Richard Lionheart'
+        'New annotation by Richard Lionheart',
       );
     });
   });
@@ -130,7 +132,7 @@ describe('Annotation', () => {
 
     assert.include(
       wrapper.find('[data-testid="saving-message"]').text(),
-      'Saving...'
+      'Saving...',
     );
   });
 
@@ -173,7 +175,7 @@ describe('Annotation', () => {
         assert.calledWith(
           fakeAnnotationsService.reply,
           theAnnot,
-          'acct:foo@bar.com'
+          'acct:foo@bar.com',
         );
       });
     });
@@ -253,6 +255,6 @@ describe('Annotation', () => {
           return createComponent({ isReply: true, threadIsCollapsed: true });
         },
       },
-    ])
+    ]),
   );
 });

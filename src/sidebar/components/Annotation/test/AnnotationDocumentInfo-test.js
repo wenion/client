@@ -1,6 +1,6 @@
+import { checkAccessibility } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import { checkAccessibility } from '../../../../test-util/accessibility';
 import AnnotationDocumentInfo from '../AnnotationDocumentInfo';
 
 describe('AnnotationDocumentInfo', () => {
@@ -11,7 +11,7 @@ describe('AnnotationDocumentInfo', () => {
         link="http://www.baz"
         title="Turtles"
         {...props}
-      />
+      />,
     );
   };
 
@@ -45,6 +45,6 @@ describe('AnnotationDocumentInfo', () => {
       content: () => {
         return createAnnotationDocumentInfo();
       },
-    })
+    }),
   );
 });

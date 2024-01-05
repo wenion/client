@@ -13,6 +13,7 @@ import type {
   DocumentInfo,
   Integration,
   SidebarLayout,
+  SideBySideOptions,
 } from '../types/annotator';
 import type { Target, EventData } from '../types/api';
 import type {
@@ -24,6 +25,7 @@ import type {
 import { Adder } from './adder';
 import { TextRange } from './anchoring/text-range';
 import { BucketBarClient } from './bucket-bar-client';
+import { LayoutChangeEvent } from './events';
 import { FeatureFlags } from './features';
 import { HighlightClusterController } from './highlight-clusters';
 import {
@@ -35,9 +37,13 @@ import {
   setHighlightsVisible,
 } from './highlighter';
 import { createIntegration } from './integrations';
-import * as rangeUtil from './range-util';
-import { SelectionObserver, selectedRange } from './selection-observer';
-import { findClosestOffscreenAnchor } from './util/buckets';
+import {
+  itemsForRange,
+  isSelectionBackwards,
+  selectionFocusRect,
+  selectedRange,
+} from './range-util';
+import { SelectionObserver } from './selection-observer';
 import { frameFillsAncestor } from './util/frame';
 import { normalizeURI } from './util/url';
 
@@ -46,11 +52,9 @@ type AnnotationHighlight = HTMLElement & { _annotation?: AnnotationData };
 
 /** Return all the annotations tags associated with the selected text. */
 function annotationsForSelection(): string[] {
-  const selection = window.getSelection()!;
-  const range = selection.getRangeAt(0);
-  const tags = rangeUtil.itemsForRange(
-    range,
-    node => (node as AnnotationHighlight)._annotation?.$tag
+  const tags = itemsForRange(
+    selectedRange() ?? new Range(),
+    node => (node as AnnotationHighlight)._annotation?.$tag,
   );
   return tags;
 }
@@ -100,7 +104,59 @@ export type GuestConfig = {
 
   /** Configures a banner or other indicators showing where the content has come from. */
   contentInfoBanner?: ContentInfoConfig;
+
+  /**
+   * Promise that the guest should wait for before it attempts to anchor
+   * annotations.
+   */
+  contentReady?: Promise<void>;
+
+  sideBySide?: SideBySideOptions;
 };
+
+/**
+ * Event dispatched by the client when it is about to scroll a highlight into
+ * view.
+ *
+ * The host page can listen for this event in order to reveal the content if
+ * not already visible. If the content will be revealed asynchronously,
+ * {@link waitUntil} can be used to notify the client when it is ready.
+ *
+ * For more flexibility the host page can completely take over scrolling to the
+ * range by calling {@link Event.preventDefault} on the event.
+ */
+export class ScrollToRangeEvent extends CustomEvent<Range> {
+  private _ready: Promise<void> | null;
+
+  /**
+   * @param range - The DOM range that Hypothesis will scroll into view.
+   */
+  constructor(range: Range) {
+    super('scrolltorange', {
+      bubbles: true,
+      cancelable: true,
+      detail: range,
+    });
+
+    this._ready = null;
+  }
+
+  /**
+   * If scrolling was deferred using {@link waitUntil}, returns the promise
+   * that must resolve before the highlight is scrolled to.
+   */
+  get ready(): Promise<void> | null {
+    return this._ready;
+  }
+
+  /**
+   * Provide Hypothesis with a promise that resolves when the content
+   * associated with the event's range is ready to be scrolled into view.
+   */
+  waitUntil(ready: Promise<void>) {
+    this._ready = ready;
+  }
+}
 
 /**
  * `Guest` is the central class of the annotator that handles anchoring (locating)
@@ -136,8 +192,16 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
 
   public features: FeatureFlags;
 
+  public sideBySide?: SideBySideOptions;
+
   /** Promise that resolves when feature flags are received from the sidebar. */
   private _featureFlagsReceived: Promise<void>;
+
+  /**
+   * Promise that the guest will wait for before attempting to anchor
+   * annotations.
+   */
+  private _contentReady?: Promise<void>;
 
   private _adder: Adder;
   private _clusterToolbar?: HighlightClusterController;
@@ -167,13 +231,16 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
   /** Channel for guest-sidebar communication. */
   private _sidebarRPC: PortRPC<SidebarToGuestEvent, GuestToSidebarEvent>;
 
+  /**
+   * The most recently received sidebar layout information from the host frame.
+   */
+  private _sidebarLayout: SidebarLayout | null;
+
   private _bucketBarClient: BucketBarClient;
 
-  private _sideBySideActive: boolean;
   private _listeners: ListenerCollection;
 
-  private _lastScrollTop: number;
-  private _lastScrollTime: number;
+  private _lastScrollEvent: Event | null;
 
   /**
    * Tags of currently hovered annotations. This is used to set the hovered
@@ -194,11 +261,12 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
   constructor(
     element: HTMLElement,
     config: GuestConfig = {},
-    hostFrame: Window = window
+    hostFrame: Window = window,
   ) {
     super();
 
     this.element = element;
+    this._contentReady = config.contentReady;
     this._hostFrame = hostFrame;
     this._highlightsVisible = false;
     this._isAdderVisible = false;
@@ -244,6 +312,8 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       this.features.on('flagsChanged', resolve);
     });
 
+    this.sideBySide = config.sideBySide;
+
     this._integration = createIntegration(this);
     this._integration.on('uriChanged', () => this._sendDocumentInfo());
     if (config.contentInfoBanner) {
@@ -255,7 +325,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
         this._integration.contentContainer(),
         {
           features: this.features,
-        }
+        },
       );
     }
 
@@ -263,6 +333,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     this._connectHost(hostFrame);
 
     this._sidebarRPC = new PortRPC();
+    this._sidebarLayout = null;
     this._connectSidebar();
 
     this._bucketBarClient = new BucketBarClient({
@@ -270,15 +341,12 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       hostRPC: this._hostRPC,
     });
 
-    this._sideBySideActive = false;
-
     // Setup event handlers on the root element
     this._listeners = new ListenerCollection();
     this._setupElementEvents();
     this._setupExtendEvents();
 
-    this._lastScrollTop =  window.pageYOffset || document.documentElement.scrollTop;
-    this._lastScrollTime = 0;
+    this._lastScrollEvent = null;
 
     this._hoveredAnnotations = new Set();
   }
@@ -306,19 +374,6 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       // Return the newly opened window object
       return newWindow;
     };
-
-    // this._listeners.add(window, 'load', event => {
-    //   // Perform actions or show a confirmation dialog here
-    //   this._integration.uri().then(
-    //     response => {
-    //       this._handlePageEvent('load', response, "OPEN", "open page");
-    //     }
-    //   ).catch(
-    //     error => {
-    //       this._handlePageEvent('load', window.location.href, "OPEN", "open page error" + error.toString());
-    //     }
-    //   )
-    // });
 
     this._listeners.add(window, 'keydown', event => {
       // Perform actions or show a confirmation dialog here
@@ -363,35 +418,19 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     });
 
     this._listeners.add(window, 'scroll', event => {
-      let element = event.target as HTMLDocument;
-      let direction = "DOWN";
-      let st = window.pageYOffset || document.documentElement.scrollTop;
-      if (st > this._lastScrollTop) {
-        direction = "DOWN";
-      } else if (st < this._lastScrollTop) {
-        direction = "UP";
-      } // else was horizontal scroll
-      this._lastScrollTop = st <= 0 ? 0 : st; // For Mobile or negative scrolling
-      const delay = 100
-      const currentTime = Date.now()
+      const interval = 20;
+      const currentEvent = event;
 
-      if (currentTime - this._lastScrollTime > delay) {
-        // const date = new Date(currentTime);
-        // const minutes = ('0' + date.getMinutes()).slice(-2);
-        // const seconds = ('0' + date.getSeconds()).slice(-2);
-        // const milliseconds = ('00' + date.getMilliseconds()).slice(-3);
-        // const formattedDate = `${minutes}:${seconds}.${milliseconds}`;
-        // console.log("cur time", formattedDate)
+
+      if (this._lastScrollEvent == null) this._lastScrollEvent = currentEvent;
+      if (currentEvent.timeStamp - this._lastScrollEvent.timeStamp > interval) {
         this._integration.uri().then(
           response => {
-            this._handlePageEvent('scroll', response, "SCROLL " + direction, "offset:" + window.pageYOffset,
-            "", "MOUSE", "", "",
-            element.defaultView?.pageXOffset == undefined ? 0: element.defaultView?.pageXOffset,
-            element.defaultView?.pageYOffset == undefined ? 0: element.defaultView?.pageYOffset, "");
+            this._handlePageEvent('scroll', response, "WINDOW", "", "", "MOUSE", "document", "", window.scrollX, window.scrollY, "");
           }
         )
       }
-      this._lastScrollTime = currentTime;
+      this._lastScrollEvent = event;
     });
 
     this._listeners.add(this.element, 'submit', event => {
@@ -411,22 +450,50 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       }
     });
   }
+  /** Return true if the sidebar is shown alongside the page content. */
+  private _sideBySideActive(): boolean {
+    if (this.sideBySide?.mode === 'manual' && this.sideBySide.isActive) {
+      // Host page is handling side-by-side.
+      return this.sideBySide.isActive();
+    }
+    // Hypothesis is handling side-by-side.
+    return this._integration.sideBySideActive();
+  }
 
   // Add DOM event listeners for clicks, taps etc. on the document and
   // highlights.
   _setupElementEvents() {
     // Hide the sidebar in response to a document click or tap, so it doesn't obscure
     // the document content.
-    const maybeCloseSidebar = (element: Element) => {
-      if (this._sideBySideActive) {
-        // Don't hide the sidebar if event was disabled because the sidebar
-        // doesn't overlap the content.
+    //
+    // Hypothesis UI elements (`<hypothesis->`) have logic to prevent clicks in
+    // them from propagating out of their shadow roots, and hence clicking on
+    // elements in the sidebar's vertical toolbar or adder won't close the
+    // sidebar.
+    const maybeCloseSidebar = (event: PointerEvent) => {
+      // Don't hide the sidebar if event was disabled because the sidebar
+      // doesn't overlap the content.
+      if (this._sideBySideActive()) {
         return;
       }
-      if (annotationsAt(element).length) {
-        // Don't hide the sidebar if the event comes from an element that contains a highlight
+
+      // Don't hide the sidebar if the event comes from an element that contains a highlight
+      if (annotationsAt(event.target as Element).length) {
         return;
       }
+
+      // If the click is within the bounds of the sidebar, ignore it. We don't
+      // want to close the sidebar if the user clicks eg. in transparent areas
+      // of the toolbar / bucket bar along the edge. Clicks within the sidebar
+      // iframe won't be received by the guest frame(s) at all.
+      if (
+        frameFillsAncestor(window, this._hostFrame) &&
+        this._sidebarLayout?.expanded &&
+        window.innerWidth - event.clientX < this._sidebarLayout.width
+      ) {
+        return;
+      }
+
       this._sidebarRPC.call('closeSidebar');
     };
 
@@ -439,15 +506,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       }
     });
 
-    this._listeners.add(this.element, 'mousedown', ({ target }) => {
-      maybeCloseSidebar(target as Element);
-    });
-
-    // Allow taps on the document to hide the sidebar as well as clicks.
-    // On iOS < 13 (2019), elements like h2 or div don't emit 'click' events.
-    this._listeners.add(this.element, 'touchstart', ({ target }) => {
-      maybeCloseSidebar(target as Element);
-    });
+    this._listeners.add(this.element, 'pointerdown', maybeCloseSidebar);
 
     this._listeners.add(this.element, 'mouseover', ({ target }) => {
       const tags = annotationsAt(target as Element);
@@ -500,10 +559,10 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
    * Shift the position of the adder on window 'resize' events
    */
   _repositionAdder() {
-    if (this._isAdderVisible === false) {
+    if (!this._isAdderVisible) {
       return;
     }
-    const range = window.getSelection()?.getRangeAt(0);
+    const range = selectedRange();
     if (range) {
       this._onSelection(range);
     }
@@ -511,7 +570,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
 
   async _connectHost(hostFrame: Window) {
     this._hostRPC.on('clearSelection', () => {
-      if (selectedRange(document)) {
+      if (selectedRange()) {
         this._informHostOnNextSelectionClear = false;
         removeTextSelection();
       }
@@ -520,23 +579,31 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     this._hostRPC.on('createAnnotation', () => this.createAnnotation());
 
     this._hostRPC.on('hoverAnnotations', (tags: string[]) =>
-      this._hoverAnnotations(tags)
+      this._hoverAnnotations(tags),
     );
 
-    this._hostRPC.on(
-      'scrollToClosestOffScreenAnchor',
-      (tags: string[], direction: 'down' | 'up') =>
-        this._scrollToClosestOffScreenAnchor(tags, direction)
-    );
+    this._hostRPC.on('scrollToAnnotation', (tag: string) => {
+      this._scrollToAnnotation(tag);
+    });
 
     this._hostRPC.on('selectAnnotations', (tags: string[], toggle: boolean) =>
-      this.selectAnnotations(tags, { toggle })
+      this.selectAnnotations(tags, { toggle }),
     );
 
     this._hostRPC.on('sidebarLayoutChanged', (sidebarLayout: SidebarLayout) => {
       if (frameFillsAncestor(window, hostFrame)) {
         this.fitSideBySide(sidebarLayout);
       }
+
+      // Emit a custom event that the host page can respond to. This is useful
+      // if the host app needs to change its layout depending on the sidebar's
+      // visibility and size.
+      this.element.dispatchEvent(
+        new LayoutChangeEvent({
+          sidebarLayout,
+          sideBySideActive: this._sideBySideActive(),
+        }),
+      );
     });
 
     this._hostRPC.on('close', () => this.emit('hostDisconnected'));
@@ -547,41 +614,53 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     this._hostRPC.connect(hostPort);
   }
 
+  /**
+   * Scroll an anchor into view and notify the host page.
+   *
+   * Returns a promise that resolves when scrolling has completed. See
+   * {@link Integration.scrollToAnchor}.
+   */
+  private async _scrollToAnchor(anchor: Anchor) {
+    const range = resolveAnchor(anchor);
+    if (!range) {
+      return;
+    }
+
+    // Emit a custom event that the host page can respond to. This is useful
+    // if the content is in a hidden section of the page that needs to be
+    // revealed before it can be scrolled to.
+    const event = new ScrollToRangeEvent(range);
+
+    const defaultNotPrevented = this.element.dispatchEvent(event);
+
+    if (defaultNotPrevented) {
+      await event.ready;
+      await this._integration.scrollToAnchor(anchor);
+    }
+  }
+
+  private async _scrollToAnnotation(tag: string) {
+    const anchor = this.anchors.find(a => a.annotation.$tag === tag);
+    if (!anchor?.highlights) {
+      return;
+    }
+    await this._scrollToAnchor(anchor);
+  }
+
   async _connectSidebar() {
     this._sidebarRPC.on(
       'featureFlagsUpdated',
-      (flags: Record<string, boolean>) => this.features.update(flags)
+      (flags: Record<string, boolean>) => this.features.update(flags),
     );
 
     // Handlers for events sent when user hovers or clicks on an annotation card
     // in the sidebar.
     this._sidebarRPC.on('hoverAnnotations', (tags: string[]) =>
-      this._hoverAnnotations(tags)
+      this._hoverAnnotations(tags),
     );
 
     this._sidebarRPC.on('scrollToAnnotation', (tag: string) => {
-      const anchor = this.anchors.find(a => a.annotation.$tag === tag);
-      if (!anchor?.highlights) {
-        return;
-      }
-      const range = resolveAnchor(anchor);
-      if (!range) {
-        return;
-      }
-
-      // Emit a custom event that the host page can respond to. This is useful,
-      // for example, if the highlighted content is contained in a collapsible
-      // section of the page that needs to be un-collapsed.
-      const event = new CustomEvent('scrolltorange', {
-        bubbles: true,
-        cancelable: true,
-        detail: range,
-      });
-      const defaultNotPrevented = this.element.dispatchEvent(event);
-
-      if (defaultNotPrevented) {
-        this._integration.scrollToAnchor(anchor);
-      }
+      this._scrollToAnnotation(tag);
     });
 
     // Handler for controls on the sidebar
@@ -591,16 +670,27 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
 
     this._sidebarRPC.on('deleteAnnotation', (tag: string) => this.detach(tag));
 
-    this._sidebarRPC.on('loadAnnotations', (annotations: AnnotationData[]) =>
-      annotations.forEach(annotation => this.anchor(annotation))
+    this._sidebarRPC.on(
+      'loadAnnotations',
+      async (annotations: AnnotationData[]) => {
+        try {
+          await Promise.all(annotations.map(ann => this.anchor(ann)));
+        } catch (e) {
+          /* istanbul ignore next */
+          console.warn('Failed to anchor annotations:', e);
+        }
+      },
     );
 
-    this._sidebarRPC.on('showContentInfo', (info: ContentInfoConfig) =>
-      this._integration.showContentInfo?.(info)
+    this._sidebarRPC.on(
+      'showContentInfo',
+      (info: ContentInfoConfig) => this._integration.showContentInfo?.(info),
     );
 
-    this._sidebarRPC.on('navigateToSegment', (annotation: AnnotationData) =>
-      this._integration.navigateToSegment?.(annotation)
+    this._sidebarRPC.on(
+      'navigateToSegment',
+      (annotation: AnnotationData) =>
+        this._integration.navigateToSegment?.(annotation),
     );
 
     // Connect to sidebar and send document info/URIs to it.
@@ -641,6 +731,11 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
    * re-anchoring the annotation.
    */
   async anchor(annotation: AnnotationData): Promise<Anchor[]> {
+    if (this._contentReady) {
+      await this._contentReady;
+      this._contentReady = undefined;
+    }
+
     /**
      * Resolve an annotation's selectors to a concrete range.
      */
@@ -659,7 +754,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       try {
         const range = await this._integration.anchor(
           this.element,
-          target.selector
+          target.selector,
         );
         // Convert the `Range` to a `TextRange` which can be converted back to
         // a `Range` later. The `TextRange` representation allows for highlights
@@ -684,7 +779,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
 
       const highlights = highlightRange(
         range,
-        anchor.annotation?.$cluster /* cssClass */
+        anchor.annotation?.$cluster /* cssClass */,
       ) as AnnotationHighlight[];
       highlights.forEach(h => {
         h._annotation = anchor.annotation;
@@ -776,7 +871,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     const info = await this.getDocumentInfo();
     const root = this.element;
     const rangeSelectors = await Promise.all(
-      ranges.map(range => this._integration.describe(root, range))
+      ranges.map(range => this._integration.describe(root, range)),
     );
     const target = rangeSelectors.map(selectors => ({
       source: info.uri,
@@ -824,19 +919,6 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
   }
 
   /**
-   * Scroll to the closest off screen anchor.
-   */
-  _scrollToClosestOffScreenAnchor(tags: string[], direction: 'down' | 'up') {
-    const anchors = this.anchors.filter(({ annotation }) =>
-      tags.includes(annotation.$tag)
-    );
-    const closest = findClosestOffscreenAnchor(anchors, direction);
-    if (closest) {
-      this._integration.scrollToAnchor(closest);
-    }
-  }
-
-  /**
    * Show or hide the adder toolbar when the selection changes.
    */
   _onSelection(range: Range) {
@@ -847,8 +929,8 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     }
 
     const selection = document.getSelection()!;
-    const isBackwards = rangeUtil.isSelectionBackwards(selection);
-    const focusRect = rangeUtil.selectionFocusRect(selection);
+    const isBackwards = isSelectionBackwards(selection);
+    const focusRect = selectionFocusRect(selection);
     if (!focusRect) {
       // The selected range does not contain any text
       this._onClearSelection();
@@ -897,7 +979,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
    */
   selectAnnotations(
     tags: string[],
-    { toggle = false, focusInSidebar = false } = {}
+    { toggle = false, focusInSidebar = false } = {},
   ) {
     if (toggle) {
       this._sidebarRPC.call('toggleAnnotationSelection', tags);
@@ -933,18 +1015,8 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
    * @param sidebarLayout
    */
   fitSideBySide(sidebarLayout: SidebarLayout) {
-    this._sideBySideActive = this._integration.fitSideBySide(sidebarLayout);
-  }
-
-  /**
-   * Return true if side-by-side mode is currently active.
-   *
-   * Side-by-side mode is activated or de-activated when `fitSideBySide` is called
-   * depending on whether the sidebar is expanded and whether there is room for
-   * the content alongside the sidebar.
-   */
-  get sideBySideActive() {
-    return this._sideBySideActive;
+    this._sidebarLayout = sidebarLayout;
+    this._integration.fitSideBySide(sidebarLayout);
   }
 
   /**
@@ -990,6 +1062,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       offset_x: offset_x,
       offset_y: offset_y,
       doc_id: "",
+      userid: "initialValue",
     };
     this._sidebarRPC.call('createUserEvent', userEvent);
   }

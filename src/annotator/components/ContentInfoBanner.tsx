@@ -1,6 +1,5 @@
 import {
   Link,
-  LinkBase,
   CaretLeftIcon,
   CaretRightIcon,
 } from '@hypothesis/frontend-shared';
@@ -32,12 +31,17 @@ export default function ContentInfoBanner({ info }: ContentInfoBannerProps) {
         'grid items-center',
         // Two columns in narrower viewports; three in wider
         'grid-cols-[100px_minmax(0,auto)]',
-        '2xl:grid-cols-[100px_minmax(0,auto)_minmax(0,auto)] 2xl:gap-x-3'
+        '2xl:grid-cols-[100px_minmax(0,auto)_minmax(0,auto)] 2xl:gap-x-3',
       )}
     >
       <div data-testid="content-logo">
         {info.logo && (
-          <Link href={info.logo.link} target="_blank" data-testid="logo-link">
+          <Link
+            href={info.logo.link}
+            target="_blank"
+            data-testid="logo-link"
+            underline="none"
+          >
             <img
               alt={info.logo.title}
               src={info.logo.logo}
@@ -51,7 +55,7 @@ export default function ContentInfoBanner({ info }: ContentInfoBannerProps) {
           // Container title (this element) is not shown on narrow screens
           'hidden',
           '2xl:block 2xl:whitespace-nowrap 2xl:overflow-hidden 2xl:text-ellipsis',
-          'font-semibold'
+          'font-semibold',
         )}
         data-testid="content-container-info"
         title={info.container.title}
@@ -61,7 +65,7 @@ export default function ContentInfoBanner({ info }: ContentInfoBannerProps) {
       <div
         className={classnames(
           // Flex layout for item title, next and previous links
-          'flex justify-center items-center gap-x-2'
+          'flex justify-center items-center gap-x-2',
         )}
         data-testid="content-item-info"
       >
@@ -72,21 +76,22 @@ export default function ContentInfoBanner({ info }: ContentInfoBannerProps) {
             'hidden',
             // Wider viewports align this flex content to the right:
             // This empty element is needed to fill extra space at left
-            '2xl:block 2xl:grow'
+            '2xl:block 2xl:grow',
           )}
         />
         {info.links.previousItem && (
           <>
             <Link
-              classes="flex gap-x-1 items-center text-annotator-sm whitespace-nowrap"
               title="Open previous item"
               href={info.links.previousItem}
               underline="always"
               target="_blank"
               data-testid="content-previous-link"
             >
-              <CaretLeftIcon className="w-em h-em" />
-              <span>Previous</span>
+              <div className="flex gap-x-1 items-center text-annotator-sm whitespace-nowrap">
+                <CaretLeftIcon className="w-em h-em" />
+                <span>Previous</span>
+              </div>
             </Link>
             <div className="text-annotator-sm">|</div>
           </>
@@ -96,10 +101,10 @@ export default function ContentInfoBanner({ info }: ContentInfoBannerProps) {
             // This element will shrink and truncate fluidly.
             // Overriding min-width `auto` prevents the content from overflowing
             // See https://stackoverflow.com/a/66689926/434243.
-            'min-w-0 whitespace-nowrap overflow-hidden text-ellipsis shrink font-medium'
+            'min-w-0 whitespace-nowrap overflow-hidden text-ellipsis shrink font-medium',
           )}
         >
-          <LinkBase
+          <Link
             title={itemTitle}
             href={info.links.currentItem}
             data-testid="content-item-link"
@@ -107,7 +112,7 @@ export default function ContentInfoBanner({ info }: ContentInfoBannerProps) {
             unstyled
           >
             {itemTitle}
-          </LinkBase>
+          </Link>
         </div>
 
         {info.links.nextItem && (
@@ -115,14 +120,15 @@ export default function ContentInfoBanner({ info }: ContentInfoBannerProps) {
             <div className="text-annotator-sm">|</div>
             <Link
               title="Open next item"
-              classes="flex gap-x-1 items-center text-annotator-sm whitespace-nowrap"
               href={info.links.nextItem}
               underline="always"
               target="_blank"
               data-testid="content-next-link"
             >
-              <span>Next</span>
-              <CaretRightIcon className="w-em h-em" />
+              <div className="flex gap gap-x-1 items-center text-annotator-sm whitespace-nowrap">
+                <span>Next</span>
+                <CaretRightIcon className="w-em h-em" />
+              </div>
             </Link>
           </>
         )}

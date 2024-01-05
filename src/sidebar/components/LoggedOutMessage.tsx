@@ -1,9 +1,4 @@
-import {
-  Link,
-  LinkBase,
-  LinkButton,
-  LogoIcon,
-} from '@hypothesis/frontend-shared';
+import { Link, LinkButton, LogoIcon } from '@hypothesis/frontend-shared';
 
 import { useSidebarStore } from '../store';
 
@@ -25,7 +20,7 @@ function LoggedOutMessage({ onLogin }: LoggedOutMessageProps) {
         This is a public annotation created with Hypothesis. <br />
         To reply or make your own annotations on this document,{' '}
         <Link
-          color="text"
+          variant="text"
           href={store.getLink('signup')}
           target="_blank"
           underline="always"
@@ -33,20 +28,22 @@ function LoggedOutMessage({ onLogin }: LoggedOutMessageProps) {
           create a free account
         </Link>{' '}
         or{' '}
-        <LinkButton inline color="text" onClick={onLogin} underline="always">
+        <LinkButton inline variant="text" onClick={onLogin} underline="always">
           log in
         </LinkButton>
         .
       </span>
       <div>
-        <LinkBase
+        <Link
           href="https://hypothes.is"
           aria-label="Hypothesis homepage"
           target="_blank"
           title="Hypothesis homepage"
+          underline="none"
+          variant="custom"
         >
           <LogoIcon className="w-16 h-16 text-grey-7" />
-        </LinkBase>
+        </Link>
       </div>
     </div>
   );

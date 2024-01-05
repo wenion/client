@@ -1,8 +1,10 @@
 import { GlobeIcon, GroupsIcon, LockIcon } from '@hypothesis/frontend-shared';
+import {
+  checkAccessibility,
+  mockImportedComponents,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import { checkAccessibility } from '../../../../test-util/accessibility';
-import { mockImportedComponents } from '../../../../test-util/mock-imported-components';
 import AnnotationPublishControl, {
   $imports,
 } from '../AnnotationPublishControl';
@@ -27,7 +29,7 @@ describe('AnnotationPublishControl', () => {
         onSetPrivate={fakeOnSetPrivate}
         settings={fakeSettings}
         {...props}
-      />
+      />,
     );
   };
 
@@ -74,7 +76,7 @@ describe('AnnotationPublishControl', () => {
       assert.calledWith(
         fakeApplyTheme,
         ['ctaTextColor', 'ctaBackgroundColor'],
-        fakeSettings
+        fakeSettings,
       );
       assert.include(btnPrimary.prop('style'), fakeStyle);
     });
@@ -200,6 +202,6 @@ describe('AnnotationPublishControl', () => {
     'should pass a11y checks',
     checkAccessibility({
       content: () => createAnnotationPublishControl(),
-    })
+    }),
   );
 });

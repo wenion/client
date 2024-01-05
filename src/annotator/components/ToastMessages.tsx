@@ -1,7 +1,7 @@
+import { ToastMessages as BaseToastMessages } from '@hypothesis/frontend-shared';
+import type { ToastMessage } from '@hypothesis/frontend-shared';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
-import BaseToastMessages from '../../shared/components/BaseToastMessages';
-import type { ToastMessage } from '../../shared/components/BaseToastMessages';
 import type { Emitter } from '../util/emitter';
 
 export type ToastMessagesProps = {
@@ -17,12 +17,12 @@ export default function ToastMessages({ emitter }: ToastMessagesProps) {
   const [messages, setMessages] = useState<ToastMessage[]>([]);
   const addMessage = useCallback(
     (newMessage: ToastMessage) => setMessages(prev => [...prev, newMessage]),
-    []
+    [],
   );
   const dismissMessage = useCallback(
     (messageId: string) =>
       setMessages(prev => prev.filter(message => message.id !== messageId)),
-    []
+    [],
   );
 
   useEffect(() => {

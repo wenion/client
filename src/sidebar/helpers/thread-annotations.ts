@@ -1,11 +1,11 @@
 import type { Annotation } from '../../types/api';
 import { memoize } from '../util/memoize';
-import { generateFacetedFilter } from '../util/search-filter';
 import { buildThread } from './build-thread';
 import type { Thread, BuildThreadOptions } from './build-thread';
+import { filterAnnotations } from './filter-annotations';
+import { parseFilterQuery } from './query-parser';
 import { shouldShowInTab } from './tabs';
 import { sorters } from './thread-sorters';
-import { filterAnnotations } from './view-filter';
 
 export type ThreadState = {
   annotations: Annotation[];
@@ -40,9 +40,9 @@ function buildRootThread(threadState: ThreadState): Thread {
     !!selection.filterQuery || Object.keys(selection.filters).length > 0;
 
   if (annotationsFiltered) {
-    const filters = generateFacetedFilter(
+    const filters = parseFilterQuery(
       selection.filterQuery || '',
-      selection.filters
+      selection.filters,
     );
     options.filterFn = ann => filterAnnotations([ann], filters).length > 0;
   }

@@ -55,7 +55,7 @@ function ClusterStyleControl({
                 // Make radio input visually hidden, but
                 // some screen readers won't read out elements with 0 opacity
                 'opacity-[.00001]',
-                'cursor-pointer'
+                'cursor-pointer',
               )}
               name={cluster}
               id={`hypothesis-${cluster}-${styleName}`}
@@ -74,7 +74,7 @@ function ClusterStyleControl({
                   {
                     'border-2 border-slate-0': appliedStyleName !== styleName,
                     'border-2 border-slate-3': appliedStyleName === styleName,
-                  }
+                  },
                 )}
               >
                 {styleName === 'transparent' && (
@@ -120,7 +120,7 @@ export default function ClusterToolbar({
 
       onStyleChange(cluster, styleName);
     },
-    [onStyleChange]
+    [onStyleChange],
   );
 
   const [isOpen, setOpen] = useState(false);
@@ -130,9 +130,10 @@ export default function ClusterToolbar({
   }
 
   return (
-    <Card>
+    <Card classes="overflow-hidden">
       <div className="flex flex-col text-annotator-base text-color-text">
         <Button
+          classes="rounded-none"
           data-testid="control-toggle-button"
           onClick={() => setOpen(!isOpen)}
           title={isOpen ? 'Hide highlight settings' : 'Show highlight settings'}

@@ -1,4 +1,5 @@
-import { waitFor } from '../../test-util/wait';
+import { waitFor } from '@hypothesis/frontend-testing';
+
 import { FeatureFlags } from '../features';
 import { HighlightClusterController, $imports } from '../highlight-clusters';
 
@@ -55,7 +56,7 @@ describe('HighlightClusterController', () => {
     assert.equal(
       container.getElementsByTagName('hypothesis-highlight-cluster-toolbar')
         .length,
-      1
+      1,
     );
     assert.isFalse(toolbarProps.active);
   });
@@ -73,7 +74,7 @@ describe('HighlightClusterController', () => {
   it('does not activate the feature if feature flag is not set', () => {
     createToolbar();
     assert.isFalse(
-      container.classList.contains('hypothesis-highlights-clustered')
+      container.classList.contains('hypothesis-highlights-clustered'),
     );
   });
 
@@ -94,7 +95,7 @@ describe('HighlightClusterController', () => {
     createToolbar();
 
     assert.isTrue(
-      container.classList.contains('hypothesis-highlights-clustered')
+      container.classList.contains('hypothesis-highlights-clustered'),
     );
 
     fakeFeatures.update({ styled_highlight_clusters: false });

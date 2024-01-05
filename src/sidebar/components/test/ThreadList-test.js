@@ -1,8 +1,10 @@
+import {
+  checkAccessibility,
+  mockImportedComponents,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 import { act } from 'preact/test-utils';
 
-import { checkAccessibility } from '../../../test-util/accessibility';
-import { mockImportedComponents } from '../../../test-util/mock-imported-components';
 import ThreadList from '../ThreadList';
 import { $imports } from '../ThreadList';
 
@@ -19,7 +21,7 @@ describe('ThreadList', () => {
       <ThreadList threads={fakeTopThread.children} {...props} />,
       {
         attachTo: fakeScrollContainer,
-      }
+      },
     );
     wrappers.push(wrapper);
     return wrapper;
@@ -105,7 +107,7 @@ describe('ThreadList', () => {
       fakeTopThread.children,
       sinon.match({}),
       0,
-      sinon.match.number
+      sinon.match.number,
     );
   });
 
@@ -142,6 +144,9 @@ describe('ThreadList', () => {
     beforeEach(() => {
       fakeScrollTop = sinon.stub();
       sinon.stub(fakeScrollContainer, 'scrollTop').set(fakeScrollTop);
+      // We've interfered with the setter, so we need to ensure that
+      // `scrollTop`'s getter provides a valid number
+      sinon.stub(fakeScrollContainer, 'scrollTop').get(() => 0);
       sinon
         .stub(document, 'querySelector')
         .withArgs('.js-thread-list-scroll-root')
@@ -277,7 +282,7 @@ describe('ThreadList', () => {
         getRect(cards.at(1)).top - getRect(cards.at(0)).bottom;
       const totalThreadHeight = fakeTopThread.children.reduce(
         (totalHeight, thread) => totalHeight + threadHeights[thread.id],
-        0
+        0,
       );
       const expectedScrollHeight =
         totalThreadHeight + spaceBelowEachCard * fakeTopThread.children.length;
@@ -290,7 +295,7 @@ describe('ThreadList', () => {
       const defaultThreadHeight = 200;
       assert.equal(
         lowerSpacer.getBoundingClientRect().height % defaultThreadHeight,
-        0
+        0,
       );
 
       // Scroll through the list "slowly", such that we render every thread at
@@ -406,17 +411,14 @@ describe('ThreadList', () => {
     wrappers.push(wrapper);
     assert.calledWith(
       console.warn,
-      'ThreadList could not measure thread. Element not found.'
+      'ThreadList could not measure thread. Element not found.',
     );
   });
 
   it(
     'should pass a11y checks',
     checkAccessibility({
-      content: () => {
-        const wrapper = createComponent();
-        return wrapper;
-      },
-    })
+      content: () => createComponent(),
+    }),
   );
 });
