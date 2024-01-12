@@ -1,5 +1,5 @@
-import { ToastMessages as BaseToastMessages } from '@hypothesis/frontend-shared';
-import type { ToastMessage } from '@hypothesis/frontend-shared';
+import { ToastMessages as BaseToastMessages } from './BaseToastMessages';
+import type { ToastMessage } from './BaseToastMessages';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
 import type { Emitter } from '../util/emitter';

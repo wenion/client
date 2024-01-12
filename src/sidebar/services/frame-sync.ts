@@ -685,7 +685,8 @@ export class FrameSyncService {
       // Forward hidden messages to "host" when sidebar is collapsed, with the
       // intention that another container can be used to render those messages
       // there, ensuring screen readers announce them.
-      if (message.visuallyHidden && !this._sidebarIsOpen) {
+      // if (message.visuallyHidden) && !this._sidebarIsOpen) {
+      if (message.visuallyHidden) {
         this.notifyHost('toastMessageAdded', message);
       }
     });

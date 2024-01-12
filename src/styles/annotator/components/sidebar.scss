@@ -52,6 +52,33 @@
     }
   }
 
+  .sidebar-message {
+    @apply fixed top-8 left-full h-min z-max select-none;
+    // Next, set different widths and left-margin positions for different
+    // breakpoints
+    @apply annotator-sm:w-[90%] annotator-sm:ml-[-90%];
+    @apply annotator-md:w-[70%] annotator-md:ml-[-70%];
+    @apply annotator-lg:w-[400px] annotator-lg:ml-[-415px];
+
+    // Wider screens: apply transition when opening/closing of the sidebar
+    @apply annotator-lg:sidebar-transition-margin;
+
+    &.is-hidden {
+      @apply sidebar-transition-visibility;
+    }
+
+    // We can't use `theme-clean:` or `sidebar-collapsed:` tailwind modifiers
+    // here because this is the one place in the project where the relevant
+    // classes are assigned to the same element, not a parent element.
+    &.theme-clean {
+      @apply shadow-sidebar;
+    }
+
+    &.sidebar-collapsed {
+      @apply ml-0;
+    }
+  }
+
   // The sidebar's iframe
   .sidebar-frame {
     @apply relative border-0 h-full w-full z-3;

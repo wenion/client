@@ -6,6 +6,7 @@ import type { FrameSyncService } from '../services/frame-sync';
 import type { LoadAnnotationsService } from '../services/load-annotations';
 import type { QueryService } from '../services/query';
 import type { StreamerService } from '../services/streamer';
+import type { ToastMessengerService } from '../services/toast-messenger';
 import { useSidebarStore } from '../store';
 import LoggedOutMessage from './LoggedOutMessage';
 import LoginPromptPanel from './LoginPromptPanel';
@@ -27,6 +28,7 @@ export type SidebarViewProps = {
   queryService: QueryService;
   loadAnnotationsService: LoadAnnotationsService;
   streamer: StreamerService;
+  toastMessenger: ToastMessengerService;
 };
 
 /**
@@ -39,6 +41,7 @@ function SidebarView({
   loadAnnotationsService,
   queryService,
   streamer,
+  toastMessenger,
 }: SidebarViewProps) {
   const rootThread = useRootThread();
   const rootVideoThread = useRootVideoThread();
@@ -119,6 +122,9 @@ function SidebarView({
       queryService.getRecommendation(mainFrame.uri).then(
         result => frameSync.notification(result)
       )
+      queryService.getMessage().then(
+        results => results.map(result => toastMessenger.message(result.type, result.pubid, result.event_name, result.text))
+      )
     }
   }, [store, loadAnnotationsService, focusedGroupId, userId, searchUris]);
 
@@ -175,4 +181,5 @@ export default withServices(SidebarView, [
   'loadAnnotationsService',
   'queryService',
   'streamer',
+  'toastMessenger',
 ]);

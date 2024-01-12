@@ -1,4 +1,8 @@
 @use 'tailwindcss/components';
 
+// UI (Preact) Components
+// ----------
+@use './StyledText';
+
 // Annotator-specific components.
 @use './sidebar';

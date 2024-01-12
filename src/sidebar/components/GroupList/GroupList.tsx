@@ -21,7 +21,6 @@ import GroupListSection from './GroupListSection';
  */
 function publisherProvidedIcon(settings: SidebarSettings) {
   const svc = serviceConfig(settings);
-  console.log('svc', svc)
   return svc && svc.icon ? svc.icon : null;
 }
 
@@ -73,7 +72,6 @@ function GroupList({ settings }: GroupListProps) {
 
   let label;
   if (focusedGroup) {
-    console.log('focusedGroup.organization.logo', focusedGroup.organization.logo)
     const icon =
       focusedGroup.organization.logo || publisherProvidedIcon(settings) || '';
 

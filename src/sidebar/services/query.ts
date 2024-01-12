@@ -24,6 +24,11 @@ export class QueryService {
     return await this._api.pull_recommendation({url: url});
   }
 
+  async getMessage(): Promise<{type:string; pubid: string; event_name:string; text:string;}[]>{
+    return await this._api.message({q: 'organisation_event'});
+    // return await this._api.clentURL({});
+  }
+
   getQueryWord() {
     const query = this._store.queryingWord();
     if (query) {
