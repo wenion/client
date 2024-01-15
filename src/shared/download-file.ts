@@ -38,14 +38,17 @@ export function downloadJSONFile(
   return fileContent;
 }
 
-/**
- * Download a text file containing data
- */
-export function downloadTextFile(
-  text: string,
-  filename: string,
-  /* istanbul ignore next - test seam */
-  _document = document,
-) {
-  downloadFile(text, 'text/plain', filename, _document);
+function buildTextFileDownloader(type: string) {
+  return (
+    text: string,
+    filename: string,
+    /* istanbul ignore next - test seam */
+    _document = document,
+  ) => downloadFile(text, type, filename, _document);
 }
+
+export const downloadTextFile = buildTextFileDownloader('text/plain');
+
+export const downloadCSVFile = buildTextFileDownloader('text/csv');
+
+export const downloadHTMLFile = buildTextFileDownloader('text/html');

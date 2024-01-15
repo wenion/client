@@ -16,6 +16,8 @@ describe('ExportAnnotations', () => {
   let fakeToastMessenger;
   let fakeDownloadJSONFile;
   let fakeDownloadTextFile;
+  let fakeDownloadCSVFile;
+  let fakeDownloadHTMLFile;
   let fakeSuggestedFilename;
 
   const fakePrivateGroup = {
@@ -37,12 +39,16 @@ describe('ExportAnnotations', () => {
     fakeAnnotationsExporter = {
       buildJSONExportContent: sinon.stub().returns({}),
       buildTextExportContent: sinon.stub().returns(''),
+      buildCSVExportContent: sinon.stub().returns(''),
+      buildHTMLExportContent: sinon.stub().returns(''),
     };
     fakeToastMessenger = {
       error: sinon.stub(),
     };
     fakeDownloadJSONFile = sinon.stub();
     fakeDownloadTextFile = sinon.stub();
+    fakeDownloadCSVFile = sinon.stub();
+    fakeDownloadHTMLFile = sinon.stub();
     fakeStore = {
       defaultAuthority: sinon.stub().returns('example.com'),
       isFeatureEnabled: sinon.stub().returns(true),
@@ -65,6 +71,8 @@ describe('ExportAnnotations', () => {
       '../../../shared/download-file': {
         downloadJSONFile: fakeDownloadJSONFile,
         downloadTextFile: fakeDownloadTextFile,
+        downloadCSVFile: fakeDownloadCSVFile,
+        downloadHTMLFile: fakeDownloadHTMLFile,
       },
       '../../helpers/export-annotations': {
         suggestedFilename: fakeSuggestedFilename,
@@ -237,10 +245,44 @@ describe('ExportAnnotations', () => {
       '[data-testid="export-format-select"]',
     );
     const options = select.find(SelectNext.Option);
+    const optionText = (index, type) =>
+      options.at(index).find(`[data-testid="format-${type}"]`).text();
 
-    assert.equal(options.length, 2);
-    assert.equal(options.at(0).text(), 'JSON');
-    assert.equal(options.at(1).text(), 'Text');
+    assert.equal(options.length, 4);
+    assert.equal(optionText(0, 'name'), 'JSON');
+    assert.equal(
+      optionText(0, 'description'),
+      'For import into another Hypothesis group or document',
+    );
+    assert.equal(optionText(1, 'name'), 'Plain text (TXT)');
+    assert.equal(
+      optionText(1, 'description'),
+      'For import into word processors as plain text',
+    );
+    assert.equal(optionText(2, 'name'), 'Table (CSV)');
+    assert.equal(optionText(2, 'description'), 'For import into a spreadsheet');
+    assert.equal(optionText(3, 'name'), 'Rich text (HTML)');
+    assert.equal(
+      optionText(3, 'description'),
+      'For import into word processors as rich text',
+    );
+  });
+
+  [
+    [{ shortTitle: 'Short', title: 'Something longer' }, 'Short'],
+    [{ title: 'Something longer' }, 'Something longer'],
+  ].forEach(([format, expectedTitle]) => {
+    it('displays format short title if defined', async () => {
+      const wrapper = createComponent();
+      const getSelect = () =>
+        waitForElement(wrapper, '[data-testid="export-format-select"]');
+
+      const selectBefore = await getSelect();
+      selectBefore.props().onChange(format);
+
+      const selectAfter = await getSelect();
+      assert.equal(selectAfter.prop('buttonContent'), expectedTitle);
+    });
   });
 
   describe('export form submitted', () => {
@@ -265,6 +307,16 @@ describe('ExportAnnotations', () => {
         format: 'txt',
         getExpectedInvokedContentBuilder: () =>
           fakeAnnotationsExporter.buildTextExportContent,
+      },
+      {
+        format: 'csv',
+        getExpectedInvokedContentBuilder: () =>
+          fakeAnnotationsExporter.buildCSVExportContent,
+      },
+      {
+        format: 'html',
+        getExpectedInvokedContentBuilder: () =>
+          fakeAnnotationsExporter.buildHTMLExportContent,
       },
     ].forEach(({ format, getExpectedInvokedContentBuilder }) => {
       it('builds an export file from all non-draft annotations', async () => {
@@ -351,6 +403,14 @@ describe('ExportAnnotations', () => {
       {
         format: 'txt',
         getExpectedInvokedDownloader: () => fakeDownloadTextFile,
+      },
+      {
+        format: 'csv',
+        getExpectedInvokedDownloader: () => fakeDownloadCSVFile,
+      },
+      {
+        format: 'html',
+        getExpectedInvokedDownloader: () => fakeDownloadHTMLFile,
       },
     ].forEach(({ format, getExpectedInvokedDownloader }) => {
       it('downloads a file using user-entered filename appended with proper extension', async () => {

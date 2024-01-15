@@ -8,6 +8,8 @@ import {
 import { useCallback, useId, useMemo, useState } from 'preact/hooks';
 
 import {
+  downloadCSVFile,
+  downloadHTMLFile,
   downloadJSONFile,
   downloadTextFile,
 } from '../../../shared/download-file';
@@ -32,28 +34,42 @@ export type ExportAnnotationsProps = {
 type ExportFormat = {
   /** Unique format identifier used also as file extension */
   value: 'json' | 'csv' | 'txt' | 'html';
-  name: string;
+  /** The title to be displayed in the listbox item */
+  title: string;
+
+  /**
+   * The title to be displayed in the Select button.
+   * Falls back to `title` when not provided.
+   */
+  shortTitle?: string;
+
+  description: string;
 };
 
 const exportFormats: ExportFormat[] = [
   {
     value: 'json',
-    name: 'JSON',
+    title: 'JSON',
+    description: 'For import into another Hypothesis group or document',
   },
   {
     value: 'txt',
-    name: 'Text',
+    title: 'Plain text (TXT)',
+    shortTitle: 'Text',
+    description: 'For import into word processors as plain text',
   },
-
-  // TODO Enable these formats when implemented
-  // {
-  //   value: 'csv',
-  //   name: 'CSV',
-  // },
-  // {
-  //   value: 'html',
-  //   name: 'HTML',
-  // },
+  {
+    value: 'csv',
+    title: 'Table (CSV)',
+    shortTitle: 'CSV',
+    description: 'For import into a spreadsheet',
+  },
+  {
+    value: 'html',
+    title: 'Rich text (HTML)',
+    shortTitle: 'HTML',
+    description: 'For import into word processors as rich text',
+  },
 ];
 
 /**
@@ -84,7 +100,8 @@ function ExportAnnotations({
   );
 
   // User whose annotations are going to be exported.
-  const currentUser = store.profile().userid;
+  const profile = store.profile();
+  const currentUser = profile.userid;
   const allAnnotationsOption: Omit<UserAnnotations, 'userid'> = useMemo(
     () => ({
       annotations: exportableAnnotations,
@@ -131,17 +148,47 @@ function ExportAnnotations({
 
       switch (format) {
         case 'json': {
-          const exportData =
-            annotationsExporter.buildJSONExportContent(annotationsToExport);
+          const exportData = annotationsExporter.buildJSONExportContent(
+            annotationsToExport,
+            { profile },
+          );
           downloadJSONFile(exportData, filename);
           break;
         }
         case 'txt': {
           const exportData = annotationsExporter.buildTextExportContent(
             annotationsToExport,
-            group?.name,
+            {
+              groupName: group?.name,
+              defaultAuthority,
+              displayNamesEnabled,
+            },
           );
           downloadTextFile(exportData, filename);
+          break;
+        }
+        case 'csv': {
+          const exportData = annotationsExporter.buildCSVExportContent(
+            annotationsToExport,
+            {
+              groupName: group?.name,
+              defaultAuthority,
+              displayNamesEnabled,
+            },
+          );
+          downloadCSVFile(exportData, filename);
+          break;
+        }
+        case 'html': {
+          const exportData = annotationsExporter.buildHTMLExportContent(
+            annotationsToExport,
+            {
+              groupName: group?.name,
+              defaultAuthority,
+              displayNamesEnabled,
+            },
+          );
+          downloadHTMLFile(exportData, filename);
           break;
         }
       }
@@ -199,7 +246,7 @@ function ExportAnnotations({
                 <SelectNext
                   value={exportFormat}
                   onChange={setExportFormat}
-                  buttonContent={exportFormat.name}
+                  buttonContent={exportFormat.shortTitle ?? exportFormat.title}
                   data-testid="export-format-select"
                   right
                 >
@@ -208,7 +255,14 @@ function ExportAnnotations({
                       key={exportFormat.value}
                       value={exportFormat}
                     >
-                      {exportFormat.name}
+                      <div className="flex-col gap-y-2">
+                        <div className="font-bold" data-testid="format-name">
+                          {exportFormat.title}
+                        </div>
+                        <div data-testid="format-description">
+                          {exportFormat.description}
+                        </div>
+                      </div>
                     </SelectNext.Option>
                   ))}
                 </SelectNext>

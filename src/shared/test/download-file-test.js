@@ -1,4 +1,9 @@
-import { downloadJSONFile, downloadTextFile } from '../download-file';
+import {
+  downloadCSVFile,
+  downloadHTMLFile,
+  downloadJSONFile,
+  downloadTextFile,
+} from '../download-file';
 
 describe('download-file', () => {
   let fakeLink;
@@ -59,5 +64,23 @@ describe('download-file', () => {
     downloadTextFile(data, filename, fakeDocument);
 
     assertDownloadHappened(filename, data, 'text/plain');
+  });
+
+  it('downloadCSVFile generates csv file with provided data', () => {
+    const data = 'foo,bar,baz';
+    const filename = 'my-file.csv';
+
+    downloadCSVFile(data, filename, fakeDocument);
+
+    assertDownloadHappened(filename, data, 'text/csv');
+  });
+
+  it('downloadHTMLFile generates HTML file with provided data', () => {
+    const data = '<p>Hello</p>';
+    const filename = 'my-file.html';
+
+    downloadHTMLFile(data, filename, fakeDocument);
+
+    assertDownloadHappened(filename, data, 'text/html');
   });
 });

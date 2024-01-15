@@ -106,7 +106,7 @@ function SidebarView({
 
         store.clearSelection();
         if (restoreFocus) {
-          store.toggleFocusMode(true);
+          store.toggleFocusMode({ active: true });
         }
       }
       prevGroupId.current = focusedGroupId;
