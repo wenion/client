@@ -6,7 +6,6 @@ import Toolbar from './components/Toolbar';
 export type ToolbarOptions = {
   createAnnotation: () => void;
   setSidebarOpen: (open: boolean) => void;
-  setSidebarPin: (pin: boolean) => void;
   setHighlightsVisible: (visible: boolean) => void;
 };
 
@@ -23,8 +22,6 @@ export class ToolbarController {
   private _highlightsVisible: boolean;
   private _sidebarOpen: boolean;
   private _closeSidebar: () => void;
-  private _sidebarPin: boolean;
-  private _togglePin: () => void;
   private _toggleSidebar: () => void;
   private _toggleHighlights: () => void;
   private _createAnnotation: () => void;
@@ -34,7 +31,7 @@ export class ToolbarController {
    * @param container - Element into which the toolbar is rendered
    */
   constructor(container: HTMLElement, options: ToolbarOptions) {
-    const { createAnnotation, setSidebarOpen, setSidebarPin, setHighlightsVisible } = options;
+    const { createAnnotation, setSidebarOpen, setHighlightsVisible } = options;
 
     this._container = container;
     this._useMinimalControls = false;
@@ -42,8 +39,6 @@ export class ToolbarController {
     this._highlightsVisible = false;
     this._sidebarOpen = false;
 
-    this._sidebarPin = false;
-    this._togglePin = () => setSidebarPin(!this._sidebarPin)
     this._closeSidebar = () => setSidebarOpen(false);
     this._toggleSidebar = () => setSidebarOpen(!this._sidebarOpen);
     this._toggleHighlights = () =>
@@ -90,18 +85,6 @@ export class ToolbarController {
   }
 
   /**
-   * Update the toolbar to reflect whether the sidebar is open or not.
-   */
-  set sidebarPin(pin) {
-    this._sidebarPin = pin;
-    this.render();
-  }
-
-  get sidebarPin() {
-    return this._sidebarPin;
-  }
-
-  /**
    * Update the toolbar to reflect whether the "Create annotation" button will
    * create a page note (if there is no selection) or an annotation (if there is
    * a selection).
@@ -142,8 +125,6 @@ export class ToolbarController {
         newAnnotationType={this._newAnnotationType}
         isSidebarOpen={this._sidebarOpen}
         showHighlights={this._highlightsVisible}
-        isSidebarPin={this._sidebarPin}
-        togglePin={this._togglePin}
         toggleHighlights={this._toggleHighlights}
         toggleSidebar={this._toggleSidebar}
         toggleSidebarRef={this._sidebarToggleButton}

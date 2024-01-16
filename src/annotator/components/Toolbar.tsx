@@ -6,7 +6,6 @@ import {
   CaretLeftIcon,
   HideIcon,
   NoteIcon,
-  PinIcon,
   ShowIcon,
 } from '@hypothesis/frontend-shared';
 import type { ButtonProps } from '@hypothesis/frontend-shared/lib/components/input/Button';
@@ -23,13 +22,12 @@ type ToolbarButtonProps = PresentationalProps &
   ButtonProps &
   Omit<JSX.HTMLAttributes<HTMLButtonElement>, 'icon' | 'size'> & {
     icon: IconComponent;
-    isActivated: boolean
   };
 
 /**
  * Style an IconButton for use on the Toolbar
  */
-function ToolbarButton({ icon: Icon, isActivated=false, ...buttonProps}: ToolbarButtonProps) {
+function ToolbarButton({ icon: Icon, ...buttonProps }: ToolbarButtonProps) {
   return (
     <Button
       classes={classnames(
@@ -41,13 +39,7 @@ function ToolbarButton({ icon: Icon, isActivated=false, ...buttonProps}: Toolbar
       size="custom"
       variant="custom"
     >
-      <Icon
-        className={classnames(
-          {
-            'text-blue-600': isActivated,
-          },
-        )}
-      />
+      <Icon />
     </Button>
   );
 }
@@ -91,9 +83,6 @@ export type ToolbarProps = {
   /** Are highlights currently visible in the document? */
   showHighlights: boolean;
 
-  isSidebarPin: boolean;
-  togglePin: () => void;
-
   /** Callback for the show/hide highlights button */
   toggleHighlights: () => void;
 
@@ -130,8 +119,6 @@ export default function Toolbar({
   isSidebarOpen,
   newAnnotationType,
   showHighlights,
-  isSidebarPin,
-  togglePin,
   toggleHighlights,
   toggleSidebar,
   toggleSidebarRef,
@@ -192,17 +179,10 @@ export default function Toolbar({
           </Button>
           <div className="space-y-px-1.5 mt-px-2">
             <ToolbarButton
-              title="Pin"
-              icon={PinIcon}
-              onClick={togglePin}
-              isActivated={isSidebarPin}
-            />
-            <ToolbarButton
               title="Show highlights"
               icon={showHighlights ? ShowIcon : HideIcon}
               selected={showHighlights}
               onClick={toggleHighlights}
-              isActivated={false}
             />
             <ToolbarButton
               title={
@@ -212,7 +192,6 @@ export default function Toolbar({
               }
               icon={newAnnotationType === 'note' ? NoteIcon : AnnotateIcon}
               onClick={createAnnotation}
-              isActivated={false}
             />
           </div>
           <StatusNotifier highlightsVisible={showHighlights} />

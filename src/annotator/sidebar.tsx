@@ -113,7 +113,6 @@ export class Sidebar implements Destroyable {
   private _messagesElement: HTMLElement | undefined;
   private _toolbarWidth: number;
   private _renderFrame: number | undefined;
-  private _disableOpen: boolean;
 
   /**
    * Tracks which `Guest` has a text selection. `null` indicates to default to
@@ -260,7 +259,6 @@ export class Sidebar implements Destroyable {
       onClose: (data: PullingData) => this.onNotificationClose(data),
     });
 
-    this._disableOpen = false;
     // Set up the toolbar on the left edge of the sidebar.
     const toolbarContainer = document.createElement('div');
     this.toolbar = new ToolbarController(toolbarContainer, {
@@ -272,7 +270,6 @@ export class Sidebar implements Destroyable {
         const rpc = this._guestWithSelection ?? this._guestRPC[0];
         rpc.call('createAnnotation');
       },
-      setSidebarPin: pin => {pin ? this.toolbar.sidebarPin=true: this.toolbar.sidebarPin=false; this._disableOpen = pin;},
       setSidebarOpen: open => (open ? this.open() : this.close()),
       setHighlightsVisible: show => this.setHighlightsVisible(show),
     });
@@ -671,8 +668,6 @@ export class Sidebar implements Destroyable {
   }
 
   open() {
-    if (this._disableOpen)
-      return;
     this._sidebarRPC.call('sidebarOpened');
 
     if (this.iframeContainer) {
@@ -691,8 +686,6 @@ export class Sidebar implements Destroyable {
   }
 
   close() {
-    if (this._disableOpen)
-      return;
     this._sidebarRPC.call('sidebarClosed');
 
     if (this.iframeContainer) {
