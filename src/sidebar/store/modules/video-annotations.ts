@@ -476,7 +476,7 @@ function findVideoAnnotationByID(state: VideoState, id: string) {
  * If an annotation does not have an ID because it has not been created on
  * the server, there will be no entry for it in the returned array.
  */
-function findIDsForTags(state: VideoState, tags: string[]) {
+function findVideoIDsForTags(state: VideoState, tags: string[]) {
   const ids = [];
   for (const tag of tags) {
     const annot = findByTag(state.videoAnnotations, tag);
@@ -589,7 +589,7 @@ export const videoAnnotationsModule = createStoreModule(initialState, {
     videoAnnotationCount,
     videoAnnotationExists,
     findVideoAnnotationByID,
-    findIDsForTags,
+    findVideoIDsForTags,
     hoveredVideoAnnotations,
     highlightedVideoAnnotations,
     isVideoAnnotationHovered,
