@@ -26,7 +26,6 @@ export class QueryService {
 
   async getMessage(): Promise<{type:string; pubid: string; event_name:string; text:string;}[]>{
     return await this._api.message({q: 'organisation_event'});
-    // return await this._api.clentURL({});
   }
 
   getQueryWord() {
