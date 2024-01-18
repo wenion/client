@@ -470,6 +470,10 @@ function findAnnotationByID(state: State, id: string) {
   return findByID(state.annotations, id);
 }
 
+function findAnnotationByTag(state: State, tag: string) {
+  return findByTag(state.annotations, tag);
+}
+
 /**
  * Return the IDs of annotations that correspond to `tags`.
  *
@@ -583,6 +587,7 @@ export const annotationsModule = createStoreModule(initialState, {
     annotationCount,
     annotationExists,
     findAnnotationByID,
+    findAnnotationByTag,
     findIDsForTags,
     hoveredAnnotations,
     highlightedAnnotations,

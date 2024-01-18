@@ -485,8 +485,21 @@ export class FrameSyncService {
       },
     );
 
+    // receive from src/annotator/guest.ts this._sidebarRPC.call('hoverAnnotations', tags);
     guestRPC.on('hoverAnnotations', (tags: string[]) => {
       this._store.hoverAnnotations(tags || []);
+
+      if (tags.length) {
+        tags.map(tag => {
+          const annot = this._store.findAnnotationByTag(tag);
+          if (annot && annot.tags.length) {
+            guestRPC.call('showAnnotationTags', {tag: tag, tags: annot.tags})
+          }
+        })
+      }
+      else {
+        guestRPC.call('showAnnotationTags', {tag: '', tags: []})
+      }
     });
 
     guestRPC.on('toggleAnnotationSelection', (tags: string[]) => {
@@ -685,7 +698,7 @@ export class FrameSyncService {
       // Forward hidden messages to "host" when sidebar is collapsed, with the
       // intention that another container can be used to render those messages
       // there, ensuring screen readers announce them.
-      // if (message.visuallyHidden) && !this._sidebarIsOpen) {
+      // if (message.visuallyHidden && !this._sidebarIsOpen) {
       if (message.visuallyHidden) {
         this.notifyHost('toastMessageAdded', message);
       }

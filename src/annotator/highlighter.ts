@@ -433,6 +433,27 @@ export function getBoundingClientRect(collection: HTMLElement[]): Rect {
 }
 
 /**
+ * KMASS
+ */
+export function getBoundingClientDOMRect(collection: HTMLElement[]): DOMRect {
+  const rect = getBoundingClientRect(collection)
+  const domrect = {
+    top: rect.top,
+    bottom: rect.bottom,
+    left: rect.left,
+    right: rect.right,
+    height: rect.bottom - rect.top,
+    width: rect.right - rect.left,
+    x: rect.left,
+    y: rect.top,
+  }
+  return {
+    ...domrect,
+    toJSON: () => JSON.stringify(domrect)
+  }
+}
+
+/**
  * Add metadata and manipulate ordering of all highlights in `element` to
  * allow styling of nested, clustered highlights.
  */

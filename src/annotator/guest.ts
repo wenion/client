@@ -4,6 +4,7 @@ import { ListenerCollection } from '../shared/listener-collection';
 import { PortFinder, PortRPC } from '../shared/messaging';
 import { generateHexString } from '../shared/random';
 import { matchShortcut } from '../shared/shortcut';
+import { getBoundingClientDOMRect } from './highlighter';
 import type {
   AnnotationData,
   Annotator,
@@ -23,6 +24,7 @@ import type {
   SidebarToGuestEvent,
 } from '../types/port-rpc-events';
 import { Adder } from './adder';
+import { Tag } from './tag';
 import { TextRange } from './anchoring/text-range';
 import { BucketBarClient } from './bucket-bar-client';
 import { LayoutChangeEvent } from './events';
@@ -204,6 +206,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
   private _contentReady?: Promise<void>;
 
   private _adder: Adder;
+  private _tag: Tag;
   private _clusterToolbar?: HighlightClusterController;
   private _hostFrame: Window;
   private _highlightsVisible: boolean;
@@ -285,6 +288,8 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       onShowAnnotations: tags =>
         this.selectAnnotations(tags, { focusInSidebar: true }),
     });
+
+    this._tag = new Tag(this.element);
 
     this._selectionObserver = new SelectionObserver(range => {
       if (range) {
@@ -578,6 +583,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
 
     this._hostRPC.on('createAnnotation', () => this.createAnnotation());
 
+    // src/annotator/sidebar.tsx
     this._hostRPC.on('hoverAnnotations', (tags: string[]) =>
       this._hoverAnnotations(tags),
     );
@@ -653,8 +659,22 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       (flags: Record<string, boolean>) => this.features.update(flags),
     );
 
+    this._sidebarRPC.on('showAnnotationTags', (message: {tag: string, tags: string[]}) =>
+      {
+        const anchor = this.anchors.find(a => a.annotation.$tag === message.tag);
+        if (anchor?.highlights) {
+          const rect = getBoundingClientDOMRect(anchor.highlights)
+          this._tag.show(rect as DOMRect, true, message.tags)
+        }
+        else {
+          this._tag.hide()
+        }
+      }
+    );
+
     // Handlers for events sent when user hovers or clicks on an annotation card
     // in the sidebar.
+    // src/sidebar/services/frame-sync.ts
     this._sidebarRPC.on('hoverAnnotations', (tags: string[]) =>
       this._hoverAnnotations(tags),
     );
@@ -713,6 +733,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
 
     this._selectionObserver.disconnect();
     this._adder.destroy();
+    this._tag.destroy();
     this._bucketBarClient.destroy();
     this._clusterToolbar?.destroy();
 

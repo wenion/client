@@ -127,6 +127,7 @@ export type HostToSidebarEvent =
  * Events that the sidebar sends to the guest(s)
  */
 export type SidebarToGuestEvent =
+  | 'showAnnotationTags'
   /**
    * The sidebar is asking the guest(s) to delete an annotation.
    */
