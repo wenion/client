@@ -6,6 +6,7 @@ import type { Dispatch } from 'redux';
 import { createSelector } from 'reselect';
 
 import { hasOwn } from '../../../shared/has-own';
+import { ADDITIONAL_TAG } from '../../../shared/custom'
 import type { Annotation, SavedAnnotation } from '../../../types/api';
 import type { HighlightCluster } from '../../../types/shared';
 import * as metadata from '../../helpers/annotation-metadata';
@@ -127,6 +128,9 @@ function initializeAnnotation(
   let $cluster: HighlightCluster = 'other-content';
   if (annotation.user === currentUserId) {
     $cluster = isHighlight(annotation) ? 'user-highlights' : 'user-annotations';
+  }
+  if (annotation.tags && annotation.tags.includes(ADDITIONAL_TAG)) {
+    $cluster = 'custom-content';
   }
 
   return Object.assign({}, annotation, {

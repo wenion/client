@@ -23,11 +23,11 @@ function toPx(pixels: number) {
   return pixels.toString() + 'px';
 }
 
-const ARROW_HEIGHT = 30;
+const ARROW_HEIGHT = 35;
 
 // The preferred gap between the end of the text selection and the adder's
 // arrow position.
-const ARROW_H_MARGIN = -20;
+const ARROW_H_MARGIN = -10;
 
 /**
  * Return the closest ancestor of `el` which has been positioned.

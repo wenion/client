@@ -1,0 +1,1 @@
+export const ADDITIONAL_TAG = 'Additional relevant knowledge available!';

@@ -32,6 +32,7 @@ import type { AnnotationsService } from './annotations';
 import type { VideoAnnotationsService } from './video-annotations';
 import type { ToastMessengerService } from './toast-messenger';
 import type { QueryService } from './query';
+import { ADDITIONAL_TAG } from '../../shared/custom'
 
 /**
  * Return a minimal representation of an annotation that can be sent from the
@@ -492,8 +493,8 @@ export class FrameSyncService {
       if (tags.length) {
         tags.map(tag => {
           const annot = this._store.findAnnotationByTag(tag);
-          if (annot && annot.tags.length) {
-            guestRPC.call('showAnnotationTags', {tag: tag, tags: annot.tags})
+          if (annot && annot.tags.includes(ADDITIONAL_TAG)) {
+            guestRPC.call('showAnnotationTags', {tag: tag, tags: [ADDITIONAL_TAG,]})
           }
         })
       }

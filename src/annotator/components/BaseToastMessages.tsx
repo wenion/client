@@ -159,6 +159,7 @@ export function ToastMessages({
       aria-relevant="additions"
       className={classnames(
         'sidebar-message',
+        'space-y-10',
         // 'w-full h-min space-y-40',
         'flex flex-col'
       )}
