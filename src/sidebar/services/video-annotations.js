@@ -135,7 +135,7 @@ export class VideoAnnotationsService {
     // If the annotation is of type note or annotation, make sure
     // the appropriate tab is selected. If it is of type reply, user
     // stays in the selected tab.
-    this._store.selectTab('videoAnnotation');
+    this._store.selectTab('video');
 
     (annotation.references || []).forEach(parent => {
       // Expand any parents of this annotation.

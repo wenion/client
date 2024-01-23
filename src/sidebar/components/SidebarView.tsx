@@ -14,6 +14,7 @@ import SelectionTabs from './SelectionTabs';
 import SidebarContentError from './SidebarContentError';
 import ThreadList from './ThreadList';
 import VideoThreadList from './VideoThreadList';
+import MessageList from './MessageList';
 import { useRootThread } from './hooks/use-root-thread';
 import { useRootVideoThread } from './hooks/use-root-video-thread';
 import FilterStatus from './old-search/FilterStatus';
@@ -122,9 +123,6 @@ function SidebarView({
       queryService.getRecommendation(mainFrame.uri).then(
         result => frameSync.notification(result)
       )
-      queryService.getMessage().then(
-        results => results.map(result => toastMessenger.message(result))
-      )
     }
   }, [store, loadAnnotationsService, focusedGroupId, userId, searchUris]);
 
@@ -166,11 +164,9 @@ function SidebarView({
         <SidebarContentError errorType="group" onLoginRequest={onLogin} />
       )}
       {showTabs && <SelectionTabs isLoading={isLoading} />}
-      {selectedTab === 'videoAnnotation' ? (
-          <VideoThreadList threads={rootVideoThread.children} />
-        ) : (
-          <ThreadList threads={rootThread.children} />
-      )}
+      {selectedTab == 'video' && <VideoThreadList threads={rootVideoThread.children} />}
+      {selectedTab == 'message' && <MessageList onLogin={onLogin}/>}
+      {selectedTab != 'video' && selectedTab != 'message' && <ThreadList threads={rootThread.children} />}
       {showLoggedOutMessage && <LoggedOutMessage onLogin={onLogin} />}
     </div>
   );

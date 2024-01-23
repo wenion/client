@@ -18,7 +18,7 @@ export type ThreadState = {
     forcedVisible: string[];
     selected: string[];
     sortKey: keyof typeof sorters;
-    selectedTab: 'annotation' | 'note' | 'orphan' | 'videoAnnotation';
+    selectedTab: 'annotation' | 'note' | 'orphan' | 'video' | 'message';
   };
 };
 

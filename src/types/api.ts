@@ -416,9 +416,9 @@ export type SavedVideoAnnotation = VideoAnnotation & { id: string };
 
 export type RawMessageData = {
   type: string;
-  text: string;
-  pubid: string;
-  event_name: string;
+  id: string;
+  title: string;
+  message: string;
   date: string;
   show_flag?: boolean;
   unread_flag?: boolean;

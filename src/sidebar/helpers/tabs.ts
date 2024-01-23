@@ -12,7 +12,7 @@ export function tabForAnnotation(ann: Annotation): TabName {
   } else if (metadata.isPageNote(ann)) {
     return 'note';
   } else if (metadata.isVideoAnnotation(ann)) {
-    return 'videoAnnotation';
+    return 'video';
   } else {
     return 'annotation';
   }

@@ -39,6 +39,7 @@ import { StreamerService } from './services/streamer';
 import { TagsService } from './services/tags';
 import { ThreadsService } from './services/threads';
 import { ToastMessengerService } from './services/toast-messenger';
+import { PollMessageService } from './services/poll-message';
 import { QueryService } from './services/query';
 import { VideoAnnotationsService } from './services/video-annotations';
 import { createSidebarStore } from './store';
@@ -99,10 +100,12 @@ function initServices(
   autosaveService: AutosaveService,
   persistedDefaults: PersistedDefaultsService,
   serviceURL: ServiceURLService,
+  pollMessageService: PollMessageService,
 ) {
   autosaveService.init();
   persistedDefaults.init();
   serviceURL.init();
+  pollMessageService.init();
 }
 
 /**
@@ -161,6 +164,7 @@ function startApp(settings: SidebarSettings, appEl: HTMLElement) {
     .register('toastMessenger', ToastMessengerService)
     .register('queryService', QueryService)
     .register('videoAnnotationsService', VideoAnnotationsService)
+    .register('pollMessageService', PollMessageService)
     .register('store', { factory: createSidebarStore });
 
   // Register utility values/classes.

@@ -49,6 +49,7 @@ function HypothesisApp({
   const store = useSidebarStore();
   const profile = store.profile();
   const route = store.route();
+  const unreadMessages = store.unreadMessages();
   const isModalRoute = route === 'notebook' || route === 'profile';
 
   const backgroundStyle = useMemo(
@@ -64,6 +65,14 @@ function HypothesisApp({
       store.openSidebarPanel('help');
     }
   }, [isSidebar, profile, settings, store]);
+
+  useEffect(() => {
+    store.unreadMessages().map(
+      msg => {
+        toastMessenger.message(msg)}
+    );
+    store.removeFromUnreadMessage();
+  }, [unreadMessages])
 
   const isThirdParty = isThirdPartyService(settings);
 

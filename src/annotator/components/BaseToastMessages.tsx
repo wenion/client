@@ -62,9 +62,7 @@ function ToastMessageItem({
         markdown={message.message as string}
         style={textStyle}
       />
-      <div
-        className='flex flex-row justify-end'
-      >
+      <div className='flex flex-row justify-end'>
         <a
           title='date'
           className='text-xs leading-3 font-normal tracking-wide text-gray-400'
@@ -169,7 +167,7 @@ export function ToastMessages({
       aria-relevant="additions"
       className={classnames(
         'sidebar-message',
-        'space-y-10',
+        'space-y-6',
         // 'w-full h-min space-y-40',
         'flex flex-col'
       )}

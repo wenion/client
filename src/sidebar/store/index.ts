@@ -19,6 +19,7 @@ import { sessionModule } from './modules/session';
 import { sidebarPanelsModule } from './modules/sidebar-panels';
 import { toastMessagesModule } from './modules/toast-messages';
 import { videoAnnotationsModule } from './modules/video-annotations';
+import { messagesModule } from './modules/messages';
 import { videoDraftsModule } from './modules/video-drafts';
 import { viewerModule } from './modules/viewer';
 import { resultModule } from './modules/results';
@@ -67,6 +68,7 @@ export function createSidebarStore(settings: SidebarSettings) {
     resultModule,
     queryModule,
     whitelistModule,
+    messagesModule,
   ] as const;
   return createStore(modules, [settings], middleware);
 }

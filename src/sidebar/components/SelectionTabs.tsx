@@ -102,6 +102,7 @@ function SelectionTabs({
   const store = useSidebarStore();
   const selectedTab = store.selectedTab();
   const noteCount = store.noteCount();
+  const allMessageCount = store.allMessageCount();
   const videoAnnotationCount = store.videoAnnotationCount();
   const annotationCount = store.annotationCount();
   const orphanCount = store.orphanCount();
@@ -146,13 +147,22 @@ function SelectionTabs({
           Page Notes
         </Tab>
         <Tab
+          count={allMessageCount}
+          isWaitingToAnchor={isWaitingToAnchorAnnotations}
+          isSelected={selectedTab === 'message'}
+          label="Notifications"
+          onSelect={() => selectTab('message')}
+        >
+          Notifications
+        </Tab>
+        <Tab
           count={videoAnnotationCount}
           isWaitingToAnchor={isWaitingToAnchorAnnotations}
-          isSelected={selectedTab === 'videoAnnotation'}
-          label="Video Annotations"
-          onSelect={() => selectTab('videoAnnotation')}
+          isSelected={selectedTab === 'video'}
+          label="Video"
+          onSelect={() => selectTab('video')}
         >
-          Video Annotations
+          Video
         </Tab>
         {orphanCount > 0 && (
           <Tab
