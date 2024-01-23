@@ -41,6 +41,7 @@ import { ThreadsService } from './services/threads';
 import { ToastMessengerService } from './services/toast-messenger';
 import { QueryService } from './services/query';
 import { VideoAnnotationsService } from './services/video-annotations';
+import { TimerService } from './services/timer';
 import { createSidebarStore } from './store';
 import type { SidebarStore } from './store';
 import { disableOpenerForExternalLinks } from './util/disable-opener-for-external-links';
@@ -99,10 +100,12 @@ function initServices(
   autosaveService: AutosaveService,
   persistedDefaults: PersistedDefaultsService,
   serviceURL: ServiceURLService,
+  timerService: TimerService,
 ) {
   autosaveService.init();
   persistedDefaults.init();
   serviceURL.init();
+  timerService.init();
 }
 
 /**
@@ -161,6 +164,7 @@ function startApp(settings: SidebarSettings, appEl: HTMLElement) {
     .register('toastMessenger', ToastMessengerService)
     .register('queryService', QueryService)
     .register('videoAnnotationsService', VideoAnnotationsService)
+    .register('timerService', TimerService)
     .register('store', { factory: createSidebarStore });
 
   // Register utility values/classes.
