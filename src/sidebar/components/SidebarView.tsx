@@ -123,7 +123,7 @@ function SidebarView({
         result => frameSync.notification(result)
       )
       queryService.getMessage().then(
-        results => results.map(result => toastMessenger.message(result.type, result.pubid, result.event_name, result.text))
+        results => results.map(result => toastMessenger.message(result))
       )
     }
   }, [store, loadAnnotationsService, focusedGroupId, userId, searchUris]);

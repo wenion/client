@@ -413,3 +413,13 @@ export type VideoAnnotation = Annotation;
  * An annotation which has been saved to the backend and assigned an ID.
  */
 export type SavedVideoAnnotation = VideoAnnotation & { id: string };
+
+export type RawMessageData = {
+  type: string;
+  text: string;
+  pubid: string;
+  event_name: string;
+  date: string;
+  show_flag?: boolean;
+  unread_flag?: boolean;
+}

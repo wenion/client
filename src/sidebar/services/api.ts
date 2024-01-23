@@ -7,6 +7,7 @@ import type {
   QueryResponseObject,
   FileNode,
   EventData,
+  RawMessageData,
 } from '../../types/api';
 import { stripInternalProperties } from '../helpers/strip-internal-properties';
 import type { SidebarStore } from '../store';
@@ -239,7 +240,7 @@ export class APIService {
   typing: APICall<{ q: string }, void, {id: string, text: string;}[]>;
   push_recommendation: APICall<Record<string, unknown>, {id: string; url: string; type: string; title: string; query: string; context: string}>;
   pull_recommendation: APICall<{url: string}, void, {id: string; url: string; type: string; title: string; query: string; context: string}>;
-  message: APICall<Record<string, unknown>, void, {type: string; pubid: string; event_name: string; text: string}[]>;
+  message: APICall<Record<string, unknown>, void, RawMessageData[]>;
   upload: APICallExtend<Record<string, any>, string|Blob, Record<string, any>, unknown>;
   constructor(
     apiRoutes: APIRoutesService,
@@ -339,7 +340,7 @@ export class APIService {
     this.typing = apiCall('typing') as APICall<{ q: string }, void, {id: string, text: string;}[]>;
     this.push_recommendation = apiCall('push_recommendation') as APICall<Record<string, unknown>, {id: string; url: string; type: string; title: string; query: string; context: string}>;
     this.pull_recommendation = apiCall('pull_recommendation') as APICall<{url: string}, void, {id: string; url: string; type: string; title: string; query: string; context: string}>;
-    this.message = apiCall('message') as APICall<Record<string, unknown>, void, {type:string; pubid: string; event_name:string; text:string; }[]>;
+    this.message = apiCall('message') as APICall<Record<string, unknown>, void, RawMessageData[]>;
     this.upload = apiCallExtend('upload') as APICallExtend<Record<string, any>, string|Blob, Record<string, any>, unknown>;
 
   }

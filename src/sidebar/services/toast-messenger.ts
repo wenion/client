@@ -3,6 +3,7 @@ import { TinyEmitter } from 'tiny-emitter';
 
 import { generateHexString } from '../../shared/random';
 import type { SidebarStore } from '../store';
+import type { RawMessageData } from '../../types/api'
 
 /**
  * Additional control over the display of a particular message.
@@ -144,12 +145,13 @@ export class ToastMessengerService extends TinyEmitter {
   /**
    * Add a warn/notice toast message with `messageText`
    */
-  message(type: string, pubid: string, event_name: string, messageText: string, options?: MessageOptions) {
+  message(rawMessage: RawMessageData, options?: MessageOptions) {
     const message: ToastMessage = {
-      type: type,
-      title: event_name,
-      id: pubid,
-      message: messageText,
+      ...rawMessage,
+      type: rawMessage.type,
+      title: rawMessage.event_name,
+      id: rawMessage.pubid,
+      message: rawMessage.text,
       autoDismiss: false,
       visuallyHidden: true,
     };

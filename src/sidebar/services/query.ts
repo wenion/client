@@ -2,6 +2,8 @@ import type { SidebarSettings } from '../../types/config';
 import type { APIService } from './api';
 import type { SidebarStore } from '../store';
 
+import type { RawMessageData } from '../../types/api';
+
 /**
  * Send messages to configured ancestor frame on annotation activity
  */
@@ -24,7 +26,7 @@ export class QueryService {
     return await this._api.pull_recommendation({url: url});
   }
 
-  async getMessage(): Promise<{type:string; pubid: string; event_name:string; text:string;}[]>{
+  async getMessage(): Promise<RawMessageData[]>{
     return await this._api.message({q: 'organisation_event'});
   }
 

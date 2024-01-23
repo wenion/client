@@ -62,6 +62,16 @@ function ToastMessageItem({
         markdown={message.message as string}
         style={textStyle}
       />
+      <div
+        className={'flex flex-row justify-end'}
+      >
+        <a
+          title='date'
+          className={'text-xs leading-3 font-normal tracking-wide text-gray-400'}
+        >
+          {message.date}
+        </a>
+      </div>
     </Panel>
   )
 }
