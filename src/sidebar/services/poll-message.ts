@@ -38,6 +38,6 @@ export class PollMessageService {
       )
     }
     fetchNewMessage();
-    this._pollTimer = setInterval(fetchNewMessage, 60000);
+    this._pollTimer = setInterval(fetchNewMessage, 30000);
   }
 }

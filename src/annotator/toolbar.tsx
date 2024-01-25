@@ -7,6 +7,7 @@ export type ToolbarOptions = {
   createAnnotation: () => void;
   setSidebarOpen: (open: boolean) => void;
   setHighlightsVisible: (visible: boolean) => void;
+  setSilentMode: (visible: boolean) => void;
 };
 
 /**
@@ -20,9 +21,11 @@ export class ToolbarController {
   private _newAnnotationType: 'annotation' | 'note';
   private _useMinimalControls: boolean;
   private _highlightsVisible: boolean;
+  private _isSilentMode: boolean;
   private _sidebarOpen: boolean;
   private _closeSidebar: () => void;
   private _toggleSidebar: () => void;
+  private _toggleSilentMode: () => void;
   private _toggleHighlights: () => void;
   private _createAnnotation: () => void;
   private _sidebarToggleButton: RefObject<HTMLElement>;
@@ -31,13 +34,15 @@ export class ToolbarController {
    * @param container - Element into which the toolbar is rendered
    */
   constructor(container: HTMLElement, options: ToolbarOptions) {
-    const { createAnnotation, setSidebarOpen, setHighlightsVisible } = options;
+    const { createAnnotation, setSidebarOpen, setHighlightsVisible, setSilentMode } = options;
 
     this._container = container;
     this._useMinimalControls = false;
     this._newAnnotationType = 'note';
     this._highlightsVisible = false;
     this._sidebarOpen = false;
+    this._isSilentMode = false;
+    this._toggleSilentMode = () => setSilentMode(!this._isSilentMode);
 
     this._closeSidebar = () => setSidebarOpen(false);
     this._toggleSidebar = () => setSidebarOpen(!this._sidebarOpen);
@@ -110,6 +115,15 @@ export class ToolbarController {
     return this._highlightsVisible;
   }
 
+  set isSilentMode(visible) {
+    this._isSilentMode = visible;
+    this.render();
+  }
+
+  get isSilentMode() {
+    return this._isSilentMode;
+  }
+
   /**
    * Return the DOM element that toggles the sidebar's visibility.
    */
@@ -125,6 +139,8 @@ export class ToolbarController {
         newAnnotationType={this._newAnnotationType}
         isSidebarOpen={this._sidebarOpen}
         showHighlights={this._highlightsVisible}
+        isSilentMode={this._isSilentMode}
+        toggleSilentMode={this._toggleSilentMode}
         toggleHighlights={this._toggleHighlights}
         toggleSidebar={this._toggleSidebar}
         toggleSidebarRef={this._sidebarToggleButton}

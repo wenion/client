@@ -272,6 +272,7 @@ export class Sidebar implements Destroyable {
       },
       setSidebarOpen: open => (open ? this.open() : this.close()),
       setHighlightsVisible: show => this.setHighlightsVisible(show),
+      setSilentMode: silent => this.setVisuallyHidden(!silent),
     });
 
     if (config.theme === 'clean') {
@@ -710,6 +711,11 @@ export class Sidebar implements Destroyable {
 
     // Notify sidebar app of change which will in turn reflect state to guest frames.
     this._sidebarRPC.call('setHighlightsVisible', visible);
+  }
+
+  setVisuallyHidden(visible: boolean) {
+    this.toolbar.isSilentMode = !visible
+    this._sidebarRPC.call('setVisuallyHidden', visible);
   }
 
   /**

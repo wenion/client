@@ -422,4 +422,5 @@ export type RawMessageData = {
   date: string;
   show_flag?: boolean;
   unread_flag?: boolean;
+  need_save_flag?:boolean;
 }

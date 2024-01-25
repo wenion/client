@@ -69,7 +69,8 @@ function HypothesisApp({
   useEffect(() => {
     store.unreadMessages().map(
       msg => {
-        toastMessenger.message(msg)}
+        if (msg.show_flag)
+          toastMessenger.message(msg)}
     );
     store.removeFromUnreadMessage();
   }, [unreadMessages])

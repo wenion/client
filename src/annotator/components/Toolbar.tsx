@@ -7,6 +7,8 @@ import {
   HideIcon,
   NoteIcon,
   ShowIcon,
+  EmailFilledIcon,
+  RestrictedIcon,
 } from '@hypothesis/frontend-shared';
 import type { ButtonProps } from '@hypothesis/frontend-shared/lib/components/input/Button';
 import type {
@@ -83,6 +85,9 @@ export type ToolbarProps = {
   /** Are highlights currently visible in the document? */
   showHighlights: boolean;
 
+  isSilentMode: boolean;
+  toggleSilentMode: () => void;
+
   /** Callback for the show/hide highlights button */
   toggleHighlights: () => void;
 
@@ -119,6 +124,8 @@ export default function Toolbar({
   isSidebarOpen,
   newAnnotationType,
   showHighlights,
+  isSilentMode,
+  toggleSilentMode,
   toggleHighlights,
   toggleSidebar,
   toggleSidebarRef,
@@ -178,6 +185,12 @@ export default function Toolbar({
             {isSidebarOpen ? <CaretRightIcon /> : <CaretLeftIcon />}
           </Button>
           <div className="space-y-px-1.5 mt-px-2">
+            <ToolbarButton
+              title={isSilentMode ? 'Silent mode on' : 'Silent mode off'}
+              icon={isSilentMode ? RestrictedIcon : EmailFilledIcon}
+              selected={!isSilentMode}
+              onClick={toggleSilentMode}
+            />
             <ToolbarButton
               title="Show highlights"
               icon={showHighlights ? ShowIcon : HideIcon}

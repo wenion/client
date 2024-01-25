@@ -12,7 +12,7 @@ import {
 } from '../../shared/messaging';
 import type { Message } from '../../shared/messaging';
 import type { AnnotationData, DocumentInfo, PullingData } from '../../types/annotator';
-import type { Annotation, EventData } from '../../types/api';
+import type { Annotation, EventData, RawMessageData } from '../../types/api';
 import type {
   SidebarToHostEvent,
   HostToSidebarEvent,
@@ -552,6 +552,10 @@ export class FrameSyncService {
       this._guestRPC.forEach(rpc => rpc.call('setHighlightsVisible', visible));
     });
 
+    this._hostRPC.on('setVisuallyHidden', (visible: boolean) => {
+      this._toastMessenger.setVisuallyHidden(visible)
+    });
+
     this._hostRPC.on('postRating', (data: PullingData) => {
       this._queryService.postRating(data);
     });
@@ -699,8 +703,8 @@ export class FrameSyncService {
       // Forward hidden messages to "host" when sidebar is collapsed, with the
       // intention that another container can be used to render those messages
       // there, ensuring screen readers announce them.
-      if (message.visuallyHidden && !this._sidebarIsOpen && message.type as ToastMessage["type"]) {
-      // to src/annotator/sidebar.tsx
+      if (message.visuallyHidden && 'show_flag' in message) {
+        // to src/annotator/sidebar.tsx
         this.notifyHost('toastMessageAdded', message);
       }
     });

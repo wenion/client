@@ -46,41 +46,31 @@ function findByID(annotations: RawMessageData[], id: string) {
 // }
 
 const reducers = {
-  ADD_MESSAGES(state: State, action: { messages: RawMessageData[] }) {
+  ADD_MESSAGES(state: State, action: { messages: RawMessageData[] }): Partial<State> {
     const added = [];
-    const unread_added = [];
     for (const msg of action.messages) {
       let existing;
       if (msg.id) {
-        existing = findByID(state.messages, msg.id)
+        existing = findByID(added, msg.id)
       }
       if (!existing) {
-        if (msg.unread_flag) {
-          unread_added.push(msg)
-        }
-        else {
-          added.push(msg)
-        }
+        added.push(msg)
       }
     }
-
-    console.log("added", added)
-    console.log("unread_added", unread_added)
-
     return {
-      messages: state.messages.concat(added),
-      unreadMessages: state.unreadMessages.concat(unread_added),
+      unreadMessages: added,
     };
   },
 
   REMOVE_FROM_UNREAD_MESSAGE(state: State) {
     const added = [];
     for (const msg of state.unreadMessages) {
+      msg.unread_flag = false;
       let existing;
       if (msg.id) {
         existing = findByID(state.messages, msg.id)
       }
-      if (!existing) {
+      if (!existing && msg.need_save_flag) {
         added.push(msg)
       }
     }
@@ -124,7 +114,7 @@ function unreadMessageCount(state: State) {
 }
 
 function allMessageCount(state: State) {
-  return state.messages.length + state.unreadMessages.length;
+  return state.messages.length;
 }
 
 function allMessages(state: State) {
