@@ -1,4 +1,4 @@
-import { Card, CardContent } from '@hypothesis/frontend-shared';
+import { Card, CardContent, CardHeader } from '@hypothesis/frontend-shared';
 import { useEffect, useState } from 'preact/hooks';
 import classnames from 'classnames';
 
@@ -65,23 +65,22 @@ export default function MessageList({
             // onMouseLeave={() => setThreadHovered(null)}
             key={child.id}
           >
+            <CardHeader>
+              <div className='flex gap-x-1 items-baseline flex-wrap-reverse'>
+                <h3 className='text-color-text font-bold'>
+                  {child.title}
+                </h3>
+                <div className='justify-end grow' />
+                <a
+                  title='date'
+                  className='text-xs leading-3 font-normal tracking-wide text-gray-400'
+                >
+                  {child.date}
+                </a>
+              </div>
+            </CardHeader>
             <CardContent>
               <article className='space-y-4'>
-                <header>
-                  <div className='flex gap-x-1 items-baseline flex-wrap-reverse'>
-                    <h3 className='text-color-text font-bold'>
-                      {child.title}
-                    </h3>
-                    <div className='flex justify-end grow'>
-                      <a
-                        title='date'
-                        className='text-xs leading-3 font-normal tracking-wide text-gray-400'
-                      >
-                        {child.date}
-                      </a>
-                    </div>
-                  </div>
-                </header>
                 <div className='space-y-4'>
                   <MarkdownView
                     markdown={child.message as string}
