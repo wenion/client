@@ -2,6 +2,7 @@ import { ProfileIcon } from '@hypothesis/frontend-shared';
 import { useState } from 'preact/hooks';
 
 import type { Service, SidebarSettings } from '../../types/config';
+import type { TabName } from '../../types/sidebar';
 import { serviceConfig } from '../config/service-config';
 import {
   isThirdPartyUser,
@@ -30,6 +31,7 @@ function UserMenu({ frameSync, onLogout, settings }: UserMenuProps) {
   const store = useSidebarStore();
   const defaultAuthority = store.defaultAuthority();
   const profile = store.profile();
+  const allMessageCount = store.allMessageCount();
 
   const isThirdParty = isThirdPartyUser(profile.userid, defaultAuthority);
   const service = serviceConfig(settings);
@@ -56,6 +58,12 @@ function UserMenu({ frameSync, onLogout, settings }: UserMenuProps) {
     frameSync.notifyHost('openNotebook', store.focusedGroupId());
   };
   const onSelectProfile = () => frameSync.notifyHost('openProfile');
+
+  const selectTab = (tabId: TabName) => {
+    store.clearSelection();
+    store.selectTab(tabId);
+  };
+  const onSelectNotification = () => selectTab('message');
 
   // Access to the Notebook:
   // type the key 'n' when user menu is focused/open
@@ -99,6 +107,7 @@ function UserMenu({ frameSync, onLogout, settings }: UserMenuProps) {
             href={profileHref}
             onClick={isSelectableProfile ? onProfileSelected : undefined}
           />
+          <MenuItem label={"Notifications["+ allMessageCount + "]"} onClick={() => onSelectNotification()} />
           {!isThirdParty && (
             <MenuItem
               label="Account settings"

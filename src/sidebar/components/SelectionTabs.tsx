@@ -146,15 +146,17 @@ function SelectionTabs({
         >
           Page Notes
         </Tab>
-        <Tab
-          count={allMessageCount}
-          isWaitingToAnchor={isWaitingToAnchorAnnotations}
-          isSelected={selectedTab === 'message'}
-          label="Notifications"
-          onSelect={() => selectTab('message')}
-        >
-          Notifications
-        </Tab>
+        {selectedTab === 'message' && (
+          <Tab
+            count={allMessageCount}
+            isWaitingToAnchor={isWaitingToAnchorAnnotations}
+            isSelected={selectedTab === 'message'}
+            label="Notifications"
+            onSelect={() => selectTab('message')}
+          >
+            Notifications
+          </Tab>
+        )}
         <Tab
           count={videoAnnotationCount}
           isWaitingToAnchor={isWaitingToAnchorAnnotations}
