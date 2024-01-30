@@ -48,6 +48,7 @@ import {
 import { SelectionObserver } from './selection-observer';
 import { frameFillsAncestor } from './util/frame';
 import { normalizeURI } from './util/url';
+import { getFullXPath, getXPath } from './util/xpath';
 
 /** HTML element created by the highlighter with an associated annotation. */
 type AnnotationHighlight = HTMLElement & { _annotation?: AnnotationData };
@@ -387,7 +388,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
           const element = event.target as Element;
           if (element && element.tagName) {
             this._handlePageEvent('keydown', response, element.tagName, event.key,
-            event.code, "KEYBOARD", "", "", 0, 0, "");
+            event.code, "KEYBOARD", "", getXPath(element), 0, 0, "");
           }
         }
       ).catch(
@@ -416,7 +417,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
         response => {
           if (clickElement && clickElement instanceof HTMLInputElement) {
             this._handlePageEvent(event.type, response, clickElement.tagName, clickElement.innerText,
-              "", "MOUSE", "", "", event.offsetX, event.offsetY, "");
+              "", "MOUSE", "", getXPath(clickElement), event.offsetX, event.offsetY, "");
           }
         }
       )
@@ -451,7 +452,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
           }
         })
         this._handlePageEvent('submit', target.action, "SUBMIT", JSON.stringify(formContent),
-        target.action, "OTHER", "", "", 0, 0, "")
+        target.action, "OTHER", "", getXPath(target), 0, 0, "")
       }
     });
   }
