@@ -6,11 +6,13 @@ import { createStoreModule, makeAction } from '../create-store';
 import type { RawMessageData } from '../../../types/api'
 
 const initialState = {
+  activated: false,
   interval: 20000,
   messages: [],
   unreadMessages: [],
 } as {
   /** Set of currently-loaded annotations */
+  activated: boolean;
   interval: number;
   messages: RawMessageData[];
   unreadMessages: RawMessageData[];
@@ -84,6 +86,10 @@ const reducers = {
   SET_INTERVAL(state: State, action: {value: number | null}): Partial<State> {
     return { interval: action.value == null? 30000 : action.value};
   },
+
+  SET_ACTIVATED(state: State, action: {value: boolean}): Partial<State> {
+    return { activated: action.value};
+  },
 };
 
 /* Action creators */
@@ -107,6 +113,10 @@ function clearMessages() {
 
 function setInterval(value: number | null) {
   return makeAction(reducers, 'SET_INTERVAL', { value });
+}
+
+function setActivated(value: boolean) {
+  return makeAction(reducers, 'SET_ACTIVATED', { value });
 }
 
 /* Selectors */
@@ -138,6 +148,10 @@ function getInterval(state: State) {
   return state.interval;
 }
 
+function getActivated(state: State) {
+  return state.activated;
+}
+
 export const messagesModule = createStoreModule(initialState, {
   namespace: 'messagess',
   reducers,
@@ -146,6 +160,7 @@ export const messagesModule = createStoreModule(initialState, {
     removeFromUnreadMessage,
     clearMessages,
     setInterval,
+    setActivated,
   },
   selectors: {
     allMessages,
@@ -153,6 +168,7 @@ export const messagesModule = createStoreModule(initialState, {
     unreadMessageCount,
     allMessageCount,
     getInterval,
+    getActivated,
     findMessagesByPubid,
   },
 });

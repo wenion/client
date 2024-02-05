@@ -379,6 +379,10 @@ export class FrameSyncService {
 
     this._guestRPC.set(sourceId, guestRPC);
 
+    guestRPC.on('onFocusChanged', (activated: boolean) => {
+      this._store.setActivated(activated)
+    });
+
     // Update document metadata for this guest. The guest will call this method
     // immediately after it connects to the sidebar. It may call it again
     // later if the document in the guest frame is navigated.

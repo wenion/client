@@ -23,17 +23,19 @@ export class PollMessageService {
   }
 
   fetchMessage(q: string, interval: number) {
-    this._api.message({q: q, interval: interval}).then(
-      response => {
-        response.map(r => {
-          if (r.interval) {
-            this._store.setInterval(r.interval)
-          }
-        })
-        this._store.addMessages(response);
-        return response;
-      }
-    )
+    if (this._store.getActivated()) {
+      this._api.message({q: q, interval: interval}).then(
+        response => {
+          response.map(r => {
+            if (r.interval) {
+              this._store.setInterval(r.interval)
+            }
+          })
+          this._store.addMessages(response);
+          return response;
+        }
+      )
+    }
     setTimeout(() => this.fetchMessage('organisation_event', this._store.getInterval()), this._store.getInterval());
   }
 
