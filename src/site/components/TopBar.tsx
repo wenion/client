@@ -15,7 +15,7 @@ import { useSidebarStore } from '../../sidebar/store';
 import ThirdPartyMenu from './ThirdPartyMenu';
 import Search from './Search';
 import UserMenu from './UserMenu';
-import LogoIcon from '../static/logo-monash';
+import LogoIcon from '../static/logo-gm';
 
 export type TopBarProps = {
   /** Flag indicating whether the app is in a sidebar context */
@@ -75,7 +75,7 @@ function TopBar({
     <div>
       <header class="nav-bar">
         <div class="nav-bar__content justify-center">
-          <a href="https://colam.kmass.cloud.edu.au/" title="CoLAM homepage" class="nav-bar__logo-container mx-12">
+          <a href="https://colam.kmass.cloud.edu.au/" title="GoldMind homepage" class="nav-bar__logo-container mx-12">
             <LogoIcon />
           </a>
           <Search inputRef={inputRef} />

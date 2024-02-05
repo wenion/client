@@ -19,6 +19,7 @@ import {
 import { ServiceContext } from '../sidebar/service-context';
 import { AnnotationActivityService } from '../sidebar/services/annotation-activity';
 import { AnnotationsService } from '../sidebar/services/annotations';
+import { AnnotationsExporter } from '../sidebar/services/annotations-exporter';
 import { APIService } from '../sidebar/services/api';
 import { APIRoutesService } from '../sidebar/services/api-routes';
 import { AuthService } from '../sidebar/services/auth';
@@ -26,6 +27,7 @@ import { AutosaveService } from '../sidebar/services/autosave';
 import { FileTreeService } from '../sidebar/services/file-tree';
 import { FrameSyncService } from '../sidebar/services/frame-sync';
 import { GroupsService } from '../sidebar/services/groups';
+// import { ImportAnnotationsService } from '../sidebar/services/import-annotations';
 import { LoadAnnotationsService } from '../sidebar/services/load-annotations';
 import { LocalStorageService } from '../sidebar/services/local-storage';
 import { PersistedDefaultsService } from '../sidebar/services/persisted-defaults';
@@ -37,6 +39,8 @@ import { StreamerService } from '../sidebar/services/streamer';
 import { TagsService } from '../sidebar/services/tags';
 import { ThreadsService } from '../sidebar/services/threads';
 import { ToastMessengerService } from '../sidebar/services/toast-messenger';
+import { PollMessageService } from '../sidebar/services/poll-message';
+import { RecordingService } from '../sidebar/services/recording';
 import { QueryService } from '../sidebar/services/query';
 import { VideoAnnotationsService } from '../sidebar/services/video-annotations';
 import { createSidebarStore } from '../sidebar/store';
@@ -122,8 +126,8 @@ function startApp(settings: SidebarSettings, appEl: HTMLElement) {
 
   // Register services.
   container
+    // .register('annotationsExporter', AnnotationsExporter)
     .register('annotationsService', AnnotationsService)
-    // .register('videoAnnotationsService', VideoAnnotationsService)
     .register('annotationActivity', AnnotationActivityService)
     .register('api', APIService)
     .register('apiRoutes', APIRoutesService)
@@ -132,6 +136,7 @@ function startApp(settings: SidebarSettings, appEl: HTMLElement) {
     .register('fileTreeService', FileTreeService)
     .register('frameSync', FrameSyncService)
     .register('groups', GroupsService)
+    // .register('importAnnotationsService', ImportAnnotationsService)
     .register('loadAnnotationsService', LoadAnnotationsService)
     .register('localStorage', LocalStorageService)
     .register('persistedDefaults', PersistedDefaultsService)
@@ -143,8 +148,10 @@ function startApp(settings: SidebarSettings, appEl: HTMLElement) {
     .register('tags', TagsService)
     .register('threadsService', ThreadsService)
     .register('toastMessenger', ToastMessengerService)
-    .register('videoAnnotationsService', VideoAnnotationsService)
+    .register('recordingService', RecordingService)
     .register('queryService', QueryService)
+    .register('videoAnnotationsService', VideoAnnotationsService)
+    // .register('pollMessageService', PollMessageService)
     .register('store', { factory: createSidebarStore });
 
   // Register utility values/classes.
