@@ -244,7 +244,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
 
   private _listeners: ListenerCollection;
 
-  private _lastScrollEvent: Event | null;
+  private _lastScrollEvent: {timeStamp: number, scrollX: number, scrollY: number} | null;
 
   /**
    * Tags of currently hovered annotations. This is used to set the hovered
@@ -366,16 +366,19 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       // TODO need to double checks
       // Set viewport
       if (typeof url === 'string' && target != undefined) {
-        this._handlePageEvent('open', url, "OPEN", "open page string", "RESOURCE PAGE", "OTHER", target,
-        "", 0, 0, "");
+        this._handlePageEvent('open', url, 'OPEN', 'open page string', 'RESOURCE PAGE',
+        'OTHER', target, '', 0, 0, '',
+        '', '', window.innerWidth, window.innerHeight);
       }
       else if (url instanceof URL && target != undefined) {
-        this._handlePageEvent('open', url.href, "OPEN", "open page url", "RESOURCE PAGE", "OTHER", target,
-        "", 0, 0, "");
+        this._handlePageEvent('open', url.href, 'OPEN', 'open page url', 'RESOURCE PAGE',
+        '', target, '', 0, 0, '',
+        '', '', window.innerWidth, window.innerHeight);
       }
       else {
-        this._handlePageEvent('open', window.location.href, "OPEN", "open page undefined", "RESOURCE PAGE", "OTHER", target == undefined? "undefined": target,
-        "", 0, 0, "");
+        this._handlePageEvent('open', window.location.href, 'OPEN', 'open page undefined', 'RESOURCE PAGE',
+        '', target == undefined? 'undefined': target, '', 0, 0, '',
+        '', '', window.innerWidth, window.innerHeight);
       }
       // Return the newly opened window object
       return newWindow;
@@ -387,8 +390,9 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
         response => {
           const element = event.target as Element;
           if (element && element.tagName) {
-            this._handlePageEvent('keydown', response, element.tagName, event.key,
-            event.code, "KEYBOARD", "", getXPath(element), 0, 0, "");
+            this._handlePageEvent('keydown', response, element.tagName, event.key, event.code,
+            'KEYBOARD', '', getXPath(element), 0, 0, '',
+            '', '', window.innerWidth, window.innerHeight);
           }
         }
       ).catch(
@@ -402,11 +406,15 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       // Perform actions or show a confirmation dialog here
       this._integration.uri().then(
         response => {
-          this._handlePageEvent('beforeunload', response, "CLOSE", "close page", "RESOURCE PAGE", "OTHER", "", "", 0, 0, "");
+          this._handlePageEvent('beforeunload', response, "CLOSE", "close page", "RESOURCE PAGE",
+          "OTHER", "", "", 0, 0, "",
+          '', '', window.innerWidth, window.innerHeight);
         }
       ).catch(
         error => {
-          this._handlePageEvent('beforeunload', window.location.href, "CLOSE", "close page error" + error.toString(), "RESOURCE PAGE", "OTHER", "", "", 0, 0, "");
+          this._handlePageEvent('beforeunload', window.location.href, "CLOSE", "close page error" + error.toString(), "RESOURCE PAGE",
+          "OTHER", "", "", 0, 0, "",
+          '', '', window.innerWidth, window.innerHeight);
         }
       )
     });
@@ -414,11 +422,14 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     this._listeners.add(this.element, 'click', event => {
       const clickElement = event.target as Element;
       this._integration.uri().then(
-        response => {
+        url => {
+          let textContent = ''
           if (clickElement && clickElement instanceof HTMLInputElement) {
-            this._handlePageEvent(event.type, response, clickElement.tagName, clickElement.innerText,
-              "", "MOUSE", "", getXPath(clickElement), event.offsetX, event.offsetY, "");
+            textContent = clickElement.innerText;
           }
+            this._handlePageEvent(event.type, url, clickElement.tagName, textContent, '',
+              'MOUSE', '', getXPath(clickElement), event.clientX, event.clientY, '',
+              '', '', window.innerWidth, window.innerHeight);
         }
       )
     });
@@ -427,16 +438,30 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       const interval = 20;
       const currentEvent = event;
 
-
-      if (this._lastScrollEvent == null) this._lastScrollEvent = currentEvent;
+      if (this._lastScrollEvent == null) {
+        this._lastScrollEvent = {
+          timeStamp: currentEvent.timeStamp,
+          scrollX: window.scrollX,
+          scrollY: window.scrollY,
+      }}
       if (currentEvent.timeStamp - this._lastScrollEvent.timeStamp > interval) {
+        let textContent = (
+          this._lastScrollEvent.scrollY - window.scrollY > 0? 'SCROLL UP' : this._lastScrollEvent.scrollY - window.scrollY < 0? 'SCROLL DOWN': 'N/A') + 
+          (this._lastScrollEvent.scrollX - window.scrollX > 0? ':SCROLL LEFT' : this._lastScrollEvent.scrollX - window.scrollX < 0? ':SCROLL RIGHT': ':N/A')
         this._integration.uri().then(
-          response => {
-            this._handlePageEvent('scroll', response, "WINDOW", "", "", "MOUSE", "document", "", window.scrollX, window.scrollY, "");
+          url => {
+            this._handlePageEvent('scroll', url, 'WINDOW', textContent, '',
+            'MOUSE', 'document', getXPath(this._integration.contentContainer()), window.scrollX, window.scrollY, '',
+            '', '', document.body.clientWidth, document.body.clientHeight
+            );
           }
         )
+        this._lastScrollEvent = {
+          timeStamp: currentEvent.timeStamp,
+          scrollX: window.scrollX,
+          scrollY: window.scrollY,
+        };
       }
-      this._lastScrollEvent = event;
     });
 
     this._listeners.add(this.element, 'submit', event => {
@@ -447,12 +472,13 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
         const formElements = Array.from(target.elements);
         formElements.map((element, index) => {
           if (element instanceof HTMLInputElement) {
-            if (element.name.toLowerCase() != "password")
+            if (element.name.toLowerCase() != "password") //TODO
               formContent.push({name: element.name, value: element.value})
           }
         })
-        this._handlePageEvent('submit', target.action, "SUBMIT", JSON.stringify(formContent),
-        target.action, "OTHER", "", getXPath(target), 0, 0, "")
+        this._handlePageEvent('submit', target.action, "SUBMIT", JSON.stringify(formContent), target.action,
+        "OTHER", "", getXPath(target), 0, 0, '',
+        '', '', window.innerWidth, window.innerHeight)
       }
     });
   }
@@ -963,9 +989,11 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     this._hostRPC.call('textSelected');
 
     this._integration.uri().then(
-      response => {
-        this._handlePageEvent('select', response, 'SELECT', selection.toString(),
-        "", "OTHER", "", "", 0, 0, "")
+      url => {
+        this._handlePageEvent('select', url, 'SELECT', selection.toString(), '',
+          'OTHER', '', getXPath(this._integration.contentContainer()), 0, 0, '',
+          '', '', document.body.clientWidth, document.body.clientHeight
+          )
       }
     )
 
@@ -1064,12 +1092,18 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     tagName: string,
     textContent: string,
     interaction_context: string,
+
     event_source: string,
     target: string,
     x_path: string, // TODO https://stackoverflow.com/questions/2631820/how-do-i-ensure-saved-click-coordinates-can-be-reload-to-the-same-place-even-if/2631931#2631931
     offset_x: number,
     offset_y: number,
     doc_id: string,
+
+    session_id: string,
+    task_name: string,
+    width: number,
+    height: number,
     ) {
     const userEvent: EventData = {
       event_type: type,
@@ -1083,8 +1117,12 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       x_path: x_path,
       offset_x: offset_x,
       offset_y: offset_y,
+      session_id: session_id,
+      task_name: task_name,
+      width: width,
+      height: height,
       doc_id: "",
-      userid: "initialValue",
+      userid: "",
     };
     this._sidebarRPC.call('createUserEvent', userEvent);
   }

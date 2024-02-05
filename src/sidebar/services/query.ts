@@ -26,9 +26,9 @@ export class QueryService {
     return await this._api.pull_recommendation({url: url});
   }
 
-  async getMessage(): Promise<RawMessageData[]>{
-    return await this._api.message({q: 'organisation_event'});
-  }
+  // async getMessage(): Promise<RawMessageData[]>{
+  //   return await this._api.message({q: 'organisation_event'});
+  // }
 
   getQueryWord() {
     const query = this._store.queryingWord();
@@ -95,5 +95,4 @@ export class QueryService {
       console.error(err);
     }
   }
-
 }

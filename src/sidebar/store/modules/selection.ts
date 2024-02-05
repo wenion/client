@@ -19,7 +19,8 @@ const TAB_SORTKEY_DEFAULT: Record<TabName, SortKey> = {
   note: 'Oldest',
   orphan: 'Location',
   video: 'Location',
-  message: 'Newest',
+  message: 'Location',
+  recording: 'Location',
 };
 
 function initialSelection(settings: SidebarSettings): BooleanMap {

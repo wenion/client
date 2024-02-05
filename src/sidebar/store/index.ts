@@ -24,6 +24,7 @@ import { videoDraftsModule } from './modules/video-drafts';
 import { viewerModule } from './modules/viewer';
 import { resultModule } from './modules/results';
 import { queryModule } from './modules/query';
+import { recordingsModule } from './modules/recordings';
 import { useStore } from './use-store';
 import { whitelistModule } from './modules/whitelist';
 
@@ -69,6 +70,7 @@ export function createSidebarStore(settings: SidebarSettings) {
     queryModule,
     whitelistModule,
     messagesModule,
+    recordingsModule,
   ] as const;
   return createStore(modules, [settings], middleware);
 }

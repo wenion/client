@@ -1,7 +1,4 @@
 import type { SidebarStore } from '../store';
-import type { APIRoutesService } from './api-routes';
-import type { QueryService } from './query';
-import type { ToastMessengerService } from './toast-messenger'
 import type { APIService } from './api';
 
 /**
@@ -18,26 +15,29 @@ import type { APIService } from './api';
  */
 export class PollMessageService {
   private _api: APIService;
-  private _toastMessenger: ToastMessengerService;
   private _store: SidebarStore;
-  private _pollTimer: number | undefined;
 
-  constructor(api: APIService, toastMessenger: ToastMessengerService, store: SidebarStore, ) {
+  constructor(api: APIService, store: SidebarStore, ) {
     this._api = api;
-    this._toastMessenger = toastMessenger;
     this._store = store;
-    this._pollTimer = undefined;
   }
-  
-  async init() {
-    const fetchNewMessage = () => {
-      this._api.message({q: 'organisation_event'}).then(
-        response => {
-          this._store.addMessages(response)
-        }
-      )
-    }
-    fetchNewMessage();
-    this._pollTimer = setInterval(fetchNewMessage, 30000);
+
+  fetchMessage(q: string, interval: number) {
+    this._api.message({q: q, interval: interval}).then(
+      response => {
+        response.map(r => {
+          if (r.interval) {
+            this._store.setInterval(r.interval)
+          }
+        })
+        this._store.addMessages(response);
+        return response;
+      }
+    )
+    setTimeout(() => this.fetchMessage('organisation_event', this._store.getInterval()), this._store.getInterval());
+  }
+
+  init() {
+    const test = this.fetchMessage('organisation_event', 0)
   }
 }

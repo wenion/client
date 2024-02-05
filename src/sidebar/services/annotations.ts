@@ -173,11 +173,16 @@ export class AnnotationsService {
       return;
     }
 
+    const sessionId = this._store.getNewRecording()?.sessionId;
+    const taskName = this._store.getNewRecording()?.taskName;
     const userEventData = {
       ...eventData,
+      session_id: sessionId ? sessionId : '',
+      task_name: taskName ? taskName : '',
       userid: userid,
     }
 
+    console.log(userEventData)
     if (userEventData.base_url.includes("://")) {
       let url = new URL(userEventData.base_url)
 

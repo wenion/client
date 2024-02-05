@@ -32,6 +32,7 @@ import type { AnnotationsService } from './annotations';
 import type { VideoAnnotationsService } from './video-annotations';
 import type { ToastMessengerService } from './toast-messenger';
 import type { QueryService } from './query';
+import { RecordingService } from './recording';
 import { ADDITIONAL_TAG } from '../../shared/custom'
 
 /**
@@ -108,6 +109,7 @@ export class FrameSyncService {
   private _annotationsService: AnnotationsService;
   private _videoAnnotationsService: VideoAnnotationsService;
   private _queryService: QueryService;
+  private _recordingService: RecordingService;
 
   /**
    * Map of guest frame ID to channel for communicating with guest.
@@ -184,6 +186,7 @@ export class FrameSyncService {
     annotationsService: AnnotationsService,
     videoAnnotationsService: VideoAnnotationsService,
     queryService: QueryService,
+    recordingService: RecordingService,
     store: SidebarStore,
     toastMessenger: ToastMessengerService,
   ) {
@@ -191,6 +194,7 @@ export class FrameSyncService {
     this._annotationsService = annotationsService;
     this._videoAnnotationsService = videoAnnotationsService;
     this._queryService = queryService;
+    this._recordingService = recordingService;
     this._store = store;
     this._toastMessenger = toastMessenger;
     this._portFinder = new PortFinder({
@@ -224,6 +228,7 @@ export class FrameSyncService {
     this._setupSiteEvents();
     this._setupFeatureFlagSync();
     this._setupToastMessengerEvents();
+    this._setupStatusSync();
   }
 
   /**
@@ -553,7 +558,20 @@ export class FrameSyncService {
     });
 
     this._hostRPC.on('setVisuallyHidden', (visible: boolean) => {
-      this._toastMessenger.setVisuallyHidden(visible)
+      this._recordingService.refreshSilentMode(visible)
+      this._toastMessenger.setVisuallyHidden(!visible)
+    });
+
+    this._hostRPC.on('requestRecord', () => {
+      this._store.selectTab('recording');
+      this._store.changeRecordingStage('Request');
+    });
+
+    this._hostRPC.on('endRecord', () => {
+      this._store.selectTab('recording');
+      this._recordingService.clearNewRecording();
+      this._store.changeRecordingStage('Idle');
+      this._recordingService.updateRecordings(); //TODO
     });
 
     this._hostRPC.on('postRating', (data: PullingData) => {
@@ -711,6 +729,40 @@ export class FrameSyncService {
     this._toastMessenger.on('toastMessageDismissed', (messageId: string) => {
       this.notifyHost('toastMessageDismissed', messageId);
     });
+  }
+
+  private _setupStatusSync() {
+    this._recordingService.on(
+      'statusChanged', (
+        status: {
+        isSilentMode: boolean,
+        isRecording: boolean,
+        recordingSessionId: string,
+        recordingTaskName: string,
+      }) => {
+        if (status) {
+          const storageStatus = status
+          if (storageStatus && storageStatus.isRecording) {
+            this._recordingService.createNewRecording(
+              storageStatus.recordingTaskName,
+              storageStatus.recordingSessionId,
+              '')
+          }
+          else if (storageStatus && !storageStatus.isRecording) {
+            this._recordingService.clearNewRecording();
+            this._recordingService.updateRecordings();
+          }
+          this.notifyHost('statusUpdated', {
+            isSilentMode: status.isSilentMode,
+            isRecording: status.isRecording,
+            recordingTaskName: status.recordingTaskName,
+            recordingSessionId: status.recordingSessionId,
+      })}
+    })
+  }
+
+  afterConnection() {
+    this._recordingService.init()
   }
 
   /**

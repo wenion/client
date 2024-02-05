@@ -107,6 +107,8 @@ export type HostToGuestEvent =
  * Events that the host sends to the sidebar
  */
 export type HostToSidebarEvent =
+  | 'endRecord'
+  | 'requestRecord'
   | 'setVisuallyHidden'
   | 'postRating'
   /**
@@ -168,6 +170,8 @@ export type SidebarToGuestEvent =
  * Events that the sidebar sends to the host
  */
 export type SidebarToHostEvent =
+  |'statusUpdated'
+  |'startRecord'
   |'pullRecommendation'
   /**
    * The sidebar relays to the host to close the sidebar.

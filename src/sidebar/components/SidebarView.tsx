@@ -4,9 +4,8 @@ import { tabForAnnotation } from '../helpers/tabs';
 import { withServices } from '../service-context';
 import type { FrameSyncService } from '../services/frame-sync';
 import type { LoadAnnotationsService } from '../services/load-annotations';
-import type { QueryService } from '../services/query';
+import type { RecordingService } from '../services/recording';
 import type { StreamerService } from '../services/streamer';
-import type { ToastMessengerService } from '../services/toast-messenger';
 import { useSidebarStore } from '../store';
 import LoggedOutMessage from './LoggedOutMessage';
 import LoginPromptPanel from './LoginPromptPanel';
@@ -14,7 +13,8 @@ import SelectionTabs from './SelectionTabs';
 import SidebarContentError from './SidebarContentError';
 import ThreadList from './ThreadList';
 import VideoThreadList from './VideoThreadList';
-import MessageList from './MessageList';
+import MessageTab from './MessageTab';
+import RecordingTab from './RecordingTab';
 import { useRootThread } from './hooks/use-root-thread';
 import { useRootVideoThread } from './hooks/use-root-video-thread';
 import FilterStatus from './old-search/FilterStatus';
@@ -26,10 +26,9 @@ export type SidebarViewProps = {
 
   // injected
   frameSync: FrameSyncService;
-  queryService: QueryService;
   loadAnnotationsService: LoadAnnotationsService;
+  recordingService: RecordingService;
   streamer: StreamerService;
-  toastMessenger: ToastMessengerService;
 };
 
 /**
@@ -40,9 +39,8 @@ function SidebarView({
   onLogin,
   onSignUp,
   loadAnnotationsService,
-  queryService,
+  recordingService,
   streamer,
-  toastMessenger,
 }: SidebarViewProps) {
   const rootThread = useRootThread();
   const rootVideoThread = useRootVideoThread();
@@ -118,13 +116,23 @@ function SidebarView({
         uris: searchUris,
       });
     }
-    const mainFrame = store.mainFrame();
-    if (isLoggedIn && mainFrame && mainFrame.uri){
-      queryService.getRecommendation(mainFrame.uri).then(
-        result => frameSync.notification(result)
-      )
-    }
   }, [store, loadAnnotationsService, focusedGroupId, userId, searchUris]);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      recordingService.updateRecordings();
+    }
+    else {
+      recordingService.clearRecordings();
+      store.clearMessages();
+    }
+    // const mainFrame = store.mainFrame();
+    // if (isLoggedIn && mainFrame && mainFrame.uri){
+    //   queryService.getRecommendation(mainFrame.uri).then(
+    //     result => frameSync.notification(result)
+    //   )
+    // }
+  }, [isLoggedIn])
 
   // When a `linkedAnnotationAnchorTag` becomes available, scroll to it
   // and focus it
@@ -165,8 +173,11 @@ function SidebarView({
       )}
       {showTabs && <SelectionTabs isLoading={isLoading} />}
       {selectedTab == 'video' && <VideoThreadList threads={rootVideoThread.children} />}
-      {selectedTab == 'message' && <MessageList onLogin={onLogin}/>}
-      {selectedTab != 'video' && selectedTab != 'message' && <ThreadList threads={rootThread.children} />}
+      {selectedTab == 'message' && <MessageTab />}
+      {selectedTab == 'recording' && <RecordingTab />}
+      {selectedTab != 'video' && selectedTab != 'message' && selectedTab != 'recording' && (
+        <ThreadList threads={rootThread.children}/>
+      )}
       {showLoggedOutMessage && <LoggedOutMessage onLogin={onLogin} />}
     </div>
   );
@@ -175,7 +186,6 @@ function SidebarView({
 export default withServices(SidebarView, [
   'frameSync',
   'loadAnnotationsService',
-  'queryService',
+  'recordingService',
   'streamer',
-  'toastMessenger',
 ]);

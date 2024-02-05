@@ -46,3 +46,71 @@
 .js-thread-list-scroll-root {
   overflow-anchor: none;
 }
+
+:root {
+  --subdued-color: hsl(200, 100%, 50%);
+  --text-color: hsl(200, 100%, 20%);
+  --avatar-size: 1rem;
+  --grid-gap: 1rem;
+  --group-header-spacing: 1rem;
+}
+
+.message-grid {
+  display: grid;
+  grid-template-columns: var(--avatar-size) 1fr;
+  grid-auto-rows: auto;
+  column-gap: 0.5rem;
+  row-gap: var(--grid-gap);
+  max-width: 750px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.timeline-node {
+  position: relative;
+}
+
+.timeline-node > .timeline-circle {
+  border-radius: 100%;
+  border: 2px solid #1d4ed8;
+  display: block;
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+}
+
+.timeline-node::after {
+  content: "";
+  position: absolute;
+  background-color: #6495ED;
+  width: 2px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  top: var(--avatar-size);
+  bottom: calc(var(--grid-gap) * -1);
+  // z-index: -1;
+}
+
+.timeline-node:nth-last-child(2)::after {
+  display: none;
+}
+
+.timeline-hover-on {
+  background-color: rgb(203 213 225);
+}
+
+.timeline-expanded {
+  display: block;
+}
+
+.timeline-hidden {
+  display: none;
+}
+
+// .timeline-content:hover ~ .timeline-node {
+//   background-color: rgb(203 213 225);
+// }
+
+.collasipble-content {
+  display: none;
+}

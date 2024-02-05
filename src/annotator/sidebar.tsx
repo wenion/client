@@ -272,7 +272,8 @@ export class Sidebar implements Destroyable {
       },
       setSidebarOpen: open => (open ? this.open() : this.close()),
       setHighlightsVisible: show => this.setHighlightsVisible(show),
-      setSilentMode: silent => this.setVisuallyHidden(!silent),
+      setSilentMode: silent => this.setIsSilent(silent),
+      setRecording: recording => this.setIsRecording(recording),
     });
 
     if (config.theme === 'clean') {
@@ -410,6 +411,20 @@ export class Sidebar implements Destroyable {
   _setupSidebarEvents() {
     annotationCounts(document.body, this._sidebarRPC);
     sidebarTrigger(document.body, () => this.open());
+
+    this._sidebarRPC.on('statusUpdated', (status: {isSilentMode: boolean, isRecording: boolean}) => {
+      if (status.isSilentMode != this.toolbar.isSilentMode) {
+        this.setIsSilent(status.isSilentMode)
+      }
+      if (status.isRecording != this.toolbar.isRecording) {
+        this.toolbar.isRecording = status.isRecording;
+      }
+    })
+
+    this._sidebarRPC.on('startRecord', () => {
+      this.toolbar.isRecording = true;
+      this.close();
+    });
 
     this._sidebarRPC.on(
       'pullRecommendation',
@@ -713,9 +728,20 @@ export class Sidebar implements Destroyable {
     this._sidebarRPC.call('setHighlightsVisible', visible);
   }
 
-  setVisuallyHidden(visible: boolean) {
-    this.toolbar.isSilentMode = !visible
-    this._sidebarRPC.call('setVisuallyHidden', visible);
+  setIsSilent(isSilent: boolean) {
+    this.toolbar.isSilentMode = isSilent
+    this._sidebarRPC.call('setVisuallyHidden', isSilent);
+  }
+
+  setIsRecording(isRecording: boolean) {
+    if (this.toolbar.isRecording == false && isRecording) {
+      this.open();
+      this._sidebarRPC.call('requestRecord');
+    }
+    if (this.toolbar.isRecording && isRecording == false) {
+      this.toolbar.isRecording = isRecording;
+      this._sidebarRPC.call('endRecord');
+    }
   }
 
   /**

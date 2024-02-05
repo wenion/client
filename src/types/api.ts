@@ -348,6 +348,10 @@ export type EventData = {
   x_path: string; // selector
   offset_x: number;
   offset_y: number;
+  session_id: string,
+  task_name: string,
+  width: number,
+  height: number,
   doc_id: string;
   userid: string;
 };
@@ -423,4 +427,25 @@ export type RawMessageData = {
   show_flag?: boolean;
   unread_flag?: boolean;
   need_save_flag?:boolean;
+  interval?:number;
+}
+
+export type RecordingStepData = {
+  type: string;
+  id: string;
+  url?: string;
+  description?: string;
+  title?: string;
+  position?: string;
+  // selectors?: Selector;
+  // offsetX?: number;
+  // offsetY?: number;
+}
+
+export type RecordingData = {
+  taskName: string;
+  sessionId: string;
+  title?: string;
+  selectorAttribute?: string;
+  steps: RecordingStepData[];
 }

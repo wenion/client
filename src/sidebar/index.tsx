@@ -40,6 +40,7 @@ import { TagsService } from './services/tags';
 import { ThreadsService } from './services/threads';
 import { ToastMessengerService } from './services/toast-messenger';
 import { PollMessageService } from './services/poll-message';
+import { RecordingService } from './services/recording';
 import { QueryService } from './services/query';
 import { VideoAnnotationsService } from './services/video-annotations';
 import { createSidebarStore } from './store';
@@ -119,7 +120,11 @@ function setupFrameSync(
   toastMessenger: ToastMessengerService,
 ) {
   if (store.route() === 'sidebar') {
-    frameSync.connect().catch(() => {
+    frameSync.connect()
+    .then(
+      () => frameSync.afterConnection()
+    )
+    .catch(() => {
       toastMessenger.error(
         'Hypothesis failed to connect to the web page. Try reloading the page.',
         {
@@ -162,6 +167,7 @@ function startApp(settings: SidebarSettings, appEl: HTMLElement) {
     .register('tags', TagsService)
     .register('threadsService', ThreadsService)
     .register('toastMessenger', ToastMessengerService)
+    .register('recordingService', RecordingService)
     .register('queryService', QueryService)
     .register('videoAnnotationsService', VideoAnnotationsService)
     .register('pollMessageService', PollMessageService)

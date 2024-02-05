@@ -8,6 +8,7 @@ import type {
   FileNode,
   EventData,
   RawMessageData,
+  RecordingData,
 } from '../../types/api';
 import { stripInternalProperties } from '../helpers/strip-internal-properties';
 import type { SidebarStore } from '../store';
@@ -241,6 +242,7 @@ export class APIService {
   push_recommendation: APICall<Record<string, unknown>, {id: string; url: string; type: string; title: string; query: string; context: string}>;
   pull_recommendation: APICall<{url: string}, void, {id: string; url: string; type: string; title: string; query: string; context: string}>;
   message: APICall<Record<string, unknown>, void, RawMessageData[]>;
+  expertReplay: APICall<Record<string, unknown>, void, RecordingData[]>;
   upload: APICallExtend<Record<string, any>, string|Blob, Record<string, any>, unknown>;
   constructor(
     apiRoutes: APIRoutesService,
@@ -341,6 +343,7 @@ export class APIService {
     this.push_recommendation = apiCall('push_recommendation') as APICall<Record<string, unknown>, {id: string; url: string; type: string; title: string; query: string; context: string}>;
     this.pull_recommendation = apiCall('pull_recommendation') as APICall<{url: string}, void, {id: string; url: string; type: string; title: string; query: string; context: string}>;
     this.message = apiCall('message') as APICall<Record<string, unknown>, void, RawMessageData[]>;
+    this.expertReplay = apiCall('expert_replay') as APICall<Record<string, unknown>, void, RecordingData[]>;
     this.upload = apiCallExtend('upload') as APICallExtend<Record<string, any>, string|Blob, Record<string, any>, unknown>;
 
   }

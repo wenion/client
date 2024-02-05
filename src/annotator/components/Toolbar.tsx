@@ -7,8 +7,6 @@ import {
   HideIcon,
   NoteIcon,
   ShowIcon,
-  EmailFilledIcon,
-  RestrictedIcon,
 } from '@hypothesis/frontend-shared';
 import type { ButtonProps } from '@hypothesis/frontend-shared/lib/components/input/Button';
 import type {
@@ -17,6 +15,11 @@ import type {
 } from '@hypothesis/frontend-shared/lib/types';
 import classnames from 'classnames';
 import type { JSX, RefObject } from 'preact';
+
+import RecordingIcon from '../../images/icons/recording';
+import RecordingOffIcon from '../../images/icons/recordingOff';
+import NotificationsIcon from '../../images/icons/notifications';
+import NotificationsOffIcon from '../../images/icons/notificationsOff';
 
 // TODO: ToolbarButton should be extracted as a shared design pattern or
 // component
@@ -87,6 +90,8 @@ export type ToolbarProps = {
 
   isSilentMode: boolean;
   toggleSilentMode: () => void;
+  isRecording: boolean;
+  toggleRecording: () => void;
 
   /** Callback for the show/hide highlights button */
   toggleHighlights: () => void;
@@ -125,7 +130,9 @@ export default function Toolbar({
   newAnnotationType,
   showHighlights,
   isSilentMode,
+  isRecording,
   toggleSilentMode,
+  toggleRecording,
   toggleHighlights,
   toggleSidebar,
   toggleSidebarRef,
@@ -187,9 +194,15 @@ export default function Toolbar({
           <div className="space-y-px-1.5 mt-px-2">
             <ToolbarButton
               title={isSilentMode ? 'Silent mode on' : 'Silent mode off'}
-              icon={isSilentMode ? RestrictedIcon : EmailFilledIcon}
+              icon={isSilentMode ? NotificationsOffIcon : NotificationsIcon}
               selected={!isSilentMode}
               onClick={toggleSilentMode}
+            />
+            <ToolbarButton
+              title={isRecording ? 'Recording' : 'Recording off'}
+              icon={isRecording ? RecordingIcon : RecordingOffIcon}
+              selected={!isRecording}
+              onClick={toggleRecording}
             />
             <ToolbarButton
               title="Show highlights"

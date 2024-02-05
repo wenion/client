@@ -103,6 +103,7 @@ function SelectionTabs({
   const selectedTab = store.selectedTab();
   const noteCount = store.noteCount();
   const allMessageCount = store.allMessageCount();
+  const allRecordingsCount = store.allRecordingsCount();
   const videoAnnotationCount = store.videoAnnotationCount();
   const annotationCount = store.annotationCount();
   const orphanCount = store.orphanCount();
@@ -137,6 +138,7 @@ function SelectionTabs({
         >
           Annotations
         </Tab>
+        {selectedTab === 'note' && (
         <Tab
           count={noteCount}
           isWaitingToAnchor={isWaitingToAnchorAnnotations}
@@ -146,6 +148,7 @@ function SelectionTabs({
         >
           Page Notes
         </Tab>
+        )}
         {selectedTab === 'message' && (
           <Tab
             count={allMessageCount}
@@ -158,13 +161,22 @@ function SelectionTabs({
           </Tab>
         )}
         <Tab
+          count={allRecordingsCount}
+          isWaitingToAnchor={isWaitingToAnchorAnnotations}
+          isSelected={selectedTab === 'recording'}
+          label="Recordings"
+          onSelect={() => selectTab('recording')}
+        >
+          Expert replay
+        </Tab>
+        <Tab
           count={videoAnnotationCount}
           isWaitingToAnchor={isWaitingToAnchorAnnotations}
           isSelected={selectedTab === 'video'}
-          label="Video"
+          label="Video annotations"
           onSelect={() => selectTab('video')}
         >
-          Video
+          Video annotations
         </Tab>
         {orphanCount > 0 && (
           <Tab

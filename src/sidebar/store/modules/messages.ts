@@ -2,19 +2,16 @@
  * State management for the set of annotations currently loaded into the
  * sidebar.
  */
-import type { Dispatch } from 'redux';
-import { createSelector } from 'reselect';
-
 import { createStoreModule, makeAction } from '../create-store';
-import type { State as RouteState } from './route';
-import type { State as SessionState } from './session';
 import type { RawMessageData } from '../../../types/api'
 
 const initialState = {
+  interval: 20000,
   messages: [],
   unreadMessages: [],
 } as {
   /** Set of currently-loaded annotations */
+  interval: number;
   messages: RawMessageData[];
   unreadMessages: RawMessageData[];
 };
@@ -83,6 +80,10 @@ const reducers = {
   CLEAR_MESSAGES(): Partial<State> {
     return { messages: [], unreadMessages: []};
   },
+
+  SET_INTERVAL(state: State, action: {value: number | null}): Partial<State> {
+    return { interval: action.value == null? 30000 : action.value};
+  },
 };
 
 /* Action creators */
@@ -102,6 +103,10 @@ function removeFromUnreadMessage() {
 /** Set the currently displayed messages to the empty set. */
 function clearMessages() {
   return makeAction(reducers, 'CLEAR_MESSAGES', undefined);
+}
+
+function setInterval(value: number | null) {
+  return makeAction(reducers, 'SET_INTERVAL', { value });
 }
 
 /* Selectors */
@@ -129,6 +134,10 @@ function findMessagesByPubid(state: State, id: string) {
   return findByID(state.messages, id);
 }
 
+function getInterval(state: State) {
+  return state.interval;
+}
+
 export const messagesModule = createStoreModule(initialState, {
   namespace: 'messagess',
   reducers,
@@ -136,12 +145,14 @@ export const messagesModule = createStoreModule(initialState, {
     addMessages,
     removeFromUnreadMessage,
     clearMessages,
+    setInterval,
   },
   selectors: {
     allMessages,
     unreadMessages,
     unreadMessageCount,
     allMessageCount,
+    getInterval,
     findMessagesByPubid,
   },
 });
