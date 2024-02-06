@@ -4,7 +4,6 @@ import type {
   APIAnnotationData,
   Annotation,
   SavedAnnotation,
-  EventData,
 } from '../../types/api';
 import type { AnnotationEventType, SidebarSettings } from '../../types/config';
 import * as metadata from '../helpers/annotation-metadata';
@@ -160,42 +159,6 @@ export class AnnotationsService {
       // Expand any parents of this annotation.
       this._store.setExpanded(parent, true);
     });
-  }
-
-  /**
-   *
-   * @param {EventData} eventData
-   */
-  async createUserEvent(eventData: EventData) {
-    const profile = this._store.profile();
-    const userid = profile.userid;
-    if (!userid) {
-      return;
-    }
-
-    const sessionId = this._store.getNewRecording()?.sessionId;
-    const taskName = this._store.getNewRecording()?.taskName;
-    const userEventData = {
-      ...eventData,
-      session_id: sessionId ? sessionId : '',
-      task_name: taskName ? taskName : '',
-      userid: userid,
-    }
-
-    console.log(userEventData)
-    if (userEventData.base_url.includes("://")) {
-      let url = new URL(userEventData.base_url)
-
-      Object.entries(this._store.getWhitelist()).forEach(([key, value]) => {
-        if (value == url.host) {
-          this._api.event({}, userEventData);
-          return;
-        }
-      });
-    }
-    else {
-      this._api.event({}, userEventData);
-    }
   }
 
   /**

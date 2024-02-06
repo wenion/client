@@ -1,27 +1,21 @@
 import { createStoreModule, makeAction } from '../create-store';
 
-const initialState = /** @type {string[]|null} */ (null);
+const initialState = {
+  whitelist: [],
+} as {
+  whitelist: string[];
+}
 
-/** @typedef {typeof initialState} State */
+export type State = typeof initialState;
 
 const reducers = {
-  /**
-   * @param {State} state
-   * @param {{ whitelist: string[] }} action
-   */
-  UPDATE_WHITELIST(state, action) {
-    return [
-      ...action.whitelist,
-    ];
+  UPDATE_WHITELIST(state: State, action: {whitelist: string[]}) {
+    return {whitelist: action.whitelist};
   },
 };
 
-/**
- * Update the link map
- *
- * @param {string[]} whitelist - Link map fetched from the `/api/whitelist` endpoint
- */
-function updateWhitelist(whitelist) {
+
+function updateWhitelist(whitelist: string[]) {
   return makeAction(reducers, 'UPDATE_WHITELIST', {whitelist});
 }
 
@@ -32,11 +26,8 @@ function updateWhitelist(whitelist) {
  *
  * @param {State} state
  */
-function getWhitelist(state) {
-  if (!state) {
-    return [];
-  }
-  return state;
+function getWhitelist(state: State) {
+  return state.whitelist;
 }
 
 export const whitelistModule = createStoreModule(initialState, {

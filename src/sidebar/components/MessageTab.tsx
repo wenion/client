@@ -14,13 +14,14 @@ export default function MessageTab() {
   const store = useSidebarStore();
   const isLoggedIn = store.isLoggedIn();
   const visibleThreads = store.allMessages();
+  const sortableThreads = visibleThreads.sort((a, b) => b.date - a.date); // Z -> A
 
   const textStyle = applyTheme(['annotationFontFamily'], {});
 
 
   return (
     <>
-      {isLoggedIn && visibleThreads.map(child => (
+      {isLoggedIn && sortableThreads.map(child => (
         <div
           className={classnames(
             // The goal is to space out each annotation card vertically. Typically
@@ -52,7 +53,8 @@ export default function MessageTab() {
                   title='date'
                   className='text-xs leading-3 font-normal tracking-wide text-gray-400'
                 >
-                  {child.date}
+                  {new Date(child.date/1000).toLocaleDateString('en-AU', {
+                    day: '2-digit', month: '2-digit', year:'numeric', hour: '2-digit', minute:'2-digit', hour12: true})}
                 </a>
               </div>
             </CardHeader>

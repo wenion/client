@@ -107,7 +107,7 @@ function UserMenu({ frameSync, onLogout, settings }: UserMenuProps) {
             href={profileHref}
             onClick={isSelectableProfile ? onProfileSelected : undefined}
           />
-          <MenuItem label={"Notifications["+ allMessageCount + "]"} onClick={() => onSelectNotification()} />
+          <MenuItem label={allMessageCount?('Notifications['+ allMessageCount + ']'): 'Notifications'} onClick={() => onSelectNotification()} />
           {!isThirdParty && (
             <MenuItem
               label="Account settings"

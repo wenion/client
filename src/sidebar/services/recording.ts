@@ -145,49 +145,49 @@ export class RecordingService extends TinyEmitter{
     return false
   }
 
-  createUserEventNode(
-    stage: string,
-    sessionId: string,
-    taskName: string,
-    width: number,
-    height: number,
-    docId: string,
-    userid: string) {
-    const userEvent: EventData = {
-      event_type: stage,
-      timestamp: Date.now(),
-      base_url: '',
-      tag_name: 'RECORD',
+  createSimplifiedUserEventNode(
+    eventType: string,
+    tagName: string,
+    url: string = '',
+    textContent: string ='',
+    eventSource: string = 'RESOURCE PAGE',
+    docId: string = '',
+    width: number = window.innerWidth,
+    height: number = window.innerHeight,
+    ) {
+    return {
+      event_type: eventType,
+      timestamp: 0,
+      base_url: url,
+      tag_name: tagName,
       text_content: '',
-      interaction_context: '',
-      event_source: '',
+      interaction_context: textContent,
+      event_source: eventSource,
       target: '',
       x_path: '',
       offset_x: 0,
       offset_y: 0,
-      session_id: sessionId,
-      task_name: taskName,
+      session_id: '',
+      task_name: '',
       width: width,
       height: height,
       doc_id: docId,
-      userid: userid,
+      userid: '',
     };
-    return userEvent;
   }
-  
 
   createNewRecording(taskName: string, sessionId: string, description: string) {
     this._store.createNewRecording(taskName, sessionId, description)
     this._store.changeRecordingStage('Start')
     this.refreshRecordingInfo(sessionId, taskName)
-    this._api.event({}, this.createUserEventNode('START', sessionId, taskName, 0, 0, '', ''))
+    this.sendUserEvent(this.createSimplifiedUserEventNode('START', 'RECORD', ''))
   }
 
   clearNewRecording() {
     this._store.removeNewRecording()
     this._store.changeRecordingStage('Idle')
     this.refreshRecordingInfo('', '')
-    this._api.event({}, this.createUserEventNode('END', '', '', 0, 0, '', ''))
+    this.sendUserEvent(this.createSimplifiedUserEventNode('END', 'RECORD', ''))
   }
 
   async updateRecordings() {
@@ -204,7 +204,54 @@ export class RecordingService extends TinyEmitter{
     this._store.clearRecordings();
   }
 
+  async sendUserEvent(eventData: EventData, needFilter: boolean = true) {
+    const sessionId = this._store.getNewRecording()?.sessionId;
+    const taskName = this._store.getNewRecording()?.taskName;
+
+    const userEventData = {
+      ...eventData,
+      timestamp: Date.now(),
+      session_id: sessionId ? sessionId : '',
+      task_name: taskName ? taskName : '',
+    }
+
+    try {
+      const url = new URL(userEventData.base_url);
+      for (const link of this._store.getWhitelist()) {
+        if (link === url.hostname) {
+          this._api.event({}, userEventData);
+          break;
+        }
+      }
+      if (!needFilter) {
+        this._api.event({}, userEventData)
+      }
+    } catch (err) {
+      this._api.event({}, userEventData);
+    }
+  }
+
   async init() {
     this.emit('statusChanged', this._loadStatus());
+  }
+
+  fetchMessage(q: string, interval: number, start: boolean) {
+    if (this._store.getActivated() || start) {
+      this._api.message({q: q, interval: interval}).then(
+        response => {
+          response.map(r => {
+            if (r.interval) {
+              this._store.setInterval(r.interval)
+            }
+          })
+          this._store.addMessages(response);
+        }
+      )
+    }
+    setTimeout(() => this.fetchMessage('organisation_event', this._store.getInterval(), false), this._store.getInterval());
+  }
+
+  startFecthMessage() {
+    this.fetchMessage('organisation_event', 0, true)
   }
 }

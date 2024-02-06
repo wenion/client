@@ -29,7 +29,7 @@ export type GuestToHostEvent =
  * Events that the guest sends to the sidebar
  */
 export type GuestToSidebarEvent =
-  | 'onFocusChanged'
+  | 'onTabChanged'
   /**
    * The guest is asking the sidebar to create an event.
    */

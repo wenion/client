@@ -39,7 +39,6 @@ import { StreamerService } from '../sidebar/services/streamer';
 import { TagsService } from '../sidebar/services/tags';
 import { ThreadsService } from '../sidebar/services/threads';
 import { ToastMessengerService } from '../sidebar/services/toast-messenger';
-import { PollMessageService } from '../sidebar/services/poll-message';
 import { RecordingService } from '../sidebar/services/recording';
 import { QueryService } from '../sidebar/services/query';
 import { VideoAnnotationsService } from '../sidebar/services/video-annotations';
@@ -151,7 +150,6 @@ function startApp(settings: SidebarSettings, appEl: HTMLElement) {
     .register('recordingService', RecordingService)
     .register('queryService', QueryService)
     .register('videoAnnotationsService', VideoAnnotationsService)
-    // .register('pollMessageService', PollMessageService)
     .register('store', { factory: createSidebarStore });
 
   // Register utility values/classes.

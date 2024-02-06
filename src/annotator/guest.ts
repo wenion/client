@@ -436,7 +436,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
 
     this._listeners.add(window, 'message', event => {
       if (event.data?.type === 'extention') {
-        this._sidebarRPC.call('onFocusChanged', event.data?.activated? true: false)
+        this._sidebarRPC.call('onTabChanged', event.data?.data)
       }
     })
 

@@ -423,7 +423,7 @@ export type RawMessageData = {
   id: string;
   title: string;
   message: string;
-  date: string;
+  date: number;
   show_flag?: boolean;
   unread_flag?: boolean;
   need_save_flag?:boolean;

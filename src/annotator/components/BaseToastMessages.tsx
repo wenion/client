@@ -67,7 +67,8 @@ function ToastMessageItem({
           title='date'
           className='text-xs leading-3 font-normal tracking-wide text-gray-400'
         >
-          {message.date}
+          {new Date(message.date/1000).toLocaleDateString('en-AU', {
+                    day: '2-digit', month: '2-digit', year:'numeric', hour: '2-digit', minute:'2-digit', hour12: true})}
         </a>
       </div>
     </Panel>

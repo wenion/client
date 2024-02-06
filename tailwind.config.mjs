@@ -37,6 +37,10 @@ export default {
         sidebar: '0px 1px 4px rgb(0, 0, 0, 0.5)',
       },
       colors: {
+        brand: {
+          dark: '#b04d1c',
+          DEFAULT: '#e66525'
+        },
         blue: {
           quote: '#58cef4',
         },

@@ -6,7 +6,7 @@ import { createStoreModule, makeAction } from '../create-store';
 import type { RawMessageData } from '../../../types/api'
 
 const initialState = {
-  activated: false,
+  activated: true,
   interval: 20000,
   messages: [],
   unreadMessages: [],

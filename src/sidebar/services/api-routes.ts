@@ -78,8 +78,8 @@ export class APIRoutesService {
     if (!this._whitelistCache) {
       this._whitelistCache = this.routes().then(async routes => {
         const linksRoute = routes.whitelist as RouteMetadata;
-        const links = await getJSON(linksRoute.url);
-        return links as string[];
+        const links = await getJSON<string[]>(linksRoute.url);
+        return links;
       });
     }
     return this._whitelistCache;

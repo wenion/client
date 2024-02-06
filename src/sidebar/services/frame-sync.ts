@@ -11,8 +11,8 @@ import {
   isMessageEqual,
 } from '../../shared/messaging';
 import type { Message } from '../../shared/messaging';
-import type { AnnotationData, DocumentInfo, PullingData } from '../../types/annotator';
-import type { Annotation, EventData, RawMessageData } from '../../types/api';
+import type { AnnotationData, DocumentInfo } from '../../types/annotator';
+import type { Annotation, EventData } from '../../types/api'; //RawMessageData
 import type {
   SidebarToHostEvent,
   HostToSidebarEvent,
@@ -31,7 +31,6 @@ import { watch } from '../util/watch';
 import type { AnnotationsService } from './annotations';
 import type { VideoAnnotationsService } from './video-annotations';
 import type { ToastMessengerService } from './toast-messenger';
-import type { QueryService } from './query';
 import { RecordingService } from './recording';
 import { ADDITIONAL_TAG } from '../../shared/custom'
 
@@ -108,7 +107,6 @@ function frameForAnnotation(frames: Frame[], ann: Annotation): Frame | null {
 export class FrameSyncService {
   private _annotationsService: AnnotationsService;
   private _videoAnnotationsService: VideoAnnotationsService;
-  private _queryService: QueryService;
   private _recordingService: RecordingService;
 
   /**
@@ -185,7 +183,6 @@ export class FrameSyncService {
     $window: Window,
     annotationsService: AnnotationsService,
     videoAnnotationsService: VideoAnnotationsService,
-    queryService: QueryService,
     recordingService: RecordingService,
     store: SidebarStore,
     toastMessenger: ToastMessengerService,
@@ -193,7 +190,6 @@ export class FrameSyncService {
     this._window = $window;
     this._annotationsService = annotationsService;
     this._videoAnnotationsService = videoAnnotationsService;
-    this._queryService = queryService;
     this._recordingService = recordingService;
     this._store = store;
     this._toastMessenger = toastMessenger;
@@ -335,6 +331,16 @@ export class FrameSyncService {
 
     watch(
       this._store.subscribe,
+      () => this._store.isLoggedIn(),
+      isLoggedIn => {
+        if (isLoggedIn) {
+          this._recordingService.sendUserEvent(this._recordingService.createSimplifiedUserEventNode('open', 'CONNECT'))
+        }
+      }
+    )
+
+    watch(
+      this._store.subscribe,
       () => [this._store.allAnnotations(), this._store.frames()] as const,
       ([annotations, frames], [prevAnnotations]) =>
         onStoreAnnotationsChanged(annotations, frames, prevAnnotations),
@@ -379,8 +385,10 @@ export class FrameSyncService {
 
     this._guestRPC.set(sourceId, guestRPC);
 
-    guestRPC.on('onFocusChanged', (activated: boolean) => {
-      this._store.setActivated(activated)
+    guestRPC.on('onTabChanged', (data: Record<string, string | boolean>) => {
+      if (data.action === 'OnFocus') {
+        this._store.setActivated(data.activated as boolean)
+      }
     });
 
     // Update document metadata for this guest. The guest will call this method
@@ -415,8 +423,8 @@ export class FrameSyncService {
       this._guestRPC.delete(sourceId);
     });
 
-    guestRPC.on('createUserEvent', (evet: EventData) => {
-      this._annotationsService.createUserEvent(evet)
+    guestRPC.on('createUserEvent', (event: EventData) => {
+      this._recordingService.sendUserEvent(event)
     });
 
     // A new annotation, note or highlight was created in the frame
@@ -578,9 +586,9 @@ export class FrameSyncService {
       this._recordingService.updateRecordings(); //TODO
     });
 
-    this._hostRPC.on('postRating', (data: PullingData) => {
-      this._queryService.postRating(data);
-    });
+    // this._hostRPC.on('postRating', (data: PullingData) => {
+    //   this._queryService.postRating(data);
+    // });
   }
 
   /**
@@ -765,8 +773,9 @@ export class FrameSyncService {
     })
   }
 
-  afterConnection() {
-    this._recordingService.init()
+  afterConnection() { //TODO
+    this._recordingService.init();
+    this._recordingService.startFecthMessage();
   }
 
   /**
