@@ -515,6 +515,9 @@ export class FrameSyncService {
           const annot = this._store.findAnnotationByTag(tag);
           if (annot && annot.tags.includes(ADDITIONAL_TAG)) {
             guestRPC.call('showAnnotationTags', {tag: tag, tags: [ADDITIONAL_TAG,]})
+            this._recordingService.sendUserEvent(
+              this._recordingService.createSimplifiedUserEventNode('onmouseover', 'ADDTIONAL_KNOWLEDGE', annot.uri, annot.text, annot.id)
+              )
           }
         })
       }
@@ -575,6 +578,11 @@ export class FrameSyncService {
     this._hostRPC.on('setVisuallyHidden', (visible: boolean) => {
       this._recordingService.refreshSilentMode(visible)
       this._toastMessenger.setVisuallyHidden(!visible)
+    });
+
+    this._hostRPC.on('createUserEvent', (data: string) => {
+      this._recordingService.sendUserEvent(
+        this._recordingService.createSimplifiedUserEventNode('close', 'EXPERT-TRACE_CLOSE', '', '', data))
     });
 
     this._hostRPC.on('requestRecord', () => {
@@ -738,6 +746,8 @@ export class FrameSyncService {
       // there, ensuring screen readers announce them.
       if (message.visuallyHidden && 'show_flag' in message) {
         // to src/annotator/sidebar.tsx
+        this._recordingService.sendUserEvent(
+          this._recordingService.createSimplifiedUserEventNode('open', 'EXPERT-TRACE_OPEN', '', message.message as string, message.id))
         this.notifyHost('toastMessageAdded', message);
       }
     });

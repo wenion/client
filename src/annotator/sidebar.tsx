@@ -244,7 +244,7 @@ export class Sidebar implements Destroyable {
       // will forward messages to render here while it is collapsed.
       this._messagesElement = document.createElement('div');
       shadowRoot.appendChild(this._messagesElement);
-      render(<ToastMessages emitter={this._emitter} />, this._messagesElement);
+      render(<ToastMessages emitter={this._emitter} func={(id)=> { this._sidebarRPC.call('createUserEvent', id) }}/>, this._messagesElement);
     }
 
     // Register the sidebar as a handler for Hypothesis errors in this frame.

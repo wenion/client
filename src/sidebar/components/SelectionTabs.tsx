@@ -14,6 +14,7 @@ import type { TabName } from '../../types/sidebar';
 import { applyTheme } from '../helpers/theme';
 import { withServices } from '../service-context';
 import type { AnnotationsService } from '../services/annotations';
+import type { RecordingService } from '../services/recording';
 import { useSidebarStore } from '../store';
 
 type TabProps = {
@@ -89,6 +90,7 @@ export type SelectionTabProps = {
   // injected
   settings: SidebarSettings;
   annotationsService: AnnotationsService;
+  recordingService: RecordingService;
 };
 
 /**
@@ -96,6 +98,7 @@ export type SelectionTabProps = {
  */
 function SelectionTabs({
   annotationsService,
+  recordingService,
   isLoading,
   settings,
 }: SelectionTabProps) {
@@ -112,6 +115,9 @@ function SelectionTabs({
   const selectTab = (tabId: TabName) => {
     store.clearSelection();
     store.selectTab(tabId);
+    recordingService.sendUserEvent(
+      recordingService.createSimplifiedUserEventNode('click', 'SIDEBAR-TAB', '', tabId, tabId)
+      )
   };
 
   const showAnnotationsUnavailableMessage =
@@ -233,4 +239,4 @@ function SelectionTabs({
   );
 }
 
-export default withServices(SelectionTabs, ['annotationsService', 'settings']);
+export default withServices(SelectionTabs, ['annotationsService', 'recordingService', 'settings']);

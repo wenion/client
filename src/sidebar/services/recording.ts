@@ -151,6 +151,7 @@ export class RecordingService extends TinyEmitter{
     tagName: string,
     url: string = '',
     textContent: string ='',
+    interactionContext: string ='',
     eventSource: string = 'RESOURCE PAGE',
     docId: string = '',
     width: number = window.innerWidth,
@@ -161,8 +162,8 @@ export class RecordingService extends TinyEmitter{
       timestamp: 0,
       base_url: url,
       tag_name: tagName,
-      text_content: '',
-      interaction_context: textContent,
+      text_content: textContent,
+      interaction_context: interactionContext,
       event_source: eventSource,
       target: '',
       x_path: '',
@@ -185,10 +186,10 @@ export class RecordingService extends TinyEmitter{
   }
 
   clearNewRecording() {
+    this.sendUserEvent(this.createSimplifiedUserEventNode('END', 'RECORD', extractHostURL(this._window.location.hash)))
     this._store.removeNewRecording()
     this._store.changeRecordingStage('Idle')
     this.refreshRecordingInfo('', '')
-    this.sendUserEvent(this.createSimplifiedUserEventNode('END', 'RECORD', extractHostURL(this._window.location.hash)))
   }
 
   async updateRecordings() {
@@ -241,7 +242,6 @@ export class RecordingService extends TinyEmitter{
       try {
         const url = new URL(providedURL)
         if (url.hostname === hostname) {
-          console.log('same page', url, hostname)
           return true;
         }
       } catch (err) {
@@ -253,7 +253,6 @@ export class RecordingService extends TinyEmitter{
 
   fetchMessage(q: string, interval: number, start: boolean) {
     if ((this._store.getActivated() && this.isOnRequestPage('lms.monash.edu')) || start) {
-      console.log('api message')
       this._api.message({q: q, interval: interval}).then(
         response => {
           response.map(r => {
