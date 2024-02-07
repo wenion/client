@@ -423,9 +423,12 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       const clickElement = event.target as Element;
       this._integration.uri().then(
         url => {
-          let textContent = ''
-          if (clickElement && clickElement instanceof HTMLInputElement) {
-            textContent = clickElement.innerText;
+          let textContent = clickElement.textContent;
+          if (!textContent && clickElement instanceof HTMLInputElement) {
+            textContent = clickElement.value;
+          }
+          else if (!textContent) {
+            textContent = '';
           }
             this._handlePageEvent(event.type, url, clickElement.tagName, textContent, '',
               'MOUSE', '', getXPath(clickElement), event.clientX, event.clientY, '',
