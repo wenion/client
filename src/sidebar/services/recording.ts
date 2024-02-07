@@ -3,6 +3,7 @@ import { TinyEmitter } from 'tiny-emitter';
 import type { SidebarStore } from '../store';
 import type { APIService } from './api';
 import type { SidebarSettings } from '../../types/config';
+import { extractHostURL } from '../../shared/custom';
 import { generateRandomString } from '../../shared/random';
 import type { RecordingStepData, EventData } from '../../types/api';
 import type { LocalStorageService } from './local-storage';
@@ -180,14 +181,14 @@ export class RecordingService extends TinyEmitter{
     this._store.createNewRecording(taskName, sessionId, description)
     this._store.changeRecordingStage('Start')
     this.refreshRecordingInfo(sessionId, taskName)
-    this.sendUserEvent(this.createSimplifiedUserEventNode('START', 'RECORD', ''))
+    this.sendUserEvent(this.createSimplifiedUserEventNode('START', 'RECORD', extractHostURL(this._window.location.hash)))
   }
 
   clearNewRecording() {
     this._store.removeNewRecording()
     this._store.changeRecordingStage('Idle')
     this.refreshRecordingInfo('', '')
-    this.sendUserEvent(this.createSimplifiedUserEventNode('END', 'RECORD', ''))
+    this.sendUserEvent(this.createSimplifiedUserEventNode('END', 'RECORD', extractHostURL(this._window.location.hash)))
   }
 
   async updateRecordings() {
@@ -235,8 +236,24 @@ export class RecordingService extends TinyEmitter{
     this.emit('statusChanged', this._loadStatus());
   }
 
+  isOnRequestPage(hostname: string) {
+    const providedURL = extractHostURL(window.location.hash)
+      try {
+        const url = new URL(providedURL)
+        if (url.hostname === hostname) {
+          console.log('same page', url, hostname)
+          return true;
+        }
+      } catch (err) {
+        console.error(err)
+        return false;
+      }
+      return false;
+  }
+
   fetchMessage(q: string, interval: number, start: boolean) {
-    if (this._store.getActivated() || start) {
+    if ((this._store.getActivated() && this.isOnRequestPage('lms.monash.edu')) || start) {
+      console.log('api message')
       this._api.message({q: q, interval: interval}).then(
         response => {
           response.map(r => {

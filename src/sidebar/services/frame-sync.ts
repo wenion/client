@@ -3,6 +3,7 @@ import debounce from 'lodash.debounce';
 import type { DebouncedFunction } from 'lodash.debounce';
 import shallowEqual from 'shallowequal';
 
+import { extractHostURL } from '../../shared/custom';
 import { ListenerCollection } from '../../shared/listener-collection';
 import {
   PortFinder,
@@ -334,7 +335,9 @@ export class FrameSyncService {
       () => this._store.isLoggedIn(),
       isLoggedIn => {
         if (isLoggedIn) {
-          this._recordingService.sendUserEvent(this._recordingService.createSimplifiedUserEventNode('open', 'CONNECT'))
+          this._recordingService.sendUserEvent(
+            this._recordingService.createSimplifiedUserEventNode('open', 'CONNECT', extractHostURL(this._window.location.hash)
+          ))
         }
       }
     )

@@ -69,10 +69,13 @@ function HypothesisApp({
   useEffect(() => {
     store.unreadMessages().map(
       msg => {
-        if (msg.show_flag)
-          toastMessenger.message(msg)}
+        if (msg.show_flag) {
+          toastMessenger.message(msg)
+        }
+      }
     );
     store.removeFromUnreadMessage();
+    store.removeOverTimeMessage();
   }, [unreadMessages])
 
   const isThirdParty = isThirdPartyService(settings);

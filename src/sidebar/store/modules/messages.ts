@@ -79,6 +79,18 @@ const reducers = {
     };
   },
 
+  REMOVE_OVERTIME_MESSAGES(state: State) {
+    const instanceMessages = state.messages.filter(m => {
+      return m.type === 'instant_message' &&
+      ( new Date().getTime() - new Date(m.date/1000).getTime()) < (1 * 60 *1000); // 10 mins
+    })
+    const organisationEventMessages = state.messages.filter(m => m.type === 'organisation_event')
+
+    return {
+      messages: instanceMessages.concat(organisationEventMessages),
+    }
+  },
+
   CLEAR_MESSAGES(): Partial<State> {
     return { messages: [], unreadMessages: []};
   },
@@ -111,6 +123,10 @@ function clearMessages() {
   return makeAction(reducers, 'CLEAR_MESSAGES', undefined);
 }
 
+function removeOverTimeMessage() {
+  return makeAction(reducers, 'REMOVE_OVERTIME_MESSAGES', undefined);
+}
+
 function setInterval(value: number | null) {
   return makeAction(reducers, 'SET_INTERVAL', { value });
 }
@@ -136,6 +152,14 @@ function allMessages(state: State) {
   return state.messages;
 }
 
+function allOrganisationEventMessages(state: State) {
+  return state.messages.filter(m => m.type === 'organisation_event')
+}
+
+function allInstanceMessages(state: State) {
+  return state.messages.filter(m => m.type === 'instant_message')
+}
+
 function unreadMessages(state: State) {
   return state.unreadMessages;
 }
@@ -158,12 +182,15 @@ export const messagesModule = createStoreModule(initialState, {
   actionCreators: {
     addMessages,
     removeFromUnreadMessage,
+    removeOverTimeMessage,
     clearMessages,
     setInterval,
     setActivated,
   },
   selectors: {
     allMessages,
+    allOrganisationEventMessages,
+    allInstanceMessages,
     unreadMessages,
     unreadMessageCount,
     allMessageCount,
