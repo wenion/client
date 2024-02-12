@@ -82,7 +82,7 @@ const reducers = {
   REMOVE_OVERTIME_MESSAGES(state: State) {
     const instanceMessages = state.messages.filter(m => {
       return m.type === 'instant_message' &&
-      ( new Date().getTime() - new Date(m.date/1000).getTime()) < (1 * 60 *1000); // 10 mins
+      ( new Date().getTime() - new Date(m.date/1000).getTime()) < (10 * 60 *1000); // 10 mins
     })
     const organisationEventMessages = state.messages.filter(m => m.type === 'organisation_event')
 
