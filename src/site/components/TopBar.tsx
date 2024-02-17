@@ -15,7 +15,7 @@ import { useSidebarStore } from '../../sidebar/store';
 import ThirdPartyMenu from './ThirdPartyMenu';
 import Search from './Search';
 import UserMenu from './UserMenu';
-import LogoIcon from '../static/logo-gm';
+import LogoIcon from '../static/logo';
 
 export type TopBarProps = {
   /** Flag indicating whether the app is in a sidebar context */
