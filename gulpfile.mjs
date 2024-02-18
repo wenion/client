@@ -103,7 +103,7 @@ gulp.task(
   })
 );
 
-const staticAsset = ['src/site/static/*.html'];
+const staticAsset = ['src/site/static/*.{ico,html}'];
 
 gulp.task('build-static-asset', () => {
   const staticBuild = 'build';
