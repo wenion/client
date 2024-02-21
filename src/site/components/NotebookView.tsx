@@ -142,7 +142,7 @@ function NotebookView({ loadAnnotationsService, queryService, streamer }: Notebo
               </p>
               <p>
                 <Link
-                  href="mailto:support@hypothes.is?subject=Hypothesis%20Notebook&body=Please%20notify%20me%20when%20the%20Hypothesis%20Notebook%20is%20updated%20to%20support%20more%20than%205000%20annotations"
+                  href="mailto:goldmindtools@gmail.com?subject=Hypothesis%20Notebook&body=Please%20notify%20me%20when%20the%20Hypothesis%20Notebook%20is%20updated%20to%20support%20more%20than%205000%20annotations"
                   underline="always"
                 >
                   Contact us

@@ -51,7 +51,7 @@ function Tutorial({ settings }: TutorialProps) {
       <li>
         To create a highlight (
         <Link
-          href="https://web.hypothes.is/help/why-are-highlights-private-by-default/"
+          href="https://colam.kmass.cloud.edu.au/help/why-are-highlights-private-by-default/"
           target="_blank"
           underline="always"
         >
@@ -65,7 +65,7 @@ function Tutorial({ settings }: TutorialProps) {
           To annotate in a private group, select the group from the groups
           dropdown. Don&apos;t see your group? Ask the group creator to send a{' '}
           <Link
-            href="https://web.hypothes.is/help/how-to-join-a-private-group/"
+            href="https://colam.kmass.cloud.edu.au/help/how-to-join-a-private-group/"
             target="_blank"
             underline="always"
           >

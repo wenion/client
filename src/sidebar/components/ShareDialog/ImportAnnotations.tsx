@@ -147,7 +147,7 @@ function ImportAnnotations({
         <Link
           variant="text-light"
           underline="always"
-          href="https://web.hypothes.is/help/exporting-and-importing-annotations-in-the-hypothesis-web-app/"
+          href="https://colam.kmass.cloud.edu.au/help/exporting-and-importing-annotations-in-the-hypothesis-web-app/"
           target="_blank"
         >
           Learn more
@@ -155,7 +155,7 @@ function ImportAnnotations({
         about importing annotations.
       </p>
       <label htmlFor={fileInputId} className="font-medium">
-        Select Hypothesis export file:
+        Select GoldMind export file:
       </label>
       <FileInput onFileSelected={setFile} disabled={busy} id={fileInputId} />
       {userList && (

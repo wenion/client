@@ -164,7 +164,7 @@ function HelpPanel({ session }: HelpPanelProps) {
         <div className="flex items-center p-3">
           <HelpPanelTab
             linkText="Help topics"
-            url="https://web.hypothes.is/help/"
+            url="https://colam.kmass.cloud.edu.au/help/"
           />
           <HelpPanelTab linkText="New support ticket" url={supportTicketURL} />
         </div>

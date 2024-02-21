@@ -17,7 +17,7 @@ function LoggedOutMessage({ onLogin }: LoggedOutMessageProps) {
   return (
     <div className="flex flex-col items-center m-6 space-y-6">
       <span className="text-center">
-        This is a public annotation created with Hypothesis. <br />
+        This is a public annotation created with GoldMind. <br />
         To reply or make your own annotations on this document,{' '}
         <Link
           variant="text"
@@ -35,10 +35,10 @@ function LoggedOutMessage({ onLogin }: LoggedOutMessageProps) {
       </span>
       <div>
         <Link
-          href="https://hypothes.is"
-          aria-label="Hypothesis homepage"
+          href="https://colam.kmass.cloud.edu.au"
+          aria-label="GoldMind homepage"
           target="_blank"
-          title="Hypothesis homepage"
+          title="GoldMind homepage"
           underline="none"
           variant="custom"
         >
