@@ -102,7 +102,6 @@ function UserMenu({ frameSync, onLogout, settings }: UserMenuProps) {
           {isProfileEnabled && (
             <MenuItem label="Your profile" onClick={() => onSelectProfile()} />
           )}
-          <MenuItem label="Open notebook" onClick={() => onSelectNotebook()} />
         </MenuSection>
         {isLogoutEnabled && (
           <MenuSection>
