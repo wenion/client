@@ -32,7 +32,7 @@ function MessageList({
         onClick={() => setCollapsed(!collapsed)}
       >
         <h4 class="text-lg border-b border-stone-300 text-slate-600 font-normal my-2">
-          {title}
+          {title + ' [' + threads.length +']'}
         </h4>
         {collapsed ? <CaretDownIcon className='grow-0'/> : <CaretRightIcon className='grow-0'/>}
       </div>
