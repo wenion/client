@@ -273,7 +273,7 @@ export class Sidebar implements Destroyable {
       setSidebarOpen: open => (open ? this.open() : this.close()),
       setHighlightsVisible: show => this.setHighlightsVisible(show),
       setSilentMode: silent => this.setIsSilent(silent),
-      setRecording: recording => this.setIsRecording(recording),
+      toggleRecording: (status: 'off' | 'ready' | 'on') => this.notifyRecordingStatus(status),
     });
 
     if (config.theme === 'clean') {
@@ -412,18 +412,13 @@ export class Sidebar implements Destroyable {
     annotationCounts(document.body, this._sidebarRPC);
     sidebarTrigger(document.body, () => this.open());
 
-    this._sidebarRPC.on('statusUpdated', (status: {isSilentMode: boolean, isRecording: boolean}) => {
-      if (status.isSilentMode != this.toolbar.isSilentMode) {
-        this.setIsSilent(status.isSilentMode)
-      }
-      if (status.isRecording != this.toolbar.isRecording) {
-        this.toolbar.isRecording = status.isRecording;
-      }
+    this._sidebarRPC.on('statusUpdated', (status: {isSilentMode: boolean, recordingStatus: 'off' | 'ready' | 'on'}) => {
+      this.toolbar.isSilentMode = status.isSilentMode;
+      this.updateRecordingStatusView(status.recordingStatus);
     })
 
-    this._sidebarRPC.on('startRecord', () => {
-      this.toolbar.isRecording = true;
-      this.close();
+    this._sidebarRPC.on('updateRecoringStatusFromSidebar', (status) => {
+      this.updateRecordingStatusView(status)
     });
 
     this._sidebarRPC.on(
@@ -436,7 +431,8 @@ export class Sidebar implements Destroyable {
       (flags: Record<string, boolean>) => this.features.update(flags),
     );
 
-    this._sidebarRPC.on('connect', () => {
+    this._sidebarRPC.on('connect', (data) => {
+      const status = JSON.parse(data)
       // Show the UI
       if (this.iframeContainer) {
         this.iframeContainer.style.display = '';
@@ -444,6 +440,9 @@ export class Sidebar implements Destroyable {
 
       const showHighlights = this._config.showHighlights === 'always';
       this.setHighlightsVisible(showHighlights);
+
+      this.setIsSilent(status.isSilentMode);
+      this.notifyRecordingStatus(status.recordingStatus);
 
       if (
         this._config.openSidebar ||
@@ -733,14 +732,15 @@ export class Sidebar implements Destroyable {
     this._sidebarRPC.call('setVisuallyHidden', isSilent);
   }
 
-  setIsRecording(isRecording: boolean) {
-    if (this.toolbar.isRecording == false && isRecording) {
+  notifyRecordingStatus(status: 'off' | 'ready' | 'on') {
+    this._sidebarRPC.call('updateRecoringStatusFromHost', status);
+    this.updateRecordingStatusView(status)
+  }
+
+  updateRecordingStatusView(status: 'off' | 'ready' | 'on') {
+    this.toolbar.recordingStatus = status;
+    if (status === 'ready') {
       this.open();
-      this._sidebarRPC.call('requestRecord');
-    }
-    if (this.toolbar.isRecording && isRecording == false) {
-      this.toolbar.isRecording = isRecording;
-      this._sidebarRPC.call('endRecord');
     }
   }
 

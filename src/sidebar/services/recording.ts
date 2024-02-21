@@ -11,6 +11,7 @@ import type { LocalStorageService } from './local-storage';
 
 type StatusInfo = {
   isSilentMode: boolean;
+  recordingStatus: 'off' | 'ready' | 'on';
   recordingSessionId: string;
   recordingTaskName: string;
 }
@@ -20,6 +21,8 @@ const isStatusInfo = (status: unknown): status is StatusInfo =>
   typeof status === 'object' &&
   'isSilentMode' in status &&
   typeof status.isSilentMode === 'boolean' &&
+  'recordingStatus' in status &&
+  (status.recordingStatus === 'off' || status.recordingStatus === 'ready' || status.recordingStatus === 'on') &&
   'recordingSessionId' in status &&
   typeof status.recordingSessionId === 'string' &&
   'recordingTaskName' in status &&
@@ -71,9 +74,9 @@ export class RecordingService extends TinyEmitter{
     this._settings = settings;
     this._store = store;
     this._window = $window;
-    
-    this._initStatus();
+
     this._listenForTokenStorageEvents();
+    this.startFecthMessage();
   }
 
   private _listenForTokenStorageEvents() {
@@ -98,9 +101,18 @@ export class RecordingService extends TinyEmitter{
   }
 
   private _initStatus() {
-    const status = this._loadStatus();
-    if (!status) {
-      this._saveStatus(false, '', '');
+    const status = this._localStorage.getObject(this._storageKey());
+    if (!!status && typeof status === 'object' && !isStatusInfo(status)) {
+      const isSilentMode =
+        'isSilentMode' in status && typeof status.isSilentMode === 'boolean' ? status.isSilentMode: false;
+      const recordingStatus =
+        'recordingStatus' in status &&
+        (status.recordingStatus === 'off' || status.recordingStatus === 'ready' || status.recordingStatus === 'on') ? status.recordingStatus: 'off';
+      const recordingSessionId =
+        'recordingSessionId' in status && typeof status.recordingSessionId === 'string' ? status.recordingSessionId : '';
+      const recordingTaskName =
+        'recordingTaskName' in status && typeof status.recordingTaskName === 'string' ? status.recordingTaskName: '';
+      this._saveStatus(isSilentMode, recordingStatus, recordingSessionId, recordingTaskName);
     }
   }
 
@@ -113,15 +125,16 @@ export class RecordingService extends TinyEmitter{
 
     return {
       isSilentMode: status.isSilentMode,
-      isRecording: status.recordingSessionId === ''? false : true,
+      recordingStatus: status.recordingStatus,
       recordingSessionId: status.recordingSessionId,
       recordingTaskName: status.recordingTaskName,
     }
   }
 
-  private _saveStatus(isSilentMode: boolean, recordingSessionId: string, recordingTaskName: string) {
+  private _saveStatus(isSilentMode: boolean, recordingStatus: 'off' | 'ready' | 'on', recordingSessionId: string, recordingTaskName: string) {
     const status = {
       isSilentMode: isSilentMode,
+      recordingStatus: recordingStatus,
       recordingSessionId: recordingSessionId,
       recordingTaskName: recordingTaskName,
     }
@@ -131,16 +144,16 @@ export class RecordingService extends TinyEmitter{
   refreshSilentMode(isSilentMode: boolean) {
     const status = this._loadStatus();
     if (status) {
-      this._saveStatus(isSilentMode, status.recordingSessionId, status.recordingTaskName)
+      this._saveStatus(isSilentMode, status.recordingStatus, status.recordingSessionId, status.recordingTaskName)
       return true
     }
     return false
   }
 
-  refreshRecordingInfo(recordingSessionId: string, recordingTaskName: string) {
+  refreshRecordingInfo(recordingStatus: 'off' | 'ready' | 'on', recordingSessionId: string, recordingTaskName: string) {
     const status = this._loadStatus();
     if (status) {
-      this._saveStatus(status.isSilentMode, recordingSessionId, recordingTaskName)
+      this._saveStatus(status.isSilentMode, recordingStatus, recordingSessionId, recordingTaskName)
       return true
     }
     return false
@@ -178,18 +191,25 @@ export class RecordingService extends TinyEmitter{
     };
   }
 
+  getExtensionStatus(): StatusInfo {
+    const status = this._loadStatus();
+    if (!status) {
+      this._initStatus();
+      return this.getExtensionStatus();
+    }
+    return status;
+  }
+
   createNewRecording(taskName: string, sessionId: string, description: string) {
     this._store.createNewRecording(taskName, sessionId, description)
-    this._store.changeRecordingStage('Start')
-    this.refreshRecordingInfo(sessionId, taskName)
+    this.refreshRecordingInfo('on', sessionId, taskName)
     this.sendUserEvent(this.createSimplifiedUserEventNode('START', 'RECORD', extractHostURL(this._window.location.hash)))
   }
 
   clearNewRecording() {
     this.sendUserEvent(this.createSimplifiedUserEventNode('END', 'RECORD', extractHostURL(this._window.location.hash)))
     this._store.removeNewRecording()
-    this._store.changeRecordingStage('Idle')
-    this.refreshRecordingInfo('', '')
+    this.refreshRecordingInfo('off', '', '')
   }
 
   async updateRecordings() {
@@ -207,8 +227,8 @@ export class RecordingService extends TinyEmitter{
   }
 
   async sendUserEvent(eventData: EventData, needFilter: boolean = true) {
-    const sessionId = this._store.getNewRecording()?.sessionId;
-    const taskName = this._store.getNewRecording()?.taskName;
+    const sessionId = this._loadStatus()?.recordingSessionId;
+    const taskName = this._loadStatus()?.recordingTaskName;
 
     const userEventData = {
       ...eventData,
@@ -231,10 +251,6 @@ export class RecordingService extends TinyEmitter{
     } catch (err) {
       this._api.event({}, userEventData);
     }
-  }
-
-  async init() {
-    this.emit('statusChanged', this._loadStatus());
   }
 
   isOnRequestPage(hostname: string) {

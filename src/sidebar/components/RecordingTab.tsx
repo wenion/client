@@ -17,20 +17,23 @@ function generateSessionId() {
 
 type RecordingPopupProps = {
   frameSync: FrameSyncService;
-  recordingService: RecordingService;
 };
 
 function RecordingPopup({
   frameSync,
-  recordingService,
 }: RecordingPopupProps) {
-  const store = useSidebarStore();
   const nameEl = useRef<HTMLInputElement>();
   const descriptionEl = useRef<HTMLInputElement>();
   const startEl = useRef<HTMLInputElement>();
 
   const [nameFeedback, setNameFeedback] = useState('success')
   const [descriptionFeedback, setDescriptionFeedback] = useState('success')
+
+  const notifyRecordingStatus = (status: 'off' | 'ready' | 'on', taskName?: string, sessionId?: string, description?: string) => {
+    frameSync.updateRecordingStatusView(status);
+    frameSync.refreshRecordingStatus(status, taskName, sessionId, description)
+    frameSync.notifyHost('updateRecoringStatusFromSidebar', status)
+  }
 
   const startRecord = () => {
     if (!nameEl.current!.value || nameEl.current!.value.trim() == '') {
@@ -41,20 +44,18 @@ function RecordingPopup({
       setDescriptionFeedback('error')
       return;
     }
+
     if (nameEl.current!.value && descriptionEl.current!.value) {
-      recordingService.createNewRecording(nameEl.current!.value.trim(), generateSessionId(), descriptionEl.current!.value.trim())
       setNameFeedback('success')
       setDescriptionFeedback('success')
-      frameSync.notifyHost('startRecord', nameEl.current!.value.trim());
-    }
-    else {
-
+      notifyRecordingStatus('on', nameEl.current!.value.trim(), generateSessionId(), descriptionEl.current!.value.trim())
     }
   }
 
   const cancelRecord = () => {
-    store.changeRecordingStage('Idle')
+    notifyRecordingStatus('off')
   }
+
   return (
     <Overlay>
       <div className='flex items-center'>
@@ -116,7 +117,7 @@ function RecordingTab({
       {recordingStage === 'Request' && (
         <>
           <RecordingList />
-          <RecordingPopup frameSync={frameSync} recordingService={recordingService}/>
+          <RecordingPopup frameSync={frameSync}/>
         </>
       )}
       {recordingStage === 'Start' && (

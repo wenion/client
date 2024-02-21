@@ -90,7 +90,7 @@ export type ToolbarProps = {
 
   isSilentMode: boolean;
   toggleSilentMode: () => void;
-  isRecording: boolean;
+  recordingStatus: 'off' | 'ready' | 'on';
   toggleRecording: () => void;
 
   /** Callback for the show/hide highlights button */
@@ -130,7 +130,7 @@ export default function Toolbar({
   newAnnotationType,
   showHighlights,
   isSilentMode,
-  isRecording,
+  recordingStatus, // off -> ready -> on -> off / off -> ready -> off
   toggleSilentMode,
   toggleRecording,
   toggleHighlights,
@@ -195,19 +195,18 @@ export default function Toolbar({
             <ToolbarButton
               title={isSilentMode ? 'Silent mode on' : 'Silent mode off'}
               icon={isSilentMode ? NotificationsOffIcon : NotificationsIcon}
-              selected={!isSilentMode}
+              pressed={!isSilentMode}
               onClick={toggleSilentMode}
             />
             <ToolbarButton
-              title={isRecording ? 'Recording' : 'Recording off'}
-              icon={isRecording ? RecordingIcon : RecordingOffIcon}
-              selected={!isRecording}
+              title={recordingStatus === 'on' ? 'Recording' : 'Recording off'}
+              icon={recordingStatus === 'on' ? RecordingIcon : RecordingOffIcon}
               onClick={toggleRecording}
             />
             <ToolbarButton
               title="Show highlights"
               icon={showHighlights ? ShowIcon : HideIcon}
-              selected={showHighlights}
+              pressed={showHighlights}
               onClick={toggleHighlights}
             />
             <ToolbarButton

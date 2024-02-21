@@ -118,9 +118,9 @@ function setupFrameSync(
   toastMessenger: ToastMessengerService,
 ) {
   if (store.route() === 'sidebar') {
-    frameSync.connect().then(()=> frameSync.afterConnection()).catch(() => { //TODO
+    frameSync.connect().catch(() => {
       toastMessenger.error(
-        'Hypothesis failed to connect to the web page. Try reloading the page.',
+        'GoldMind failed to connect to the web page. Try reloading the page.',
         {
           autoDismiss: false,
         },

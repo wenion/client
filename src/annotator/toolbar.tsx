@@ -8,7 +8,7 @@ export type ToolbarOptions = {
   setSidebarOpen: (open: boolean) => void;
   setHighlightsVisible: (visible: boolean) => void;
   setSilentMode: (visible: boolean) => void;
-  setRecording: (isRecording: boolean) => void;
+  toggleRecording: (recordingStatus: 'off' | 'ready' | 'on') => void;
 };
 
 /**
@@ -23,7 +23,7 @@ export class ToolbarController {
   private _useMinimalControls: boolean;
   private _highlightsVisible: boolean;
   private _isSilentMode: boolean;
-  private _isRecording: boolean;
+  private _recordingStatus: 'off' | 'ready' | 'on';
   private _sidebarOpen: boolean;
   private _closeSidebar: () => void;
   private _toggleSidebar: () => void;
@@ -37,7 +37,7 @@ export class ToolbarController {
    * @param container - Element into which the toolbar is rendered
    */
   constructor(container: HTMLElement, options: ToolbarOptions) {
-    const { createAnnotation, setSidebarOpen, setHighlightsVisible, setSilentMode, setRecording } = options;
+    const { createAnnotation, setSidebarOpen, setHighlightsVisible, setSilentMode, toggleRecording } = options;
 
     this._container = container;
     this._useMinimalControls = false;
@@ -45,9 +45,9 @@ export class ToolbarController {
     this._highlightsVisible = false;
     this._sidebarOpen = false;
     this._isSilentMode = false;
-    this._isRecording = false; // TODO initial value
+    this._recordingStatus = 'off';
     this._toggleSilentMode = () => setSilentMode(!this._isSilentMode);
-    this._toggleRecording = () => setRecording(!this._isRecording);
+    this._toggleRecording = () => toggleRecording(this._recordingStatus === 'off'? 'ready' : this._recordingStatus === 'on' ? 'off': 'ready');
 
     this._closeSidebar = () => setSidebarOpen(false);
     this._toggleSidebar = () => setSidebarOpen(!this._sidebarOpen);
@@ -129,13 +129,13 @@ export class ToolbarController {
     return this._isSilentMode;
   }
 
-  set isRecording(isRecording) {
-    this._isRecording = isRecording;
+  set recordingStatus(recordingStatus: 'off' | 'ready' | 'on') {
+    this._recordingStatus = recordingStatus;
     this.render();
   }
 
-  get isRecording() {
-    return this._isRecording;
+  get recordingStatus() {
+    return this._recordingStatus;
   }
 
   /**
@@ -154,7 +154,7 @@ export class ToolbarController {
         isSidebarOpen={this._sidebarOpen}
         showHighlights={this._highlightsVisible}
         isSilentMode={this._isSilentMode}
-        isRecording={this._isRecording}
+        recordingStatus={this._recordingStatus}
         toggleSilentMode={this._toggleSilentMode}
         toggleRecording={this._toggleRecording}
         toggleHighlights={this._toggleHighlights}

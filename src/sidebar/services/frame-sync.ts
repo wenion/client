@@ -556,6 +556,30 @@ export class FrameSyncService {
     }
   }
 
+  updateRecordingStatusView(status: 'off' | 'ready' | 'on') {
+    if (status === 'off') {
+      this._store.changeRecordingStage('Idle');
+    }
+    else if (status === 'ready') {
+      this._store.selectTab('recording');
+      this._store.changeRecordingStage('Request')
+    }
+    else {
+      this._store.selectTab('recording');
+      this._store.changeRecordingStage('Start')
+    }
+  }
+
+  refreshRecordingStatus(status: 'off' | 'ready' | 'on', taskName?: string, sessionId?: string, description?: string) {
+    if (status === 'off') {
+      this._recordingService.clearNewRecording();
+      this._recordingService.updateRecordings(); //TODO
+    }
+    else if (status === 'on') {
+      this._recordingService.createNewRecording(taskName!, sessionId!, description!);
+    }
+  }
+
   /**
    * Listen for messages coming from the host frame.
    */
@@ -577,24 +601,16 @@ export class FrameSyncService {
 
     this._hostRPC.on('setVisuallyHidden', (visible: boolean) => {
       this._recordingService.refreshSilentMode(visible)
-      this._toastMessenger.setVisuallyHidden(!visible)
     });
+
+    this._hostRPC.on('updateRecoringStatusFromHost', (status: 'off' | 'ready' | 'on') => {
+      this.updateRecordingStatusView(status);
+      this.refreshRecordingStatus(status);
+    })
 
     this._hostRPC.on('createUserEvent', (data: string) => {
       this._recordingService.sendUserEvent(
         this._recordingService.createSimplifiedUserEventNode('close', 'EXPERT-TRACE_CLOSE', '', '', data))
-    });
-
-    this._hostRPC.on('requestRecord', () => {
-      this._store.selectTab('recording');
-      this._store.changeRecordingStage('Request');
-    });
-
-    this._hostRPC.on('endRecord', () => {
-      this._store.selectTab('recording');
-      this._recordingService.clearNewRecording();
-      this._store.changeRecordingStage('Idle');
-      this._recordingService.updateRecordings(); //TODO
     });
 
     // this._hostRPC.on('postRating', (data: PullingData) => {
@@ -744,7 +760,7 @@ export class FrameSyncService {
       // Forward hidden messages to "host" when sidebar is collapsed, with the
       // intention that another container can be used to render those messages
       // there, ensuring screen readers announce them.
-      if (message.visuallyHidden && 'show_flag' in message) {
+      if (!this._recordingService.getExtensionStatus().isSilentMode && 'show_flag' in message) {
         // to src/annotator/sidebar.tsx
         this._recordingService.sendUserEvent(
           this._recordingService.createSimplifiedUserEventNode('open', 'EXPERT-TRACE_OPEN', '', message.message as string, message.id))
@@ -761,34 +777,15 @@ export class FrameSyncService {
       'statusChanged', (
         status: {
         isSilentMode: boolean,
-        isRecording: boolean,
+        recordingStatus: 'off' | 'ready' | 'on',
         recordingSessionId: string,
         recordingTaskName: string,
       }) => {
         if (status) {
-          const storageStatus = status
-          if (storageStatus && storageStatus.isRecording) {
-            this._recordingService.createNewRecording(
-              storageStatus.recordingTaskName,
-              storageStatus.recordingSessionId,
-              '')
-          }
-          else if (storageStatus && !storageStatus.isRecording) {
-            this._recordingService.clearNewRecording();
-            this._recordingService.updateRecordings();
-          }
-          this.notifyHost('statusUpdated', {
-            isSilentMode: status.isSilentMode,
-            isRecording: status.isRecording,
-            recordingTaskName: status.recordingTaskName,
-            recordingSessionId: status.recordingSessionId,
-      })}
+          this.updateRecordingStatusView(status.recordingStatus);
+          this.notifyHost('statusUpdated', status)
+        }
     })
-  }
-
-  afterConnection() { //TODO
-    this._recordingService.init();
-    this._recordingService.startFecthMessage();
   }
 
   /**
@@ -797,7 +794,7 @@ export class FrameSyncService {
   async connect() {
     // Create channel for sidebar-host communication.
     const hostPort = await this._portFinder.discover('host');
-    this._hostRPC.connect(hostPort);
+    this._hostRPC.connect(hostPort, [JSON.stringify(this._recordingService.getExtensionStatus())]);
 
     // Listen for guests connecting to the sidebar.
     this._listeners.add(hostPort, 'message', event => {

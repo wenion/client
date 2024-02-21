@@ -246,11 +246,11 @@ export class PortRPC<OnMethod extends string, CallMethod extends string>
   /**
    * Connect to a MessagePort and process any queued RPC requests.
    */
-  connect(port: MessagePort) {
+  connect(port: MessagePort, args?: string[]) {
     this._port = port;
     this._listeners.add(port, 'message', event => this._handle(event));
     port.start();
-    sendCall(port, 'connect');
+    sendCall(port, 'connect', args);
 
     for (const [method, args] of this._pendingCalls) {
       this.call(method, ...args);
