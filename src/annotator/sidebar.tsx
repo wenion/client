@@ -270,7 +270,7 @@ export class Sidebar implements Destroyable {
         const rpc = this._guestWithSelection ?? this._guestRPC[0];
         rpc.call('createAnnotation');
       },
-      setSidebarOpen: open => (open ? this.open() : this.close()),
+      setSidebarOpen: open => {if(!this.toolbar.highlightsVisible) return; open ? this.open() : this.close()},
       setHighlightsVisible: show => this.setHighlightsVisible(show),
       setSilentMode: silent => this.setIsSilent(silent),
       toggleRecording: (status: 'off' | 'ready' | 'on') => this.notifyRecordingStatus(status),
@@ -412,8 +412,9 @@ export class Sidebar implements Destroyable {
     annotationCounts(document.body, this._sidebarRPC);
     sidebarTrigger(document.body, () => this.open());
 
-    this._sidebarRPC.on('statusUpdated', (status: {isSilentMode: boolean, recordingStatus: 'off' | 'ready' | 'on'}) => {
+    this._sidebarRPC.on('statusUpdated', (status: {isSilentMode: boolean, showHighlights: boolean, recordingStatus: 'off' | 'ready' | 'on'}) => {
       this.toolbar.isSilentMode = status.isSilentMode;
+      this.toolbar.highlightsVisible = status.showHighlights;
       this.updateRecordingStatusView(status.recordingStatus);
     })
 
@@ -443,6 +444,7 @@ export class Sidebar implements Destroyable {
 
       this.setIsSilent(status.isSilentMode);
       this.notifyRecordingStatus(status.recordingStatus);
+      this.setHighlightsVisible(status.showHighlights);
 
       if (
         this._config.openSidebar ||
@@ -722,6 +724,7 @@ export class Sidebar implements Destroyable {
    */
   setHighlightsVisible(visible: boolean) {
     this.toolbar.highlightsVisible = visible;
+    this.close();
 
     // Notify sidebar app of change which will in turn reflect state to guest frames.
     this._sidebarRPC.call('setHighlightsVisible', visible);

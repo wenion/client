@@ -597,10 +597,11 @@ export class FrameSyncService {
     this._hostRPC.on('setHighlightsVisible', (visible: boolean) => {
       this._highlightsVisible = visible;
       this._guestRPC.forEach(rpc => rpc.call('setHighlightsVisible', visible));
+      this._recordingService.refreshShowHighlights(visible);
     });
 
     this._hostRPC.on('setVisuallyHidden', (visible: boolean) => {
-      this._recordingService.refreshSilentMode(visible)
+      this._recordingService.refreshSilentMode(visible);
     });
 
     this._hostRPC.on('updateRecoringStatusFromHost', (status: 'off' | 'ready' | 'on') => {
@@ -777,6 +778,7 @@ export class FrameSyncService {
       'statusChanged', (
         status: {
         isSilentMode: boolean,
+        showHighlights: boolean,
         recordingStatus: 'off' | 'ready' | 'on',
         recordingSessionId: string,
         recordingTaskName: string,

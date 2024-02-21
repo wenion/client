@@ -1007,8 +1007,10 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     )
 
     this._adder.annotationsForSelection = annotationsForSelection();
-    this._isAdderVisible = true;
-    this._adder.show(focusRect, isBackwards);
+    if (this.highlightsVisible) {
+      this._isAdderVisible = true;
+      this._adder.show(focusRect, isBackwards);
+    }
   }
 
   _onClearSelection() {

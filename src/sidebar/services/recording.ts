@@ -11,6 +11,7 @@ import type { LocalStorageService } from './local-storage';
 
 type StatusInfo = {
   isSilentMode: boolean;
+  showHighlights: boolean;
   recordingStatus: 'off' | 'ready' | 'on';
   recordingSessionId: string;
   recordingTaskName: string;
@@ -21,6 +22,8 @@ const isStatusInfo = (status: unknown): status is StatusInfo =>
   typeof status === 'object' &&
   'isSilentMode' in status &&
   typeof status.isSilentMode === 'boolean' &&
+  'showHighlights' in status &&
+  typeof status.showHighlights === 'boolean' &&
   'recordingStatus' in status &&
   (status.recordingStatus === 'off' || status.recordingStatus === 'ready' || status.recordingStatus === 'on') &&
   'recordingSessionId' in status &&
@@ -101,9 +104,17 @@ export class RecordingService extends TinyEmitter{
 
   private _initStatus() {
     const status = this._localStorage.getObject(this._storageKey());
+    // init
+    if (status === null) {
+      this._saveStatus(false, true, 'off', '', '');
+      return;
+    }
+    // update
     if (!!status && typeof status === 'object' && !isStatusInfo(status)) {
       const isSilentMode =
         'isSilentMode' in status && typeof status.isSilentMode === 'boolean' ? status.isSilentMode: false;
+      const showHighlights =
+        'showHighlights' in status && typeof status.showHighlights === 'boolean' ? status.showHighlights: false;
       const recordingStatus =
         'recordingStatus' in status &&
         (status.recordingStatus === 'off' || status.recordingStatus === 'ready' || status.recordingStatus === 'on') ? status.recordingStatus: 'off';
@@ -111,7 +122,7 @@ export class RecordingService extends TinyEmitter{
         'recordingSessionId' in status && typeof status.recordingSessionId === 'string' ? status.recordingSessionId : '';
       const recordingTaskName =
         'recordingTaskName' in status && typeof status.recordingTaskName === 'string' ? status.recordingTaskName: '';
-      this._saveStatus(isSilentMode, recordingStatus, recordingSessionId, recordingTaskName);
+      this._saveStatus(isSilentMode, showHighlights, recordingStatus, recordingSessionId, recordingTaskName);
     }
   }
 
@@ -124,15 +135,17 @@ export class RecordingService extends TinyEmitter{
 
     return {
       isSilentMode: status.isSilentMode,
+      showHighlights: status.showHighlights,
       recordingStatus: status.recordingStatus,
       recordingSessionId: status.recordingSessionId,
       recordingTaskName: status.recordingTaskName,
     }
   }
 
-  private _saveStatus(isSilentMode: boolean, recordingStatus: 'off' | 'ready' | 'on', recordingSessionId: string, recordingTaskName: string) {
+  private _saveStatus(isSilentMode: boolean, showHighlights: boolean, recordingStatus: 'off' | 'ready' | 'on', recordingSessionId: string, recordingTaskName: string) {
     const status = {
       isSilentMode: isSilentMode,
+      showHighlights: showHighlights,
       recordingStatus: recordingStatus,
       recordingSessionId: recordingSessionId,
       recordingTaskName: recordingTaskName,
@@ -143,7 +156,16 @@ export class RecordingService extends TinyEmitter{
   refreshSilentMode(isSilentMode: boolean) {
     const status = this._loadStatus();
     if (status) {
-      this._saveStatus(isSilentMode, status.recordingStatus, status.recordingSessionId, status.recordingTaskName)
+      this._saveStatus(isSilentMode, status.showHighlights, status.recordingStatus, status.recordingSessionId, status.recordingTaskName)
+      return true
+    }
+    return false
+  }
+
+  refreshShowHighlights(showHighlights: boolean) {
+    const status = this._loadStatus();
+    if (status) {
+      this._saveStatus(status.isSilentMode, showHighlights, status.recordingStatus, status.recordingSessionId, status.recordingTaskName)
       return true
     }
     return false
@@ -152,7 +174,7 @@ export class RecordingService extends TinyEmitter{
   refreshRecordingInfo(recordingStatus: 'off' | 'ready' | 'on', recordingSessionId: string, recordingTaskName: string) {
     const status = this._loadStatus();
     if (status) {
-      this._saveStatus(status.isSilentMode, recordingStatus, recordingSessionId, recordingTaskName)
+      this._saveStatus(status.isSilentMode, status.showHighlights, recordingStatus, recordingSessionId, recordingTaskName)
       return true
     }
     return false
