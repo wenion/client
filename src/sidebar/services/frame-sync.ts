@@ -825,6 +825,7 @@ export class FrameSyncService {
         // setTimeout(()=>{this._siteRPC.call('updateProfile'); console.log('sent update profile')}, 5000);
       }
     });
+    this._recordingService.startFecthMessage()
   }
 
   /**

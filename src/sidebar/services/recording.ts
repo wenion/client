@@ -76,7 +76,6 @@ export class RecordingService extends TinyEmitter{
     this._window = $window;
 
     this._listenForTokenStorageEvents();
-    this.startFecthMessage();
   }
 
   private _listenForTokenStorageEvents() {
@@ -261,7 +260,7 @@ export class RecordingService extends TinyEmitter{
           return true;
         }
       } catch (err) {
-        console.error(err)
+        // console.error(err)
         return false;
       }
       return false;
