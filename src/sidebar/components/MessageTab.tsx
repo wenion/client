@@ -44,7 +44,7 @@ function MessageList({
             // element (e.g. `space-y-3`) but in this case, the constraints of
             // sibling divs before and after the list of annotation cards prevents
             // this, so a bottom margin is added to each card's wrapping element.
-            'my-4',
+            'my-4 overflow-auto',
             'shadow-xl rounded-md bg-orange-200',
             'hover:drop-shadow-2xl'
             // hover drop-shadow-2xl
