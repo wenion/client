@@ -724,7 +724,6 @@ export class Sidebar implements Destroyable {
    */
   setHighlightsVisible(visible: boolean) {
     this.toolbar.highlightsVisible = visible;
-    this.close();
 
     // Notify sidebar app of change which will in turn reflect state to guest frames.
     this._sidebarRPC.call('setHighlightsVisible', visible);
