@@ -170,10 +170,10 @@ function SelectionTabs({
           count={allRecordingsCount}
           isWaitingToAnchor={isWaitingToAnchorAnnotations}
           isSelected={selectedTab === 'recording'}
-          label="Recordings"
+          label="ShareFlow"
           onSelect={() => selectTab('recording')}
         >
-          Expert replay
+          ShareFlow
         </Tab>
         <Tab
           count={videoAnnotationCount}
