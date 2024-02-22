@@ -263,6 +263,7 @@ export class Sidebar implements Destroyable {
     const toolbarContainer = document.createElement('div');
     this.toolbar = new ToolbarController(toolbarContainer, {
       createAnnotation: () => {
+        if(!this.toolbar.highlightsVisible) return;
         if (this._guestRPC.length === 0) {
           return;
         }
@@ -271,9 +272,9 @@ export class Sidebar implements Destroyable {
         rpc.call('createAnnotation');
       },
       setSidebarOpen: open => {if(!this.toolbar.highlightsVisible) return; open ? this.open() : this.close()},
-      setHighlightsVisible: show => this.setHighlightsVisible(show),
+      setHighlightsVisible: show => {this.setHighlightsVisible(show); if (!this.toolbar.highlightsVisible) this.close()},
       setSilentMode: silent => this.setIsSilent(silent),
-      toggleRecording: (status: 'off' | 'ready' | 'on') => this.notifyRecordingStatus(status),
+      toggleRecording: (status: 'off' | 'ready' | 'on') => {if(!this.toolbar.highlightsVisible) return; this.notifyRecordingStatus(status)},
     });
 
     if (config.theme === 'clean') {
