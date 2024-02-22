@@ -294,7 +294,7 @@ function Toolbar({ isPreviewing, onCommand, onTogglePreview }: ToolbarProps) {
       <div className="grow flex justify-end">
         <Link
           classes="text-grey-7 hover:!text-grey-7"
-          href="https://web.hypothes.is/help/formatting-annotations-with-markdown/"
+          href="https://colam.kmass.cloud.edu.au/help/formatting-annotations-with-markdown/"
           target="_blank"
           title="Formatting help"
           aria-label="Formatting help"

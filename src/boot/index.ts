@@ -65,6 +65,6 @@ if (isBrowserSupported()) {
   //
   // In Via or when using the bookmarklet we could show something louder.
   console.warn(
-    'The Hypothesis annotation tool is not supported in this browser. See https://web.hypothes.is/help/which-browsers-are-supported-by-hypothesis/.',
+    'The GoldMind annotation tool is not supported in this browser. See https://colam.kmass.cloud.edu.au/help/which-browsers-are-supported-by-hypothesis/.',
   );
 }

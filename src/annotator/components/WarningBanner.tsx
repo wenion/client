@@ -21,12 +21,12 @@ export default function WarningBanner() {
           <strong>This PDF does not contain selectable text:</strong>{' '}
           <Link
             target="_blank"
-            href="https://web.hypothes.is/help/how-to-ocr-optimize-pdfs/"
+            href="https://colam.kmass.cloud.edu.au/help/how-to-ocr-optimize-pdfs/"
             underline="always"
           >
             Learn how to fix this
           </Link>{' '}
-          in order to annotate with Hypothesis.
+          in order to annotate with GoldMind.
         </div>
       </div>
     </div>
