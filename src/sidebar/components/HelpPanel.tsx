@@ -93,7 +93,7 @@ function HelpPanel({ session }: HelpPanelProps) {
 
   // The support ticket URL encodes some version info in it to pre-fill in the
   // create-new-ticket form
-  const supportTicketURL = `https://colam.kmass.cloud.edu.au/get-help/?sys_info=${versionData.asEncodedURLString()}`;
+  const supportTicketURL = `https://colam.kmass.cloud.edu.au/help/?sys_info=${versionData.asEncodedURLString()}`;
 
   const onActiveChanged = useCallback(
     (active: boolean) => {
