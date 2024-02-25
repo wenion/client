@@ -330,16 +330,17 @@ export class FrameSyncService {
       }
     };
 
-    watch(
+    const unsubscribe = watch(
       this._store.subscribe,
       () => this._store.isLoggedIn(),
-      isLoggedIn => {
-        if (isLoggedIn) {
+      (isLoggedIn, prevIsLoggedIn) => {
+        if (isLoggedIn !== prevIsLoggedIn && isLoggedIn) {
           this._recordingService.sendUserEvent(
             this._recordingService.createSimplifiedUserEventNode('open', 'CONNECT', extractHostURL(this._window.location.hash)),
             false
           )
           this._recordingService.fetchHighlight(this._store.mainFrame()?.uri)
+          unsubscribe();
         }
       }
     )

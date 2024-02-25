@@ -437,6 +437,7 @@ export type RecordingStepData = {
   description?: string;
   title?: string;
   position?: string;
+  image?: string;
   // selectors?: Selector;
   // offsetX?: number;
   // offsetY?: number;
@@ -447,5 +448,6 @@ export type RecordingData = {
   sessionId: string;
   title?: string;
   selectorAttribute?: string;
+  date?: number;
   steps: RecordingStepData[];
 }

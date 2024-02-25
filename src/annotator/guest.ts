@@ -390,7 +390,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
         response => {
           const element = event.target as Element;
           if (element && element.tagName) {
-            this._handlePageEvent('keydown', response, element.tagName, event.key, event.code,
+            this._handlePageEvent('keydown', response, element.tagName, event.key, event.code ?? '',
             'KEYBOARD', '', getXPath(element), 0, 0, '',
             '', '', window.innerWidth, window.innerHeight);
           }
@@ -420,21 +420,22 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     });
 
     this._listeners.add(this.element, 'click', event => {
-      const clickElement = event.target as Element;
+      const clickElement = event.target as HTMLElement;
       this._integration.uri().then(
         url => {
+          if (!event.target) return;
+
           let textContent = clickElement.textContent;
           if (!textContent && clickElement instanceof HTMLInputElement) {
             textContent = clickElement.value;
           }
-          else if (!textContent) {
+          if (!textContent) {
             textContent = '';
           }
-            this._handlePageEvent(event.type, url, clickElement.tagName, textContent, '',
-              'MOUSE', '', getXPath(clickElement), event.clientX, event.clientY, '',
-              '', '', window.innerWidth, window.innerHeight);
-        }
-      )
+          this._handlePageEvent(event.type, url, clickElement.tagName, textContent, '',
+            'MOUSE', '', getXPath(clickElement), event.clientX, event.clientY, '',
+            '', '', window.innerWidth, window.innerHeight, clickElement);
+      })
     });
 
     this._listeners.add(window, 'message', event => {
@@ -1115,7 +1116,9 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     task_name: string,
     width: number,
     height: number,
-    ) {
+    element?: HTMLElement | undefined,
+    )
+  {
     const userEvent: EventData = {
       event_type: type,
       timestamp: Date.now(),

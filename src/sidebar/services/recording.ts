@@ -263,7 +263,6 @@ export class RecordingService extends TinyEmitter{
       if (needToCheck) {
         for (const link of this._store.getWhitelist()) {
           if (link === url.hostname) {
-            console.log('sendUserEvent hostname', url)
             this._api.event({}, userEventData);
             break;
           }

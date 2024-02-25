@@ -18,6 +18,7 @@ export type RecordingStepData = {
   description?: string;
   title?: string;
   position?: string;
+  image?: string;
 }
 
 export type RecordingData = {
