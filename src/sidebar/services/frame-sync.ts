@@ -336,8 +336,9 @@ export class FrameSyncService {
       isLoggedIn => {
         if (isLoggedIn) {
           this._recordingService.sendUserEvent(
-            this._recordingService.createSimplifiedUserEventNode('open', 'CONNECT', extractHostURL(this._window.location.hash)
-          ))
+            this._recordingService.createSimplifiedUserEventNode('open', 'CONNECT', extractHostURL(this._window.location.hash)),
+            false
+          )
         }
       }
     )

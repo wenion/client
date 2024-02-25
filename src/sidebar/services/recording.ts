@@ -247,7 +247,7 @@ export class RecordingService extends TinyEmitter{
     this._store.clearRecordings();
   }
 
-  async sendUserEvent(eventData: EventData, needFilter: boolean = true) {
+  async sendUserEvent(eventData: EventData, needToCheck: boolean = true) {
     const sessionId = this._loadStatus()?.recordingSessionId;
     const taskName = this._loadStatus()?.recordingTaskName;
 
@@ -260,13 +260,16 @@ export class RecordingService extends TinyEmitter{
 
     try {
       const url = new URL(userEventData.base_url);
-      for (const link of this._store.getWhitelist()) {
-        if (link === url.hostname) {
-          this._api.event({}, userEventData);
-          break;
+      if (needToCheck) {
+        for (const link of this._store.getWhitelist()) {
+          if (link === url.hostname) {
+            console.log('sendUserEvent hostname', url)
+            this._api.event({}, userEventData);
+            break;
+          }
         }
       }
-      if (!needFilter) {
+      else {
         this._api.event({}, userEventData)
       }
     } catch (err) {

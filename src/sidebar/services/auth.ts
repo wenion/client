@@ -158,7 +158,7 @@ export class AuthService extends TinyEmitter {
       return await client.exchangeGrantToken(grantToken);
     } catch (err) {
       this._toastMessenger.error(
-        `Hypothesis login lost: You must reload the page to annotate.`,
+        `GoldMind login lost: You must reload the page to annotate.`,
         {
           autoDismiss: false,
         },
