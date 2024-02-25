@@ -57,25 +57,21 @@ const reducers = {
       }
     }
     return {
-      unreadMessages: added,
+      unreadMessages: state.unreadMessages.concat(added),
     };
   },
 
-  REMOVE_FROM_UNREAD_MESSAGE(state: State) {
-    const added = [];
-    for (const msg of state.unreadMessages) {
+  REMOVE_FROM_UNREAD_MESSAGE(state: State, action: {needToRemove: RawMessageData[] }) {
+    const added = []
+    for (const msg of action.needToRemove) {
       msg.unread_flag = false;
       let existing;
-      if (msg.id) {
-        existing = findByID(state.messages, msg.id)
-      }
-      if (!existing && msg.need_save_flag) {
-        added.push(msg)
-      }
+      if (msg.id) existing = findByID(state.messages, msg.id)
+      if (!existing && msg.need_save_flag) added.push(msg)
     }
     return {
       messages: state.messages.concat(added),
-      unreadMessage: [],
+      unreadMessages: state.unreadMessages.filter(item => !action.needToRemove.includes(item))
     };
   },
 
@@ -85,9 +81,10 @@ const reducers = {
       ( new Date().getTime() - new Date(m.date/1000).getTime()) < (10 * 60 *1000); // 10 mins
     })
     const organisationEventMessages = state.messages.filter(m => m.type === 'organisation_event')
+    const remain = state.messages.filter(m => m.type !== 'organisation_event' && m.type !== 'instant_message')
 
     return {
-      messages: instanceMessages.concat(organisationEventMessages),
+      messages: instanceMessages.concat([...organisationEventMessages, ...remain]),
     }
   },
 
@@ -114,8 +111,8 @@ function addMessages(messages: RawMessageData[]) {
   return makeAction(reducers, 'ADD_MESSAGES', { messages });
 }
 
-function removeFromUnreadMessage() {
-  return makeAction(reducers, 'REMOVE_FROM_UNREAD_MESSAGE', undefined);
+function removeFromUnreadMessage(needToRemove: RawMessageData[]) {
+  return makeAction(reducers, 'REMOVE_FROM_UNREAD_MESSAGE', { needToRemove });
 }
 
 /** Set the currently displayed messages to the empty set. */

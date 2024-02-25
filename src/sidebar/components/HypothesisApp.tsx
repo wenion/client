@@ -67,16 +67,18 @@ function HypothesisApp({
   }, [isSidebar, profile, settings, store]);
 
   useEffect(() => {
-    store.unreadMessages().map(
-      msg => {
-        if (msg.show_flag) {
-          toastMessenger.message(msg)
+    if (unreadMessages.length) {
+      unreadMessages.map(
+        msg => {
+          if (msg.show_flag) {
+            toastMessenger.message(msg)
+          }
         }
-      }
-    );
-    store.removeFromUnreadMessage();
-    store.removeOverTimeMessage();
-  }, [unreadMessages])
+      );
+      store.removeFromUnreadMessage(unreadMessages);
+      store.removeOverTimeMessage();
+    }
+  }, [unreadMessages, store])
 
   const isThirdParty = isThirdPartyService(settings);
 

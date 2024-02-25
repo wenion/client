@@ -5,7 +5,7 @@ import type { APIService } from './api';
 import type { SidebarSettings } from '../../types/config';
 import { extractHostURL } from '../../shared/custom';
 import { generateRandomString } from '../../shared/random';
-import type { RecordingStepData, EventData } from '../../types/api';
+import type { RecordingStepData, EventData, RawMessageData } from '../../types/api';
 import type { LocalStorageService } from './local-storage';
 
 
@@ -289,6 +289,28 @@ export class RecordingService extends TinyEmitter{
         return false;
       }
       return false;
+  }
+
+  fetchHighlight(url: string| undefined) {
+    if (url === undefined) return;
+    this._api.pull_recommendation({url: encodeURIComponent(url)}).then(
+      response => {
+        if (response.id === '') return;
+        const notification: RawMessageData = {
+          type: 'Highlights',
+          id: response.id,
+          title: response.title,
+          message: response.context,
+          date: Date.now()*1000,
+          show_flag: true,
+          unread_flag: true,
+          need_save_flag: false,
+        }
+        let emptyArray = [];
+        emptyArray.push(notification);
+        this._store.addMessages(emptyArray);
+      }
+    )
   }
 
   fetchMessage(q: string, interval: number, start: boolean) {
