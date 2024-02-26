@@ -612,7 +612,7 @@ export class FrameSyncService {
       this.refreshRecordingStatus(status);
     })
 
-    this._hostRPC.on('createUserEvent', (data: string) => {
+    this._hostRPC.on('toastMessages', (data: string) => {
       this._recordingService.sendUserEvent(
         this._recordingService.createSimplifiedUserEventNode('close', 'EXPERT-TRACE_CLOSE', '', '', data))
     });

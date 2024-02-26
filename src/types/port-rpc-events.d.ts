@@ -108,7 +108,7 @@ export type HostToGuestEvent =
  * Events that the host sends to the sidebar
  */
 export type HostToSidebarEvent =
-  | 'createUserEvent'
+  | 'toastMessages'
   | 'updateRecoringStatusFromHost'
   | 'setVisuallyHidden'
   | 'postRating'
