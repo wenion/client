@@ -354,6 +354,7 @@ export type EventData = {
   height: number,
   doc_id: string;
   userid: string;
+  image?: string;
 };
 
 /**

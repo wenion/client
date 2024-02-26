@@ -210,6 +210,7 @@ export type SidebarToHostEvent =
    * The sidebar is asking the host to open the notebook.
    */
   | 'openNotebook'
+  | 'openImageViewer'
 
   /**
    * The sidebar is asking the host to open the user profile.

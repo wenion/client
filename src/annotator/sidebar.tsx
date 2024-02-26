@@ -484,6 +484,14 @@ export class Sidebar implements Destroyable {
       this.show();
     });
 
+    this._sidebarRPC.on('openImageViewer', (src: string) => {
+      // this.hide();
+      this._emitter.publish('openImageViewer', src);
+    });
+    this._emitter.subscribe('closeImageViewer', () => {
+      this.show();
+    });
+
     // Sidebar listens to the `toastMessageAdded` and `toastMessageDismissed`
     // events coming from the sidebar's iframe and re-publishes them via the
     // emitter

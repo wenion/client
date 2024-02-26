@@ -8,18 +8,21 @@ import type { RecordingData, RecordingStepData } from '../store/modules/recordin
 import { applyTheme } from '../helpers/theme';
 
 type StickyNoteProps = {
-  // classes?: string;
   id: string;
   title: string;
   content: string;
+  image: string | undefined;
   hoverContent: (id: string, visible: boolean) => void;
+  onSelectImage: (id: string) => void;
 };
 
 function StickyNote({
   id,
   title,
   content,
+  image,
   hoverContent,
+  onSelectImage,
 }: StickyNoteProps) {
   const textStyle = applyTheme(['annotationFontFamily'], {});
   const [collapsed, setCollapsed] = useState(true);
@@ -48,6 +51,7 @@ function StickyNote({
             {title}
           </h3>
         </div>
+        {image && <img id={'img' + id} src={image} className='w-full mt-2.5 p-1 border border-gray-300 cursor-pointer' onClick={() => onSelectImage(id)}/>}
         {!collapsed && (
           <div
             className='my-4 rounded-sm bg-blue-200'
@@ -88,10 +92,18 @@ function formatObject(object: RecordingStepData) {
   }
 }
 
+export type TimelineListProps = {
+  recording: RecordingData,
+  onSelectImage: (id: string) => void;
+};
+
 /**
  * The main content for the single annotation page (aka. https://hypothes.is/a/<annotation ID>)
  */
-export default function TimelineList({recording} : {recording: RecordingData}) {
+export default function TimelineList({
+  recording,
+  onSelectImage,
+} : TimelineListProps) {
   const store = useSidebarStore();
   // const textStyle = applyTheme(['annotationFontFamily'], {});
 
@@ -120,7 +132,9 @@ export default function TimelineList({recording} : {recording: RecordingData}) {
           id={child.id}
           title={child.description? child.description : child.type}
           content={stringifyObject(formatObject(child) as JsonObjectData)}
+          image={child.image}
           hoverContent={hoverContent}
+          onSelectImage={onSelectImage}
         />
       ))}
       </div>

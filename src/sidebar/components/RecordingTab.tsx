@@ -112,6 +112,11 @@ function RecordingTab({
   const selectedRecording = store.getSelectedRecording();
   const newRecording = store.getNewRecording();
 
+  const onSelectImage = (id: string) => {
+    const img = document.querySelectorAll('#img' + id)[0] as HTMLImageElement;
+    frameSync.notifyHost('openImageViewer', img.src)
+  }
+
   return (
     <>
       {recordingStage === 'Request' && (
@@ -135,7 +140,7 @@ function RecordingTab({
         <RecordingList />
       )}
       {recordingStage === 'Idle' && selectedRecording != null && (
-        <TimelineList recording={selectedRecording} />
+        <TimelineList recording={selectedRecording} onSelectImage={onSelectImage}/>
       )}
     </>
   );

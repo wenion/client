@@ -24,6 +24,7 @@ import {
 } from './integrations/vitalsource';
 import { Notebook } from './notebook';
 import { Profile } from './profile';
+import { ImageViewer } from './image-viewer';
 import { Sidebar } from './sidebar';
 import type { SidebarConfig } from './sidebar';
 import { EventBus } from './util/emitter';
@@ -51,7 +52,7 @@ const sidebarLinkElement = document.querySelector(
  */
 function removeExistingHypothesisAppElements(): boolean {
   const appElements = document.querySelectorAll(
-    ['hypothesis-sidebar', 'hypothesis-notebook', 'hypothesis-profile'].join(
+    ['hypothesis-sidebar', 'hypothesis-notebook', 'hypothesis-profile', 'image-viewer'].join(
       ',',
     ),
   );
@@ -117,11 +118,15 @@ function init() {
       eventBus,
       getConfig('profile') as ProfileConfig,
     );
+    const imageViewer = new ImageViewer(
+      document.body,
+      eventBus,
+    );
 
     portProvider.on('frameConnected', (source, port) =>
       sidebar.onFrameConnected(source, port),
     );
-    destroyables.push(portProvider, sidebar, notebook, profile);
+    destroyables.push(portProvider, sidebar, notebook, profile, imageViewer);
   }
 
   const vsFrameRole = vitalSourceFrameRole();
