@@ -5,6 +5,7 @@ import { PortFinder, PortRPC } from '../shared/messaging';
 import { generateHexString } from '../shared/random';
 import { matchShortcut } from '../shared/shortcut';
 import { getBoundingClientDOMRect } from './highlighter';
+import { generateImage } from '../shared/custom';
 import type {
   AnnotationData,
   Annotator,
@@ -390,7 +391,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
         response => {
           const element = event.target as Element;
           if (element && element.tagName) {
-            this._handlePageEvent('keydown', response, element.tagName, event.key, event.code ?? '',
+            this._handlePageEvent('keydown', response, element.tagName, event.key ?? '', event.code ?? '',
             'KEYBOARD', '', getXPath(element), 0, 0, '',
             '', '', window.innerWidth, window.innerHeight);
           }
@@ -424,17 +425,37 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       this._integration.uri().then(
         url => {
           if (!event.target) return;
-
-          let textContent = clickElement.textContent;
-          if (!textContent && clickElement instanceof HTMLInputElement) {
-            textContent = clickElement.value;
-          }
-          if (!textContent) {
-            textContent = '';
-          }
-          this._handlePageEvent(event.type, url, clickElement.tagName, textContent, '',
-            'MOUSE', '', getXPath(clickElement), event.clientX, event.clientY, '',
-            '', '', window.innerWidth, window.innerHeight, clickElement);
+          generateImage(clickElement).then(src => {
+            let textContent = clickElement.textContent;
+            if (!textContent && clickElement instanceof HTMLInputElement) {
+              textContent = clickElement.value;
+            }
+            if (!textContent) {
+              textContent = '';
+            }
+            if (src) {
+              this._handlePageEvent(event.type, url, clickElement.tagName, textContent, '',
+              'MOUSE', '', getXPath(clickElement), event.clientX, event.clientY, '',
+              '', '', window.innerWidth, window.innerHeight, src);
+            }
+            else {
+              this._handlePageEvent(event.type, url, clickElement.tagName, textContent, '',
+              'MOUSE', '', getXPath(clickElement), event.clientX, event.clientY, '',
+              '', '', window.innerWidth, window.innerHeight);
+            }
+          }).catch(err => {
+            console.error('click error', err)
+            let textContent = clickElement.textContent;
+            if (!textContent && clickElement instanceof HTMLInputElement) {
+              textContent = clickElement.value;
+            }
+            if (!textContent) {
+              textContent = '';
+            }
+            this._handlePageEvent(event.type, url, clickElement.tagName, textContent, '',
+              'MOUSE', '', getXPath(clickElement), event.clientX, event.clientY, '',
+              '', '', window.innerWidth, window.innerHeight);
+          })
       })
     });
 
@@ -456,7 +477,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       }}
       if (currentEvent.timeStamp - this._lastScrollEvent.timeStamp > interval) {
         let textContent = (
-          this._lastScrollEvent.scrollY - window.scrollY > 0? 'SCROLL UP' : this._lastScrollEvent.scrollY - window.scrollY < 0? 'SCROLL DOWN': 'N/A') + 
+          this._lastScrollEvent.scrollY - window.scrollY > 0? 'SCROLL UP' : this._lastScrollEvent.scrollY - window.scrollY < 0? 'SCROLL DOWN': 'N/A') +
           (this._lastScrollEvent.scrollX - window.scrollX > 0? ':SCROLL LEFT' : this._lastScrollEvent.scrollX - window.scrollX < 0? ':SCROLL RIGHT': ':N/A')
         this._integration.uri().then(
           url => {
@@ -1098,7 +1119,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     }
   }
 
-  async _handlePageEvent(
+  _handlePageEvent(
     type: string,
     url: string,
     tagName: string,
@@ -1116,7 +1137,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     task_name: string,
     width: number,
     height: number,
-    element?: HTMLElement | undefined,
+    image?: string,
     )
   {
     const userEvent: EventData = {
@@ -1137,6 +1158,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       height: height,
       doc_id: "",
       userid: "",
+      image: image,
     };
     this._sidebarRPC.call('createUserEvent', userEvent);
   }

@@ -1,3 +1,5 @@
+import * as htmlToImage from 'html-to-image';
+
 export const ADDITIONAL_TAG = 'Additional relevant knowledge available!';
 
 export function extractHostURL(locationHash: string) {
@@ -7,5 +9,19 @@ export function extractHostURL(locationHash: string) {
         return message.hostURL
     } catch (err) {
         return ''
+    }
+}
+
+export async function generateImage(element: HTMLElement): Promise<string| null> {
+    try {
+        const encodePng = await htmlToImage.toPng(element);
+        if (encodePng.length < 100) {
+            console.error('oops, image too small')
+            return null
+        }
+        return encodePng;
+    } catch (err) {
+        console.error('oops, something went wrong!', err);
+        return null
     }
 }

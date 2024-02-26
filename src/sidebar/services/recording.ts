@@ -44,6 +44,7 @@ function mapToObjectFormat(inputObject: RecordingStepData): RecordingStepData {
     description: inputObject.description,
     title: inputObject.title,
     position: inputObject.position,
+    image: inputObject.image,
   };
 }
 
@@ -256,6 +257,8 @@ export class RecordingService extends TinyEmitter{
       timestamp: Date.now(),
       session_id: sessionId ? sessionId : '',
       task_name: taskName ? taskName : '',
+      image: (sessionId && eventData.image) ? eventData.image : undefined,
+      // image: true ? eventData.image : undefined,
     }
 
     try {

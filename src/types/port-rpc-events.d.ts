@@ -109,6 +109,7 @@ export type HostToGuestEvent =
  */
 export type HostToSidebarEvent =
   | 'toastMessages'
+  | 'createUserEvent'
   | 'updateRecoringStatusFromHost'
   | 'setVisuallyHidden'
   | 'postRating'
@@ -173,6 +174,7 @@ export type SidebarToGuestEvent =
 export type SidebarToHostEvent =
   |'statusUpdated'
   |'updateRecoringStatusFromSidebar'
+  |'updateUserEvent'
   |'pullRecommendation'
   /**
    * The sidebar relays to the host to close the sidebar.

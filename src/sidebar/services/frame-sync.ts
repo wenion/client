@@ -3,7 +3,6 @@ import debounce from 'lodash.debounce';
 import type { DebouncedFunction } from 'lodash.debounce';
 import shallowEqual from 'shallowequal';
 
-import { extractHostURL } from '../../shared/custom';
 import { ListenerCollection } from '../../shared/listener-collection';
 import {
   PortFinder,
@@ -335,10 +334,15 @@ export class FrameSyncService {
       () => this._store.isLoggedIn(),
       (isLoggedIn, prevIsLoggedIn) => {
         if (isLoggedIn !== prevIsLoggedIn && isLoggedIn) {
-          this._recordingService.sendUserEvent(
-            this._recordingService.createSimplifiedUserEventNode('open', 'CONNECT', extractHostURL(this._window.location.hash)),
-            false
-          )
+          this._hostRPC.call(
+            'updateUserEvent',
+              'open',
+              'Navigate',
+              false,
+              this._recordingService.getExtensionStatus().recordingStatus === 'on'
+            )
+
+          //TODO I put fetchHighlight here for mainFrame url
           this._recordingService.fetchHighlight(this._store.mainFrame()?.uri)
           unsubscribe();
         }
@@ -518,6 +522,7 @@ export class FrameSyncService {
           const annot = this._store.findAnnotationByTag(tag);
           if (annot && annot.tags.includes(ADDITIONAL_TAG)) {
             guestRPC.call('showAnnotationTags', {tag: tag, tags: [ADDITIONAL_TAG,]})
+            // TODO remove to guest createUserEvent
             this._recordingService.sendUserEvent(
               this._recordingService.createSimplifiedUserEventNode('onmouseover', 'ADDTIONAL_KNOWLEDGE', annot.uri, annot.text, annot.id)
               )
@@ -613,8 +618,13 @@ export class FrameSyncService {
     })
 
     this._hostRPC.on('toastMessages', (data: string) => {
+      // TODO remove
       this._recordingService.sendUserEvent(
         this._recordingService.createSimplifiedUserEventNode('close', 'EXPERT-TRACE_CLOSE', '', '', data))
+    });
+
+    this._hostRPC.on('createUserEvent', (event: EventData, needToCheck: boolean) => {
+      this._recordingService.sendUserEvent(event, needToCheck)
     });
 
     // this._hostRPC.on('postRating', (data: PullingData) => {

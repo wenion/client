@@ -7,12 +7,14 @@ import { addConfigFragment } from '../shared/config-fragment';
 import { sendErrorsTo } from '../shared/frame-error-capture';
 import { ListenerCollection } from '../shared/listener-collection';
 import { PortRPC } from '../shared/messaging';
+import { generateImage } from '../shared/custom';
 import type {
   AnchorPosition,
   SidebarLayout,
   Destroyable,
   PullingData,
 } from '../types/annotator';
+import type { EventData } from '../types/api';
 import type { Service } from '../types/config';
 import type {
   GuestToHostEvent,
@@ -423,6 +425,25 @@ export class Sidebar implements Destroyable {
       this.updateRecordingStatusView(status)
     });
 
+    this._sidebarRPC.on('updateUserEvent', (eventType: string, tagName: string, needToCheck: boolean, isRecording: boolean) => {
+      // console.log('_sidebarRPC receive', eventType, tagName, needToCheck, isRecording)
+      if (isRecording) {
+        generateImage(document.body).then(src => {
+          if (src) {
+            this._handleEvent(eventType, window.location.href, tagName, needToCheck, src)
+          }
+          else {
+            this._handleEvent(eventType, window.location.href, tagName, needToCheck)
+          }
+        }).catch (err => {
+          console.error('updateUserEvent error', err)
+          this._handleEvent(eventType, window.location.href, tagName, needToCheck)
+        })
+      }
+      else
+        this._handleEvent(eventType, window.location.href, tagName, needToCheck);
+    });
+
     this._sidebarRPC.on(
       'pullRecommendation',
       (data: PullingData) => {this.notification.addMessage(data);}
@@ -754,6 +775,40 @@ export class Sidebar implements Destroyable {
       this.open();
     }
   }
+
+  sendUserEvent(event: EventData, needToCheck: boolean) {
+    this._sidebarRPC.call('createUserEvent', event, needToCheck);
+  }
+
+  _handleEvent(
+    type: string,
+    url: string,
+    tagName: string,
+    needToCheck: boolean,
+    image?: string,
+    ) {
+      const userEvent: EventData = {
+        event_type: type,
+        timestamp: Date.now(),
+        base_url: url,
+        tag_name: tagName,
+        text_content: '',
+        interaction_context: '',
+        event_source: 'RESOURCE PAGE',
+        target: '',
+        x_path: '',
+        offset_x: 0,
+        offset_y: 0,
+        session_id: '',
+        task_name: '',
+        width: window.innerWidth,
+        height: window.innerHeight,
+        doc_id: "",
+        userid: "",
+        image: image,
+      };
+      this.sendUserEvent(userEvent, needToCheck);
+    }
 
   /**
    * Shows the sidebar's controls

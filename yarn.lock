@@ -6633,6 +6633,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"html-to-image@npm:^1.11.11":
+  version: 1.11.11
+  resolution: "html-to-image@npm:1.11.11"
+  checksum: b453beca72a697bf06fae4945e5460d1d9b1751e8569a0d721dda9485df1dde093938cc9bd9172b8df5fc23133a53a4d619777b3d22f7211cd8a67e3197ab4e8
+  languageName: node
+  linkType: hard
+
 "htmlparser2@npm:^8.0.1":
   version: 8.0.2
   resolution: "htmlparser2@npm:8.0.2"
@@ -6772,6 +6779,7 @@ __metadata:
     gulp: ^4.0.0
     gulp-changed: ^5.0.1
     hammerjs: ^2.0.4
+    html-to-image: ^1.11.11
     karma: ^6.0.1
     karma-chrome-launcher: ^3.1.0
     karma-coverage-istanbul-reporter: ^3.0.2
