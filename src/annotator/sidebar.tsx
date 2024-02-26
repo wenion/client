@@ -422,6 +422,17 @@ export class Sidebar implements Destroyable {
     })
 
     this._sidebarRPC.on('updateRecoringStatusFromSidebar', (status) => {
+      generateImage(document.body).then(src => {
+        if (src) {
+          this._handleEvent('recording', window.location.href, 'Navigate', true, src)
+        }
+        else {
+          this._handleEvent('recording', window.location.href, 'Navigate', true)
+        }
+      }).catch (err => {
+        console.error('updateUserEvent error', err)
+        this._handleEvent('recording', window.location.href, 'Navigate', true)
+      })
       this.updateRecordingStatusView(status)
     });
 
