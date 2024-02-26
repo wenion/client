@@ -11,7 +11,7 @@ type StickyNoteProps = {
   id: string;
   title: string;
   content: string;
-  image: string | undefined;
+  image?: string | null;
   hoverContent: (id: string, visible: boolean) => void;
   onSelectImage: (id: string) => void;
 };
@@ -51,7 +51,16 @@ function StickyNote({
             {title}
           </h3>
         </div>
-        {image && <img id={'img' + id} src={image} className='w-full mt-2.5 p-1 border border-gray-300 cursor-pointer' onClick={() => onSelectImage(id)}/>}
+        {image && (
+          <div className='flex justify-center mt-2.5 p-1 cursor-pointer'>
+            <img
+              className='border border-gray-300 hover:border-2 hover:border-gray-500'
+              id={'img' + id}
+              onClick={() => onSelectImage(id)}
+              src={image}
+            />
+          </div>
+        )}
         {!collapsed && (
           <div
             className='my-4 rounded-sm bg-blue-200'

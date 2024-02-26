@@ -438,7 +438,7 @@ export type RecordingStepData = {
   description?: string;
   title?: string;
   position?: string;
-  image?: string;
+  image?: string | null;
   // selectors?: Selector;
   // offsetX?: number;
   // offsetY?: number;
