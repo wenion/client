@@ -71,7 +71,7 @@ export default function ImageViewerModal({
   return (
     <div
       className={classnames(
-        'fixed z-max top-0 left-0 right-0 bottom-0 p-3 bg-black/80',
+        'fixed z-max top-0 left-0 right-0 bottom-0 p-3 bg-black/85',
         { hidden: isHidden },
       )}
       data-testid="notebook-outer"
