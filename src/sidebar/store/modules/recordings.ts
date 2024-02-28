@@ -45,16 +45,13 @@ function excludeRecordings(
 
 export type State = {
   recordingStage: RecordingStage;
-  newRecording: RecordingData | null;
   selectedRecording: RecordingData | null;
-  // selected: BooleanMap;
   recordings: RecordingData[];
 };
 
 function initialState(): State {
   return {
     recordingStage: 'Idle',
-    newRecording: null,
     selectedRecording: null,
     recordings: [],
   }
@@ -111,20 +108,6 @@ const reducers = {
 
   CLEAR_RECORDINGS(state: State): Partial<State> {
     return { recordings: []}
-  },
-
-  CREATE_NEW_RECORDING(state: State, action: {taskName: string, sessionId: string, selectorAttribute: string | undefined}) {
-    return {newRecording: {
-      taskName: action.taskName,
-      sessionId: action.sessionId,
-      title: action.taskName,
-      selectorAttribute: action.selectorAttribute,
-      steps: []
-    }}
-  },
-
-  REMOVE_NEW_RECORDING(state: State): Partial<State> {
-    return { newRecording: null}
   },
 
   SELECT_RECORDING(state: State, action: {taskName: string | null}) {
@@ -193,28 +176,12 @@ function clearSelectedRecording() {
   return makeAction(reducers, 'SELECT_RECORDING', {taskName: null})
 }
 
-function createNewRecording(taskName: string, sessionId: string, selectorAttribute: string | undefined) {
-  return makeAction(reducers, 'CREATE_NEW_RECORDING', {taskName: taskName, sessionId: sessionId, selectorAttribute: selectorAttribute})
-}
-
-function removeNewRecording() {
-  return makeAction(reducers, 'REMOVE_NEW_RECORDING', undefined)
-}
-
 function changeRecordingStage(newStage: RecordingStage) {
   return makeAction(reducers, 'CHANG_RECORDING_STAGE', {newStage: newStage})
 }
 
-function getNewRecording(state: State) {
-  return state.newRecording;
-}
-
 function getSelectedRecording(state: State) {
   return state.selectedRecording;
-}
-
-function hasNewRecording(state: State) {
-  return state.newRecording != null;
 }
 
 function currentRecordingStage(state: State) {
@@ -239,16 +206,12 @@ export const recordingsModule = createStoreModule(initialState, {
     selectRecording,
     clearSelectedRecording,
     removeRecordings,
-    createNewRecording,
-    removeNewRecording,
     changeRecordingStage,
   },
   selectors: {
     Recordings,
     allRecordingsCount,
     currentRecordingStage,
-    getNewRecording,
     getSelectedRecording,
-    hasNewRecording,
   },
 });

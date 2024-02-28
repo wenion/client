@@ -85,7 +85,8 @@ export class RecordingService extends TinyEmitter{
   private _listenForTokenStorageEvents() {
     this._window.addEventListener('storage', ({ key }) => {
       if (key === this._storageKey()) {
-        this.emit('statusChanged', this._loadStatus());
+        const status = this._loadStatus()
+        this.emit('statusChanged', status);
       }
     });
   }
@@ -223,14 +224,12 @@ export class RecordingService extends TinyEmitter{
   }
 
   createNewRecording(taskName: string, sessionId: string, description: string) {
-    this._store.createNewRecording(taskName, sessionId, description)
     this.refreshRecordingInfo('on', sessionId, taskName)
     this.sendUserEvent(this.createSimplifiedUserEventNode('START', 'RECORD', extractHostURL(this._window.location.hash)))
   }
 
   clearNewRecording() {
     this.sendUserEvent(this.createSimplifiedUserEventNode('END', 'RECORD', extractHostURL(this._window.location.hash)))
-    this._store.removeNewRecording()
     this.refreshRecordingInfo('off', '', '')
   }
 
@@ -265,7 +264,7 @@ export class RecordingService extends TinyEmitter{
       const url = new URL(userEventData.base_url);
       if (needToCheck) {
         for (const link of this._store.getWhitelist()) {
-          if (link === url.hostname) {
+          if (url.href.includes(link)) {
             this._api.event({}, userEventData);
             break;
           }

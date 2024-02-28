@@ -798,7 +798,7 @@ export class FrameSyncService {
       }) => {
         if (status) {
           this.updateRecordingStatusView(status.recordingStatus);
-          this.notifyHost('statusUpdated', status)
+          this._hostRPC.call('statusUpdated', status)
         }
     })
   }

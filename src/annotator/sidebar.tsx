@@ -415,10 +415,20 @@ export class Sidebar implements Destroyable {
     annotationCounts(document.body, this._sidebarRPC);
     sidebarTrigger(document.body, () => this.open());
 
-    this._sidebarRPC.on('statusUpdated', (status: {isSilentMode: boolean, showHighlights: boolean, recordingStatus: 'off' | 'ready' | 'on'}) => {
+    this._sidebarRPC.on('statusUpdated', (
+      status: {
+        isSilentMode: boolean,
+        showHighlights: boolean,
+        recordingStatus: 'off' | 'ready' | 'on',
+        recordingSessionId: string,
+        recordingTaskName: string,
+      }) => {
       this.toolbar.isSilentMode = status.isSilentMode;
       this.toolbar.highlightsVisible = status.showHighlights;
-      this.updateRecordingStatusView(status.recordingStatus);
+      this.setIsSilent(status.isSilentMode);
+      this.setHighlightsVisible(status.showHighlights);
+      if (!status.showHighlights) this.close();
+      this.updateRecordingStatusView(status.recordingStatus); //TODO
     })
 
     this._sidebarRPC.on('updateRecoringStatusFromSidebar', (status) => {
@@ -486,8 +496,12 @@ export class Sidebar implements Destroyable {
       this.setHighlightsVisible(showHighlights);
 
       this.setIsSilent(status.isSilentMode);
-      this.notifyRecordingStatus(status.recordingStatus);
+      // this.toolbar.isSilentMode = status.isSilentMode;
+      // this.toolbar.highlightsVisible = status.showHighlights;
+      this.updateRecordingStatusView(status.recordingStatus)
+      // this.notifyRecordingStatus(status.recordingStatus);
       this.setHighlightsVisible(status.showHighlights);
+      if (!status.showHighlights) this.close();
 
       if (
         this._config.openSidebar ||
@@ -794,6 +808,9 @@ export class Sidebar implements Destroyable {
     this.toolbar.recordingStatus = status;
     if (status === 'ready') {
       this.open();
+    }
+    else if (status === 'on') {
+      this.close();
     }
   }
 

@@ -110,7 +110,7 @@ function RecordingTab({
 
   const recordingStage = store.currentRecordingStage();
   const selectedRecording = store.getSelectedRecording();
-  const newRecording = store.getNewRecording();
+  const taskName = recordingService.getExtensionStatus().recordingTaskName;
 
   const onSelectImage = (id: string) => {
     const img = document.querySelectorAll('#img' + id)[0] as HTMLImageElement;
@@ -128,10 +128,10 @@ function RecordingTab({
       {recordingStage === 'Start' && (
         <>
           <RecordingList />
-          <Overlay>
+          <Overlay class='bg-black/80'>
             <div className='flex items-center'>
               <Spinner color='text' size='lg'/>
-              <div className='text-2xl'>{newRecording && newRecording.taskName + '  is recording now...'}</div>
+              <div className='text-2xl'>{taskName && taskName + '  is recording now...'}</div>
             </div>
           </Overlay>
         </>
