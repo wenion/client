@@ -425,37 +425,47 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       this._integration.uri().then(
         url => {
           if (!event.target) return;
-          generateImage(clickElement).then(src => {
-            let textContent = clickElement.textContent;
-            if (!textContent && clickElement instanceof HTMLInputElement) {
-              textContent = clickElement.value;
-            }
-            if (!textContent) {
-              textContent = '';
-            }
-            if (src) {
-              this._handlePageEvent(event.type, url, clickElement.tagName, textContent, '',
-              'MOUSE', '', getXPath(clickElement), event.clientX, event.clientY, '',
-              '', '', window.innerWidth, window.innerHeight, src);
-            }
-            else {
-              this._handlePageEvent(event.type, url, clickElement.tagName, textContent, '',
-              'MOUSE', '', getXPath(clickElement), event.clientX, event.clientY, '',
-              '', '', window.innerWidth, window.innerHeight);
-            }
-          }).catch(err => {
-            console.error('click error', err)
-            let textContent = clickElement.textContent;
-            if (!textContent && clickElement instanceof HTMLInputElement) {
-              textContent = clickElement.value;
-            }
-            if (!textContent) {
-              textContent = '';
-            }
-            this._handlePageEvent(event.type, url, clickElement.tagName, textContent, '',
-              'MOUSE', '', getXPath(clickElement), event.clientX, event.clientY, '',
-              '', '', window.innerWidth, window.innerHeight);
-          })
+          let textContent = clickElement.textContent;
+          if (!textContent && clickElement instanceof HTMLInputElement) {
+            textContent = clickElement.value;
+          }
+          if (!textContent) {
+            textContent = '';
+          }
+          // domtoimage.toPng(clickElement)
+          //   .then(function (dataUrl: string) {
+          //       var img = new Image();
+          //       img.src = dataUrl;
+          //       document.body.appendChild(img);
+          //   })
+          //   .catch(error => {
+          //       console.error('oops, something went wrong!', error);
+          //   });
+          // if (src) {
+          //   this._handlePageEvent(event.type, url, clickElement.tagName, textContent, '',
+          //   'MOUSE', '', getXPath(clickElement), event.clientX, event.clientY, '',
+          //   '', '', window.innerWidth, window.innerHeight, src);
+          // }
+          // else {
+          this._handlePageEvent(event.type, url, clickElement.tagName, textContent, '',
+            'MOUSE', '', getXPath(clickElement), event.clientX, event.clientY, '',
+            '', '', window.innerWidth, window.innerHeight);
+          // }
+          // generateImage(clickElement).then(src => {
+
+          // }).catch(err => {
+          //   console.error('click error', err)
+          //   let textContent = clickElement.textContent;
+          //   if (!textContent && clickElement instanceof HTMLInputElement) {
+          //     textContent = clickElement.value;
+          //   }
+          //   if (!textContent) {
+          //     textContent = '';
+          //   }
+          //   this._handlePageEvent(event.type, url, clickElement.tagName, textContent, '',
+          //     'MOUSE', '', getXPath(clickElement), event.clientX, event.clientY, '',
+          //     '', '', window.innerWidth, window.innerHeight);
+          // })
       })
     });
 

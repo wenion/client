@@ -1,4 +1,4 @@
-import * as htmlToImage from 'html-to-image';
+// import domtoimage from 'dom-to-image';
 
 export const ADDITIONAL_TAG = 'Additional relevant knowledge available!';
 
@@ -13,15 +13,16 @@ export function extractHostURL(locationHash: string) {
 }
 
 export async function generateImage(element: HTMLElement): Promise<string| null> {
-    try {
-        const encodePng = await htmlToImage.toPng(element);
-        if (encodePng.length < 100) {
-            console.error('oops, image too small')
-            return null
-        }
-        return encodePng;
-    } catch (err) {
-        console.error('oops, something went wrong!', err);
-        return null
-    }
+    // try {
+    //     const encodePng = await domtoimage.toPng(element);
+    //     if (encodePng.length < 100) {
+    //         console.error('oops, image too small')
+    //         return null
+    //     }
+    //     return encodePng;
+    // } catch (err) {
+    //     console.error('oops, something went wrong!', err);
+    //     return null
+    // }
+    return null;
 }
