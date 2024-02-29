@@ -21,9 +21,9 @@ export default function RecordingList({
 
   return (
     <>
-      <h1 className='m-4 text-xl'>Saved recordings</h1>
+      <h1 className='m-4 text-xl'>Saved ShareFlows</h1>
       <Table
-        title="Saved recordings"
+        title="Saved ShareFlows"
         interactive
       >
         <TableBody>

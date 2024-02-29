@@ -59,7 +59,7 @@ function RecordingPopup({
   return (
     <Overlay>
       <div className='flex items-center'>
-        <Panel title='Recording details'>
+        <Panel title='New ShareFlow'>
           <div className='flex items-center'>
             <label htmlFor='input-with-label' className='min-w-28 font-semibold'>
               Task name
