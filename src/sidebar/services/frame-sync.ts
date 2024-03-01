@@ -567,6 +567,7 @@ export class FrameSyncService {
   updateRecordingStatusView(status: 'off' | 'ready' | 'on') {
     if (status === 'off') {
       this._store.changeRecordingStage('Idle');
+      this._store.resetDeleteConfirmation();
     }
     else if (status === 'ready') {
       this._store.selectTab('recording');

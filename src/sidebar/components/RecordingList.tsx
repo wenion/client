@@ -18,6 +18,9 @@ export default function RecordingList({
 }: RecordingListProps) {
   const store = useSidebarStore();
   const recordings = store.Recordings();
+  const deleteConfirmation = (taskName: string) => {
+    store.updateDeleteConfirmation(taskName, true)
+  }
 
   return (
     <>
@@ -43,6 +46,7 @@ export default function RecordingList({
                 </Button>
                 <Button
                   classes={classnames('grow-0 m-1 bg-grey-0 hover:bg-red-400' )}
+                  onClick={() => deleteConfirmation(child.taskName)}
                 >
                   <TrashIcon/>
                 </Button>

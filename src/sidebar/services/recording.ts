@@ -235,11 +235,22 @@ export class RecordingService extends TinyEmitter{
 
   async updateRecordings() {
     if (this._store.isLoggedIn()) {
-      let response = await this._api.expertReplay({})
+      let response = await this._api.shareFlow.read({})
       response.forEach(recording => {
         recording.steps = recording.steps.map(mapToObjectFormat);
       })
       this._store.addRecordings(response);
+    }
+  }
+
+  async deleteRecording(taskName: string) {
+    if (this._store.isLoggedIn()) {
+      const recording = this._store.findByTaskName(taskName)!;
+      if (recording) {
+        let response = await this._api.shareFlow.delete({task_name: recording.taskName, session_id: recording.sessionId})
+        this._store.removeRecordings([taskName,])
+        this._store.resetDeleteConfirmation()
+      }
     }
   }
 

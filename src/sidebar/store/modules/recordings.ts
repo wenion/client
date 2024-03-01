@@ -46,6 +46,7 @@ function excludeRecordings(
 export type State = {
   recordingStage: RecordingStage;
   selectedRecording: RecordingData | null;
+  deleteConfirmation: boolean;
   recordings: RecordingData[];
 };
 
@@ -53,12 +54,13 @@ function initialState(): State {
   return {
     recordingStage: 'Idle',
     selectedRecording: null,
+    deleteConfirmation: false,
     recordings: [],
   }
 }
 
-function findByTaskName(recording: RecordingData[], taskName: string) {
-  return recording.find(r => r.taskName === taskName);
+function findByTaskName(state: State, taskName: string) {
+  return state.recordings.find(r => r.taskName === taskName);
 }
 
 function findBySessionId(recording: RecordingData[], sessionId: string) {
@@ -110,16 +112,24 @@ const reducers = {
     return { recordings: []}
   },
 
-  SELECT_RECORDING(state: State, action: {taskName: string | null}) {
+  SELECT_RECORDING(state: State, action: {taskName: string | null, status?: boolean}): Partial<State> {
     const selected = state.recordings.find(r => r.taskName === action.taskName)
     return {
-      selectedRecording: selected? selected : null
+      selectedRecording: selected? selected : null,
+      deleteConfirmation: action.status ?? state.deleteConfirmation,
     }
   },
 
   CHANG_RECORDING_STAGE(state: State, action: {newStage: RecordingStage}) {
     return { recordingStage: action.newStage }
   },
+
+  RESET_STATUS(state: State, action: {status: boolean}) {
+    return {
+      selectedRecording: null,
+      deleteConfirmation: action.status
+    }
+  }
 
   // UPDATE_NEW_RECORDING(state: State, action: {taskName: string, steps: RecordingStepData[]}) {
   //   return {newRecording: {taskName: action.taskName, steps: []}}
@@ -180,12 +190,24 @@ function changeRecordingStage(newStage: RecordingStage) {
   return makeAction(reducers, 'CHANG_RECORDING_STAGE', {newStage: newStage})
 }
 
+function updateDeleteConfirmation(taskName: string, newStatus: boolean) {
+  return makeAction(reducers, 'SELECT_RECORDING', {taskName: taskName, status: newStatus})
+}
+
+function resetDeleteConfirmation() {
+  return makeAction(reducers, 'RESET_STATUS', {status: false})
+}
+
 function getSelectedRecording(state: State) {
   return state.selectedRecording;
 }
 
 function currentRecordingStage(state: State) {
   return state.recordingStage;
+}
+
+function deleteConfirmation(state: State) {
+  return state.deleteConfirmation;
 }
 
 function Recordings(state: State) {
@@ -207,11 +229,15 @@ export const recordingsModule = createStoreModule(initialState, {
     clearSelectedRecording,
     removeRecordings,
     changeRecordingStage,
+    updateDeleteConfirmation,
+    resetDeleteConfirmation,
   },
   selectors: {
     Recordings,
     allRecordingsCount,
     currentRecordingStage,
+    deleteConfirmation,
     getSelectedRecording,
+    findByTaskName,
   },
 });

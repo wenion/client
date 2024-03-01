@@ -110,11 +110,18 @@ function RecordingTab({
 
   const recordingStage = store.currentRecordingStage();
   const selectedRecording = store.getSelectedRecording();
+  const deleteConfirmation = store.deleteConfirmation();
   const taskName = recordingService.getExtensionStatus().recordingTaskName;
 
   const onSelectImage = (id: string) => {
     const img = document.querySelectorAll('#img' + id)[0] as HTMLImageElement;
     frameSync.notifyHost('openImageViewer', img.src)
+  }
+
+  const deleteRecording = () => {
+    if (selectedRecording) {
+      recordingService.deleteRecording(selectedRecording.taskName)
+    }
   }
 
   return (
@@ -139,8 +146,27 @@ function RecordingTab({
       {recordingStage === 'Idle' && selectedRecording == null && (
         <RecordingList />
       )}
-      {recordingStage === 'Idle' && selectedRecording != null && (
+      {recordingStage === 'Idle' && selectedRecording != null && !deleteConfirmation && (
         <TimelineList recording={selectedRecording} onSelectImage={onSelectImage}/>
+      )}
+      {recordingStage === 'Idle' && selectedRecording != null && deleteConfirmation && (
+        <>
+        <RecordingList />
+        <Overlay class='bg-black/80' onClick={()=>store.resetDeleteConfirmation()}>
+          <div className='flex items-center'>
+            <Panel title='Confirm Delete' onClick={(event)=>event.stopPropagation()} buttons={<>
+              <Button onClick={()=>store.resetDeleteConfirmation()}>
+                Cancel
+              </Button>
+              <Button onClick={()=>deleteRecording()}variant="primary">
+                Delete
+              </Button>
+            </>}>
+              <p>Are you sure you want to delete "<b>{selectedRecording.taskName}</b>"?</p>
+            </Panel>
+          </div>
+        </Overlay>
+      </>
       )}
     </>
   );
