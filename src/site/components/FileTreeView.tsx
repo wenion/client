@@ -1,6 +1,6 @@
 import {Table, TableHead, TableBody, TableRow, Scroll, Input } from '@hypothesis/frontend-shared';
 import {FolderIcon, FilePdfIcon, FileGenericIcon, LinkIcon, Button, CancelIcon, SpinnerSpokesIcon} from '@hypothesis/frontend-shared';
-import { useEffect, useMemo, useState } from 'preact/hooks';
+import { useEffect, useMemo, useState, useRef, Ref} from 'preact/hooks';
 import classnames from 'classnames';
 
 import type { SidebarSettings } from '../../types/config';
@@ -12,6 +12,15 @@ import type { ToastMessengerService } from '../../sidebar/services/toast-messeng
 import { useSidebarStore } from '../../sidebar/store';
 import TopBar from './TopBar';
 
+
+function Tooltip({elementRef}: {elementRef: Ref<HTMLDivElement>} ) {
+  return (
+  <div
+    className="absolute overflow-auto invisible bg-sky-300 border text-lg h-12 p-3.5 shadow-lg rounded-lg"
+    ref={elementRef}
+  >
+  </div>)
+}
 
 export type FileNode = {
   id : string;
@@ -55,6 +64,7 @@ function FileTreeView({
 
   const currentPath = store.getCurrentPath();
   const fileTree = store.getFileTree();
+  const tooltipRef = useRef<HTMLDivElement>(null);
 
   const pathChanged = store.getPathChangedStatus();
 
@@ -69,6 +79,11 @@ function FileTreeView({
 
   function joinPaths(...segments: string[]): string{
     return segments.join('/').replace(/\/{2,}/g, '/');
+  }
+
+  const reduceCharacters = (title: string) => {
+    const limitLenght = 50;
+    return title.length > limitLenght? title.slice(0, limitLenght) + '...' : title;
   }
 
   function find(fileNode: FileNode| null, path: string): FileNode|null {
@@ -170,6 +185,21 @@ function FileTreeView({
     }
   }
 
+  const onMouseEvent = (event: MouseEvent, name: string, out: boolean) => {
+    if (name.length <= 50) return;
+    if(out) {
+      tooltipRef.current!.style.visibility = 'hidden';
+    }
+    else
+    {
+      tooltipRef.current!.style.visibility = 'visible';
+      tooltipRef.current!.style.top = (event.clientY - 5).toString() + 'px';
+      tooltipRef.current!.style.left = (event.clientX + 10).toString() + 'px';
+
+      tooltipRef.current!.innerText = name;
+    }
+  }
+
   const onGoBack = () => {
     const parentPath = currentPath.split("/").slice(0, -1).join("/");
     fileTreeService.changeCurrentPath(parentPath)
@@ -201,6 +231,8 @@ function FileTreeView({
         isSidebar={true}
       />
       <div className="container">
+        <h1>Repository</h1>
+        <Tooltip elementRef={tooltipRef}/>
         <main>
           <div
             onDrop={onDrop}
@@ -243,7 +275,7 @@ function FileTreeView({
                       <TableRow
                         onDblClick={() => onGoBack()}
                         >
-                        <div className={classnames('flex justify-between', 'h-6')}>
+                        <div className={classnames('flex justify-between', 'h-6 relative')}>
                           <div className="text-lg items-center flex gap-x-2">
                             <FolderIcon className="w-em h-em" />..
                           </div>
@@ -256,22 +288,27 @@ function FileTreeView({
                         key={child.path}
                         onDblClick={() => onDblClick(child.id, child.type, child.link)}
                         >
-                        <div className={classnames('flex justify-between', 'h-6')}>
-                          <div className="text-lg items-center flex gap-x-2" id={child.path}>
-                            {child.type === 'dir' ? (
-                              <FolderIcon className="w-em h-em" />
-                            ) : (
-                              child.type === 'file' ? (
-                                child.name.endsWith(".pdf") ? (
-                                <FilePdfIcon className="w-em h-em" />
-                                ) : (
-                                <FileGenericIcon className="w-em h-em" />
-                                )
+                        <div className={classnames('flex justify-between')}>
+                          <div
+                            className="text-lg items-center flex gap-x-2"
+                            id={child.path}
+                            onMouseOver={(event)=>onMouseEvent(event, child.name, false)}
+                            onMouseOut={(event)=>onMouseEvent(event, child.name, true)}
+                          >
+                          {child.type === 'dir' ? (
+                            <FolderIcon className="w-em h-em" />
+                          ) : (
+                            child.type === 'file' ? (
+                              child.name.endsWith(".pdf") ? (
+                              <FilePdfIcon className="w-em h-em" />
                               ) : (
-                                <LinkIcon className="w-em h-em" />
+                              <FileGenericIcon className="w-em h-em" />
                               )
-                            )}
-                            {child.name}
+                            ) : (
+                              <LinkIcon className="w-em h-em" />
+                            )
+                          )}
+                          <p>{reduceCharacters(child.name)}</p>
                           </div>
                           <Button
                             classes={classnames('border bg-grey-0 hover:bg-red-400 m-1' )}
