@@ -3,6 +3,7 @@ import {FolderIcon, FilePdfIcon, FileGenericIcon, LinkIcon, Button, CancelIcon, 
 import { useEffect, useMemo, useState, useRef, Ref} from 'preact/hooks';
 import classnames from 'classnames';
 
+import type { FileNode } from '../../types/api';
 import type { SidebarSettings } from '../../types/config';
 import { withServices } from '../../sidebar/service-context';
 import type { FrameSyncService } from '../../sidebar/services/frame-sync';
@@ -16,21 +17,21 @@ import TopBar from './TopBar';
 function Tooltip({elementRef}: {elementRef: Ref<HTMLDivElement>} ) {
   return (
   <div
-    className="absolute overflow-auto invisible bg-sky-300 border text-lg h-12 p-3.5 shadow-lg rounded-lg"
+    className="absolute overflow-auto invisible align-middle bg-sky-300 border text-lg h-12 p-3.5 shadow-lg rounded-lg"
     ref={elementRef}
   >
   </div>)
 }
 
-export type FileNode = {
-  id : string;
-  name : string;
-  path: string;
-  type: string;
-  link?: string;
-  depth: number;
-  children: FileNode[];
-};
+// export type FileNode = {
+//   id : string;
+//   name : string;
+//   path: string;
+//   type: string;
+//   link?: string;
+//   depth: number;
+//   children: FileNode[];
+// };
 
 type FileTreeViewProps = {
   /** Callback invoked when user clicks "Login" button */
@@ -84,6 +85,13 @@ function FileTreeView({
   const reduceCharacters = (title: string) => {
     const limitLenght = 50;
     return title.length > limitLenght? title.slice(0, limitLenght) + '...' : title;
+  }
+
+  const convertToTime = (timestamp: number| undefined) => {
+    if (timestamp === undefined || timestamp < 10) return '';
+    const date = new Date(timestamp * 1000);
+    return date.toLocaleDateString('en-AU', {
+      day: '2-digit', month: '2-digit', year:'numeric', hour: '2-digit', minute:'2-digit', hour12: true});
   }
 
   function find(fileNode: FileNode| null, path: string): FileNode|null {
@@ -288,30 +296,32 @@ function FileTreeView({
                         key={child.path}
                         onDblClick={() => onDblClick(child.id, child.type, child.link)}
                         >
-                        <div className={classnames('flex justify-between')}>
-                          <div
-                            className="text-lg items-center flex gap-x-2"
-                            id={child.path}
-                            onMouseOver={(event)=>onMouseEvent(event, child.name, false)}
-                            onMouseOut={(event)=>onMouseEvent(event, child.name, true)}
-                          >
-                          {child.type === 'dir' ? (
-                            <FolderIcon className="w-em h-em" />
-                          ) : (
-                            child.type === 'file' ? (
-                              child.name.endsWith(".pdf") ? (
-                              <FilePdfIcon className="w-em h-em" />
-                              ) : (
-                              <FileGenericIcon className="w-em h-em" />
-                              )
+                        <div
+                          className="text-lg items-center flex gap-x-2"
+                          id={child.path}
+                          onMouseOver={(event)=>onMouseEvent(event, child.name, false)}
+                          onMouseOut={(event)=>onMouseEvent(event, child.name, true)}
+                        >
+                          <div className="flex-none">
+                            {child.type === 'dir' ? (
+                              <FolderIcon className="flex-none w-em h-em" />
                             ) : (
-                              <LinkIcon className="w-em h-em" />
-                            )
-                          )}
-                          <p>{reduceCharacters(child.name)}</p>
+                              child.type === 'file' ? (
+                                child.name.endsWith(".pdf") ? (
+                                <FilePdfIcon className="flex-none w-em h-em" />
+                                ) : (
+                                <FileGenericIcon className="flex-none w-em h-em" />
+                                )
+                              ) : (
+                                <LinkIcon className="flex-none w-em h-em" />
+                              )
+                            )}
                           </div>
+                          <div className="flex-none">{reduceCharacters(child.name)}</div>
+                          <div className="flex-1"/>
+                          <div className="flex-none text-gray-500">{convertToTime(child.creation_time)}</div>
                           <Button
-                            classes={classnames('border bg-grey-0 hover:bg-red-400 m-1' )}
+                            classes={classnames('flex-none border bg-grey-0 hover:bg-red-400 m-1' )}
                             onClick={() => onDeleteClick(child.path, child.name)}>
                             <CancelIcon className="w-3 h-3"/>
                           </Button>

@@ -399,6 +399,7 @@ export type FileNode = {
   path: string;
   type: string;
   link?: string;
+  creation_time?: number;
   depth: number;
   children: FileNode[];
 };
