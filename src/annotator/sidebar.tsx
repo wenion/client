@@ -548,6 +548,28 @@ export class Sidebar implements Destroyable {
       this.show();
     });
 
+    this._sidebarRPC.on('webClipping', () => {
+      // TODO
+      const clonedDocument = document.cloneNode(true) as Document;
+      const elementsToRemove = clonedDocument.querySelectorAll([
+        'hypothesis-sidebar',
+        'hypothesis-notebook',
+        'hypothesis-profile',
+        'hypothesis-image-viewer',
+        'hypothesis-adder',
+        'hypothesis-tooltip',
+        'hypothesis-highlight-cluster-toolbar',
+      ].join(
+          ',',
+        ),
+      );
+      elementsToRemove.forEach(element => {
+          element.remove();
+      });
+      const htmlContent = clonedDocument.documentElement.outerHTML;
+      this._sidebarRPC.call('webPage', htmlContent, document.title, window.location.href)
+    });
+
     // Sidebar listens to the `toastMessageAdded` and `toastMessageDismissed`
     // events coming from the sidebar's iframe and re-publishes them via the
     // emitter

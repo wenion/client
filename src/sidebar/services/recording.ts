@@ -6,7 +6,9 @@ import type { SidebarSettings } from '../../types/config';
 import { extractHostURL } from '../../shared/custom';
 import { generateRandomString } from '../../shared/random';
 import type { RecordingStepData, EventData, RawMessageData } from '../../types/api';
+import type { FileNode } from '../../types/api';
 import type { LocalStorageService } from './local-storage';
+import type { ToastMessengerService } from './toast-messenger';
 
 
 type StatusInfo = {
@@ -60,6 +62,7 @@ export class RecordingService extends TinyEmitter{
   private _localStorage: LocalStorageService;
   private _settings: SidebarSettings;
   private _store: SidebarStore;
+  private _toastMessenger: ToastMessengerService;
   private _window: Window;
 
   constructor(
@@ -67,7 +70,8 @@ export class RecordingService extends TinyEmitter{
     api: APIService,
     localStorage: LocalStorageService,
     settings: SidebarSettings,
-    store: SidebarStore
+    store: SidebarStore,
+    toastMessenger: ToastMessengerService,
   ) {
     super();
 
@@ -77,6 +81,7 @@ export class RecordingService extends TinyEmitter{
     this._localStorage = localStorage;
     this._settings = settings;
     this._store = store;
+    this._toastMessenger = toastMessenger;
     this._window = $window;
 
     this._listenForTokenStorageEvents();
@@ -343,5 +348,21 @@ export class RecordingService extends TinyEmitter{
 
   startFecthMessage() {
     this.fetchMessage('organisation_event', 0, true)
+  }
+
+  saveFile(blob: Blob, metadata: FileNode) {
+    this._api.upload({}, blob, metadata)
+      .then(
+        response => {
+          console.log('response', response)
+          if (response?.succ !== undefined)
+              this._toastMessenger.success('This page (' + response.succ.name + ') has been saved')
+            else if (response?.error !== undefined)
+              this._toastMessenger.error(response?.error)
+        }
+      )
+      .catch(error => {
+        console.error('response', error)
+      })
   }
 }

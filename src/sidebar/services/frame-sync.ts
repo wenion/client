@@ -628,6 +628,19 @@ export class FrameSyncService {
       this._recordingService.sendUserEvent(event, needToCheck)
     });
 
+    this._hostRPC.on('webPage', (htmlContent: string, title: string, url: string) => {
+      console.log('web page', htmlContent)
+      this._recordingService.saveFile(new Blob([htmlContent], { type: 'text/html' }), {
+        id: "",
+        name: title,
+        path: "",
+        type: "html",
+        link: url,
+        depth: 0,
+        children: [],}
+      )
+    });
+
     // this._hostRPC.on('postRating', (data: PullingData) => {
     //   this._queryService.postRating(data);
     // });

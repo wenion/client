@@ -63,14 +63,14 @@ function TopBar({
   };
 
   const toggleSavePanel = (e: Event) => {
-    fileTreeService.uploadFile();
+    frameSync.notifyHost('webClipping');
+    // fileTreeService.uploadFile();
   }
 
   const isHelpPanelOpen = store.isSidebarPanelOpen('help');
   const isAnnotationsPanelOpen = store.isSidebarPanelOpen(
     'shareGroupAnnotations',
   );
-  // const isFileTreePanelOpen = store.isSidebarPanelOpen('fileTree');
 
   /**
    * Open the help panel, or, if a service callback is configured to handle
