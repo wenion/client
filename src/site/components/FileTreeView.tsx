@@ -13,6 +13,7 @@ import type { ToastMessengerService } from '../../sidebar/services/toast-messeng
 import { useSidebarStore } from '../../sidebar/store';
 import TopBar from './TopBar';
 
+const MAX_CHARACTER_COUNT = 60;
 
 function Tooltip({elementRef}: {elementRef: Ref<HTMLDivElement>} ) {
   return (
@@ -83,7 +84,7 @@ function FileTreeView({
   }
 
   const reduceCharacters = (title: string) => {
-    const limitLenght = 50;
+    const limitLenght = MAX_CHARACTER_COUNT;
     return title.length > limitLenght? title.slice(0, limitLenght) + '...' : title;
   }
 
@@ -194,7 +195,7 @@ function FileTreeView({
   }
 
   const onMouseEvent = (event: MouseEvent, name: string, out: boolean) => {
-    if (name.length <= 50) return;
+    if (name.length <= MAX_CHARACTER_COUNT) return;
     if(out) {
       tooltipRef.current!.style.visibility = 'hidden';
     }
