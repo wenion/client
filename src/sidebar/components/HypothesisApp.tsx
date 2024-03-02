@@ -15,7 +15,6 @@ import type { ToastMessengerService } from '../services/toast-messenger';
 import { useSidebarStore } from '../store';
 import AnnotationView from './AnnotationView';
 import HelpPanel from './HelpPanel';
-import FileTreePanel from './FileTreePanel';
 import NotebookView from './NotebookView';
 import ProfileView from './ProfileView';
 import ShareDialog from './ShareDialog';

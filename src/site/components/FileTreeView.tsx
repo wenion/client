@@ -150,7 +150,7 @@ function FileTreeView({
                   }
                 }
                 if (response.error) {
-                  alert("Sorry, something went wrong. Reason:\n" + response.error);
+                  alert("Result:\n" + response.error);
                 }
               }
             ).catch(
