@@ -238,7 +238,7 @@ function FileTreeView({
         onLogout={onLogout}
         isSidebar={true}
       />
-      <div className="container">
+      <div className="repository-container">
         <h1>Repository</h1>
         <Tooltip elementRef={tooltipRef}/>
         <main>

@@ -87,3 +87,18 @@ body {
     margin-right: auto;
   }
 }
+
+@media (min-width: 980px) {
+
+  .\!repository-container {
+    max-width: 980px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  .repository-container {
+    max-width: 980px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
