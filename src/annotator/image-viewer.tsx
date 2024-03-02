@@ -21,7 +21,7 @@ export class ImageViewer implements Destroyable {
      * Un-styled shadow host for the notebook content.
      * This isolates the notebook from the page's styles.
      */
-    this._outerContainer = document.createElement('image-viewer');
+    this._outerContainer = document.createElement('hypothesis-image-viewer');
     element.appendChild(this._outerContainer);
     this._shadowRoot = createShadowRoot(this._outerContainer);
 
