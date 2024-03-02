@@ -443,6 +443,7 @@ export class Sidebar implements Destroyable {
       //   console.error('updateUserEvent error', err)
       //   this._handleEvent('recording', window.location.href, 'Navigate', true)
       // })
+      this._handleEvent('recording', window.location.href, 'Navigate', true)
       this.updateRecordingStatusView(status)
     });
 
@@ -458,20 +459,20 @@ export class Sidebar implements Destroyable {
       //     console.error('oops, something went wrong!', error);
       // });
 
-      // if (isRecording) {
+      if (isRecording) {
       //   generateImage(document.body).then(src => {
       //     if (src) {
       //       this._handleEvent(eventType, window.location.href, tagName, needToCheck, src)
       //     }
       //     else {
-      //       this._handleEvent(eventType, window.location.href, tagName, needToCheck)
+            this._handleEvent('recording', window.location.href, tagName, needToCheck)
       //     }
       //   }).catch (err => {
       //     console.error('updateUserEvent error', err)
       //     this._handleEvent(eventType, window.location.href, tagName, needToCheck)
       //   })
-      // }
-      // else
+      }
+      else
       this._handleEvent(eventType, window.location.href, tagName, needToCheck);
     });
 
@@ -824,6 +825,7 @@ export class Sidebar implements Destroyable {
   notifyRecordingStatus(status: 'off' | 'ready' | 'on') {
     this._sidebarRPC.call('updateRecoringStatusFromHost', status);
     this.updateRecordingStatusView(status)
+    if (status === 'off') this.open();
   }
 
   updateRecordingStatusView(status: 'off' | 'ready' | 'on') {
