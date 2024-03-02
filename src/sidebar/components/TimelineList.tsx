@@ -51,27 +51,29 @@ function StickyNote({
             {title}
           </h3>
         </div>
-        {image && (
-          <div className='flex justify-center mt-2.5 p-1 cursor-pointer'>
-            <img
-              className='border border-gray-300 hover:border-2 hover:border-gray-500'
-              id={'img' + id}
-              onClick={() => onSelectImage(id)}
-              src={image}
-            />
-          </div>
-        )}
-        {!collapsed && (
-          <div
-            className='my-4 rounded-sm bg-blue-200'
-          >
-            <MarkdownView
-              classes={'text-md m-3'}
-              markdown={content}
-              style={textStyle}
-            />
-          </div>
-        )}
+        <div className='flex items-center'>
+          {!collapsed && (
+            <div
+              className='grow my-4 rounded-sm bg-blue-200'
+            >
+              <MarkdownView
+                classes={'text-md m-3'}
+                markdown={content}
+                style={textStyle}
+              />
+            </div>
+          )}
+          {!collapsed && image && (
+            <div className='flex-none justify-center p-1 cursor-pointer w-24'>
+              <img
+                className='border border-gray-300 hover:border-2 hover:border-gray-500'
+                id={'img' + id}
+                onClick={() => onSelectImage(id)}
+                src={image}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </>
   )
