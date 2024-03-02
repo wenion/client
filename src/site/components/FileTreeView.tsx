@@ -95,6 +95,13 @@ function FileTreeView({
       day: '2-digit', month: '2-digit', year:'numeric', hour: '2-digit', minute:'2-digit', hour12: true});
   }
 
+  const getUserName = (path: string | undefined) => {
+    if (path === undefined)
+      return 'anonymous';
+    const parts = path.split('/'); // Split the string by '/'
+    return parts[parts.length - 1];
+  }
+
   function find(fileNode: FileNode| null, path: string): FileNode|null {
     if (fileNode == null)
       return null;
@@ -277,7 +284,7 @@ function FileTreeView({
                   interactive
                 >
                   <TableHead>
-                    <Input aria-label="Input example" value={currentTree?.path} />
+                    <Input aria-label="Input example" value={getUserName(currentTree?.path)} />
                   </TableHead>
                   <TableBody>
                     {currentTree && currentTree.depth != 0 && (
