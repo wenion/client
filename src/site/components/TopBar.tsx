@@ -86,7 +86,6 @@ function TopBar({
                 <span class='p-1'>
                   <IconButton
                     icon={FolderIcon}
-                    // expanded={isFileTreePanelOpen}
                     onClick={toggleFileTreeView}
                     size="xs"
                     title="Browser cloud repository"
