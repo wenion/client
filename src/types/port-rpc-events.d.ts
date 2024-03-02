@@ -113,6 +113,7 @@ export type HostToSidebarEvent =
   | 'updateRecoringStatusFromHost'
   | 'setVisuallyHidden'
   | 'postRating'
+  | 'webPage'
   /**
    * Highlights have been toggled on/off.
    */
@@ -213,6 +214,7 @@ export type SidebarToHostEvent =
    */
   | 'openNotebook'
   | 'openImageViewer'
+  | 'webClipping'
 
   /**
    * The sidebar is asking the host to open the user profile.
