@@ -2,6 +2,7 @@ import type { SidebarSettings } from '../../types/config';
 import type { APIService } from './api';
 import type { SidebarStore } from '../store';
 import type { FileNode } from '../../types/api';
+import type { ToastMessengerService } from './toast-messenger';
 
 /**
  * Send messages to configured ancestor frame on annotation activity
@@ -10,14 +11,17 @@ import type { FileNode } from '../../types/api';
 export class FileTreeService {
   private _api: APIService;
   private _store: SidebarStore;
+  private _toastMessenger: ToastMessengerService;
 
   constructor(
     settings: SidebarSettings,
     api: APIService,
     store: SidebarStore,
+    toastMessenger: ToastMessengerService,
     ) {
     this._api = api;
     this._store = store;
+    this._toastMessenger = toastMessenger;
   }
 
   _initialize() {
@@ -76,10 +80,15 @@ export class FileTreeService {
         })
           .then(response => {
             console.log('response', response)
+            if (response?.succ !== undefined)
+              this._toastMessenger.success('This page (' + response.succ.name + ') has been saved')
+            else if (response?.error !== undefined)
+              this._toastMessenger.error(response?.error)
             // handle response
           })
           .catch(error => {
             console.log('error', error)
+            this._toastMessenger.error(error)
             // handle error
           });
     }
