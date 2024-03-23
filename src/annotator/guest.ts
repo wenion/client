@@ -385,143 +385,40 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       return newWindow;
     };
 
-    this._listeners.add(window, 'keydown', event => {
-      // Perform actions or show a confirmation dialog here
-      this._integration.uri().then(
-        response => {
-          const element = event.target as Element;
-          if (element && element.tagName) {
-            this._handlePageEvent('keydown', response, element.tagName, event.key ?? '', event.code ?? '',
-            'KEYBOARD', '', getXPath(element), 0, 0, '',
-            '', '', window.innerWidth, window.innerHeight);
-          }
-        }
-      ).catch(
-        // error => {
-        //   this._handlePageEvent('keydown', window.location.href, "KEYDOWN:{"+event.key+"}", event.code);
-        // }
-      )
-    });
-
-    this._listeners.add(window, 'beforeunload', event => {
-      // Perform actions or show a confirmation dialog here
-      this._integration.uri().then(
-        response => {
-          this._handlePageEvent('beforeunload', response, "CLOSE", "close page", "RESOURCE PAGE",
-          "OTHER", "", "", 0, 0, "",
-          '', '', window.innerWidth, window.innerHeight);
-        }
-      ).catch(
-        error => {
-          this._handlePageEvent('beforeunload', window.location.href, "CLOSE", "close page error" + error.toString(), "RESOURCE PAGE",
-          "OTHER", "", "", 0, 0, "",
-          '', '', window.innerWidth, window.innerHeight);
-        }
-      )
-    });
-
-    this._listeners.add(this.element, 'click', event => {
-      const clickElement = event.target as HTMLElement;
-      this._integration.uri().then(
-        url => {
-          if (!event.target) return;
-          let textContent = clickElement.textContent;
-          if (!textContent && clickElement instanceof HTMLInputElement) {
-            textContent = clickElement.value;
-          }
-          if (!textContent) {
-            textContent = '';
-          }
-          // domtoimage.toPng(clickElement)
-          //   .then(function (dataUrl: string) {
-          //       var img = new Image();
-          //       img.src = dataUrl;
-          //       document.body.appendChild(img);
-          //   })
-          //   .catch(error => {
-          //       console.error('oops, something went wrong!', error);
-          //   });
-          // if (src) {
-          //   this._handlePageEvent(event.type, url, clickElement.tagName, textContent, '',
-          //   'MOUSE', '', getXPath(clickElement), event.clientX, event.clientY, '',
-          //   '', '', window.innerWidth, window.innerHeight, src);
-          // }
-          // else {
-          this._handlePageEvent(event.type, url, clickElement.tagName, textContent, '',
-            'MOUSE', '', getXPath(clickElement), event.clientX, event.clientY, '',
-            '', '', window.innerWidth, window.innerHeight);
-          // }
-          // generateImage(clickElement).then(src => {
-
-          // }).catch(err => {
-          //   console.error('click error', err)
-          //   let textContent = clickElement.textContent;
-          //   if (!textContent && clickElement instanceof HTMLInputElement) {
-          //     textContent = clickElement.value;
-          //   }
-          //   if (!textContent) {
-          //     textContent = '';
-          //   }
-          //   this._handlePageEvent(event.type, url, clickElement.tagName, textContent, '',
-          //     'MOUSE', '', getXPath(clickElement), event.clientX, event.clientY, '',
-          //     '', '', window.innerWidth, window.innerHeight);
-          // })
-      })
-    });
-
     this._listeners.add(window, 'message', event => {
-      if (event.data?.type === 'extention') {
-        this._sidebarRPC.call('onTabChanged', event.data?.data)
+      const _data = event.data;
+      if (_data.source === 'extension' && _data.messageType === 'UserEvent') {
+        switch(_data.type) {
+          case 'click':
+            this._handlePageEvent(_data.type, _data.url, _data.tagName, _data.textContent, '',
+              'MOUSE', '', _data.xpath, _data.clientX, _data.clientY, '',
+              '', '', _data.width, _data.height, _data.image);
+            break;
+          case 'keyup':
+            this._handlePageEvent(_data.type, _data.url, _data.tagName, _data.key ?? '', _data.code ?? '',
+              'KEYBOARD', '', '', 0, 0, '',
+              '', '', _data.width, _data.height
+              );
+            break;
+          case 'scroll':
+            let textContent = (
+              _data.diffY < 0? 'SCROLL UP' : _data.diffY > 0? 'SCROLL DOWN': 'N/A') +
+              (_data.diffX < 0? ':SCROLL LEFT' : _data.diffX > 0? ':SCROLL RIGHT': ':N/A')
+            this._handlePageEvent(_data.type, _data.url, 'WINDOW', textContent, '',
+              'MOUSE', 'document', '', _data.scrollX, _data.scrollY, '',
+              '', '', _data.width, _data.height
+              );
+            break;
+          case 'beforeunload':
+            this._handlePageEvent(_data.type, _data.url, 'CLOSE', 'close page', 'RESOURCE PAGE',
+              'OTHER', '', '', 0, 0, '',
+              '', '', _data.width, _data.height
+              );
+            break;
+        }
+        // this._sidebarRPC.call('onTabChanged', event.data?.data)
       }
     })
-
-    this._listeners.add(window, 'scroll', event => {
-      const interval = 20;
-      const currentEvent = event;
-
-      if (this._lastScrollEvent == null) {
-        this._lastScrollEvent = {
-          timeStamp: currentEvent.timeStamp,
-          scrollX: window.scrollX,
-          scrollY: window.scrollY,
-      }}
-      if (currentEvent.timeStamp - this._lastScrollEvent.timeStamp > interval) {
-        let textContent = (
-          this._lastScrollEvent.scrollY - window.scrollY > 0? 'SCROLL UP' : this._lastScrollEvent.scrollY - window.scrollY < 0? 'SCROLL DOWN': 'N/A') +
-          (this._lastScrollEvent.scrollX - window.scrollX > 0? ':SCROLL LEFT' : this._lastScrollEvent.scrollX - window.scrollX < 0? ':SCROLL RIGHT': ':N/A')
-        this._integration.uri().then(
-          url => {
-            this._handlePageEvent('scroll', url, 'WINDOW', textContent, '',
-            'MOUSE', 'document', getXPath(this._integration.contentContainer()), window.scrollX, window.scrollY, '',
-            '', '', document.body.clientWidth, document.body.clientHeight
-            );
-          }
-        )
-        this._lastScrollEvent = {
-          timeStamp: currentEvent.timeStamp,
-          scrollX: window.scrollX,
-          scrollY: window.scrollY,
-        };
-      }
-    });
-
-    this._listeners.add(this.element, 'submit', event => {
-      // event.preventDefault()
-      const target = event.target as HTMLFormElement;
-      let formContent: {name: string, value: string}[] = [];
-      if (target) {
-        const formElements = Array.from(target.elements);
-        formElements.map((element, index) => {
-          if (element instanceof HTMLInputElement) {
-            if (element.name.toLowerCase() != "password") //TODO
-              formContent.push({name: element.name, value: element.value})
-          }
-        })
-        this._handlePageEvent('submit', target.action, "SUBMIT", JSON.stringify(formContent), target.action,
-        "OTHER", "", getXPath(target), 0, 0, '',
-        '', '', window.innerWidth, window.innerHeight)
-      }
-    });
   }
   /** Return true if the sidebar is shown alongside the page content. */
   private _sideBySideActive(): boolean {
