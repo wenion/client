@@ -1,9 +1,9 @@
-import { IconButton, CancelIcon } from '@hypothesis/frontend-shared';
+import { IconButton, CancelIcon, CaretLeftIcon, CaretRightIcon } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useEffect, useRef, useState } from 'preact/hooks';
 
 import type { EventBus, Emitter } from '../util/emitter';
-
+import type { RecordingStepData } from '../../types/api';
 
 export type ImageViewerModalProps = {
   eventBus: EventBus;
@@ -19,11 +19,18 @@ export default function ImageViewerModal({
   // the notebook, we force re-rendering of the iframe on every 'openNotebook'
   // event, so that the new annotations are displayed.
   // https://github.com/hypothesis/client/issues/3182
-  const [iframeKey, setIframeKey] = useState(0);
+  // const [iframeKey, setIframeKey] = useState(0);
   const [isHidden, setIsHidden] = useState(true);
   const [src, setSrc] = useState<string | null>(null);
   const originalDocumentOverflowStyle = useRef('');
   const emitterRef = useRef<Emitter | null>(null);
+  const imageRef = useRef<HTMLImageElement | null>(null);
+  const circleRef = useRef<HTMLDivElement | null>(null);
+
+  const [width, setWidth] = useState(0);
+  const [height, setHeight] = useState(0);
+  const [offsetX, setOffsetX] = useState(0);
+  const [offsetY, setOffsetY] = useState(0);
 
   // Stores the original overflow CSS property of document.body and reset it
   // when the component is destroyed
@@ -47,10 +54,14 @@ export default function ImageViewerModal({
 
   useEffect(() => {
     const emitter = eventBus.createEmitter();
-    emitter.subscribe('openImageViewer', (src: string) => {
+    emitter.subscribe('openImageViewer', (selectedStep: RecordingStepData) => {
       setIsHidden(false);
-      setIframeKey(iframeKey => iframeKey + 1);
-      setSrc(src);
+      // setIframeKey(iframeKey => iframeKey + 1);
+      setSrc(selectedStep.image ?? '');
+      setWidth(selectedStep.width ?? 0);
+      setHeight(selectedStep.height ?? 0);
+      setOffsetX(selectedStep.offsetX ?? 0);
+      setOffsetY(selectedStep.offsetY ?? 0);
     });
     emitterRef.current = emitter;
 
@@ -59,10 +70,46 @@ export default function ImageViewerModal({
     };
   }, [eventBus]);
 
+  useEffect(() => {
+    if (imageRef.current && circleRef.current) {
+      const widthToHeight = width / height;
+      const ratioHeight = imageRef.current.clientHeight/height;
+      const ratioWidth = widthToHeight * imageRef.current.clientHeight / width;
+
+      circleRef.current.style.top = (offsetY * ratioHeight - 22).toString() + "px";
+      circleRef.current.style.left = (offsetX * ratioWidth - 22).toString() + "px";
+    }
+  }, [src])
+
   const onClose = () => {
     setIsHidden(true);
     emitterRef.current?.publish('closeImageViewer');
   };
+
+  const hoverContent = (visible: boolean) => {
+    if (visible && imageRef.current && circleRef.current) {
+      const widthToHeight = width / height;
+      const ratioHeight = imageRef.current.clientHeight/height;
+      const ratioWidth = widthToHeight * imageRef.current.clientHeight / width;
+
+      circleRef.current.style.width = "56px";
+      circleRef.current.style.height = "56px";
+
+      circleRef.current.style.top = (offsetY * ratioHeight - 28).toString() + "px";
+      circleRef.current.style.left = (offsetX * ratioWidth - 28).toString() + "px";
+    }
+    else if (!visible && imageRef.current && circleRef.current) {
+      const widthToHeight = width / height;
+      const ratioHeight = imageRef.current.clientHeight/height;
+      const ratioWidth = widthToHeight * imageRef.current.clientHeight / width;
+
+      circleRef.current.style.width = "44px";
+      circleRef.current.style.height = "44px";
+
+      circleRef.current.style.top = (offsetY * ratioHeight - 22).toString() + "px";
+      circleRef.current.style.left = (offsetX * ratioWidth - 22).toString() + "px";
+    }
+  }
 
   if (src === null) {
     return null;
@@ -76,8 +123,9 @@ export default function ImageViewerModal({
       )}
       data-testid="notebook-outer"
     >
-      <div className="relative w-full h-full" data-testid="notebook-inner">
-        <div className="absolute right-0 m-3">
+      <div className="w-full" data-testid="notebook-inner">
+        <div className="flex m-3">
+          <div className='grow'></div>
           <IconButton
             title="Close the Viewer"
             onClick={onClose}
@@ -93,10 +141,28 @@ export default function ImageViewerModal({
             <CancelIcon className="w-4 h-4" />
           </IconButton>
         </div>
-        <div className="h-full w-full border-0 flex justify-center items-center" onClick={onClose}>
-          <div onClick={(event)=>{event.stopPropagation()}}>
-            <img src={src} className='w-full p-1 border border-gray-300 cursor-pointer'/>
+        <div className="flex justify-center items-center" onClick={onClose}>
+          {/* <div className="flex justify-center items-center w-40 h-40 bg-white/50 rounded-2xl m-4 cursor-pointer">
+            <CaretLeftIcon />
+          </div> */}
+          <div
+            className="w-9/12 relative p-1 border border-gray-300 cursor-pointer"
+            onClick={(event)=>{event.stopPropagation()}}
+          >
+            <img
+              ref={imageRef}
+              src={src}
+              onMouseEnter={() => hoverContent(true)}
+              onMouseLeave={() => hoverContent(false)}
+            />
+            <div
+              ref={circleRef}
+              className='w-11 h-11 rounded-full absolute border-2 border-blue-500 bg-blue-100/35 transition-all'
+            />
           </div>
+          {/* <div className="flex justify-center items-center w-40 h-40 bg-white/50 rounded-2xl m-4 cursor-pointer">
+            <CaretRightIcon />
+          </div> */}
         </div>
       </div>
     </div>

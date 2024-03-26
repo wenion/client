@@ -41,10 +41,14 @@ function generateStepId() {
 function mapToObjectFormat(inputObject: RecordingStepData): RecordingStepData {
   return {
     type: inputObject.type,
-    id: generateStepId(),
+    id: inputObject.id ?? generateStepId(),
     url: inputObject.url,
     description: inputObject.description,
     title: inputObject.title,
+    width: inputObject.width,
+    height: inputObject.height,
+    offsetX: inputObject.offsetX,
+    offsetY: inputObject.offsetY,
     position: inputObject.position,
     image: inputObject.image,
   };

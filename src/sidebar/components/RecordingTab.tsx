@@ -114,8 +114,11 @@ function RecordingTab({
   const taskName = recordingService.getExtensionStatus().recordingTaskName;
 
   const onSelectImage = (id: string) => {
-    const img = document.querySelectorAll('#img' + id)[0] as HTMLImageElement;
-    frameSync.notifyHost('openImageViewer', img.src)
+    // get from recordings
+    const selectedStep = store.getSelectedRecordingStep();
+    if (selectedStep) {
+      frameSync.notifyHost('openImageViewer', selectedStep)
+    }
   }
 
   const deleteRecording = () => {

@@ -1,34 +1,70 @@
 import { Button, CaretDownIcon, CaretRightIcon } from '@hypothesis/frontend-shared';
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useState, useRef } from 'preact/hooks';
 import classnames from 'classnames';
 
 import { useSidebarStore } from '../store';
 import MarkdownView from './MarkdownView';
-import type { RecordingData, RecordingStepData } from '../store/modules/recordings';
+import type { RecordingData, RecordingStepData } from '../../types/api';
 import { applyTheme } from '../helpers/theme';
 
 type StickyNoteProps = {
+  index: number;
   id: string;
+  collapsed: boolean;
   title: string;
   content: string;
   image?: string | null;
+  imagePosition? : {width: number|undefined, height: number|undefined, offsetX: number|undefined, offsetY: number|undefined};
+  url?: string;
   hoverContent: (id: string, visible: boolean) => void;
   onSelectImage: (id: string) => void;
 };
 
 function StickyNote({
+  index,
   id,
+  collapsed,
   title,
   content,
   image,
+  imagePosition,
+  url,
   hoverContent,
   onSelectImage,
 }: StickyNoteProps) {
+  const store = useSidebarStore();
   const textStyle = applyTheme(['annotationFontFamily'], {});
-  const [collapsed, setCollapsed] = useState(true);
+
+  const imageRef = useRef<HTMLImageElement | null>(null);
+  const circleRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    if (imageRef.current && circleRef.current && imagePosition) {
+      const width = imagePosition?.width;
+      const height = imagePosition?.height;
+      const offsetX = imagePosition?.offsetX;
+      const offsetY = imagePosition?.offsetY;
+
+      if (width && height && offsetY && offsetX) {
+        const widthToHeight = width / height;
+        const ratioHeight = imageRef.current.clientHeight/height;
+        const ratioWidth = widthToHeight * imageRef.current.clientHeight / width;
+
+        circleRef.current.style.top = Math.round(offsetY * ratioHeight - 8).toString() + "px";
+        circleRef.current.style.left = Math.round(offsetX * ratioWidth - 8).toString() + "px";
+
+      }
+    }
   }, [collapsed])
+
+  const toggleStep = (id: string) => {
+    store.selectRecordingStep(id);
+  }
+
+  const onImageClick = (id: string) => {
+    store.selectRecordingStep(id);
+    onSelectImage(id)
+  }
 
   return (
     <>
@@ -36,44 +72,54 @@ function StickyNote({
         className='timeline-node cursor-pointer'
         id={id}
       >
-        <div className='timeline-circle'></div>
+        <div className='timeline-circle text-blue-700 text-center bg-blue-200/50'>{index}</div>
       </div>
       <div
         className='timeline-content'
         id={id}
         onMouseEnter={() => hoverContent(id, true)}
         onMouseLeave={() => hoverContent(id, false)}
-        onClick={() => setCollapsed(!collapsed)}
+        onClick={() => toggleStep(id)}
       >
         <div className='flex items-center gap-x-1 cursor-pointer'>
           {collapsed ? <CaretDownIcon className='grow-0'/> : <CaretRightIcon className='grow-0'/>}
           <h3 className='grow text-lg'>
             {title}
+            {url &&
+              <a className='text-blue-700 bg-blue-50 border-blue-200 border rounded'>
+                {url}
+              </a>
+            }
           </h3>
         </div>
-        <div className='flex items-center'>
-          {!collapsed && (
-            <div
-              className='grow my-4 rounded-sm bg-blue-200'
-            >
-              <MarkdownView
-                classes={'text-md m-3'}
-                markdown={content}
-                style={textStyle}
-              />
-            </div>
-          )}
+        <div className='flex justify-center'>
           {!collapsed && image && (
-            <div className='flex-none justify-center p-1 cursor-pointer w-24'>
+            <div className='relative p-1 cursor-pointer w-60'>
               <img
+                ref={imageRef}
                 className='border border-gray-300 hover:border-2 hover:border-gray-500'
                 id={'img' + id}
-                onClick={() => onSelectImage(id)}
+                onClick={() => onImageClick(id)}
                 src={image}
+              />
+              <div
+                ref={circleRef}
+                className='w-6 h-6 rounded-full absolute border-2 border-blue-500 bg-blue-100/35 transition-all'
               />
             </div>
           )}
         </div>
+        {/* {!collapsed && (
+          <div
+            className='grow my-4 rounded-sm bg-blue-200'
+          >
+            <MarkdownView
+              classes={'text-md m-3'}
+              markdown={content}
+              style={textStyle}
+            />
+          </div>
+        )} */}
       </div>
     </>
   )
@@ -116,6 +162,7 @@ export default function TimelineList({
   onSelectImage,
 } : TimelineListProps) {
   const store = useSidebarStore();
+  const [collapsed, setCollapsed] = useState(false);
   // const textStyle = applyTheme(['annotationFontFamily'], {});
 
   const hoverContent = (id: string, visible: boolean) => {
@@ -125,25 +172,38 @@ export default function TimelineList({
     }
   }
 
+  useEffect(()=> {}, [collapsed])
+
+  const omit = (url: string | undefined, numberOfCharacters: number = 15) => {
+    return url ? (url.length < numberOfCharacters ? url : url.slice(0,numberOfCharacters -2) + '...'): url
+  }
+
   return (
     <>
       <Button onClick={() => store.clearSelectedRecording()}>return</Button>
       <div className='flex items-center'>
         <div className='flex-none size-3 bg-blue-700 rounded-full '></div>
         <h1 className='m-4 grow text-xl'>{recording.taskName}</h1>
-        <Button classes={classnames('flex-none')}>
-          Expand
+        <Button
+          classes={classnames('flex-none')}
+          onClick={() => setCollapsed(!collapsed)}
+        >
+          {collapsed? 'Expand': 'Collapse'}
         </Button>
       </div>
       <div
         className='message-grid'
       >
-      {recording.steps.map(child => (
+      {recording.steps.map((child, index) => (
         <StickyNote
+          index={index + 1}
           id={child.id}
+          collapsed={collapsed}
           title={child.description? child.description : child.type}
           content={stringifyObject(formatObject(child) as JsonObjectData)}
           image={child.image}
+          imagePosition={child.image? {width: child.width, height: child.height, offsetX: child.offsetX, offsetY: child.offsetY}: undefined}
+          url={child.description?.includes('Navigate') ? child.url: undefined}
           hoverContent={hoverContent}
           onSelectImage={onSelectImage}
         />

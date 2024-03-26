@@ -14,7 +14,7 @@ import type {
   Destroyable,
   PullingData,
 } from '../types/annotator';
-import type { EventData } from '../types/api';
+import type { EventData, RecordingStepData } from '../types/api';
 import type { Service } from '../types/config';
 import type {
   GuestToHostEvent,
@@ -541,9 +541,9 @@ export class Sidebar implements Destroyable {
       this.show();
     });
 
-    this._sidebarRPC.on('openImageViewer', (src: string) => {
+    this._sidebarRPC.on('openImageViewer', (selectedStep: RecordingStepData) => {
       // this.hide();
-      this._emitter.publish('openImageViewer', src);
+      this._emitter.publish('openImageViewer', selectedStep);
     });
     this._emitter.subscribe('closeImageViewer', () => {
       this.show();

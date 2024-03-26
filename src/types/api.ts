@@ -440,9 +440,10 @@ export type RecordingStepData = {
   title?: string;
   position?: string;
   image?: string | null;
-  // selectors?: Selector;
-  // offsetX?: number;
-  // offsetY?: number;
+  width? : number;
+  height? : number;
+  offsetX? : number;
+  offsetY? : number;
 }
 
 export type RecordingData = {

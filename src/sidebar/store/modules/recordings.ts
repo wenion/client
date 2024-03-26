@@ -5,29 +5,12 @@
 import type { Dispatch } from 'redux';
 
 import { createStoreModule, makeAction } from '../create-store';
+import type { RecordingData, RecordingStepData } from '../../../types/api';
 
 type BooleanMap = Record<string, boolean>;
 type RecordingStage = 'Request' | 'Start' | 'End' | 'Idle'
 
 export type Selector = { [key: string]: string; };
-
-export type RecordingStepData = {
-  type: string;
-  id: string;
-  url?: string;
-  description?: string;
-  title?: string;
-  position?: string;
-  image?: string | null;
-}
-
-export type RecordingData = {
-  taskName: string;
-  sessionId: string;
-  title?: string;
-  selectorAttribute?: string;
-  steps: RecordingStepData[];
-}
 
 /**
  * Get the remaining recordings
@@ -46,6 +29,7 @@ function excludeRecordings(
 export type State = {
   recordingStage: RecordingStage;
   selectedRecording: RecordingData | null;
+  selectedRecordingStep: RecordingStepData | null;
   deleteConfirmation: boolean;
   recordings: RecordingData[];
 };
@@ -54,6 +38,7 @@ function initialState(): State {
   return {
     recordingStage: 'Idle',
     selectedRecording: null,
+    selectedRecordingStep: null,
     deleteConfirmation: false,
     recordings: [],
   }
@@ -117,6 +102,18 @@ const reducers = {
     return {
       selectedRecording: selected? selected : null,
       deleteConfirmation: action.status ?? state.deleteConfirmation,
+    }
+  },
+
+  SELECT_STEP(state: State, action: {stepId: string | null}): Partial<State> {
+    if (state.selectedRecording && action.stepId) {
+      const selectedStep = state.selectedRecording.steps.find(r => r.id === action.stepId)
+      return {
+        selectedRecordingStep: selectedStep ?? null,
+      }
+    }
+    return {
+      selectedRecordingStep: null,
     }
   },
 
@@ -186,6 +183,14 @@ function clearSelectedRecording() {
   return makeAction(reducers, 'SELECT_RECORDING', {taskName: null})
 }
 
+function selectRecordingStep(stepId: string) {
+  return makeAction(reducers, 'SELECT_STEP', {stepId: stepId})
+}
+
+function clearSelectedRecordingStep() {
+  return makeAction(reducers, 'SELECT_STEP', {stepId: null})
+}
+
 function changeRecordingStage(newStage: RecordingStage) {
   return makeAction(reducers, 'CHANG_RECORDING_STAGE', {newStage: newStage})
 }
@@ -200,6 +205,10 @@ function resetDeleteConfirmation() {
 
 function getSelectedRecording(state: State) {
   return state.selectedRecording;
+}
+
+function getSelectedRecordingStep(state: State) {
+  return state.selectedRecordingStep;
 }
 
 function currentRecordingStage(state: State) {
@@ -227,6 +236,8 @@ export const recordingsModule = createStoreModule(initialState, {
     clearRecordings,
     selectRecording,
     clearSelectedRecording,
+    selectRecordingStep,
+    clearSelectedRecordingStep,
     removeRecordings,
     changeRecordingStage,
     updateDeleteConfirmation,
@@ -238,6 +249,7 @@ export const recordingsModule = createStoreModule(initialState, {
     currentRecordingStage,
     deleteConfirmation,
     getSelectedRecording,
+    getSelectedRecordingStep,
     findByTaskName,
   },
 });
