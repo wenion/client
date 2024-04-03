@@ -68,17 +68,6 @@ const reducers = {
   ): Partial<State> {
     return { response: null };
   },
-
-  SET_CLIENT_URL(
-    state: State,
-    action: {
-      clientURL: string;
-    }
-  ): Partial<State> {
-    return {
-      clientURL: action.clientURL,
-    };
-  },
 };
 
 function addResponse(query: string, response: QueryResponseObject) {
@@ -105,19 +94,10 @@ function queryingWord(state: State) {
   return state.query;
 }
 
-function setClientURL(clientURL: string) {
-  return makeAction(reducers, 'SET_CLIENT_URL', {clientURL});
-}
-
-function getClientURL(state: State) {
-  return state.clientURL;
-}
-
 export const resultModule = createStoreModule(initialState, {
   namespace: 'results',
   reducers,
   actionCreators: {
-    setClientURL,
     addResponse,
     setBookmark,
     clearResponse,
@@ -125,7 +105,6 @@ export const resultModule = createStoreModule(initialState, {
   },
   selectors: {
     queryingWord,
-    getClientURL,
     getResponse,
   },
 });

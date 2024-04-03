@@ -52,7 +52,7 @@ export function ThirdPartyMenu({fileTreeService, frameSync,}: ThirdPartyMenuProp
   }
 
   const onClick = async (option: string) => {
-    const link = await fileTreeService.getClientURL();
+    const link = store.getLink('home');
     if (!link) {
       alert('Sorry, Could not get the homepage url');
       return;

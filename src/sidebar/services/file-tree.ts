@@ -94,20 +94,8 @@ export class FileTreeService {
     }
   }
 
-    /* delete file to repository*/
-    async delete(path: string) {
-      return this._api.delete({file: path});
-    }
-
-  /* TODO temporally put it here */
-  async getClientURL() {
-    if (!this._store.getClientURL())
-    {
-      const result = await this._api.clentURL({});
-      const url = new URL(result.url_string, result.base_url);
-      this._store.setClientURL(url.href);
-      return url.href;
-    }
-    return this._store.getClientURL();
+  /* delete file to repository*/
+  async delete(path: string) {
+    return this._api.delete({file: path});
   }
 }

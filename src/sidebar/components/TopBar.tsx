@@ -89,11 +89,7 @@ function TopBar({
   };
 
   const requestQuery = async () => {
-    const link = await fileTreeService.getClientURL();
-    if (!link){
-      return;
-    }
-    window.parent.location = link;
+    window.parent.location = store.getLink('home')
   }
 
   return (
