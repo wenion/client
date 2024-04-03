@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import classnames from 'classnames';
 
 import { useSidebarStore } from '../store';
+import ShareIcon from '../../images/icons/share';
 
 type RecordingListProps = {
   // frameSync: FrameSyncService;
@@ -42,7 +43,7 @@ export default function RecordingList({
                 <Button
                   classes={classnames('grow-0 m-1 bg-grey-0 hover:bg-red-40 ' )}
                 >
-                  <CaretRightIcon/>
+                  <ShareIcon/>
                 </Button>
                 <Button
                   classes={classnames('grow-0 m-1 bg-grey-0 hover:bg-red-400' )}

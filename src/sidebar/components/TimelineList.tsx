@@ -1,4 +1,4 @@
-import { Button, CaretDownIcon, CaretRightIcon } from '@hypothesis/frontend-shared';
+import { Button, CaretDownIcon, CaretRightIcon, LeaveIcon } from '@hypothesis/frontend-shared';
 import { useEffect, useState, useRef } from 'preact/hooks';
 import classnames from 'classnames';
 
@@ -10,7 +10,7 @@ import { applyTheme } from '../helpers/theme';
 type StickyNoteProps = {
   index: number;
   id: string;
-  collapsed: boolean;
+  defaultCollapsed: boolean;
   title: string;
   content: string;
   image?: string | null;
@@ -23,7 +23,7 @@ type StickyNoteProps = {
 function StickyNote({
   index,
   id,
-  collapsed,
+  defaultCollapsed,
   title,
   content,
   image,
@@ -34,6 +34,8 @@ function StickyNote({
 }: StickyNoteProps) {
   const store = useSidebarStore();
   const textStyle = applyTheme(['annotationFontFamily'], {});
+
+  const [collapsed, setCollapsed] = useState(defaultCollapsed);
 
   const imageRef = useRef<HTMLImageElement | null>(null);
   const circleRef = useRef<HTMLDivElement | null>(null);
@@ -83,7 +85,7 @@ function StickyNote({
       >
         <div className='flex items-center gap-x-1 cursor-pointer'>
           {collapsed ? <CaretDownIcon className='grow-0'/> : <CaretRightIcon className='grow-0'/>}
-          <h3 className='grow text-lg'>
+          <h3 className='grow text-md' onClick={() => {setCollapsed(!collapsed)}}>
             {title}
             {url &&
               <a className='text-blue-700 bg-blue-50 border-blue-200 border rounded'>
@@ -94,7 +96,7 @@ function StickyNote({
         </div>
         <div className='flex justify-center'>
           {!collapsed && image && (
-            <div className='relative p-1 cursor-pointer w-60'>
+            <div className='relative w-80 p-1 cursor-pointer'>
               <img
                 ref={imageRef}
                 className='border border-gray-300 hover:border-2 hover:border-gray-500'
@@ -114,7 +116,7 @@ function StickyNote({
             className='grow my-4 rounded-sm bg-blue-200'
           >
             <MarkdownView
-              classes={'text-md m-3'}
+              classes='text-sm m-3'
               markdown={content}
               style={textStyle}
             />
@@ -137,7 +139,7 @@ function stringifyObject(obj: JsonObjectData, indentation: number = 0): string {
     .map(([key, value]) => {
       key = key.trim();
       const formattedValue = typeof value === 'object' ? stringifyObject(value, indentation + 1) : value.toString().trim();
-      return `${spaces}<span style="color:red">${key}</span>: ${formattedValue}`;
+      return `${spaces}<span style="color:grey">${key}</span>: ${formattedValue}`;
     })
     .join('\n\n');
 }
@@ -180,16 +182,19 @@ export default function TimelineList({
 
   return (
     <>
-      <Button onClick={() => store.clearSelectedRecording()}>return</Button>
+      {/* <div className='flex'>
+        <div className='grow'></div>
+      </div> */}
       <div className='flex items-center'>
         <div className='flex-none size-3 bg-blue-700 rounded-full '></div>
-        <h1 className='m-4 grow text-xl'>{recording.taskName}</h1>
-        <Button
+        <h1 className='m-2 grow text-xl'>{recording.taskName}</h1>
+        <Button classes={classnames('flex-none')} onClick={() => store.clearSelectedRecording()}><LeaveIcon /></Button>
+        {/* <Button
           classes={classnames('flex-none')}
           onClick={() => setCollapsed(!collapsed)}
         >
-          {collapsed? 'Expand': 'Collapse'}
-        </Button>
+          {collapsed? <ExpandIcon />: <CollapseIcon />}
+        </Button> */}
       </div>
       <div
         className='message-grid'
@@ -198,7 +203,7 @@ export default function TimelineList({
         <StickyNote
           index={index + 1}
           id={child.id}
-          collapsed={collapsed}
+          defaultCollapsed={collapsed}
           title={child.description? child.description : child.type}
           content={stringifyObject(formatObject(child) as JsonObjectData)}
           image={child.image}
