@@ -16,6 +16,7 @@ import ThirdPartyMenu from './ThirdPartyMenu';
 import Search from './Search';
 import UserMenu from './UserMenu';
 import LogoIcon from '../static/logo';
+import ExtensionIcon from '../static/extension';
 
 export type TopBarProps = {
   /** Flag indicating whether the app is in a sidebar context */
@@ -83,6 +84,9 @@ function TopBar({
             {isLoggedIn ? (
               <>
                 <ThirdPartyMenu />
+                <a class='p-1' href={store.getLink('download')}>
+                  <ExtensionIcon />
+                </a>
                 <span class='p-1'>
                   <IconButton
                     icon={FolderIcon}
