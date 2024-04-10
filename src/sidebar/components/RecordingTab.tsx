@@ -1,4 +1,4 @@
-import { Overlay, Panel, Input, Button, Spinner } from '@hypothesis/frontend-shared';
+import { Overlay, Panel, Input, Button, Spinner, SelectNext } from '@hypothesis/frontend-shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 
 import { useSidebarStore } from '../store';
@@ -22,33 +22,49 @@ type RecordingPopupProps = {
 function RecordingPopup({
   frameSync,
 }: RecordingPopupProps) {
+  const store = useSidebarStore();
   const nameEl = useRef<HTMLInputElement>();
   const descriptionEl = useRef<HTMLInputElement>();
-  const startEl = useRef<HTMLInputElement>();
+
+  const items = [
+    {id: '1', name: 'now', value: 0},
+    {id: '2', name: '5 seconds ago', value: -5},
+    {id: '3', name: '1 minute ago', value: -60},
+    {id: '4', name: '3 minutes ago', value: -60 * 3},
+    {id: '5', name: '5 minutes ago', value: -60 * 5},
+  ]
 
   const [nameFeedback, setNameFeedback] = useState('success')
   const [descriptionFeedback, setDescriptionFeedback] = useState('success')
+  const [selected, setSelected] = useState<{ id: string; name: string, value: number }>(items[0]);
 
-  const notifyRecordingStatus = (status: 'off' | 'ready' | 'on', taskName?: string, sessionId?: string, description?: string) => {
+  const notifyRecordingStatus = (status: 'off' | 'ready' | 'on', taskName?: string, sessionId?: string, description?: string, selected?: number) => {
     frameSync.updateRecordingStatusView(status);
-    frameSync.refreshRecordingStatus(status, taskName, sessionId, description)
+    frameSync.refreshRecordingStatus(status, taskName, sessionId, description, selected, store.focusedGroupId()?? '')
     frameSync.notifyHost('updateRecoringStatusFromSidebar', status)
   }
 
   const startRecord = () => {
-    if (!nameEl.current!.value || nameEl.current!.value.trim() == '') {
+    const taskName = nameEl.current!.value.trim();
+    const description = descriptionEl.current!.value.trim();
+    if (taskName === '') {
       setNameFeedback('error')
       return;
     }
-    if (!descriptionEl.current!.value || descriptionEl.current!.value.trim() == '') {
+    else {
+      setNameFeedback('success')
+    }
+
+    if (description === '') {
       setDescriptionFeedback('error')
       return;
     }
-
-    if (nameEl.current!.value && descriptionEl.current!.value) {
-      setNameFeedback('success')
+    else {
       setDescriptionFeedback('success')
-      notifyRecordingStatus('on', nameEl.current!.value.trim(), generateSessionId(), descriptionEl.current!.value.trim())
+    }
+
+    if (taskName !== '' && description !== '') {
+      notifyRecordingStatus('on', taskName, generateSessionId(), description, selected.value)
     }
   }
 
@@ -64,19 +80,42 @@ function RecordingPopup({
             <label htmlFor='input-with-label' className='min-w-28 font-semibold'>
               Task name
             </label>
-            <Input classes='min-w-64' elementRef={nameEl} feedback={nameFeedback == 'error'?'error':undefined} placeholder="" />
+            <Input aria-label="Enter the task name" classes='min-w-64' elementRef={nameEl} feedback={nameFeedback == 'error'?'error':undefined} />
           </div>
           <div className='flex items-center'>
             <label htmlFor='input-with-label' className='min-w-28 font-semibold'>
               Description
             </label>
-            <Input classes='min-w-64' elementRef={descriptionEl} feedback={descriptionFeedback == 'error'? 'error': undefined} placeholder="" />
+            <Input aria-label="Enter the description" classes='min-w-64' elementRef={descriptionEl} feedback={descriptionFeedback == 'error'? 'error': undefined} />
           </div>
           <div className='flex items-center'>
             <label htmlFor='input-with-label' className='min-w-28 font-semibold'>
               Start time
             </label>
-            <Input elementRef={startEl} placeholder="now" disabled />
+            <SelectNext
+              value={selected}
+              onChange={setSelected}
+              buttonContent={
+                selected ? (
+                  <>
+                    {selected.name}
+                  </>
+                ) : (
+                  <>Select one…</>
+                )
+              }
+              aria-label={selected.name}
+            >
+              {items.map(item => (
+                <SelectNext.Option value={item} key={item.id}>
+                  {() => (
+                    <>
+                      {item.name}
+                    </>
+                  )}
+                </SelectNext.Option>
+              ))}
+            </SelectNext>
           </div>
           <div className='flex items-center'>
             <Button onClick={() => startRecord()}>

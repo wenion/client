@@ -454,3 +454,17 @@ export type RecordingData = {
   date?: number;
   steps: RecordingStepData[];
 }
+
+export type Recording = RecordingData & {
+  startstamp: number;
+  endstamp: number;
+  task_name: string;
+  session_id: string;
+  description: string;
+  target_uri: string;
+  start: number;
+  completed: boolean;
+  userid?: string;
+  groupid?: string;
+  shared: boolean;
+};

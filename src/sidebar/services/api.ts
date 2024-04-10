@@ -9,6 +9,7 @@ import type {
   EventData,
   RawMessageData,
   RecordingData,
+  Recording,
 } from '../../types/api';
 import { stripInternalProperties } from '../helpers/strip-internal-properties';
 import type { SidebarStore } from '../store';
@@ -177,6 +178,12 @@ type ListGroupParams = {
   expand?: string[];
 };
 
+type RecordingBatchResult = {
+  rows: Recording[];
+  // replies: Recording[];
+  total: number;
+};
+
 /**
  * API client for the Hypothesis REST API.
  *
@@ -247,6 +254,13 @@ export class APIService {
     delete: APICall<{ session_id: string; task_name: string }>;
   };
   upload: APICallExtend<Record<string, any>, string|Blob, Record<string, any>, unknown>;
+  batch: APICall<Record<string, unknown>, void, RecordingBatchResult>;
+  recording: {
+    create: APICall<Record<string, unknown>, Partial<Recording>, Recording>;
+    delete: APICall<IDParam>;
+    get: APICall<IDParam, void, Recording>;
+    update: APICall<IDParam, Partial<Recording>, Recording>;
+  };
   constructor(
     apiRoutes: APIRoutesService,
     auth: AuthService,
@@ -352,6 +366,25 @@ export class APIService {
     };
     this.upload = apiCallExtend('upload') as APICallExtend<Record<string, any>, string|Blob, Record<string, any>, unknown>;
 
+    this.batch = apiCall('batch') as APICall<
+      Record<string, unknown>,
+      void,
+      RecordingBatchResult
+    >;
+    this.recording = {
+      create: apiCall('recording.create') as APICall<
+        Record<string, unknown>,
+        Partial<Recording>,
+        Recording
+      >,
+      delete: apiCall('recording.delete') as APICall<IDParam>,
+      get: apiCall('recording.read') as APICall<IDParam, void, Recording>,
+      update: apiCall('recording.update') as APICall<
+        IDParam,
+        Partial<Recording>,
+        Recording
+      >,
+    };
   }
 
   /**

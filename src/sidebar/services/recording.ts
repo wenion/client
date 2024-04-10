@@ -232,13 +232,27 @@ export class RecordingService extends TinyEmitter{
     return status;
   }
 
-  createNewRecording(taskName: string, sessionId: string, description: string) {
+  createNewRecording(taskName: string, sessionId: string, description: string, start: number, groupid: string) {
     this.refreshRecordingInfo('on', sessionId, taskName)
     this.sendUserEvent(this.createSimplifiedUserEventNode('START', 'RECORD', extractHostURL(this._window.location.hash)))
+    this._api.recording.create({}, {
+      startstamp: Date.now(),
+      sessionId: sessionId,
+      taskName: taskName,
+      session_id: sessionId,
+      task_name: taskName,
+      description: description,
+      target_uri: extractHostURL(this._window.location.hash),
+      start: start,
+      groupid: groupid
+    })
   }
 
   clearNewRecording() {
     this.sendUserEvent(this.createSimplifiedUserEventNode('END', 'RECORD', extractHostURL(this._window.location.hash)))
+    if (this.getExtensionStatus().recordingSessionId) {
+      this._api.recording.update({id: this.getExtensionStatus().recordingSessionId}, {endstamp: Date.now()})
+    }
     this.refreshRecordingInfo('off', '', '')
   }
 

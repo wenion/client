@@ -579,13 +579,13 @@ export class FrameSyncService {
     }
   }
 
-  refreshRecordingStatus(status: 'off' | 'ready' | 'on', taskName?: string, sessionId?: string, description?: string) {
+  refreshRecordingStatus(status: 'off' | 'ready' | 'on', taskName?: string, sessionId?: string, description?: string, start?: number, groupid?: string) {
     if (status === 'off') {
       this._recordingService.clearNewRecording();
       this._recordingService.updateRecordings(); //TODO
     }
     else if (status === 'on') {
-      this._recordingService.createNewRecording(taskName!, sessionId!, description!);
+      this._recordingService.createNewRecording(taskName!, sessionId!, description!, start!, groupid?? '');
     }
   }
 
