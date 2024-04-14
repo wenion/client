@@ -254,12 +254,12 @@ export class APIService {
     delete: APICall<{ session_id: string; task_name: string }>;
   };
   upload: APICallExtend<Record<string, any>, string|Blob, Record<string, any>, unknown>;
-  batch: APICall<Record<string, unknown>, void, RecordingBatchResult>;
+  batch: APICall<Record<string, unknown>, void, Recording[]>;
   recording: {
     create: APICall<Record<string, unknown>, Partial<Recording>, Recording>;
     delete: APICall<IDParam>;
     get: APICall<IDParam, void, Recording>;
-    update: APICall<IDParam, Partial<Recording>, Recording>;
+    update: APICall<IDParam, Partial<Recording & {action: 'finish' | 'share' | 'edit'}>, Recording>;
   };
   constructor(
     apiRoutes: APIRoutesService,
@@ -369,7 +369,7 @@ export class APIService {
     this.batch = apiCall('batch') as APICall<
       Record<string, unknown>,
       void,
-      RecordingBatchResult
+      Recording[]
     >;
     this.recording = {
       create: apiCall('recording.create') as APICall<
@@ -381,7 +381,7 @@ export class APIService {
       get: apiCall('recording.read') as APICall<IDParam, void, Recording>,
       update: apiCall('recording.update') as APICall<
         IDParam,
-        Partial<Recording>,
+        Partial<Recording & {action: 'finish' | 'share' | 'edit'}>,
         Recording
       >,
     };

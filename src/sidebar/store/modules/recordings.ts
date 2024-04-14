@@ -5,51 +5,39 @@
 import type { Dispatch } from 'redux';
 
 import { createStoreModule, makeAction } from '../create-store';
-import type { RecordingData, RecordingStepData } from '../../../types/api';
+import type { RecordingStepData } from '../../../types/api';
+import type { Recording } from '../../../types/api';
 
 type BooleanMap = Record<string, boolean>;
 type RecordingStage = 'Request' | 'Start' | 'End' | 'Idle'
 
 export type Selector = { [key: string]: string; };
 
-/**
- * Get the remaining recordings
- * 
- * @param current 
- * @param recordings - to remove
- * @returns 
- */
-function excludeRecordings(
-  current: RecordingData[],
-  recordings: string[],
+function excludeRecords(
+  current: Recording[],
+  records_id: string[],
 ) {
-  return current.filter(recording => !recordings.includes(recording.taskName))
+  return current.filter(recording => !records_id.includes(recording.session_id))
 }
 
 export type State = {
   recordingStage: RecordingStage;
-  selectedRecording: RecordingData | null;
   selectedRecordingStep: RecordingStepData | null;
-  deleteConfirmation: boolean;
-  recordings: RecordingData[];
+  records: Recording[];
+  selectedRecord: Recording & {action: "delete" | "view" | "share"} | null;
 };
 
 function initialState(): State {
   return {
     recordingStage: 'Idle',
-    selectedRecording: null,
     selectedRecordingStep: null,
-    deleteConfirmation: false,
-    recordings: [],
+    records: [],
+    selectedRecord: null,
   }
 }
 
-function findByTaskName(state: State, taskName: string) {
-  return state.recordings.find(r => r.taskName === taskName);
-}
-
-function findBySessionId(recording: RecordingData[], sessionId: string) {
-  return recording.find(r => r.sessionId === sessionId);
+function findBySessionId(recordings: Recording[], id: string) {
+  return recordings.find(r => r.session_id === id);
 }
 
 /**
@@ -65,49 +53,66 @@ function findBySessionId(recording: RecordingData[], sessionId: string) {
  */
 
 const reducers = {
-  ADD_RECORDINGS(
+  ADD_RECORDS(
     state: State,
-    action: { recordings: RecordingData[] },
+    action: { records: Recording[] },
   ): Partial<State> {
+    const updatedIDs = new Set();
+
     const added = [];
-    for (const recording of action.recordings) {
-      // let existing = findBySessionId(state.recordings, recording.sessionId)
-      // if (!existing) {
-        added.push(recording)
-      // }
+    const unchanged = [];
+    const updated = [];
+
+    for (const record of action.records) {
+      let existing = findBySessionId(state.records, record.session_id)
+      if (existing) {
+        updated.push(Object.assign({}, existing, record));
+        updatedIDs.add(record.session_id);
+      } else {
+        added.push(record)
+      }
     }
+
+    for (const record of state.records) {
+      if (!updatedIDs.has(record.session_id)) {
+        unchanged.push(record);
+      }
+    }
+
     return {
-      recordings: added,//state.recordings.concat(added),
+      records: added.concat(updated).concat(unchanged),
     };
   },
 
-  REMOVE_RECORDINGS(
+  CLEAR_RECORDS(): Partial<State> {
+    return { records: [] };
+  },
+
+  REMOVE_RECORDS(
     state: State,
     action: {
-      recordingsToRemove: string[];
-      remainingRecordings: RecordingData[]
+      recordsToRemove: string[];
+      remainingRecords: Recording[];
     },
   ): Partial<State> {
-    return {
-      recordings: [...action.remainingRecordings],
-    };
+    return { records: [...action.remainingRecords] };
   },
 
-  CLEAR_RECORDINGS(state: State): Partial<State> {
-    return { recordings: []}
+  SELECT_RECORD(state: State, action: {record: Recording, action: "delete" | "view" | "share"}): Partial<State> {
+    return {
+      selectedRecord: {...action.record, action: action.action}
+    }
   },
 
-  SELECT_RECORDING(state: State, action: {taskName: string | null, status?: boolean}): Partial<State> {
-    const selected = state.recordings.find(r => r.taskName === action.taskName)
+  CLEAR_RECORD(state: State): Partial<State> {
     return {
-      selectedRecording: selected? selected : null,
-      deleteConfirmation: action.status ?? state.deleteConfirmation,
+      selectedRecord: null
     }
   },
 
   SELECT_STEP(state: State, action: {stepId: string | null}): Partial<State> {
-    if (state.selectedRecording && action.stepId) {
-      const selectedStep = state.selectedRecording.steps.find(r => r.id === action.stepId)
+    if (state.selectedRecord && action.stepId) {
+      const selectedStep = state.selectedRecord.steps.find(r => r.id === action.stepId)
       return {
         selectedRecordingStep: selectedStep ?? null,
       }
@@ -120,67 +125,43 @@ const reducers = {
   CHANG_RECORDING_STAGE(state: State, action: {newStage: RecordingStage}) {
     return { recordingStage: action.newStage }
   },
-
-  RESET_STATUS(state: State, action: {status: boolean}) {
-    return {
-      selectedRecording: null,
-      deleteConfirmation: action.status
-    }
-  }
-
-  // UPDATE_NEW_RECORDING(state: State, action: {taskName: string, steps: RecordingStepData[]}) {
-  //   return {newRecording: {taskName: action.taskName, steps: []}}
-  // }
 };
 
 /* Action creators */
-
-/**
- * Add these `annotations` to the current collection of annotations in the
- * store.
- */
-function addRecordings(recordings: RecordingData[]) {
-  return function(
-    dispatch: Dispatch,
-    getState: () => {
-      selected: BooleanMap;
-      recordings: RecordingData[];
-    }
-  ) {
-    // const added = recordings.filter(recording => !findByTaskName(getState().recordings, recording.taskName))
-    dispatch(
-      makeAction(reducers, 'ADD_RECORDINGS', {
-        recordings: recordings,
-      }),
-    )
-  }
+function addRecords(records: Recording[]) {
+  return makeAction(reducers, 'ADD_RECORDS', {records:records})
 }
 
-function removeRecordings(recordings: string[]) {
+function removeRecords(recordings_name: string[]) {
   return (dispatch: Dispatch, getState: () => {recordings: State}) => {
-    const remainingRecordings = excludeRecordings(
-      getState().recordings.recordings,
-      recordings,
+    const remainingRecords = excludeRecords(
+      getState().recordings.records,
+      recordings_name,
     );
     dispatch(
-      makeAction(reducers, 'REMOVE_RECORDINGS', {
-        recordingsToRemove: recordings,
-        remainingRecordings,
+      makeAction(reducers, 'REMOVE_RECORDS', {
+        recordsToRemove: recordings_name,
+        remainingRecords: remainingRecords,
       }),
     );
   };
 }
 
-function clearRecordings() {
-  return makeAction(reducers, 'CLEAR_RECORDINGS', undefined)
+function clearRecords() {
+  return makeAction(reducers, 'CLEAR_RECORDS', undefined)
 }
 
-function selectRecording(taskName: string) {
-  return makeAction(reducers, 'SELECT_RECORDING', {taskName: taskName})
+function selectRecordBySessionId(sessionId: string, action: "delete" | "view" | "share") {
+  return (dispatch: Dispatch, getState: () => {recordings: State}) => {
+      const selected = getState().recordings.records.find(r => r.session_id === sessionId)
+      if (selected) {
+        dispatch(makeAction(reducers, 'SELECT_RECORD', {record: selected, action: action}))
+      }
+    }
 }
 
-function clearSelectedRecording() {
-  return makeAction(reducers, 'SELECT_RECORDING', {taskName: null})
+function clearSelectedRecord() {
+  return makeAction(reducers, 'CLEAR_RECORD', undefined)
 }
 
 function selectRecordingStep(stepId: string) {
@@ -195,16 +176,8 @@ function changeRecordingStage(newStage: RecordingStage) {
   return makeAction(reducers, 'CHANG_RECORDING_STAGE', {newStage: newStage})
 }
 
-function updateDeleteConfirmation(taskName: string, newStatus: boolean) {
-  return makeAction(reducers, 'SELECT_RECORDING', {taskName: taskName, status: newStatus})
-}
-
-function resetDeleteConfirmation() {
-  return makeAction(reducers, 'RESET_STATUS', {status: false})
-}
-
-function getSelectedRecording(state: State) {
-  return state.selectedRecording;
+function getSelectedRecord(state: State) {
+  return state.selectedRecord;
 }
 
 function getSelectedRecordingStep(state: State) {
@@ -215,16 +188,12 @@ function currentRecordingStage(state: State) {
   return state.recordingStage;
 }
 
-function deleteConfirmation(state: State) {
-  return state.deleteConfirmation;
-}
-
-function Recordings(state: State) {
-  return state.recordings;
-}
-
 function allRecordingsCount(state: State) {
-  return state.recordings.length;
+  return state.records.length;
+}
+
+function Records(state:State) {
+  return state.records;
 }
 
 export const recordingsModule = createStoreModule(initialState, {
@@ -232,24 +201,20 @@ export const recordingsModule = createStoreModule(initialState, {
   reducers,
 
   actionCreators: {
-    addRecordings,
-    clearRecordings,
-    selectRecording,
-    clearSelectedRecording,
+    addRecords,
+    removeRecords,
+    clearRecords,
+    selectRecordBySessionId,
+    clearSelectedRecord,
     selectRecordingStep,
     clearSelectedRecordingStep,
-    removeRecordings,
     changeRecordingStage,
-    updateDeleteConfirmation,
-    resetDeleteConfirmation,
   },
   selectors: {
-    Recordings,
     allRecordingsCount,
+    Records,
     currentRecordingStage,
-    deleteConfirmation,
-    getSelectedRecording,
     getSelectedRecordingStep,
-    findByTaskName,
+    getSelectedRecord,
   },
 });

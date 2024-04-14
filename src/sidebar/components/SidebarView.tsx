@@ -120,10 +120,11 @@ function SidebarView({
 
   useEffect(() => {
     if (isLoggedIn) {
-      recordingService.updateRecordings();
+      const topLevelFrame = store.mainFrame();
+      recordingService.loadBatchRecords(topLevelFrame!.uri)
     }
     else {
-      recordingService.clearRecordings();
+      recordingService.unloadRecords();
       store.clearMessages();
     }
     // const mainFrame = store.mainFrame();
@@ -132,7 +133,7 @@ function SidebarView({
     //     result => frameSync.notification(result)
     //   )
     // }
-  }, [isLoggedIn])
+  }, [store, isLoggedIn])
 
   // When a `linkedAnnotationAnchorTag` becomes available, scroll to it
   // and focus it

@@ -1,27 +1,18 @@
 import { Overlay, Panel, Input, Button, Spinner } from '@hypothesis/frontend-shared';
 import {PreviewIcon, CaretRightIcon, TrashIcon } from '@hypothesis/frontend-shared';
 import { Table, TableHead, TableBody, TableRow } from '@hypothesis/frontend-shared';
-import { useEffect, useRef, useState } from 'preact/hooks';
 import classnames from 'classnames';
 
 import { useSidebarStore } from '../store';
 import ShareIcon from '../../images/icons/share';
 
-type RecordingListProps = {
-  // frameSync: FrameSyncService;
-};
 
 /**
  * The main content for the single annotation page (aka. https://hypothes.is/a/<annotation ID>)
  */
-export default function RecordingList({
-  // frameSync,
-}: RecordingListProps) {
+export default function RecordingList() {
   const store = useSidebarStore();
-  const recordings = store.Recordings();
-  const deleteConfirmation = (taskName: string) => {
-    store.updateDeleteConfirmation(taskName, true)
-  }
+  const recordings = store.Records();
 
   return (
     <>
@@ -33,21 +24,24 @@ export default function RecordingList({
         <TableBody>
           {recordings.map(child => (
             <TableRow
-              onClick={() => store.selectRecording(child.taskName)}
+              onClick={(event) => {event.stopPropagation(); store.selectRecordBySessionId(child.sessionId, 'view')}}
               >
               <div className={classnames('flex')}>
                 <div className="grow text-lg items-center flex gap-x-2">
                   <PreviewIcon/>
                   {child.taskName}
                 </div>
-                <Button
+                {/* <Button
                   classes={classnames('grow-0 m-1 bg-grey-0 hover:bg-red-40 ' )}
                 >
                   <ShareIcon/>
-                </Button>
+                </Button> */}
                 <Button
                   classes={classnames('grow-0 m-1 bg-grey-0 hover:bg-red-400' )}
-                  onClick={() => deleteConfirmation(child.taskName)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    store.selectRecordBySessionId(child.sessionId, 'delete')
+                  }}
                 >
                   <TrashIcon/>
                 </Button>
@@ -59,5 +53,3 @@ export default function RecordingList({
     </>
   );
 }
-
-// export default withServices(RecordingList, ['frameSync', ]);

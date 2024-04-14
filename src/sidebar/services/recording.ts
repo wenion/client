@@ -232,10 +232,10 @@ export class RecordingService extends TinyEmitter{
     return status;
   }
 
-  createNewRecording(taskName: string, sessionId: string, description: string, start: number, groupid: string) {
+  async createNewRecording(taskName: string, sessionId: string, description: string, start: number, groupid: string) {
     this.refreshRecordingInfo('on', sessionId, taskName)
     this.sendUserEvent(this.createSimplifiedUserEventNode('START', 'RECORD', extractHostURL(this._window.location.hash)))
-    this._api.recording.create({}, {
+    await this._api.recording.create({}, {
       startstamp: Date.now(),
       sessionId: sessionId,
       taskName: taskName,
@@ -248,37 +248,43 @@ export class RecordingService extends TinyEmitter{
     })
   }
 
-  clearNewRecording() {
+  async clearNewRecording() {
     this.sendUserEvent(this.createSimplifiedUserEventNode('END', 'RECORD', extractHostURL(this._window.location.hash)))
-    if (this.getExtensionStatus().recordingSessionId) {
-      this._api.recording.update({id: this.getExtensionStatus().recordingSessionId}, {endstamp: Date.now()})
+    const sessionId = this.getExtensionStatus().recordingSessionId
+    if (sessionId) {
+      const result = await this._api.recording.update({
+        id: sessionId
+      }, {
+        endstamp: Date.now(),
+        action: 'finish',
+      })
+      this._store.addRecords([result,])
     }
     this.refreshRecordingInfo('off', '', '')
+    return sessionId;
   }
 
-  async updateRecordings() {
-    if (this._store.isLoggedIn()) {
-      let response = await this._api.shareFlow.read({})
-      response.forEach(recording => {
-        recording.steps = recording.steps.map(mapToObjectFormat);
-      })
-      this._store.addRecordings(response);
+  async loadBatchRecords(uri: string) {
+    const results = await this._api.batch({'target_uri': uri ?? ''});
+    results.forEach(recording => {
+      recording.steps = recording.steps.map(mapToObjectFormat);
+    })
+    this._store.addRecords(results);
+  }
+
+  unloadRecords() {
+    this._store.clearRecords();
+    this._store.clearSelectedRecordingStep();
+  }
+
+  async deleteRecording() {
+    const recording = this._store.getSelectedRecord()
+
+    const result = await this._api.recording.delete({id: recording!.session_id}) as unknown as string
+    if (recording!.sessionId === result) {
+      this._store.removeRecords([recording!.session_id])
+      this._store.clearSelectedRecord();
     }
-  }
-
-  async deleteRecording(taskName: string) {
-    if (this._store.isLoggedIn()) {
-      const recording = this._store.findByTaskName(taskName)!;
-      if (recording) {
-        let response = await this._api.shareFlow.delete({task_name: recording.taskName, session_id: recording.sessionId})
-        this._store.removeRecordings([taskName,])
-        this._store.resetDeleteConfirmation()
-      }
-    }
-  }
-
-  clearRecordings() {
-    this._store.clearRecordings();
   }
 
   async sendUserEvent(eventData: EventData, needToCheck: boolean = true) {

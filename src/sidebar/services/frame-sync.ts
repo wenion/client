@@ -567,7 +567,6 @@ export class FrameSyncService {
   updateRecordingStatusView(status: 'off' | 'ready' | 'on') {
     if (status === 'off') {
       this._store.changeRecordingStage('Idle');
-      this._store.resetDeleteConfirmation();
     }
     else if (status === 'ready') {
       this._store.selectTab('recording');
@@ -579,13 +578,14 @@ export class FrameSyncService {
     }
   }
 
-  refreshRecordingStatus(status: 'off' | 'ready' | 'on', taskName?: string, sessionId?: string, description?: string, start?: number, groupid?: string) {
+  async refreshRecordingStatus(status: 'off' | 'ready' | 'on', taskName?: string, sessionId?: string, description?: string, start?: number, groupid?: string) {
     if (status === 'off') {
-      this._recordingService.clearNewRecording();
-      this._recordingService.updateRecordings(); //TODO
+      const sessionId = await this._recordingService.clearNewRecording();
+      this._store.selectRecordBySessionId(sessionId, 'view');
     }
     else if (status === 'on') {
       this._recordingService.createNewRecording(taskName!, sessionId!, description!, start!, groupid?? '');
+      // TODO checkout the return
     }
   }
 

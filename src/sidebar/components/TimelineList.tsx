@@ -4,7 +4,7 @@ import classnames from 'classnames';
 
 import { useSidebarStore } from '../store';
 import MarkdownView from './MarkdownView';
-import type { RecordingData, RecordingStepData } from '../../types/api';
+import type { RecordingStepData, Recording } from '../../types/api';
 import { applyTheme } from '../helpers/theme';
 
 type StickyNoteProps = {
@@ -152,7 +152,7 @@ function formatObject(object: RecordingStepData) {
 }
 
 export type TimelineListProps = {
-  recording: RecordingData,
+  recording: Recording,
   onSelectImage: (id: string) => void;
 };
 
@@ -188,7 +188,7 @@ export default function TimelineList({
       <div className='flex items-center'>
         <div className='flex-none size-3 bg-blue-700 rounded-full '></div>
         <h1 className='m-2 grow text-xl'>{recording.taskName}</h1>
-        <Button classes={classnames('flex-none')} onClick={() => store.clearSelectedRecording()}><LeaveIcon /></Button>
+        <Button classes={classnames('flex-none')} onClick={() => store.clearSelectedRecord()}><LeaveIcon /></Button>
         {/* <Button
           classes={classnames('flex-none')}
           onClick={() => setCollapsed(!collapsed)}
