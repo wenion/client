@@ -25,6 +25,7 @@ function RecordingPopup({
   const store = useSidebarStore();
   const nameEl = useRef<HTMLInputElement>();
   const descriptionEl = useRef<HTMLInputElement>();
+  const timeEl = useRef<HTMLInputElement>();
 
   const items = [
     {id: '1', name: 'now', value: 0},
@@ -36,7 +37,9 @@ function RecordingPopup({
 
   const [nameFeedback, setNameFeedback] = useState('success')
   const [descriptionFeedback, setDescriptionFeedback] = useState('success')
-  const [selected, setSelected] = useState<{ id: string; name: string, value: number }>(items[0]);
+  const [timeFeedback, setTimeFeedback] = useState('success')
+
+  // const [selected, setSelected] = useState<{ id: string; name: string, value: number }>(items[0]);
 
   const notifyRecordingStatus = (status: 'off' | 'ready' | 'on', taskName?: string, sessionId?: string, description?: string, selected?: number) => {
     frameSync.updateRecordingStatusView(status);
@@ -47,6 +50,7 @@ function RecordingPopup({
   const startRecord = () => {
     const taskName = nameEl.current!.value.trim();
     const description = descriptionEl.current!.value.trim();
+    const startTime = parseInt(timeEl.current!.value);
     if (taskName === '') {
       setNameFeedback('error')
       return;
@@ -63,8 +67,16 @@ function RecordingPopup({
       setDescriptionFeedback('success')
     }
 
+    if (Number.isNaN(startTime) || startTime < -1800 || startTime > 0) {
+      setTimeFeedback('error')
+      return;
+    }
+    else {
+      setTimeFeedback('success')
+    }
+
     if (taskName !== '' && description !== '') {
-      notifyRecordingStatus('on', taskName, generateSessionId(), description, selected.value)
+      notifyRecordingStatus('on', taskName, generateSessionId(), description, startTime)
     }
   }
 
@@ -90,9 +102,11 @@ function RecordingPopup({
           </div>
           <div className='flex items-center'>
             <label htmlFor='input-with-label' className='min-w-28 font-semibold'>
-              Start time
+              Backdate time (secs)
             </label>
-            <SelectNext
+            <Input aria-label="Enter the start time in seconds" classes='min-w-64' elementRef={timeEl} placeholder={'Maximun value allowed is: -1800'} feedback={timeFeedback == 'error'? 'error': undefined} />
+
+            {/* <SelectNext
               value={selected}
               onChange={setSelected}
               buttonContent={
@@ -115,7 +129,7 @@ function RecordingPopup({
                   )}
                 </SelectNext.Option>
               ))}
-            </SelectNext>
+            </SelectNext> */}
           </div>
           <div className='flex items-center'>
             <Button onClick={() => startRecord()}>
