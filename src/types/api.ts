@@ -355,6 +355,7 @@ export type EventData = {
   doc_id: string;
   userid: string;
   image?: string;
+  title?: string;
 };
 
 /**

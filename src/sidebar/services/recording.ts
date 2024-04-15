@@ -297,6 +297,7 @@ export class RecordingService extends TinyEmitter{
       session_id: sessionId ? sessionId : '',
       task_name: taskName ? taskName : '',
       image: (sessionId && eventData.image) ? eventData.image : undefined,
+      title: this._store.mainFrame()?.metadata.title,
       // image: true ? eventData.image : undefined,
     }
 

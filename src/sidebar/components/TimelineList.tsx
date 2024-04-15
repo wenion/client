@@ -16,6 +16,7 @@ type StickyNoteProps = {
   image?: string | null;
   imagePosition? : {width: number|undefined, height: number|undefined, offsetX: number|undefined, offsetY: number|undefined};
   url?: string;
+  urlText?: string;
   hoverContent: (id: string, visible: boolean) => void;
   onSelectImage: (id: string) => void;
 };
@@ -29,6 +30,7 @@ function StickyNote({
   image,
   imagePosition,
   url,
+  urlText,
   hoverContent,
   onSelectImage,
 }: StickyNoteProps) {
@@ -86,11 +88,18 @@ function StickyNote({
         <div className='flex items-center gap-x-1 cursor-pointer'>
           {collapsed ? <CaretDownIcon className='grow-0'/> : <CaretRightIcon className='grow-0'/>}
           <h3 className='grow text-md' onClick={() => {setCollapsed(!collapsed)}}>
-            {title}
-            {url &&
-              <a className='text-blue-700 bg-blue-50 border-blue-200 border rounded'>
-                {url}
-              </a>
+            {!urlText &&
+              <>
+                {title}
+              </>
+            }
+            {urlText && url &&
+              <>
+                {title}
+                <a href={url} className='text-blue-700 bg-blue-50 border-blue-200 border rounded'>
+                  {urlText}
+                </a>
+              </>
             }
           </h3>
         </div>
@@ -205,10 +214,12 @@ export default function TimelineList({
           id={child.id}
           defaultCollapsed={collapsed}
           title={child.description? child.description : child.type}
+          // title={child.description?.includes('Navigate')? child.description : child.description ?? child.type}
           content={stringifyObject(formatObject(child) as JsonObjectData)}
           image={child.image}
           imagePosition={child.image? {width: child.width, height: child.height, offsetX: child.offsetX, offsetY: child.offsetY}: undefined}
           url={child.description?.includes('Navigate') ? child.url: undefined}
+          urlText={child.description?.includes('Navigate') ? (child.title?? child.url): undefined}
           hoverContent={hoverContent}
           onSelectImage={onSelectImage}
         />
