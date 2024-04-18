@@ -104,7 +104,7 @@ function RecordingPopup({
             <label htmlFor='input-with-label' className='min-w-28 font-semibold'>
               Backdate time (secs)
             </label>
-            <Input aria-label="Enter the start time in seconds" classes='min-w-64' elementRef={timeEl} placeholder={'Maximun value allowed is: -1800'} feedback={timeFeedback == 'error'? 'error': undefined} />
+            <Input aria-label="Enter the start time in seconds" classes='min-w-64' elementRef={timeEl} placeholder={'Maximum value allowed is: -1800'} feedback={timeFeedback == 'error'? 'error': undefined} />
 
             {/* <SelectNext
               value={selected}

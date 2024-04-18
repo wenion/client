@@ -277,6 +277,16 @@ export class RecordingService extends TinyEmitter{
     this._store.clearSelectedRecordingStep();
   }
 
+  async updateRecording(sessionId: string, shared: boolean) {
+    const result = await this._api.recording.update({
+      id: sessionId
+    }, {
+      shared: shared,
+      action: 'share',
+    })
+    this._store.addRecords([result,])
+  }
+
   async deleteRecording() {
     const recording = this._store.getSelectedRecord()
 

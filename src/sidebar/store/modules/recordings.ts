@@ -57,30 +57,31 @@ const reducers = {
     state: State,
     action: { records: Recording[] },
   ): Partial<State> {
-    const updatedIDs = new Set();
+    const updatedIDs = new Map();
 
     const added = [];
-    const unchanged = [];
-    const updated = [];
+    const merged = [];
 
     for (const record of action.records) {
       let existing = findBySessionId(state.records, record.session_id)
       if (existing) {
-        updated.push(Object.assign({}, existing, record));
-        updatedIDs.add(record.session_id);
+        updatedIDs.set(record.session_id, Object.assign({}, existing, record));
       } else {
         added.push(record)
       }
     }
 
     for (const record of state.records) {
-      if (!updatedIDs.has(record.session_id)) {
-        unchanged.push(record);
+      if (updatedIDs.has(record.session_id)) {
+        merged.push(updatedIDs.get(record.session_id));
+      }
+      else {
+        merged.push(record);
       }
     }
 
     return {
-      records: added.concat(updated).concat(unchanged),
+      records: merged.concat(added),
     };
   },
 

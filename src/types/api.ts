@@ -459,6 +459,7 @@ export type RecordingData = {
 export type Recording = RecordingData & {
   startstamp: number;
   endstamp: number;
+  timestamp: number;
   task_name: string;
   session_id: string;
   description: string;
