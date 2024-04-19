@@ -236,7 +236,7 @@ export class OAuthClient {
     const authWindowSettings = `left=${left},top=${top},width=${width},height=${height}`;
     const authWindow = $window.open(
       authURL.toString(),
-      'Log in to Hypothesis',
+      'Log in to GoldMind',
       authWindowSettings,
     );
 
