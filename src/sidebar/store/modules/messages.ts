@@ -63,7 +63,7 @@ const reducers = {
 
   REMOVE_FROM_UNREAD_MESSAGE(state: State, action: {needToRemove: RawMessageData[] }) {
     const added = []
-    for (const msg of action.needToRemove) {
+    for (let msg of action.needToRemove) {
       msg.unread_flag = false;
       let existing;
       if (msg.id) existing = findByID(state.messages, msg.id)
