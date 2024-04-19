@@ -121,7 +121,8 @@ function SidebarView({
   useEffect(() => {
     if (isLoggedIn) {
       const topLevelFrame = store.mainFrame();
-      recordingService.loadBatchRecords(topLevelFrame!.uri)
+      if (topLevelFrame && topLevelFrame.uri)
+        recordingService.loadBatchRecords(topLevelFrame.uri)
     }
     else {
       recordingService.unloadRecords();
