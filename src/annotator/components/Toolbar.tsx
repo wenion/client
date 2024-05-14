@@ -20,6 +20,8 @@ import RecordingIcon from '../../images/icons/recording';
 import RecordingOffIcon from '../../images/icons/recordingOff';
 import NotificationsIcon from '../../images/icons/notifications';
 import NotificationsOffIcon from '../../images/icons/notificationsOff';
+import chatIcon from '../../images/icons/chat';
+import chatOffIcon from '../../images/icons/chatOff';
 
 // TODO: ToolbarButton should be extracted as a shared design pattern or
 // component
@@ -89,9 +91,11 @@ export type ToolbarProps = {
   showHighlights: boolean;
 
   isSilentMode: boolean;
+  isOnChat:boolean;
   toggleSilentMode: () => void;
   recordingStatus: 'off' | 'ready' | 'on';
   toggleRecording: () => void;
+  toggleChatting: () => void;
 
   /** Callback for the show/hide highlights button */
   toggleHighlights: () => void;
@@ -130,9 +134,11 @@ export default function Toolbar({
   newAnnotationType,
   showHighlights,
   isSilentMode,
+  isOnChat,
   recordingStatus, // off -> ready -> on -> off / off -> ready -> off
   toggleSilentMode,
   toggleRecording,
+  toggleChatting,
   toggleHighlights,
   toggleSidebar,
   toggleSidebarRef,
@@ -217,6 +223,11 @@ export default function Toolbar({
               }
               icon={newAnnotationType === 'note' ? NoteIcon : AnnotateIcon}
               onClick={createAnnotation}
+            />
+            <ToolbarButton
+              title='Chat'
+              icon={isOnChat? chatIcon : chatOffIcon}
+              onClick={toggleChatting}
             />
           </div>
           <StatusNotifier highlightsVisible={showHighlights} />

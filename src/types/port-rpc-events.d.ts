@@ -112,6 +112,7 @@ export type HostToSidebarEvent =
   | 'createUserEvent'
   | 'updateRecoringStatusFromHost'
   | 'setVisuallyHidden'
+  | 'openChat'
   | 'postRating'
   | 'webPage'
   /**

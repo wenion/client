@@ -1,5 +1,9 @@
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
+import {
+  Tab,
+} from '@hypothesis/frontend-shared';
 
+import classnames from 'classnames';
 import { tabForAnnotation } from '../helpers/tabs';
 import { withServices } from '../service-context';
 import type { FrameSyncService } from '../services/frame-sync';
@@ -15,6 +19,7 @@ import ThreadList from './ThreadList';
 import VideoThreadList from './VideoThreadList';
 import MessageTab from './MessageTab';
 import RecordingTab from './RecordingTab';
+import ChatTab from './ChatTab';
 import { useRootThread } from './hooks/use-root-thread';
 import { useRootVideoThread } from './hooks/use-root-video-thread';
 import FilterStatus from './old-search/FilterStatus';
@@ -66,6 +71,8 @@ function SidebarView({
   const sidebarHasOpened = store.hasSidebarOpened();
   const userId = store.profile().userid;
 
+  const [selectedChat, setSelectedChat] = useState('baseline');
+
   // If, after loading completes, no `linkedAnnotation` object is present when
   // a `linkedAnnotationId` is set, that indicates an error
   const hasDirectLinkedAnnotationError =
@@ -78,7 +85,7 @@ function SidebarView({
 
   const searchPanelEnabled = store.isFeatureEnabled('search_panel');
   const showFilterStatus = !hasContentError && !searchPanelEnabled;
-  const showTabs = !hasContentError && !hasAppliedFilter;
+  const showTabs = (!hasContentError && !hasAppliedFilter) && selectedTab !== 'chat';
 
   // Show a CTA to log in if successfully viewing a direct-linked annotation
   // and not logged in
@@ -174,12 +181,14 @@ function SidebarView({
         <SidebarContentError errorType="group" onLoginRequest={onLogin} />
       )}
       {showTabs && <SelectionTabs isLoading={isLoading} />}
+      {selectedTab == 'chat' && <ChatTab show={true}/>}
       {selectedTab == 'video' && <VideoThreadList threads={rootVideoThread.children} />}
       {selectedTab == 'message' && <MessageTab />}
       {selectedTab == 'recording' && <RecordingTab />}
       {selectedTab != 'video' && selectedTab != 'message' && selectedTab != 'recording' && (
         <ThreadList threads={rootThread.children}/>
       )}
+      {/* </>} */}
       {showLoggedOutMessage && <LoggedOutMessage onLogin={onLogin} />}
     </div>
   );

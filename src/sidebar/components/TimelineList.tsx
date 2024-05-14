@@ -96,9 +96,9 @@ function StickyNote({
             {urlText && url &&
               <>
                 {title}
-                <a href={url} className='text-blue-700 bg-blue-50 border-blue-200 border rounded'>
+                <div className='text-blue-700 bg-blue-50 border-blue-200 border rounded'>
                   {urlText}
-                </a>
+                </div>
               </>
             }
           </h3>

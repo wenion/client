@@ -613,6 +613,10 @@ export class FrameSyncService {
       this._recordingService.refreshSilentMode(visible);
     });
 
+    this._hostRPC.on('openChat', (value: boolean) => {
+      value ? this._store.selectTab('chat') : this._store.selectTab('annotation');
+    });
+
     this._hostRPC.on('updateRecoringStatusFromHost', (status: 'off' | 'ready' | 'on') => {
       this.updateRecordingStatusView(status);
       this.refreshRecordingStatus(status);

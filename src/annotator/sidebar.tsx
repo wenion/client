@@ -276,6 +276,7 @@ export class Sidebar implements Destroyable {
       setSidebarOpen: open => {if(!this.toolbar.highlightsVisible) return; open ? this.open() : this.close()},
       setHighlightsVisible: show => {this.setHighlightsVisible(show); if (!this.toolbar.highlightsVisible) this.close()},
       setSilentMode: silent => this.setIsSilent(silent),
+      toggleChatting: value => this.turnOnChat(value),
       toggleRecording: (status: 'off' | 'ready' | 'on') => {if(!this.toolbar.highlightsVisible) return; this.notifyRecordingStatus(status)},
     });
 
@@ -432,48 +433,16 @@ export class Sidebar implements Destroyable {
     })
 
     this._sidebarRPC.on('updateRecoringStatusFromSidebar', (status) => {
-      // generateImage(document.body).then(src => {
-      //   if (src) {
-      //     this._handleEvent('recording', window.location.href, 'Navigate', true, src)
-      //   }
-      //   else {
-      //     this._handleEvent('recording', window.location.href, 'Navigate', true)
-      //   }
-      // }).catch (err => {
-      //   console.error('updateUserEvent error', err)
-      //   this._handleEvent('recording', window.location.href, 'Navigate', true)
-      // })
       this._handleEvent('recording', window.location.href, 'Navigate', true)
       this.updateRecordingStatusView(status)
     });
 
     this._sidebarRPC.on('updateUserEvent', (eventType: string, tagName: string, needToCheck: boolean, isRecording: boolean) => {
-      // var node = document.getElementById('my-node');
-      // domtoimage.toPng(clickElement)
-      // .then(function (dataUrl: string) {
-      //     var img = new Image();
-      //     img.src = dataUrl;
-      //     document.body.appendChild(img);
-      // })
-      // .catch(error => {
-      //     console.error('oops, something went wrong!', error);
-      // });
-
       if (isRecording) {
-      //   generateImage(document.body).then(src => {
-      //     if (src) {
-      //       this._handleEvent(eventType, window.location.href, tagName, needToCheck, src)
-      //     }
-      //     else {
-            this._handleEvent('recording', window.location.href, tagName, needToCheck)
-      //     }
-      //   }).catch (err => {
-      //     console.error('updateUserEvent error', err)
-      //     this._handleEvent(eventType, window.location.href, tagName, needToCheck)
-      //   })
+        this._handleEvent('recording', window.location.href, tagName, needToCheck)
       }
       else
-      this._handleEvent(eventType, window.location.href, tagName, needToCheck);
+        this._handleEvent(eventType, window.location.href, tagName, needToCheck);
     });
 
     this._sidebarRPC.on(
@@ -820,6 +789,11 @@ export class Sidebar implements Destroyable {
   setIsSilent(isSilent: boolean) {
     this.toolbar.isSilentMode = isSilent
     this._sidebarRPC.call('setVisuallyHidden', isSilent);
+  }
+
+  turnOnChat(value: boolean) {
+    this.toolbar.isOnChat = value
+    this._sidebarRPC.call('openChat', value);
   }
 
   notifyRecordingStatus(status: 'off' | 'ready' | 'on') {
