@@ -22,6 +22,7 @@ export class ToolbarController {
   private _container: HTMLElement;
   private _newAnnotationType: 'annotation' | 'note';
   private _useMinimalControls: boolean;
+  private _enableFeatures: boolean;
   private _highlightsVisible: boolean;
   private _isSilentMode: boolean;
   private _isOnChat:boolean;
@@ -44,6 +45,7 @@ export class ToolbarController {
 
     this._container = container;
     this._useMinimalControls = false;
+    this._enableFeatures = true;
     this._newAnnotationType = 'note';
     this._highlightsVisible = false;
     this._sidebarOpen = false;
@@ -85,6 +87,15 @@ export class ToolbarController {
 
   get useMinimalControls() {
     return this._useMinimalControls;
+  }
+
+  set enableFeatures(value) {
+    this._enableFeatures = value;
+    this.render();
+  }
+
+  get enableFeatures() {
+    return this._enableFeatures;
   }
 
   /**
@@ -176,6 +187,7 @@ export class ToolbarController {
         toggleHighlights={this._toggleHighlights}
         toggleSidebar={this._toggleSidebar}
         toggleSidebarRef={this._sidebarToggleButton}
+        enableFeatures={this.enableFeatures}
         useMinimalControls={this.useMinimalControls}
       />,
       this._container,

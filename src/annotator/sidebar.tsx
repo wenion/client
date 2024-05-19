@@ -213,6 +213,7 @@ export class Sidebar implements Destroyable {
           // Allow pointer events to go through this container to page elements
           // (eg. scroll bar thumbs) which are behind it.
           'pointer-events-none',
+          // 'cursor-col-resize', TODO
         );
         this.iframeContainer.append(sidebarEdge);
 
@@ -273,8 +274,8 @@ export class Sidebar implements Destroyable {
         const rpc = this._guestWithSelection ?? this._guestRPC[0];
         rpc.call('createAnnotation');
       },
-      setSidebarOpen: open => {if(!this.toolbar.highlightsVisible) return; open ? this.open() : this.close()},
-      setHighlightsVisible: show => {this.setHighlightsVisible(show); if (!this.toolbar.highlightsVisible) this.close()},
+      setSidebarOpen: open => (open ? this.open() : this.close()),
+      setHighlightsVisible: show => this.setHighlightsVisible(show),
       setSilentMode: silent => this.setIsSilent(silent),
       toggleChatting: value => this.turnOnChat(value),
       toggleRecording: (status: 'off' | 'ready' | 'on') => {if(!this.toolbar.highlightsVisible) return; this.notifyRecordingStatus(status)},
@@ -386,6 +387,18 @@ export class Sidebar implements Destroyable {
       this.setHighlightsVisible(visible);
     });
 
+    guestRPC.on('changeMode', (value: string) => {
+      if (value === 'GoldMind') {
+        this.toolbar.enableFeatures = true
+        // enable all features
+      }
+      else {
+        this.toolbar.enableFeatures = false
+        this.setHighlightsVisible(false);
+        this.setIsSilent(true);
+      }
+    })
+
     // The listener will do nothing if the sidebar doesn't have a bucket bar
     // (clean theme)
     const bucketBar = this.bucketBar;
@@ -424,11 +437,8 @@ export class Sidebar implements Destroyable {
         recordingSessionId: string,
         recordingTaskName: string,
       }) => {
-      this.toolbar.isSilentMode = status.isSilentMode;
-      this.toolbar.highlightsVisible = status.showHighlights;
       this.setIsSilent(status.isSilentMode);
       this.setHighlightsVisible(status.showHighlights);
-      if (!status.showHighlights) this.close();
       this.updateRecordingStatusView(status.recordingStatus); //TODO
     })
 
@@ -466,12 +476,11 @@ export class Sidebar implements Destroyable {
       this.setHighlightsVisible(showHighlights);
 
       this.setIsSilent(status.isSilentMode);
-      // this.toolbar.isSilentMode = status.isSilentMode;
-      // this.toolbar.highlightsVisible = status.showHighlights;
-      this.updateRecordingStatusView(status.recordingStatus)
-      // this.notifyRecordingStatus(status.recordingStatus);
+      this.updateRecordingStatusView(status.recordingStatus);
       this.setHighlightsVisible(status.showHighlights);
-      if (!status.showHighlights) this.close();
+
+      // Get the mode from extension
+      window.postMessage({source: "sidebar", request: "mode"}, window.location.href)
 
       if (
         this._config.openSidebar ||

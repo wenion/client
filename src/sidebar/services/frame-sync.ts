@@ -401,6 +401,10 @@ export class FrameSyncService {
       }
     });
 
+    guestRPC.on('changeMode', (value: 'Baseline' | 'GoldMind') => {
+      this._store.setDefault('mode', value)
+    });
+
     // Update document metadata for this guest. The guest will call this method
     // immediately after it connects to the sidebar. It may call it again
     // later if the document in the guest frame is navigated.

@@ -70,8 +70,7 @@ function SidebarView({
   const selectedTab = store.selectedTab();
   const sidebarHasOpened = store.hasSidebarOpened();
   const userId = store.profile().userid;
-
-  const [selectedChat, setSelectedChat] = useState('baseline');
+  const mode = store.getDefault('mode') as 'Baseline' | 'GoldMind' ;
 
   // If, after loading completes, no `linkedAnnotation` object is present when
   // a `linkedAnnotationId` is set, that indicates an error
@@ -166,30 +165,36 @@ function SidebarView({
 
   return (
     <div>
-      <h2 className="sr-only">Annotations</h2>
-      {showFilterStatus && <FilterStatus />}
-      {searchPanelEnabled && <FilterAnnotationsStatus />}
-      <LoginPromptPanel onLogin={onLogin} onSignUp={onSignUp} />
-      {hasDirectLinkedAnnotationError && (
-        <SidebarContentError
-          errorType="annotation"
-          onLoginRequest={onLogin}
-          showClearSelection={true}
-        />
+      {mode === 'Baseline' && (
+        <ChatTab mode={mode}/>
       )}
-      {hasDirectLinkedGroupError && (
-        <SidebarContentError errorType="group" onLoginRequest={onLogin} />
+      {mode === 'GoldMind' && (
+        <>
+          <h2 className="sr-only">Annotations</h2>
+          {showFilterStatus && <FilterStatus />}
+          {searchPanelEnabled && <FilterAnnotationsStatus />}
+          <LoginPromptPanel onLogin={onLogin} onSignUp={onSignUp} />
+          {hasDirectLinkedAnnotationError && (
+            <SidebarContentError
+              errorType="annotation"
+              onLoginRequest={onLogin}
+              showClearSelection={true}
+            />
+          )}
+          {hasDirectLinkedGroupError && (
+            <SidebarContentError errorType="group" onLoginRequest={onLogin} />
+          )}
+          {showTabs && <SelectionTabs isLoading={isLoading} />}
+          {selectedTab == 'chat' && <ChatTab mode={mode}/>}
+          {selectedTab == 'video' && <VideoThreadList threads={rootVideoThread.children} />}
+          {selectedTab == 'message' && <MessageTab />}
+          {selectedTab == 'recording' && <RecordingTab />}
+          {selectedTab == 'annotation' && (
+            <ThreadList threads={rootThread.children}/>
+          )}
+          {showLoggedOutMessage && <LoggedOutMessage onLogin={onLogin} />}
+        </>
       )}
-      {showTabs && <SelectionTabs isLoading={isLoading} />}
-      {selectedTab == 'chat' && <ChatTab show={true}/>}
-      {selectedTab == 'video' && <VideoThreadList threads={rootVideoThread.children} />}
-      {selectedTab == 'message' && <MessageTab />}
-      {selectedTab == 'recording' && <RecordingTab />}
-      {selectedTab != 'video' && selectedTab != 'message' && selectedTab != 'recording' && (
-        <ThreadList threads={rootThread.children}/>
-      )}
-      {/* </>} */}
-      {showLoggedOutMessage && <LoggedOutMessage onLogin={onLogin} />}
     </div>
   );
 }

@@ -7,6 +7,7 @@
  * Events that the guest sends to the host
  */
 export type GuestToHostEvent =
+  | 'changeMode'
   /** The guest informs the host that text has been unselected. */
   | 'textUnselected'
 
@@ -29,6 +30,7 @@ export type GuestToHostEvent =
  * Events that the guest sends to the sidebar
  */
 export type GuestToSidebarEvent =
+  | 'changeMode'
   | 'onTabChanged'
   /**
    * The guest is asking the sidebar to create an event.

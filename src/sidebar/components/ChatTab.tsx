@@ -20,49 +20,30 @@ export type ChatTabProps = {
   // injected
   api: APIService;
   toastMessenger: ToastMessengerService;
-  show: boolean;
+  mode: 'Baseline' | 'GoldMind';
 };
 
 /**
  * The main content of the "stream" route (https://hypothes.is/stream)
  */
-function ChatTab({ api, toastMessenger, show }: ChatTabProps) {
-  const store = useSidebarStore();
-  const [selectedTab, setSelectedTab] = useState("baseline")
-
-  const onClick = (tab: string) => {
-    setSelectedTab(tab)
-  }
-
+function ChatTab({ api, toastMessenger, mode }: ChatTabProps) {
   return (
-    <>
-    <div role="tablist" className={classnames("flex")}>
-      <Tab variant="tab" selected={selectedTab === 'baseline'} onClick={()=> onClick('baseline')}>
-        Baseline
-      </Tab>
-      <Tab variant="tab" selected={selectedTab === 'goldmind'} onClick={()=> onClick('goldmind')}>
-        GoldMind
-      </Tab>
+    <div className='chat-height'>
+      {mode === 'Baseline' && (
+        <iframe
+          src="https://chat.kmass.io"
+          title="Baseline Tool"
+          className={classnames('w-full h-full')}
+        />
+      )}
+      {mode === 'GoldMind' && (
+        <iframe
+          src="https://colam.kmass.cloud.edu.au/query"
+          title="GoldMind Tool"
+          className={classnames('w-full h-full')}
+        />
+      )}
     </div>
-    <iframe
-      src="https://chat.kmass.io"
-      title="Baseline Tool"
-      className={classnames('w-full h-[85dvh]',
-      {
-        'hidden': selectedTab === 'goldmind',
-      },
-      )}
-    />
-    <iframe
-      src="https://colam.kmass.cloud.edu.au/query"
-      title="GoldMind Tool"
-      className={classnames('w-full h-[85dvh]',
-      {
-        'hidden': selectedTab === 'baseline',
-      },
-      )}
-    />
-    </>
   );
 }
 

@@ -418,6 +418,10 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
         }
         // this._sidebarRPC.call('onTabChanged', event.data?.data)
       }
+      else if (_data.messageType === 'message') {
+        this._hostRPC.call('changeMode', _data.mode);
+        this._sidebarRPC.call('changeMode', _data.mode);
+      }
     })
   }
   /** Return true if the sidebar is shown alongside the page content. */

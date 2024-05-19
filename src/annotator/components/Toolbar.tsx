@@ -113,6 +113,11 @@ export type ToolbarProps = {
   toggleSidebarRef?: RefObject<HTMLElement>;
 
   /**
+   * When true, some features are hidden except for the "sidebar" button
+   */
+  enableFeatures: boolean;
+
+  /**
    * When true, all controls are hidden except for the "Close sidebar" button
    * when the sidebar is open. This is enabled for the "clean" theme.
    */
@@ -142,6 +147,7 @@ export default function Toolbar({
   toggleHighlights,
   toggleSidebar,
   toggleSidebarRef,
+  enableFeatures,
   useMinimalControls = false,
 }: ToolbarProps) {
   return (
@@ -198,37 +204,41 @@ export default function Toolbar({
             {isSidebarOpen ? <CaretRightIcon /> : <CaretLeftIcon />}
           </Button>
           <div className="space-y-px-1.5 mt-px-2">
-            <ToolbarButton
-              title={isSilentMode ? 'Silent mode on' : 'Silent mode off'}
-              icon={isSilentMode ? NotificationsOffIcon : NotificationsIcon}
-              pressed={!isSilentMode}
-              onClick={toggleSilentMode}
-            />
-            <ToolbarButton
-              title={recordingStatus === 'on' ? 'Recording' : 'Recording off'}
-              icon={recordingStatus === 'on' ? RecordingIcon : RecordingOffIcon}
-              onClick={toggleRecording}
-            />
-            <ToolbarButton
-              title="Show highlights"
-              icon={showHighlights ? ShowIcon : HideIcon}
-              pressed={showHighlights}
-              onClick={toggleHighlights}
-            />
-            <ToolbarButton
-              title={
-                newAnnotationType === 'note'
-                  ? 'New page note'
-                  : 'New annotation'
-              }
-              icon={newAnnotationType === 'note' ? NoteIcon : AnnotateIcon}
-              onClick={createAnnotation}
-            />
-            <ToolbarButton
-              title='Chat'
-              icon={isOnChat? chatIcon : chatOffIcon}
-              onClick={toggleChatting}
-            />
+          {enableFeatures && (
+            <>
+              <ToolbarButton
+                title={isSilentMode ? 'Silent mode on' : 'Silent mode off'}
+                icon={isSilentMode ? NotificationsOffIcon : NotificationsIcon}
+                pressed={!isSilentMode}
+                onClick={toggleSilentMode}
+              />
+              <ToolbarButton
+                title={recordingStatus === 'on' ? 'Recording' : 'Recording off'}
+                icon={recordingStatus === 'on' ? RecordingIcon : RecordingOffIcon}
+                onClick={toggleRecording}
+              />
+              <ToolbarButton
+                title="Show highlights"
+                icon={showHighlights ? ShowIcon : HideIcon}
+                pressed={showHighlights}
+                onClick={toggleHighlights}
+              />
+              <ToolbarButton
+                title={
+                  newAnnotationType === 'note'
+                    ? 'New page note'
+                    : 'New annotation'
+                }
+                icon={newAnnotationType === 'note' ? NoteIcon : AnnotateIcon}
+                onClick={createAnnotation}
+              />
+              <ToolbarButton
+                title='Chat'
+                icon={isOnChat? chatIcon : chatOffIcon}
+                onClick={toggleChatting}
+              />
+            </>
+          )}
           </div>
           <StatusNotifier highlightsVisible={showHighlights} />
         </>
