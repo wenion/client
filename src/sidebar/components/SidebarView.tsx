@@ -70,7 +70,7 @@ function SidebarView({
   const selectedTab = store.selectedTab();
   const sidebarHasOpened = store.hasSidebarOpened();
   const userId = store.profile().userid;
-  const mode = store.getDefault('mode') as 'Baseline' | 'GoldMind' ;
+  const mode = store.getDefault('mode') as 'Baseline' | 'GoldMind' | 'Query' ;
 
   // If, after loading completes, no `linkedAnnotation` object is present when
   // a `linkedAnnotationId` is set, that indicates an error
@@ -185,7 +185,7 @@ function SidebarView({
             <SidebarContentError errorType="group" onLoginRequest={onLogin} />
           )}
           {showTabs && <SelectionTabs isLoading={isLoading} />}
-          {selectedTab == 'chat' && <ChatTab mode={mode}/>}
+          {/* {selectedTab == 'chat' && <ChatTab mode={mode}/>} */}
           {selectedTab == 'video' && <VideoThreadList threads={rootVideoThread.children} />}
           {selectedTab == 'message' && <MessageTab />}
           {selectedTab == 'recording' && <RecordingTab />}
@@ -194,6 +194,9 @@ function SidebarView({
           )}
           {showLoggedOutMessage && <LoggedOutMessage onLogin={onLogin} />}
         </>
+      )}
+      {mode === 'Query' && (
+        <ChatTab mode={mode}/>
       )}
     </div>
   );

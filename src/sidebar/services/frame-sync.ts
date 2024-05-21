@@ -401,7 +401,7 @@ export class FrameSyncService {
       }
     });
 
-    guestRPC.on('changeMode', (value: 'Baseline' | 'GoldMind') => {
+    guestRPC.on('changeMode', (value: 'Baseline' | 'GoldMind' | 'Query') => {
       this._store.setDefault('mode', value)
     });
 
@@ -618,7 +618,11 @@ export class FrameSyncService {
     });
 
     this._hostRPC.on('openChat', (value: boolean) => {
-      value ? this._store.selectTab('chat') : this._store.selectTab('annotation');
+      const currentMode = this._store.getDefault('mode') as 'Baseline' | 'GoldMind' | 'Query';
+
+      if (currentMode === 'GoldMind' && value) this._store.setDefault('mode', 'Query');
+      if (currentMode === 'Query' && (!value)) this._store.setDefault('mode', 'GoldMind');
+
     });
 
     this._hostRPC.on('updateRecoringStatusFromHost', (status: 'off' | 'ready' | 'on') => {

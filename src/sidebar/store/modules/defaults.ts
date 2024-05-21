@@ -17,7 +17,7 @@ import { createStoreModule, makeAction } from '../create-store';
 export type State = {
   annotationPrivacy: 'private' | 'shared' | null;
   focusedGroup: string | null;
-  mode: 'Baseline' | 'GoldMind' | null;
+  mode: 'Baseline' | 'GoldMind' | 'Query' | null;
 };
 
 export type Key = keyof State;
