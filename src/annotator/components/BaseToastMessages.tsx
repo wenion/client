@@ -137,24 +137,24 @@ export function ToastMessages({
   // Tracks not finished timeouts for auto-dismiss toast messages
   const messageSchedules = useRef(new Map());
   const dismissMessage = useCallback((id: string) => setDismissedMessages(ids => [...ids, id]), []);
-  const scheduleMessageDismiss = useCallback((id: string) => {
-    const timeout = setTimeout_(() => {
-      dismissMessage(id);
-      messageSchedules.current.delete(id);
-    }, 5000000);
-    messageSchedules.current.set(id, timeout);
-  }, [dismissMessage, setTimeout_]);
+  // const scheduleMessageDismiss = useCallback((id: string) => {
+  //   const timeout = setTimeout_(() => {
+  //     dismissMessage(id);
+  //     messageSchedules.current.delete(id);
+  //   }, 5000000);
+  //   messageSchedules.current.set(id, timeout);
+  // }, [dismissMessage, setTimeout_]);
   const onTransitionEnd = useCallback((direction: string, message: ToastMessage) => {
     var _message$autoDismiss;
     const autoDismiss = (_message$autoDismiss = message.autoDismiss) !== null && _message$autoDismiss !== void 0 ? _message$autoDismiss : true;
     if (direction === 'in' && autoDismiss) {
-      scheduleMessageDismiss(message.id);
+      // scheduleMessageDismiss(message.id);
     }
     if (direction === 'out') {
       onMessageDismiss(message.id);
       setDismissedMessages(ids => ids.filter(id => id !== message.id));
     }
-  }, [scheduleMessageDismiss, onMessageDismiss]);
+  }, [onMessageDismiss]);
   useLayoutEffect(() => {
     // Clear all pending timeouts for not yet dismissed toast messages when the
     // component is unmounted

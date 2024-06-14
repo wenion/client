@@ -31,11 +31,13 @@ export type State = {
    * deletion has not yet been applied
    */
   pendingDeletions: BooleanMap;
+  isConnected: boolean;
 };
 
 const initialState: State = {
   pendingUpdates: {},
   pendingDeletions: {},
+  isConnected: false,
 };
 
 const reducers = {
@@ -99,6 +101,13 @@ const reducers = {
     // any pending updates.
     return { pendingUpdates: {}, pendingDeletions: {} };
   },
+
+  UPDATE_CONNECTION_STATUS(
+    state: State,
+    action: { status: boolean }
+  ) {
+    return {isConnected: action.status};
+  }
 };
 
 /**
@@ -171,6 +180,10 @@ function clearPendingUpdates() {
   return makeAction(reducers, 'CLEAR_PENDING_UPDATES', undefined);
 }
 
+function updateConnectionStatus(status: boolean) {
+  return makeAction(reducers, 'UPDATE_CONNECTION_STATUS', {status});
+}
+
 /**
  * Return added or updated annotations received via the WebSocket
  * which have not been applied to the local state.
@@ -205,6 +218,10 @@ function hasPendingDeletion(state: State, id: string) {
   return hasOwn(state.pendingDeletions, id);
 }
 
+function isConnected(state: State) {
+  return state.isConnected;
+}
+
 /**
  * Return true if an annotation has been created on the server, but it has not
  * yet been applied.
@@ -219,6 +236,7 @@ export const realTimeUpdatesModule = createStoreModule(initialState, {
   actionCreators: {
     receiveRealTimeUpdates,
     clearPendingUpdates,
+    updateConnectionStatus,
   },
   selectors: {
     hasPendingDeletion,
@@ -226,5 +244,6 @@ export const realTimeUpdatesModule = createStoreModule(initialState, {
     pendingDeletions,
     pendingUpdates,
     pendingUpdateCount,
+    isConnected,
   },
 });

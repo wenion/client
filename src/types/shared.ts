@@ -4,6 +4,7 @@
  * in the annotated document. An annotation can only belong to one cluster.
  */
 export type HighlightCluster =
+  | 'custom-content'
   | 'other-content' // default cluster: content not belonging to the current user
   | 'user-annotations' // An annotation belonging to the current user
   | 'user-highlights'; // A highlight (highlights are private; they always belong to the current user)

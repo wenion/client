@@ -26,6 +26,7 @@ import type { SessionService } from './session';
  * @inject
  */
 export class StreamerService {
+  private _messageQueue: object[];
   private _auth: AuthService;
   private _groups: GroupsService;
   private _session: SessionService;
@@ -62,6 +63,8 @@ export class StreamerService {
     groups: GroupsService,
     session: SessionService,
   ) {
+    this._messageQueue = [];
+
     this._auth = auth;
     this._groups = groups;
     this._session = session;
@@ -211,6 +214,8 @@ export class StreamerService {
     newSocket.on('open', () => {
       this._reconnectionAttempts = 0;
       this._sendClientConfig(newSocket);
+      this._on(newSocket);
+      this._store.updateConnectionStatus(true);
     });
     newSocket.on('disconnect', () => {
       ++this._reconnectionAttempts;
@@ -225,10 +230,12 @@ export class StreamerService {
           'Gave up trying to reconnect to Hypothesis real time update service',
         );
       }
+      this._store.updateConnectionStatus(false);
     });
-    newSocket.on('error', (event: ErrorEvent) =>
-      this._handleSocketError(websocketURL, event),
-    );
+    newSocket.on('error', (event: ErrorEvent) => {
+      this._handleSocketError(websocketURL, event);
+      this._store.updateConnectionStatus(false);
+    });
     newSocket.on('message', (event: MessageEvent) =>
       this._handleSocketMessage(event),
     );
@@ -276,5 +283,39 @@ export class StreamerService {
       return;
     }
     await this._reconnect();
+  }
+
+  send(message: Object) {
+    this._messageQueue.push(message);
+    if (this._socket) {
+      this._on(this._socket);
+    }
+  }
+
+  sendTraceDate(eventType: string, eventSource: string, tagName: string, textContent: string, interactionContext: string) {
+    this.send({
+      messageType: 'TraceData',
+      type: eventType,
+      tagName: tagName,
+      textContent: textContent,
+      interactionContext: interactionContext,
+      eventSource: eventSource,
+      xpath: '',
+      width: null,
+      height: null,
+      userid: this._store.profile().userid,
+      timestamp: Date.now(),
+      title: this._store.mainFrame()?.metadata.title,
+      region: '',
+      url: this._store.mainFrame()?.uri ?? '',
+      ip_address: '',
+    })
+  }
+
+  private _on(socket: Socket) {
+    while (this._messageQueue.length > 0) {
+      const _message = this._messageQueue.shift();
+      socket.send(_message!);
+    }
   }
 }

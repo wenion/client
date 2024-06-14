@@ -7,7 +7,6 @@ import { addConfigFragment } from '../shared/config-fragment';
 import { sendErrorsTo } from '../shared/frame-error-capture';
 import { ListenerCollection } from '../shared/listener-collection';
 import { PortRPC } from '../shared/messaging';
-import { generateImage } from '../shared/custom';
 import type {
   AnchorPosition,
   SidebarLayout,
@@ -247,7 +246,26 @@ export class Sidebar implements Destroyable {
       // will forward messages to render here while it is collapsed.
       this._messagesElement = document.createElement('div');
       shadowRoot.appendChild(this._messagesElement);
-      render(<ToastMessages emitter={this._emitter} func={(id)=> { this._sidebarRPC.call('toastMessages', id) }}/>, this._messagesElement);
+
+      const _messageIn = (message: ToastMessage) => {
+        this._sidebarRPC.call('traceData', {
+          eventType: 'push',
+          eventSource: 'MESSAGE',
+          tagName: 'EXPERT-TRACE_CLOSE',
+          textContent: 'open',
+          interactionContext: JSON.stringify(message)
+      })};
+      const _messageOut = (messageId: string) => {
+        this._sidebarRPC.call('traceData', {
+          eventType: 'click',
+          eventSource: 'MESSAGE',
+          tagName: 'EXPERT-TRACE_CLOSE',
+          textContent: 'close',
+          interactionContext: JSON.stringify({id: messageId}),
+      })};
+      this._emitter.subscribe('messageIn', _messageIn)
+      this._emitter.subscribe('messageOut', _messageOut)
+      render(<ToastMessages emitter={this._emitter} />, this._messagesElement);
     }
 
     // Register the sidebar as a handler for Hypothesis errors in this frame.
@@ -387,18 +405,6 @@ export class Sidebar implements Destroyable {
       this.setHighlightsVisible(visible);
     });
 
-    guestRPC.on('changeMode', (value: string) => {
-      if (value === 'GoldMind') {
-        this.toolbar.enableFeatures = true
-        // enable all features
-      }
-      else {
-        this.toolbar.enableFeatures = false
-        this.setHighlightsVisible(false);
-        this.setIsSilent(true);
-      }
-    })
-
     // The listener will do nothing if the sidebar doesn't have a bucket bar
     // (clean theme)
     const bucketBar = this.bucketBar;
@@ -443,17 +449,27 @@ export class Sidebar implements Destroyable {
     })
 
     this._sidebarRPC.on('updateRecoringStatusFromSidebar', (status) => {
-      this._handleEvent('recording', window.location.href, 'Navigate', true)
       this.updateRecordingStatusView(status)
     });
 
-    this._sidebarRPC.on('updateUserEvent', (eventType: string, tagName: string, needToCheck: boolean, isRecording: boolean) => {
-      if (isRecording) {
-        this._handleEvent('recording', window.location.href, tagName, needToCheck)
+    this._sidebarRPC.on('websocketConnected', (value) => {
+      this.toolbar.isConnected = value;
+    })
+
+    this._sidebarRPC.on('isLoggedIn', (value) => {
+      this.toolbar.isLoggedIn = value;
+    })
+
+    this._sidebarRPC.on('changeMode', (value: string) => {
+      if (value === 'GoldMind') {
+        this.toolbar.enableFeatures = true
       }
-      else
-        this._handleEvent(eventType, window.location.href, tagName, needToCheck);
-    });
+      else {
+        this.toolbar.enableFeatures = false
+        this.setHighlightsVisible(false);
+        this.setIsSilent(true);
+      }
+    })
 
     this._sidebarRPC.on(
       'pullRecommendation',
@@ -478,9 +494,6 @@ export class Sidebar implements Destroyable {
       this.setIsSilent(status.isSilentMode);
       this.updateRecordingStatusView(status.recordingStatus);
       this.setHighlightsVisible(status.showHighlights);
-
-      // Get the mode from extension
-      window.postMessage({source: "sidebar", request: "mode"}, window.location.href)
 
       if (
         this._config.openSidebar ||
@@ -807,6 +820,7 @@ export class Sidebar implements Destroyable {
 
   notifyRecordingStatus(status: 'off' | 'ready' | 'on') {
     this._sidebarRPC.call('updateRecoringStatusFromHost', status);
+
     this.updateRecordingStatusView(status)
     if (status === 'off') this.open();
   }
@@ -820,40 +834,6 @@ export class Sidebar implements Destroyable {
       this.close();
     }
   }
-
-  sendUserEvent(event: EventData, needToCheck: boolean) {
-    this._sidebarRPC.call('createUserEvent', event, needToCheck);
-  }
-
-  _handleEvent(
-    type: string,
-    url: string,
-    tagName: string,
-    needToCheck: boolean,
-    image?: string,
-    ) {
-      const userEvent: EventData = {
-        event_type: type,
-        timestamp: Date.now(),
-        base_url: url,
-        tag_name: tagName,
-        text_content: '',
-        interaction_context: '',
-        event_source: 'RESOURCE PAGE',
-        target: '',
-        x_path: '',
-        offset_x: 0,
-        offset_y: 0,
-        session_id: '',
-        task_name: '',
-        width: window.innerWidth,
-        height: window.innerHeight,
-        doc_id: "",
-        userid: "",
-        image: image,
-      };
-      this.sendUserEvent(userEvent, needToCheck);
-    }
 
   /**
    * Shows the sidebar's controls

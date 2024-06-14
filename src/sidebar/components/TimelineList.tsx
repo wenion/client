@@ -218,8 +218,8 @@ export default function TimelineList({
           content={stringifyObject(formatObject(child) as JsonObjectData)}
           image={child.image}
           imagePosition={child.image? {width: child.width, height: child.height, offsetX: child.offsetX, offsetY: child.offsetY}: undefined}
-          url={child.description?.includes('Navigate') ? child.url: undefined}
-          urlText={child.description?.includes('Navigate') ? (child.title?? child.url): undefined}
+          url={child.description?.toLowerCase().includes('navigate') ? child.url: undefined}
+          urlText={child.description?.toLowerCase().includes('navigate') ? (child.title?? child.url): undefined}
           hoverContent={hoverContent}
           onSelectImage={onSelectImage}
         />

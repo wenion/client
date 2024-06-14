@@ -7,6 +7,7 @@ import {
   HideIcon,
   NoteIcon,
   ShowIcon,
+  IconButton,
 } from '@hypothesis/frontend-shared';
 import type { ButtonProps } from '@hypothesis/frontend-shared/lib/components/input/Button';
 import type {
@@ -22,6 +23,7 @@ import NotificationsIcon from '../../images/icons/notifications';
 import NotificationsOffIcon from '../../images/icons/notificationsOff';
 import chatIcon from '../../images/icons/chat';
 import chatOffIcon from '../../images/icons/chatOff';
+import DisconnectedIcon from '../../images/icons/disconnected';
 
 // TODO: ToolbarButton should be extracted as a shared design pattern or
 // component
@@ -78,6 +80,9 @@ export type ToolbarProps = {
 
   /** Is the sidebar currently open? */
   isSidebarOpen: boolean;
+
+  isConnected: boolean;
+  isLoggedIn: boolean;
 
   /**
    * Informs which icon to show on the "Create annotation" button and what type
@@ -136,6 +141,8 @@ export default function Toolbar({
   closeSidebar,
   createAnnotation,
   isSidebarOpen,
+  isConnected,
+  isLoggedIn,
   newAnnotationType,
   showHighlights,
   isSilentMode,
@@ -204,7 +211,13 @@ export default function Toolbar({
             {isSidebarOpen ? <CaretRightIcon /> : <CaretLeftIcon />}
           </Button>
           <div className="space-y-px-1.5 mt-px-2">
-          {enableFeatures && (
+          {!isConnected && (
+            <ToolbarButton
+              title="websocket disconnected"
+              icon={DisconnectedIcon}
+            />
+          )}
+          {isConnected && isLoggedIn && enableFeatures && (
             <>
               <ToolbarButton
                 title={isSilentMode ? 'Silent mode on' : 'Silent mode off'}

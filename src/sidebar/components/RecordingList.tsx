@@ -56,7 +56,7 @@ function RecordingList({
               onClick={(event) => {event.stopPropagation(); store.selectRecordBySessionId(child.sessionId, 'view')}}
               >
               <div className={classnames('flex')}>
-                <div className="grow text-lg items-center flex gap-x-2">
+                <div id="shareflow" className="grow text-lg items-center flex gap-x-2">
                   <PreviewIcon/>
                   {child.taskName}
                 </div>

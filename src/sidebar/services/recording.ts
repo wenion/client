@@ -8,6 +8,7 @@ import { generateRandomString } from '../../shared/random';
 import type { RecordingStepData, EventData, RawMessageData } from '../../types/api';
 import type { FileNode } from '../../types/api';
 import type { LocalStorageService } from './local-storage';
+import type { StreamerService } from './streamer';
 import type { ToastMessengerService } from './toast-messenger';
 
 
@@ -66,6 +67,7 @@ export class RecordingService extends TinyEmitter{
   private _localStorage: LocalStorageService;
   private _settings: SidebarSettings;
   private _store: SidebarStore;
+  private _streamer: StreamerService;
   private _toastMessenger: ToastMessengerService;
   private _window: Window;
 
@@ -75,6 +77,7 @@ export class RecordingService extends TinyEmitter{
     localStorage: LocalStorageService,
     settings: SidebarSettings,
     store: SidebarStore,
+    streamer: StreamerService,
     toastMessenger: ToastMessengerService,
   ) {
     super();
@@ -85,6 +88,7 @@ export class RecordingService extends TinyEmitter{
     this._localStorage = localStorage;
     this._settings = settings;
     this._store = store;
+    this._streamer = streamer;
     this._toastMessenger = toastMessenger;
     this._window = $window;
 
@@ -191,38 +195,6 @@ export class RecordingService extends TinyEmitter{
     return false
   }
 
-  createSimplifiedUserEventNode(
-    eventType: string,
-    tagName: string,
-    url: string = '',
-    textContent: string ='',
-    interactionContext: string ='',
-    eventSource: string = 'RESOURCE PAGE',
-    docId: string = '',
-    width: number = window.innerWidth,
-    height: number = window.innerHeight,
-    ) {
-    return {
-      event_type: eventType,
-      timestamp: 0,
-      base_url: url,
-      tag_name: tagName,
-      text_content: textContent,
-      interaction_context: interactionContext,
-      event_source: eventSource,
-      target: '',
-      x_path: '',
-      offset_x: 0,
-      offset_y: 0,
-      session_id: '',
-      task_name: '',
-      width: width,
-      height: height,
-      doc_id: docId,
-      userid: '',
-    };
-  }
-
   getExtensionStatus(): StatusInfo {
     const status = this._loadStatus();
     if (!status) {
@@ -234,7 +206,7 @@ export class RecordingService extends TinyEmitter{
 
   async createNewRecording(taskName: string, sessionId: string, description: string, start: number, groupid: string) {
     this.refreshRecordingInfo('on', sessionId, taskName)
-    this.sendUserEvent(this.createSimplifiedUserEventNode('START', 'RECORD', extractHostURL(this._window.location.hash)))
+    this._streamer.sendTraceDate('click', 'RECORDING', 'RECORD', 'start', JSON.stringify({taskName:taskName, sessionId:sessionId}))
     await this._api.recording.create({}, {
       startstamp: Date.now(),
       sessionId: sessionId,
@@ -249,8 +221,7 @@ export class RecordingService extends TinyEmitter{
   }
 
   async clearNewRecording() {
-    this.sendUserEvent(this.createSimplifiedUserEventNode('END', 'RECORD', extractHostURL(this._window.location.hash)))
-    const sessionId = this.getExtensionStatus().recordingSessionId
+    const sessionId = this.getExtensionStatus().recordingSessionId;
     if (sessionId) {
       const result = await this._api.recording.update({
         id: sessionId
@@ -259,6 +230,8 @@ export class RecordingService extends TinyEmitter{
         action: 'finish',
       })
       this._store.addRecords([result,])
+      const taskName = this.getExtensionStatus().recordingTaskName;
+      this._streamer.sendTraceDate('click', 'RECORDING', 'RECORD', 'end', JSON.stringify({taskName:taskName, sessionId:sessionId}))
     }
     this.refreshRecordingInfo('off', '', '')
     return sessionId;
@@ -366,19 +339,21 @@ export class RecordingService extends TinyEmitter{
   }
 
   fetchMessage(q: string, interval: number, start: boolean) {
-    if ((this._store.getActivated() && this.isOnRequestPage('lms.monash.edu')) || start) {
+    let _interval = this._store.getInterval();
+    // if ((this._store.getActivated() && this.isOnRequestPage('lms.monash.edu')) || start) {
+    if (this.isOnRequestPage('lms.monash.edu') || start) {
       this._api.message({q: q, interval: interval}).then(
         response => {
           response.map(r => {
             if (r.interval) {
-              this._store.setInterval(r.interval)
+              _interval = r.interval;
             }
           })
           this._store.addMessages(response);
         }
       )
     }
-    setTimeout(() => this.fetchMessage('organisation_event', this._store.getInterval(), false), this._store.getInterval());
+    setTimeout(() => this.fetchMessage('organisation_event', _interval, false), interval);
   }
 
   startFecthMessage() {

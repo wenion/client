@@ -28,6 +28,8 @@ export class ToolbarController {
   private _isOnChat:boolean;
   private _recordingStatus: 'off' | 'ready' | 'on';
   private _sidebarOpen: boolean;
+  private _isConnected: boolean;
+  private _isLoggedIn: boolean;
   private _closeSidebar: () => void;
   private _toggleSidebar: () => void;
   private _toggleSilentMode: () => void;
@@ -49,6 +51,8 @@ export class ToolbarController {
     this._newAnnotationType = 'note';
     this._highlightsVisible = false;
     this._sidebarOpen = false;
+    this._isConnected = false;
+    this._isLoggedIn = false;
     this._isSilentMode = false;
     this._isOnChat = false;
     this._recordingStatus = 'off';
@@ -96,6 +100,15 @@ export class ToolbarController {
 
   get enableFeatures() {
     return this._enableFeatures;
+  }
+
+  set isConnected(value) {
+    this._isConnected = value;
+    this.render();
+  }
+
+  get isConnected() {
+    return this._isConnected;
   }
 
   /**
@@ -163,6 +176,15 @@ export class ToolbarController {
     return this._recordingStatus;
   }
 
+  set isLoggedIn(value) {
+    this._isLoggedIn = value;
+    this.render();
+  }
+
+  get isLoggedIn() {
+    return this._isLoggedIn;
+  }
+
   /**
    * Return the DOM element that toggles the sidebar's visibility.
    */
@@ -177,6 +199,8 @@ export class ToolbarController {
         createAnnotation={this._createAnnotation}
         newAnnotationType={this._newAnnotationType}
         isSidebarOpen={this._sidebarOpen}
+        isConnected={this._isConnected}
+        isLoggedIn={this._isLoggedIn}
         showHighlights={this._highlightsVisible}
         isSilentMode={this._isSilentMode}
         isOnChat={this._isOnChat}

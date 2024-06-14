@@ -5,7 +5,6 @@ import { PortFinder, PortRPC } from '../shared/messaging';
 import { generateHexString } from '../shared/random';
 import { matchShortcut } from '../shared/shortcut';
 import { getBoundingClientDOMRect } from './highlighter';
-import { generateImage } from '../shared/custom';
 import type {
   AnnotationData,
   Annotator,
@@ -49,7 +48,6 @@ import {
 import { SelectionObserver } from './selection-observer';
 import { frameFillsAncestor } from './util/frame';
 import { normalizeURI } from './util/url';
-import { getFullXPath, getXPath } from './util/xpath';
 
 /** HTML element created by the highlighter with an associated annotation. */
 type AnnotationHighlight = HTMLElement & { _annotation?: AnnotationData };
@@ -245,8 +243,6 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
 
   private _listeners: ListenerCollection;
 
-  private _lastScrollEvent: {timeStamp: number, scrollX: number, scrollY: number} | null;
-
   /**
    * Tags of currently hovered annotations. This is used to set the hovered
    * state correctly for new highlights if the associated annotation is already
@@ -351,79 +347,10 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     // Setup event handlers on the root element
     this._listeners = new ListenerCollection();
     this._setupElementEvents();
-    this._setupExtendEvents();
-
-    this._lastScrollEvent = null;
 
     this._hoveredAnnotations = new Set();
   }
 
-  _setupExtendEvents() {
-    const originalOpen = window.open;
-    window.open = (url, target, features) => {
-      // Call the original window.open function
-      const newWindow = originalOpen.call(window, url, target, features);
-      // Custom logic after opening the window
-      // TODO need to double checks
-      // Set viewport
-      if (typeof url === 'string' && target != undefined) {
-        this._handlePageEvent('open', url, 'OPEN', 'open page string', 'RESOURCE PAGE',
-        'OTHER', target, '', 0, 0, '',
-        '', '', window.innerWidth, window.innerHeight);
-      }
-      else if (url instanceof URL && target != undefined) {
-        this._handlePageEvent('open', url.href, 'OPEN', 'open page url', 'RESOURCE PAGE',
-        '', target, '', 0, 0, '',
-        '', '', window.innerWidth, window.innerHeight);
-      }
-      else {
-        this._handlePageEvent('open', window.location.href, 'OPEN', 'open page undefined', 'RESOURCE PAGE',
-        '', target == undefined? 'undefined': target, '', 0, 0, '',
-        '', '', window.innerWidth, window.innerHeight);
-      }
-      // Return the newly opened window object
-      return newWindow;
-    };
-
-    this._listeners.add(window, 'message', event => {
-      const _data = event.data;
-      if (_data.source === 'extension' && _data.messageType === 'UserEvent') {
-        switch(_data.type) {
-          case 'click':
-            this._handlePageEvent(_data.type, _data.url, _data.tagName, _data.textContent, '',
-              'MOUSE', '', _data.xpath, _data.clientX, _data.clientY, '',
-              '', '', _data.width, _data.height, _data.image);
-            break;
-          case 'keyup':
-            this._handlePageEvent(_data.type, _data.url, _data.tagName, _data.key ?? '', _data.code ?? '',
-              'KEYBOARD', '', '', 0, 0, '',
-              '', '', _data.width, _data.height
-              );
-            break;
-          case 'scroll':
-            let textContent = (
-              _data.diffY < 0? 'SCROLL UP' : _data.diffY > 0? 'SCROLL DOWN': 'N/A') +
-              (_data.diffX < 0? ':SCROLL LEFT' : _data.diffX > 0? ':SCROLL RIGHT': ':N/A')
-            this._handlePageEvent(_data.type, _data.url, 'WINDOW', textContent, '',
-              'MOUSE', 'document', '', _data.scrollX, _data.scrollY, '',
-              '', '', _data.width, _data.height
-              );
-            break;
-          case 'beforeunload':
-            this._handlePageEvent(_data.type, _data.url, 'CLOSE', 'close page', 'RESOURCE PAGE',
-              'OTHER', '', '', 0, 0, '',
-              '', '', _data.width, _data.height
-              );
-            break;
-        }
-        // this._sidebarRPC.call('onTabChanged', event.data?.data)
-      }
-      else if (_data.messageType === 'message') {
-        this._hostRPC.call('changeMode', _data.mode);
-        this._sidebarRPC.call('changeMode', _data.mode);
-      }
-    })
-  }
   /** Return true if the sidebar is shown alongside the page content. */
   private _sideBySideActive(): boolean {
     if (this.sideBySide?.mode === 'manual' && this.sideBySide.isActive) {
@@ -930,15 +857,6 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     this.selectedRanges = [annotatableRange];
     this._hostRPC.call('textSelected');
 
-    this._integration.uri().then(
-      url => {
-        this._handlePageEvent('select', url, 'SELECT', selection.toString(), '',
-          'OTHER', '', getXPath(this._integration.contentContainer()), 0, 0, '',
-          '', '', document.body.clientWidth, document.body.clientHeight
-          )
-      }
-    )
-
     this._adder.annotationsForSelection = annotationsForSelection();
     if (this.highlightsVisible) {
       this._isAdderVisible = true;
@@ -1028,49 +946,5 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     if (matchShortcut(event, 'Ctrl+Shift+H')) {
       this.setHighlightsVisible(!this._highlightsVisible);
     }
-  }
-
-  _handlePageEvent(
-    type: string,
-    url: string,
-    tagName: string,
-    textContent: string,
-    interaction_context: string,
-
-    event_source: string,
-    target: string,
-    x_path: string, // TODO https://stackoverflow.com/questions/2631820/how-do-i-ensure-saved-click-coordinates-can-be-reload-to-the-same-place-even-if/2631931#2631931
-    offset_x: number,
-    offset_y: number,
-    doc_id: string,
-
-    session_id: string,
-    task_name: string,
-    width: number,
-    height: number,
-    image?: string,
-    )
-  {
-    const userEvent: EventData = {
-      event_type: type,
-      timestamp: Date.now(),
-      base_url: url,
-      tag_name: tagName,
-      text_content: textContent,
-      interaction_context: interaction_context,
-      event_source: event_source,
-      target: target,
-      x_path: x_path,
-      offset_x: offset_x,
-      offset_y: offset_y,
-      session_id: session_id,
-      task_name: task_name,
-      width: width,
-      height: height,
-      doc_id: "",
-      userid: "",
-      image: image,
-    };
-    this._sidebarRPC.call('createUserEvent', userEvent);
   }
 }

@@ -12,7 +12,7 @@ import {
 } from '../../shared/messaging';
 import type { Message } from '../../shared/messaging';
 import type { AnnotationData, DocumentInfo } from '../../types/annotator';
-import type { Annotation, EventData } from '../../types/api'; //RawMessageData
+import type { Annotation } from '../../types/api'; //RawMessageData
 import type {
   SidebarToHostEvent,
   HostToSidebarEvent,
@@ -29,11 +29,11 @@ import type { SidebarStore } from '../store';
 import type { Frame } from '../store/modules/frames';
 import { watch } from '../util/watch';
 import type { AnnotationsService } from './annotations';
+import type { StreamerService } from './streamer';
 import type { VideoAnnotationsService } from './video-annotations';
 import type { ToastMessengerService } from './toast-messenger';
 import { RecordingService } from './recording';
 import { ADDITIONAL_TAG } from '../../shared/custom'
-
 /**
  * Return a minimal representation of an annotation that can be sent from the
  * sidebar app to a guest frame.
@@ -141,6 +141,7 @@ export class FrameSyncService {
   private _listeners: ListenerCollection;
   private _portFinder: PortFinder;
   private _store: SidebarStore;
+  private _streamer: StreamerService;
   private _toastMessenger: ToastMessengerService;
 
   /**
@@ -176,6 +177,8 @@ export class FrameSyncService {
   /** Indicates if the sidebar is currently open or closed */
   private _sidebarIsOpen: boolean;
 
+  private _messageChannel: MessageChannel;
+
   // Test seam
   private _window: Window;
 
@@ -185,6 +188,7 @@ export class FrameSyncService {
     videoAnnotationsService: VideoAnnotationsService,
     recordingService: RecordingService,
     store: SidebarStore,
+    streamer: StreamerService,
     toastMessenger: ToastMessengerService,
   ) {
     this._window = $window;
@@ -192,6 +196,7 @@ export class FrameSyncService {
     this._videoAnnotationsService = videoAnnotationsService;
     this._recordingService = recordingService;
     this._store = store;
+    this._streamer = streamer;
     this._toastMessenger = toastMessenger;
     this._portFinder = new PortFinder({
       hostFrame: this._window.parent,
@@ -203,6 +208,7 @@ export class FrameSyncService {
     this._siteRPC = new PortRPC();
     this._guestRPC = new Map();
     this._inFrame = new Set<string>();
+    this._messageChannel =  new MessageChannel();
     this._highlightsVisible = false;
 
     this._pendingScrollToTag = null;
@@ -225,6 +231,51 @@ export class FrameSyncService {
     this._setupFeatureFlagSync();
     this._setupToastMessengerEvents();
     this._setupStatusSync();
+    this._setupMessageChannel();
+  }
+
+  private _attachExtraInformation(_data: {
+    messageType: string,
+    type: string,
+    tagName: string,
+    textContent: string,
+    interactionContext: string,
+    eventSource: string,
+    xpath: string,
+    url: string,
+    width: number | null,
+    height: number | null,
+  }) {
+    return Object.assign(_data, {
+      userid: this._store.profile().userid,
+      timestamp: Date.now(),
+      title: this._store.mainFrame()?.metadata.title,
+      region: '',
+      ip_address: '',
+    })
+  }
+
+  private _setupMessageChannel() {
+    this._messageChannel.port1.onmessage = (event) => {
+      const _data = event.data;
+      const _messageType = _data.messageType;
+
+      if (_messageType === 'TraceData') {
+        this._streamer.send(this._attachExtraInformation(_data));
+      }
+      else {
+        if (_data.mode) {
+          this._store.setDefault('mode', _data.mode)
+          this._hostRPC.call('changeMode', _data.mode)
+        }
+        if (_data.remove) {
+          console.log("remove ", _data)
+        }
+        if (_data.recording && _data.recording === 'request') {
+          this._messageChannel.port1.postMessage({source:"sidebar", recording: this._recordingService.getExtensionStatus().recordingStatus})
+        }
+      }
+    }
   }
 
   /**
@@ -329,23 +380,29 @@ export class FrameSyncService {
       }
     };
 
-    const unsubscribe = watch(
+    watch(
       this._store.subscribe,
       () => this._store.isLoggedIn(),
       (isLoggedIn, prevIsLoggedIn) => {
-        if (isLoggedIn !== prevIsLoggedIn && isLoggedIn) {
-          this._hostRPC.call(
-            'updateUserEvent',
-              'open',
-              'Navigate',
-              false,
-              this._recordingService.getExtensionStatus().recordingStatus === 'on'
-            )
-
-          //TODO I put fetchHighlight here for mainFrame url
-          this._recordingService.fetchHighlight(this._store.mainFrame()?.uri)
-          unsubscribe();
+        if (isLoggedIn) {
+          this._messageChannel.port1.postMessage({source:"sidebar", loggedIn: isLoggedIn})
+          this._hostRPC.call('isLoggedIn', true)
         }
+        if (isLoggedIn && isLoggedIn !== prevIsLoggedIn) {
+          this._recordingService.fetchHighlight(this._store.mainFrame()?.uri)
+        }
+        else {
+          this._messageChannel.port1.postMessage({source:"sidebar", loggedOut: !isLoggedIn})
+          this._hostRPC.call('isLoggedIn', false)
+        }
+      }
+    );
+
+    watch(
+      this._store.subscribe,
+      () => this._store.isConnected(),
+      (isConnected, prevIsConnected) => {
+        this._hostRPC.call('websocketConnected', isConnected)
       }
     )
 
@@ -395,16 +452,6 @@ export class FrameSyncService {
 
     this._guestRPC.set(sourceId, guestRPC);
 
-    guestRPC.on('onTabChanged', (data: Record<string, string | boolean>) => {
-      if (data.action === 'OnFocus') {
-        this._store.setActivated(data.activated as boolean)
-      }
-    });
-
-    guestRPC.on('changeMode', (value: 'Baseline' | 'GoldMind' | 'Query') => {
-      this._store.setDefault('mode', value)
-    });
-
     // Update document metadata for this guest. The guest will call this method
     // immediately after it connects to the sidebar. It may call it again
     // later if the document in the guest frame is navigated.
@@ -435,10 +482,6 @@ export class FrameSyncService {
 
       guestRPC.destroy();
       this._guestRPC.delete(sourceId);
-    });
-
-    guestRPC.on('createUserEvent', (event: EventData) => {
-      this._recordingService.sendUserEvent(event)
     });
 
     // A new annotation, note or highlight was created in the frame
@@ -526,10 +569,6 @@ export class FrameSyncService {
           const annot = this._store.findAnnotationByTag(tag);
           if (annot && annot.tags.includes(ADDITIONAL_TAG)) {
             guestRPC.call('showAnnotationTags', {tag: tag, tags: [ADDITIONAL_TAG,]})
-            // TODO remove to guest createUserEvent
-            this._recordingService.sendUserEvent(
-              this._recordingService.createSimplifiedUserEventNode('onmouseover', 'ADDTIONAL_KNOWLEDGE', annot.uri, annot.text, annot.id)
-              )
           }
         })
       }
@@ -585,10 +624,12 @@ export class FrameSyncService {
   async refreshRecordingStatus(status: 'off' | 'ready' | 'on', taskName?: string, sessionId?: string, description?: string, start?: number, groupid?: string) {
     if (status === 'off') {
       const sessionId = await this._recordingService.clearNewRecording();
+      this._messageChannel.port1.postMessage({source:"sidebar", recording: 'off'})
       this._store.selectRecordBySessionId(sessionId, 'view');
     }
     else if (status === 'on') {
       this._recordingService.createNewRecording(taskName!, sessionId!, description!, start!, groupid?? '');
+      this._messageChannel.port1.postMessage({source:"sidebar", recording: 'on'})
       // TODO checkout the return
     }
   }
@@ -626,18 +667,25 @@ export class FrameSyncService {
     });
 
     this._hostRPC.on('updateRecoringStatusFromHost', (status: 'off' | 'ready' | 'on') => {
+      // off
       this.updateRecordingStatusView(status);
-      this.refreshRecordingStatus(status);
+      this.refreshRecordingStatus(status, this._store.ts);
     })
 
-    this._hostRPC.on('toastMessages', (data: string) => {
-      // TODO remove
-      this._recordingService.sendUserEvent(
-        this._recordingService.createSimplifiedUserEventNode('close', 'EXPERT-TRACE_CLOSE', '', '', data))
-    });
-
-    this._hostRPC.on('createUserEvent', (event: EventData, needToCheck: boolean) => {
-      this._recordingService.sendUserEvent(event, needToCheck)
+    this._hostRPC.on('traceData', (message:
+      {
+        eventType:string,
+        eventSource: string,
+        tagName: string,
+        textContent:string,
+        interactionContext:string
+      }) => {
+      this._streamer.sendTraceDate(
+        message.eventType,
+        message.eventSource,
+        message.tagName,
+        message.textContent,
+        message.interactionContext);
     });
 
     this._hostRPC.on('webPage', (htmlContent: string, title: string, url: string) => {
@@ -802,8 +850,6 @@ export class FrameSyncService {
       // there, ensuring screen readers announce them.
       if (!this._recordingService.getExtensionStatus().isSilentMode && 'show_flag' in message) {
         // to src/annotator/sidebar.tsx
-        this._recordingService.sendUserEvent(
-          this._recordingService.createSimplifiedUserEventNode('open', 'EXPERT-TRACE_OPEN', '', message.message as string, message.id))
         this.notifyHost('toastMessageAdded', message);
       }
     });
@@ -825,6 +871,7 @@ export class FrameSyncService {
         if (status) {
           this.updateRecordingStatusView(status.recordingStatus);
           this._hostRPC.call('statusUpdated', status)
+          this._messageChannel.port1.postMessage({source:"sidebar", recording: status.recordingStatus})
         }
     })
   }
@@ -866,6 +913,12 @@ export class FrameSyncService {
         // setTimeout(()=>{this._siteRPC.call('updateProfile'); console.log('sent update profile')}, 5000);
       }
     });
+    this._window.parent.postMessage({
+      frame1: 'sidebar',
+      frame2: 'extension',
+      type: 'request',
+    },
+    '*', [this._messageChannel.port2])
     this._recordingService.startFecthMessage()
   }
 

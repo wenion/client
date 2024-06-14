@@ -28,7 +28,9 @@ function ChatTab({ api, toastMessenger, mode, queryService }: ChatTabProps) {
 
   useEffect(()=> {
     const el = inputRef.current!;
-    el.value = queryService.getQueryWord() ?? '';
+    if (el) {
+      el.value = queryService.getQueryWord() ?? '';
+    }
   }, [])
 
   return (

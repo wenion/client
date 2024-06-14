@@ -7,7 +7,6 @@
  * Events that the guest sends to the host
  */
 export type GuestToHostEvent =
-  | 'changeMode'
   /** The guest informs the host that text has been unselected. */
   | 'textUnselected'
 
@@ -30,12 +29,6 @@ export type GuestToHostEvent =
  * Events that the guest sends to the sidebar
  */
 export type GuestToSidebarEvent =
-  | 'changeMode'
-  | 'onTabChanged'
-  /**
-   * The guest is asking the sidebar to create an event.
-   */
-  | 'createUserEvent'
   /**
    * The guest is asking the sidebar to create an annotation.
    */
@@ -110,8 +103,7 @@ export type HostToGuestEvent =
  * Events that the host sends to the sidebar
  */
 export type HostToSidebarEvent =
-  | 'toastMessages'
-  | 'createUserEvent'
+  | 'traceData'
   | 'updateRecoringStatusFromHost'
   | 'setVisuallyHidden'
   | 'openChat'
@@ -178,8 +170,10 @@ export type SidebarToGuestEvent =
 export type SidebarToHostEvent =
   |'statusUpdated'
   |'updateRecoringStatusFromSidebar'
-  |'updateUserEvent'
   |'pullRecommendation'
+  | 'changeMode'
+  | 'websocketConnected'
+  | 'isLoggedIn'
   /**
    * The sidebar relays to the host to close the sidebar.
    */

@@ -12,6 +12,7 @@ import { useSidebarStore } from '../store';
 import GroupList from './GroupList';
 import PendingUpdatesButton from './PendingUpdatesButton';
 import PressableIconButton from './PressableIconButton';
+import ReconnectStreamButton from './ReconnectStreamButton';
 import SortMenu from './SortMenu';
 import UserMenu from './UserMenu';
 import SearchInput from './old-search/SearchInput';
@@ -118,6 +119,7 @@ function TopBar({
           />
           {isSidebar && (
             <>
+              <ReconnectStreamButton />
               <PendingUpdatesButton />
               {!searchPanelEnabled && (
                 <SearchInput

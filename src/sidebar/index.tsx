@@ -181,6 +181,29 @@ function startApp(settings: SidebarSettings, appEl: HTMLElement) {
   container.run(startRPCServer);
   container.run(setupFrameSync);
 
+  // sidebar event
+  window.addEventListener('pointerdown', (event) => {
+    const _event = event as PointerEvent;
+    const _target = _event.target as HTMLElement;
+    const streamer = container.get("streamer") as StreamerService;
+    if (_target.role === 'tab') {
+      streamer.sendTraceDate(
+        'click',
+        'SIDERBAR',
+        'TAB',
+        _target.textContent?? _target.innerText,
+        _target.innerText)
+    }
+    else if (_target.id === 'shareflow') {
+      streamer.sendTraceDate(
+        'click',
+        'SIDERBAR',
+        'Shareflow',
+        _target.textContent?? _target.innerText,
+        _target.innerText)
+    }
+  })
+
   // Render the UI.
   render(
     <ServiceContext.Provider value={container}>
