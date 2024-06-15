@@ -292,26 +292,6 @@ export class StreamerService {
     }
   }
 
-  sendTraceDate(eventType: string, eventSource: string, tagName: string, textContent: string, interactionContext: string) {
-    this.send({
-      messageType: 'TraceData',
-      type: eventType,
-      tagName: tagName,
-      textContent: textContent,
-      interactionContext: interactionContext,
-      eventSource: eventSource,
-      xpath: '',
-      width: null,
-      height: null,
-      userid: this._store.profile().userid,
-      timestamp: Date.now(),
-      title: this._store.mainFrame()?.metadata.title,
-      region: '',
-      url: this._store.mainFrame()?.uri ?? '',
-      ip_address: '',
-    })
-  }
-
   private _on(socket: Socket) {
     while (this._messageQueue.length > 0) {
       const _message = this._messageQueue.shift();

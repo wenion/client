@@ -251,6 +251,8 @@ export class FrameSyncService {
       timestamp: Date.now(),
       title: this._store.mainFrame()?.metadata.title,
       region: '',
+      session_id: this._recordingService.getExtensionStatus().recordingSessionId,
+      task_name: this._recordingService.getExtensionStatus().recordingTaskName,
       ip_address: '',
     })
   }
@@ -272,10 +274,41 @@ export class FrameSyncService {
           console.log("remove ", _data)
         }
         if (_data.recording && _data.recording === 'request') {
-          this._messageChannel.port1.postMessage({source:"sidebar", recording: this._recordingService.getExtensionStatus().recordingStatus})
+          this._messageChannel.port1.postMessage({
+            source:"sidebar",
+            recording: this._recordingService.getExtensionStatus(),
+          })
         }
       }
     }
+  }
+
+  sendTraceData(
+    eventType: string,
+    eventSource: string,
+    tagName: string,
+    textContent: string,
+    interactionContext: string
+  ) {
+    this._streamer.send({
+      messageType: 'TraceData',
+      type: eventType,
+      tagName: tagName,
+      textContent: textContent,
+      interactionContext: interactionContext,
+      eventSource: eventSource,
+      xpath: '',
+      width: null,
+      height: null,
+      userid: this._store.profile().userid,
+      timestamp: Date.now(),
+      title: this._store.mainFrame()?.metadata.title,
+      region: '',
+      session_id: this._recordingService.getExtensionStatus().recordingSessionId,
+      task_name: this._recordingService.getExtensionStatus().recordingTaskName,
+      url: this._store.mainFrame()?.uri ?? '',
+      ip_address: '',
+    })
   }
 
   /**
@@ -623,13 +656,26 @@ export class FrameSyncService {
 
   async refreshRecordingStatus(status: 'off' | 'ready' | 'on', taskName?: string, sessionId?: string, description?: string, start?: number, groupid?: string) {
     if (status === 'off') {
-      const sessionId = await this._recordingService.clearNewRecording();
-      this._messageChannel.port1.postMessage({source:"sidebar", recording: 'off'})
-      this._store.selectRecordBySessionId(sessionId, 'view');
+      const taskName = this._recordingService.getExtensionStatus().recordingTaskName;
+      const sessionId = this._recordingService.getExtensionStatus().recordingSessionId;
+      if (sessionId) {
+        this.sendTraceData('click', 'RECORDING', 'RECORD', 'end', JSON.stringify({taskName:taskName, sessionId:sessionId}))
+        await this._recordingService.clearNewRecording(sessionId);
+      }
+      this._messageChannel.port1.postMessage({
+        source:"sidebar",
+        recording: this._recordingService.getExtensionStatus(),
+      })
+      this._store.selectRecordBySessionId('', 'view');
     }
     else if (status === 'on') {
       this._recordingService.createNewRecording(taskName!, sessionId!, description!, start!, groupid?? '');
-      this._messageChannel.port1.postMessage({source:"sidebar", recording: 'on'})
+      this.sendTraceData('click', 'RECORDING', 'RECORD', 'start', JSON.stringify({taskName:taskName, sessionId:sessionId}))
+      this._messageChannel.port1.postMessage({
+        source:"sidebar",
+        recording: this._recordingService.getExtensionStatus(),
+      })
+      this._store.selectRecordBySessionId(sessionId!, 'view');
       // TODO checkout the return
     }
   }
@@ -680,7 +726,7 @@ export class FrameSyncService {
         textContent:string,
         interactionContext:string
       }) => {
-      this._streamer.sendTraceDate(
+      this.sendTraceData(
         message.eventType,
         message.eventSource,
         message.tagName,
@@ -871,7 +917,10 @@ export class FrameSyncService {
         if (status) {
           this.updateRecordingStatusView(status.recordingStatus);
           this._hostRPC.call('statusUpdated', status)
-          this._messageChannel.port1.postMessage({source:"sidebar", recording: status.recordingStatus})
+          this._messageChannel.port1.postMessage({
+            source:"sidebar",
+            recording: this._recordingService.getExtensionStatus(),
+          })
         }
     })
   }

@@ -206,7 +206,6 @@ export class RecordingService extends TinyEmitter{
 
   async createNewRecording(taskName: string, sessionId: string, description: string, start: number, groupid: string) {
     this.refreshRecordingInfo('on', sessionId, taskName)
-    this._streamer.sendTraceDate('click', 'RECORDING', 'RECORD', 'start', JSON.stringify({taskName:taskName, sessionId:sessionId}))
     await this._api.recording.create({}, {
       startstamp: Date.now(),
       sessionId: sessionId,
@@ -220,21 +219,15 @@ export class RecordingService extends TinyEmitter{
     })
   }
 
-  async clearNewRecording() {
-    const sessionId = this.getExtensionStatus().recordingSessionId;
-    if (sessionId) {
-      const result = await this._api.recording.update({
-        id: sessionId
-      }, {
-        endstamp: Date.now(),
-        action: 'finish',
-      })
-      this._store.addRecords([result,])
-      const taskName = this.getExtensionStatus().recordingTaskName;
-      this._streamer.sendTraceDate('click', 'RECORDING', 'RECORD', 'end', JSON.stringify({taskName:taskName, sessionId:sessionId}))
-    }
+  async clearNewRecording(sessionId:string) {
+    const result = await this._api.recording.update({
+      id: sessionId
+    }, {
+      endstamp: Date.now(),
+      action: 'finish',
+    })
+    this._store.addRecords([result,]);
     this.refreshRecordingInfo('off', '', '')
-    return sessionId;
   }
 
   async loadBatchRecords(uri: string) {
