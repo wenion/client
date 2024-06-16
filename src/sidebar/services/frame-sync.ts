@@ -441,6 +441,16 @@ export class FrameSyncService {
 
     watch(
       this._store.subscribe,
+      () => this._store.mainFrame(),
+      (mainFrame, prevMainFrame) => {
+        if (mainFrame && !prevMainFrame) {
+          this._recordingService.startFecthMessage();
+        }
+      }
+    )
+
+    watch(
+      this._store.subscribe,
       () => [this._store.allAnnotations(), this._store.frames()] as const,
       ([annotations, frames], [prevAnnotations]) =>
         onStoreAnnotationsChanged(annotations, frames, prevAnnotations),
@@ -962,13 +972,14 @@ export class FrameSyncService {
         // setTimeout(()=>{this._siteRPC.call('updateProfile'); console.log('sent update profile')}, 5000);
       }
     });
-    this._window.parent.postMessage({
-      frame1: 'sidebar',
-      frame2: 'extension',
-      type: 'request',
-    },
-    '*', [this._messageChannel.port2])
-    this._recordingService.startFecthMessage()
+    this._window.parent.postMessage(
+      {
+        frame1: 'sidebar',
+        frame2: 'extension',
+        type: 'request',
+      },
+      '*',
+      [this._messageChannel.port2]);
   }
 
   /**

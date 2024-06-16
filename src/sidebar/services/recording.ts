@@ -331,26 +331,28 @@ export class RecordingService extends TinyEmitter{
     )
   }
 
-  fetchMessage(q: string, interval: number, start: boolean) {
-    let _interval = this._store.getInterval();
-    // if ((this._store.getActivated() && this.isOnRequestPage('lms.monash.edu')) || start) {
-    if (this.isOnRequestPage('lms.monash.edu') || start) {
-      this._api.message({q: q, interval: interval}).then(
-        response => {
-          response.map(r => {
-            if (r.interval) {
-              _interval = r.interval;
-            }
-          })
-          this._store.addMessages(response);
+  async fetchMessage(q: string, interval: number, next: boolean) {
+    let _interval = interval;
+    let should_next = next;
+    try {
+      const responses = await this._api.message({q: q, interval: interval, url: this._store.mainFrame()?.uri});
+      for (const r of responses) {
+        if (r.type === 'instant_message') {
+          _interval = r.interval?? interval;
+          should_next = r.should_next?? next;
         }
-      )
+      }
+    } catch (err) {
+      console.log('message catch errors', err)
     }
-    setTimeout(() => this.fetchMessage('organisation_event', _interval, false), interval);
+
+    if (should_next) {
+      setTimeout(() => this.fetchMessage('organisation_event', _interval, should_next), _interval);
+    }
   }
 
   startFecthMessage() {
-    this.fetchMessage('organisation_event', 0, true)
+    this.fetchMessage('organisation_event', this._store.getInterval(), true)
   }
 
   saveFile(blob: Blob, metadata: FileNode) {
