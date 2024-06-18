@@ -225,11 +225,19 @@ export default function Toolbar({
                 pressed={!isSilentMode}
                 onClick={toggleSilentMode}
               />
+            </>
+          )}
+          {isConnected && isLoggedIn && (
+            <>
               <ToolbarButton
                 title={recordingStatus === 'on' ? 'Recording' : 'Recording off'}
                 icon={recordingStatus === 'on' ? RecordingIcon : RecordingOffIcon}
                 onClick={toggleRecording}
               />
+              </>
+          )}
+          {isConnected && isLoggedIn && enableFeatures && (
+            <>
               <ToolbarButton
                 title="Show highlights"
                 icon={showHighlights ? ShowIcon : HideIcon}

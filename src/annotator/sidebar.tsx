@@ -296,7 +296,7 @@ export class Sidebar implements Destroyable {
       setHighlightsVisible: show => this.setHighlightsVisible(show),
       setSilentMode: silent => this.setIsSilent(silent),
       toggleChatting: value => this.turnOnChat(value),
-      toggleRecording: (status: 'off' | 'ready' | 'on') => {if(!this.toolbar.highlightsVisible) return; this.notifyRecordingStatus(status)},
+      toggleRecording: (status: 'off' | 'ready' | 'on') => this.notifyRecordingStatus(status),
     });
 
     if (config.theme === 'clean') {

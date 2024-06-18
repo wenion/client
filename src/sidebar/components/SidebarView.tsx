@@ -71,6 +71,7 @@ function SidebarView({
   const sidebarHasOpened = store.hasSidebarOpened();
   const userId = store.profile().userid;
   const mode = store.getDefault('mode') as 'Baseline' | 'GoldMind' | 'Query' ;
+  const taskId = recordingService.getExtensionStatus().recordingTaskName;
 
   // If, after loading completes, no `linkedAnnotation` object is present when
   // a `linkedAnnotationId` is set, that indicates an error
@@ -166,7 +167,11 @@ function SidebarView({
   return (
     <div>
       {mode === 'Baseline' && (
-        <ChatTab mode={mode}/>
+        <>
+          {taskId === '' && <SelectionTabs isLoading={isLoading} />}
+          {taskId === '' && <RecordingTab />}
+          {taskId !== '' && <ChatTab mode={mode} />}
+        </>
       )}
       {mode === 'GoldMind' && (
         <>
@@ -184,12 +189,11 @@ function SidebarView({
           {hasDirectLinkedGroupError && (
             <SidebarContentError errorType="group" onLoginRequest={onLogin} />
           )}
-          {showTabs && <SelectionTabs isLoading={isLoading} />}
-          {/* {selectedTab == 'chat' && <ChatTab mode={mode}/>} */}
+          <SelectionTabs isLoading={isLoading} />
           {selectedTab == 'video' && <VideoThreadList threads={rootVideoThread.children} />}
           {selectedTab == 'message' && <MessageTab />}
           {selectedTab == 'recording' && <RecordingTab />}
-          {selectedTab == 'annotation' && (
+          {(selectedTab == 'annotation' || selectedTab == 'note' || selectedTab == 'orphan')&& (
             <ThreadList threads={rootThread.children}/>
           )}
           {showLoggedOutMessage && <LoggedOutMessage onLogin={onLogin} />}

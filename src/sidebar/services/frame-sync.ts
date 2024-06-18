@@ -267,8 +267,17 @@ export class FrameSyncService {
       }
       else {
         if (_data.mode) {
-          this._store.setDefault('mode', _data.mode)
-          this._hostRPC.call('changeMode', _data.mode)
+          const currentMode = this._store.getDefault('mode') as 'Baseline' | 'GoldMind' | 'Query';
+          if (currentMode === 'GoldMind' || currentMode === 'Baseline'|| currentMode === null) {
+            this._store.setDefault('mode', _data.mode)
+            this._hostRPC.call('changeMode', _data.mode)
+          }
+          else { // if Query, return the origin mode
+            this._messageChannel.port1.postMessage({
+              source:"sidebar",
+              mode: currentMode === 'Query' ? 'GoldMind': currentMode,
+            })
+          }
         }
         if (_data.remove) {
           console.log("remove ", _data)
@@ -278,6 +287,12 @@ export class FrameSyncService {
             source:"sidebar",
             recording: this._recordingService.getExtensionStatus(),
           })
+        }
+        if (_data.model) {
+          this._store.setDefault('model', _data.model)
+        }
+        if(_data.token) {
+          this._store.setDefault('token', _data.token)
         }
       }
     }
@@ -676,7 +691,6 @@ export class FrameSyncService {
         source:"sidebar",
         recording: this._recordingService.getExtensionStatus(),
       })
-      this._store.selectRecordBySessionId('', 'view');
     }
     else if (status === 'on') {
       this._recordingService.createNewRecording(taskName!, sessionId!, description!, start!, groupid?? '');
@@ -685,7 +699,6 @@ export class FrameSyncService {
         source:"sidebar",
         recording: this._recordingService.getExtensionStatus(),
       })
-      this._store.selectRecordBySessionId(sessionId!, 'view');
       // TODO checkout the return
     }
   }

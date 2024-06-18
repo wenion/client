@@ -205,7 +205,7 @@ export class RecordingService extends TinyEmitter{
   }
 
   async createNewRecording(taskName: string, sessionId: string, description: string, start: number, groupid: string) {
-    this.refreshRecordingInfo('on', sessionId, taskName)
+    this.refreshRecordingInfo('on', sessionId, taskName);
     await this._api.recording.create({}, {
       startstamp: Date.now(),
       sessionId: sessionId,
@@ -216,7 +216,8 @@ export class RecordingService extends TinyEmitter{
       target_uri: extractHostURL(this._window.location.hash),
       start: start,
       groupid: groupid
-    })
+    });
+    this._store.selectRecordBySessionId(sessionId, 'view');
   }
 
   async clearNewRecording(sessionId:string) {
@@ -227,6 +228,7 @@ export class RecordingService extends TinyEmitter{
       action: 'finish',
     })
     this._store.addRecords([result,]);
+    this._store.selectRecordBySessionId('', 'view');
     this.refreshRecordingInfo('off', '', '')
   }
 
@@ -342,6 +344,7 @@ export class RecordingService extends TinyEmitter{
           should_next = r.should_next?? next;
         }
       }
+      this._store.addMessages(responses);
     } catch (err) {
       console.log('message catch errors', err)
     }

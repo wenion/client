@@ -1,12 +1,13 @@
 import { Card, Link, Tab } from '@hypothesis/frontend-shared';
 import { ExternalIcon } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
-import { useCallback, useId, useMemo, useState } from 'preact/hooks';
+import { useCallback, useEffect, useId, useMemo, useState } from 'preact/hooks';
 
 import { username } from '../helpers/account-id';
 import { VersionData } from '../helpers/version-data';
 import { withServices } from '../service-context';
 import type { SessionService } from '../services/session';
+import type { RecordingService } from '../services/recording';
 import { useSidebarStore } from '../store';
 import SidebarPanel from './SidebarPanel';
 import Tutorial from './Tutorial';
@@ -42,14 +43,15 @@ function HelpPanelTab({ linkText, url }: HelpPanelTabProps) {
 
 type HelpPanelProps = {
   session: SessionService;
+  recordingService: RecordingService;
 };
 
-type PanelKey = 'tutorial' | 'versionInfo';
+type PanelKey = 'tutorial' | 'versionInfo' | 'baselineInfo';
 
 /**
  * A help sidebar panel with two sub-panels: tutorial and version info.
  */
-function HelpPanel({ session }: HelpPanelProps) {
+function HelpPanel({ session, recordingService }: HelpPanelProps) {
   const store = useSidebarStore();
   const frames = store.frames();
   const mainFrame = store.mainFrame();
@@ -60,6 +62,17 @@ function HelpPanel({ session }: HelpPanelProps) {
   const tutorialPanelId = useId();
   const versionTabId = useId();
   const versionPanelId = useId();
+  const baselineTabId = useId();
+  const baselinePanelId = useId();
+
+  const subjectId = username(store.profile().userid);
+  const taskId = recordingService.getExtensionStatus().recordingTaskName;
+  const model = store.getDefault('model');
+  const token = store.getDefault('token');
+
+  const link = useMemo(()=> {
+    return `https://chat.kmass.io/?model=${model}&task_id=${taskId}&subject_id=${subjectId}&token=${token}`
+  }, [subjectId, taskId, model, token])
 
   // Should this panel be auto-opened at app launch? Note that the actual
   // auto-open triggering of this panel is owned by the `HypothesisApp` component.
@@ -137,6 +150,17 @@ function HelpPanel({ session }: HelpPanelProps) {
         >
           Version
         </Tab>
+        <Tab
+          id={baselineTabId}
+          aria-controls={baselinePanelId}
+          variant="tab"
+          textContent="Version"
+          selected={activeSubPanel === 'baselineInfo'}
+          onClick={() => setActiveSubPanel('baselineInfo')}
+          data-testid="baseline-info-tab"
+        >
+          Baseline
+        </Tab>
       </TabHeader>
       <Card
         classes={classnames({
@@ -160,6 +184,57 @@ function HelpPanel({ session }: HelpPanelProps) {
           >
             <VersionInfo versionData={versionData} />
           </TabPanel>
+          <TabPanel
+            id={baselinePanelId}
+            aria-labelledby={baselineTabId}
+            active={activeSubPanel === 'baselineInfo'}
+            title="Baseline details"
+          >
+            <div className="space-y-4">
+              <dl className="grid grid-cols-1 sm:grid-cols-4 sm:gap-x-2">
+                <dt className="col-span-1 sm:text-right font-medium">Model</dt>
+                <dd
+                  className={classnames(
+                    'col-span-1 sm:col-span-3 text-color-text-light break-words',
+                  )}
+                >
+                  {model}
+                </dd>
+                <dt className="col-span-1 sm:text-right font-medium">Task ID</dt>
+                <dd
+                  className={classnames(
+                    'col-span-1 sm:col-span-3 text-color-text-light break-words',
+                  )}
+                >
+                  {taskId === ''? 'None': taskId}
+                </dd>
+                <dt className="col-span-1 sm:text-right font-medium">Subject ID</dt>
+                <dd
+                  className={classnames(
+                    'col-span-1 sm:col-span-3 text-color-text-light break-words',
+                  )}
+                >
+                  {subjectId}
+                </dd>
+                <dt className="col-span-1 sm:text-right font-medium">Token</dt>
+                <dd
+                  className={classnames(
+                    'col-span-1 sm:col-span-3 text-color-text-light break-words',
+                  )}
+                >
+                  {token}
+                </dd>
+                <dt className="col-span-1 sm:text-right font-medium">link</dt>
+                <dd
+                  className={classnames(
+                    'col-span-1 sm:col-span-3 text-color-text-light break-words',
+                  )}
+                >
+                  {link}
+                </dd>
+              </dl>
+            </div>
+          </TabPanel>
         </div>
         <div className="flex items-center p-3">
           <HelpPanelTab
@@ -173,4 +248,4 @@ function HelpPanel({ session }: HelpPanelProps) {
   );
 }
 
-export default withServices(HelpPanel, ['session']);
+export default withServices(HelpPanel, ['session', 'recordingService']);
