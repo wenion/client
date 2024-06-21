@@ -228,7 +228,7 @@ export class RecordingService extends TinyEmitter{
       action: 'finish',
     })
     this._store.addRecords([result,]);
-    this._store.selectRecordBySessionId('', 'view');
+    this._store.selectRecordBySessionId(sessionId, 'view');
     this.refreshRecordingInfo('off', '', '')
   }
 
@@ -350,12 +350,13 @@ export class RecordingService extends TinyEmitter{
     }
 
     if (should_next) {
+      if (_interval === 0) {_interval = this._store.getInterval();}
       setTimeout(() => this.fetchMessage('organisation_event', _interval, should_next), _interval);
     }
   }
 
   startFecthMessage() {
-    this.fetchMessage('organisation_event', this._store.getInterval(), true)
+    this.fetchMessage('organisation_event', 0, true)
   }
 
   saveFile(blob: Blob, metadata: FileNode) {
