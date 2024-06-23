@@ -228,21 +228,37 @@ export class RecordingService extends TinyEmitter{
       action: 'finish',
     })
     this._store.addRecords([result,]);
+    this._store.selectTab('recording');
     this._store.selectRecordBySessionId(sessionId, 'view');
     this.refreshRecordingInfo('off', '', '')
   }
 
   async loadBatchRecords(uri: string) {
     const results = await this._api.batch({'target_uri': uri ?? ''});
-    results.forEach(recording => {
-      recording.steps = recording.steps.map(mapToObjectFormat);
-    })
+    // results.forEach(recording => {
+    //   recording.steps = recording.steps.map(mapToObjectFormat);
+    // })
     this._store.addRecords(results);
   }
 
   unloadRecords() {
     this._store.clearRecords();
     this._store.clearSelectedRecordingStep();
+  }
+
+  async getRecording(sessionId: string) {
+    this._store.selectRecordBySessionId(sessionId, 'view');
+    const selected = this._store.getSelectedRecord();
+    if (selected && !selected.steps) {
+      const result = await this._api.recording.get({id: sessionId});
+      if (result.steps) {
+        result.steps = result.steps.map(step => {
+          return mapToObjectFormat(step);
+      });
+      }
+      this._store.addRecords([result, ]);
+      this._store.selectRecordBySessionId(sessionId, 'view');
+    }
   }
 
   async updateRecording(sessionId: string, shared: boolean) {

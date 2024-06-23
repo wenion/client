@@ -453,7 +453,7 @@ export type RecordingData = {
   title?: string;
   selectorAttribute?: string;
   date?: number;
-  steps: RecordingStepData[];
+  steps: RecordingStepData[] | null;
 }
 
 export type Recording = RecordingData & {

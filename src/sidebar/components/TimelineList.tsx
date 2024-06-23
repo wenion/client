@@ -208,7 +208,7 @@ export default function TimelineList({
       <div
         className='message-grid'
       >
-      {recording.steps.map((child, index) => (
+      {recording.steps && recording.steps.map((child, index) => (
         <StickyNote
           index={index + 1}
           id={child.id}

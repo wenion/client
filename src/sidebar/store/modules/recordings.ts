@@ -112,7 +112,7 @@ const reducers = {
   },
 
   SELECT_STEP(state: State, action: {stepId: string | null}): Partial<State> {
-    if (state.selectedRecord && action.stepId) {
+    if (state.selectedRecord && state.selectedRecord.steps && action.stepId) {
       const selectedStep = state.selectedRecord.steps.find(r => r.id === action.stepId)
       return {
         selectedRecordingStep: selectedStep ?? null,
