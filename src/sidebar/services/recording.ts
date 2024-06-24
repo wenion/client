@@ -227,6 +227,11 @@ export class RecordingService extends TinyEmitter{
       endstamp: Date.now(),
       action: 'finish',
     })
+    if (result.steps) {
+      result.steps = result.steps.map(step => {
+        return mapToObjectFormat(step);
+      });
+    }
     this._store.addRecords([result,]);
     this._store.selectTab('recording');
     this._store.selectRecordBySessionId(sessionId, 'view');
@@ -254,7 +259,7 @@ export class RecordingService extends TinyEmitter{
       if (result.steps) {
         result.steps = result.steps.map(step => {
           return mapToObjectFormat(step);
-      });
+        });
       }
       this._store.addRecords([result, ]);
       this._store.selectRecordBySessionId(sessionId, 'view');
