@@ -251,11 +251,11 @@ export class RecordingService extends TinyEmitter{
     this._store.clearSelectedRecordingStep();
   }
 
-  async getRecording(sessionId: string) {
+  async getRecording(sessionId: string, userid: string | undefined) {
     this._store.selectRecordBySessionId(sessionId, 'view');
     const selected = this._store.getSelectedRecord();
     if (selected && !selected.steps) {
-      const result = await this._api.recording.get({id: sessionId});
+      const result = await this._api.recording.get({id: sessionId, userid: userid});
       if (result.steps) {
         result.steps = result.steps.map(step => {
           return mapToObjectFormat(step);

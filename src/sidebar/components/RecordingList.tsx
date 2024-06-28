@@ -53,7 +53,7 @@ function RecordingList({
         <TableBody>
           {recordings.map(child => (
             <TableRow
-              onClick={(event) => {event.stopPropagation(); recordingService.getRecording(child.sessionId);}}
+              onClick={(event) => {event.stopPropagation(); recordingService.getRecording(child.sessionId, child.userid);}}
               >
               <div className={classnames('flex')}>
                 <div id="shareflow" className="grow text-lg items-center flex gap-x-2">

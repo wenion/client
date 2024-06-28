@@ -258,7 +258,7 @@ export class APIService {
   recording: {
     create: APICall<Record<string, unknown>, Partial<Recording>, Recording>;
     delete: APICall<IDParam>;
-    get: APICall<IDParam, void, Recording>;
+    get: APICall<{id:string, userid: string|undefined}, void, Recording>;
     update: APICall<IDParam, Partial<Recording & {action: 'finish' | 'share' | 'edit'}>, Recording>;
   };
   constructor(
