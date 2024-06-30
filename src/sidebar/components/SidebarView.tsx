@@ -1,9 +1,6 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
-import {
-  Tab,
-} from '@hypothesis/frontend-shared';
-
 import classnames from 'classnames';
+import { useEffect, useRef } from 'preact/hooks';
+
 import { tabForAnnotation } from '../helpers/tabs';
 import { withServices } from '../service-context';
 import type { FrameSyncService } from '../services/frame-sync';
@@ -85,7 +82,6 @@ function SidebarView({
 
   const searchPanelEnabled = store.isFeatureEnabled('search_panel');
   const showFilterStatus = !hasContentError && !searchPanelEnabled;
-  const showTabs = (!hasContentError && !hasAppliedFilter) && selectedTab !== 'chat';
 
   // Show a CTA to log in if successfully viewing a direct-linked annotation
   // and not logged in
@@ -124,24 +120,6 @@ function SidebarView({
       });
     }
   }, [store, loadAnnotationsService, focusedGroupId, userId, searchUris]);
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      const topLevelFrame = store.mainFrame();
-      if (topLevelFrame && topLevelFrame.uri)
-        recordingService.loadBatchRecords(topLevelFrame.uri)
-    }
-    else {
-      recordingService.unloadRecords();
-      store.clearMessages();
-    }
-    // const mainFrame = store.mainFrame();
-    // if (isLoggedIn && mainFrame && mainFrame.uri){
-    //   queryService.getRecommendation(mainFrame.uri).then(
-    //     result => frameSync.notification(result)
-    //   )
-    // }
-  }, [store, isLoggedIn])
 
   // When a `linkedAnnotationAnchorTag` becomes available, scroll to it
   // and focus it

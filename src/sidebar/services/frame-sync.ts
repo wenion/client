@@ -434,12 +434,15 @@ export class FrameSyncService {
       (isLoggedIn, prevIsLoggedIn) => {
         if (isLoggedIn) {
           this._messageChannel.port1.postMessage({source:"sidebar", loggedIn: isLoggedIn})
+          this._recordingService.loadBatchRecords(this._store.mainFrame()?.uri ?? '');
           this._hostRPC.call('isLoggedIn', true)
         }
         if (isLoggedIn && isLoggedIn !== prevIsLoggedIn) {
           this._recordingService.fetchHighlight(this._store.mainFrame()?.uri)
         }
         else {
+          this._recordingService.unloadRecords();
+          this._store.clearMessages();
           this._messageChannel.port1.postMessage({source:"sidebar", loggedOut: !isLoggedIn})
           this._hostRPC.call('isLoggedIn', false)
         }
