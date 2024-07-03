@@ -46,7 +46,7 @@ type ToastMessagesProps = {
  * The message may be dismissed by clicking on it. `visuallyHidden` toast
  * messages will not be visible but are still available to screen readers.
  */
-function ToastMessageItem({
+function ToastMessageContext({
   message,
   onDismiss
 }: {message:ToastMessage; onDismiss:(id: string) => void;}) {
@@ -191,7 +191,7 @@ export function ToastMessages({
               onTransitionEnd= {direction => onTransitionEnd(direction, message)}
               transitionClasses={transitionClasses}
             >
-              <ToastMessageItem
+              <ToastMessageContext
                 message={message}
                 onDismiss={dismissMessage}
               />

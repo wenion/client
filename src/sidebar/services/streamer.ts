@@ -8,6 +8,8 @@ import type { AuthService } from './auth';
 import type { GroupsService } from './groups';
 import type { SessionService } from './session';
 
+import type { RawMessageData } from '../../types/api';
+
 /**
  * `StreamerService` manages the WebSocket connection to the Hypothesis Real-Time
  * API [1]
@@ -156,6 +158,38 @@ export class StreamerService {
           message.userid,
           userid,
         );
+      }
+    } else if (message.type === 'knowledge-push') {
+      if (message.payload) {
+        let content = message.payload.summary + '\n';
+
+        message.payload.context.forEach((innerArray: [{
+          id: number,
+          page_content: string,
+          metadata: {
+            url: string,
+            title: string,
+            summary: string,
+            deleted: boolean,
+            expired: boolean,
+            repository: string,
+          }
+        }]) => {
+          innerArray.forEach((item) => {
+              content += '- [' + item.metadata.title + '](' + item.metadata.url + ')\n'
+          })
+        })
+        const notification: RawMessageData = {
+          type: 'Highlights',
+          id: '123',
+          title: 'Additional Push',
+          message: content,
+          date: Date.now()*1000,
+          show_flag: true,
+          unread_flag: true,
+          need_save_flag: false,
+        }
+        this._store.addMessages([notification,]);
       }
     } else {
       warnOnce('Received unsupported notification', message.type);

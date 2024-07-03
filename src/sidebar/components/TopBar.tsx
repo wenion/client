@@ -67,7 +67,7 @@ function TopBar({
   };
 
   const toggleSavePanel = (e: Event) => {
-    frameSync.notifyHost('webClipping');
+    frameSync.notifyHost('webClipping', {savePage: true});
     // fileTreeService.uploadFile();
   }
 

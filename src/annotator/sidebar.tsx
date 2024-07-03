@@ -540,7 +540,7 @@ export class Sidebar implements Destroyable {
       this.show();
     });
 
-    this._sidebarRPC.on('webClipping', () => {
+    this._sidebarRPC.on('webClipping', (option: {savePage: boolean}) => {
       // TODO
       const clonedDocument = document.cloneNode(true) as Document;
       const elementsToRemove = clonedDocument.querySelectorAll([
@@ -559,7 +559,7 @@ export class Sidebar implements Destroyable {
           element.remove();
       });
       const htmlContent = clonedDocument.documentElement.outerHTML;
-      this._sidebarRPC.call('webPage', htmlContent, document.title, window.location.href)
+      this._sidebarRPC.call('webPage', htmlContent, document.title, window.location.href, option.savePage);
     });
 
     // Sidebar listens to the `toastMessageAdded` and `toastMessageDismissed`

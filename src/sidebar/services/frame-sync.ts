@@ -436,6 +436,7 @@ export class FrameSyncService {
           this._messageChannel.port1.postMessage({source:"sidebar", loggedIn: isLoggedIn})
           this._recordingService.loadBatchRecords(this._store.mainFrame()?.uri ?? '');
           this._hostRPC.call('isLoggedIn', true)
+          this._hostRPC.call('webClipping', {savePage: false})
         }
         if (isLoggedIn && isLoggedIn !== prevIsLoggedIn) {
           this._recordingService.fetchHighlight(this._store.mainFrame()?.uri)
@@ -760,17 +761,26 @@ export class FrameSyncService {
         message.interactionContext);
     });
 
-    this._hostRPC.on('webPage', (htmlContent: string, title: string, url: string) => {
-      console.log('web page', htmlContent)
-      this._recordingService.saveFile(new Blob([htmlContent], { type: 'text/html' }), {
-        id: "",
-        name: title,
-        path: "",
-        type: "html",
-        link: url,
-        depth: 0,
-        children: [],}
-      )
+    this._hostRPC.on('webPage', (htmlContent: string, title: string, url: string, savePage: boolean = true) => {
+      if (savePage) {
+        this._recordingService.saveFile(new Blob([htmlContent], { type: 'text/html' }), {
+          id: "",
+          name: title,
+          path: "",
+          type: "html",
+          link: url,
+          depth: 0,
+          children: [],}
+        )
+      }
+      else {
+        this._streamer.send({
+          messageType: 'PageData',
+          textContent: htmlContent,
+          title: title,
+          url: url,
+        })
+      }
     });
 
     // this._hostRPC.on('postRating', (data: PullingData) => {

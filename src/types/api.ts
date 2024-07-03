@@ -165,6 +165,15 @@ export type UserInfo = {
   display_name: string | null;
 };
 
+export type UserRole = {
+  teaching_role: string;
+  faculty: string;
+  campus: string;
+  teaching_unit: string;
+  joined_year: number;
+  years_of_experience: number;
+};
+
 /**
  * Represents an annotation as returned by the h API.
  * API docs: https://h.readthedocs.io/en/latest/api-reference/#tag/annotations
@@ -249,6 +258,7 @@ export type Profile = {
   };
   features: Record<string, boolean>;
   user_info?: UserInfo;
+  role?: UserRole | null;
 };
 
 export type Organization = {

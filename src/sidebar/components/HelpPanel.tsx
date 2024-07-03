@@ -1,11 +1,13 @@
-import { Card, Link, Tab } from '@hypothesis/frontend-shared';
-import { ExternalIcon } from '@hypothesis/frontend-shared';
+import { Card, Link, Tab, InputGroup, Input, IconButton } from '@hypothesis/frontend-shared';
+import { CopyIcon, ExternalIcon } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
-import { useCallback, useEffect, useId, useMemo, useState } from 'preact/hooks';
+import { useCallback, useId, useMemo, useState } from 'preact/hooks';
 
 import { username } from '../helpers/account-id';
 import { VersionData } from '../helpers/version-data';
 import { withServices } from '../service-context';
+import type { ToastMessengerService } from '../services/toast-messenger';
+import { copyText } from '../util/copy-to-clipboard';
 import type { SessionService } from '../services/session';
 import type { RecordingService } from '../services/recording';
 import { useSidebarStore } from '../store';
@@ -44,6 +46,9 @@ function HelpPanelTab({ linkText, url }: HelpPanelTabProps) {
 type HelpPanelProps = {
   session: SessionService;
   recordingService: RecordingService;
+
+  // injected
+  toastMessenger: ToastMessengerService;
 };
 
 type PanelKey = 'tutorial' | 'versionInfo' | 'baselineInfo';
@@ -51,7 +56,7 @@ type PanelKey = 'tutorial' | 'versionInfo' | 'baselineInfo';
 /**
  * A help sidebar panel with two sub-panels: tutorial and version info.
  */
-function HelpPanel({ session, recordingService }: HelpPanelProps) {
+function HelpPanel({ session, recordingService, toastMessenger }: HelpPanelProps) {
   const store = useSidebarStore();
   const frames = store.frames();
   const mainFrame = store.mainFrame();
@@ -69,10 +74,34 @@ function HelpPanel({ session, recordingService }: HelpPanelProps) {
   const taskId = recordingService.getExtensionStatus().recordingTaskName;
   const model = store.getDefault('model');
   const token = store.getDefault('token');
+  const role = store.profile().role ?? null;
+
+  const hint = useMemo(() => {
+    if (role) {
+      return `The user is a Monash University ${role.teaching_role} in the Faculty of ${role.faculty}, \
+located at the ${role.campus}. The user is teaching ${role.teaching_unit} and \
+has been working for the university since ${role.joined_year}, \
+with ${role.years_of_experience} ${role.years_of_experience > 1 ? 'years' : 'year'} of teaching experience.`;
+    }
+    return null;
+  }, [role])
 
   const link = useMemo(()=> {
-    return `https://chat.kmass.io/?model=${model}&task_id=${taskId}&subject_id=${subjectId}&token=${token}`
-  }, [subjectId, taskId, model, token])
+    if (hint) {
+      const link = `https://chat.kmass.io/?hint=${hint}&model=${model}&task_id=${taskId}&subject_id=${subjectId}&token=${token}`
+      return encodeURI(link);
+    }
+    return '';
+  }, [subjectId, taskId, model, token, role])
+
+  const copyLinkData = () => {
+    try {
+      copyText(link);
+      toastMessenger.success('Copied link to clipboard');
+    } catch (err) {
+      toastMessenger.error('Unable to copy the link');
+    }
+  };
 
   // Should this panel be auto-opened at app launch? Note that the actual
   // auto-open triggering of this panel is owned by the `HypothesisApp` component.
@@ -224,15 +253,74 @@ function HelpPanel({ session, recordingService }: HelpPanelProps) {
                 >
                   {token}
                 </dd>
-                <dt className="col-span-1 sm:text-right font-medium">link</dt>
+              </dl>
+              <hr />
+              <dl className="grid grid-cols-1 sm:grid-cols-4 sm:gap-x-2">
+                <dt className="col-span-1 sm:text-right font-medium bg-orange-200">Staff type</dt>
+                <dd
+                  className={classnames(
+                    'col-span-1 sm:col-span-3 text-color-text break-words bg-orange-200',
+                  )}
+                >
+                  {role ? role.teaching_role : 'None'}
+                </dd>
+                <dt className="col-span-1 sm:text-right font-medium bg-orange-50">Faculty</dt>
+                <dd
+                  className={classnames(
+                    'col-span-1 sm:col-span-3 text-color-text break-words bg-orange-50',
+                  )}
+                >
+                  {role ? role.faculty : 'None'}
+                </dd>
+                <dt className="col-span-1 sm:text-right font-medium bg-orange-200">Campus</dt>
+                <dd
+                  className={classnames(
+                    'col-span-1 sm:col-span-3 text-color-text break-words bg-orange-200',
+                  )}
+                >
+                  {role ? role.campus : 'None'}
+                </dd>
+                <dt className="col-span-1 sm:text-right font-medium bg-orange-50">Teaching unit</dt>
+                <dd
+                  className={classnames(
+                    'col-span-1 sm:col-span-3 text-color-text break-words bg-orange-50',
+                  )}
+                >
+                  {role ? role.teaching_unit : 'None'}
+                </dd>
+                <dt className="col-span-1 sm:text-right font-medium bg-orange-200">Years joined Monash</dt>
+                <dd
+                  className={classnames(
+                    'col-span-1 sm:col-span-3 text-color-text break-words bg-orange-200',
+                  )}
+                >
+                  {role ? role.joined_year : 'None'}
+                </dd>
+                <dt className="col-span-1 sm:text-right font-medium bg-orange-50">The years of teaching experience</dt>
+                <dd
+                  className={classnames(
+                    'col-span-1 sm:col-span-3 text-color-text break-words bg-orange-50',
+                  )}
+                >
+                  {role ? role.years_of_experience : 'None'}
+                </dd>
+              </dl>
+              <hr />
+              <dl className="grid grid-cols-1 sm:grid-cols-4 sm:gap-x-2">
+                <dt className="col-span-1 sm:text-right font-medium">Hint</dt>
                 <dd
                   className={classnames(
                     'col-span-1 sm:col-span-3 text-color-text-light break-words',
                   )}
                 >
-                  {link}
+                  {hint}
                 </dd>
               </dl>
+
+              <InputGroup>
+                <Input name="link" value={link} />
+                <IconButton icon={CopyIcon} title="copy" variant="dark" onClick={copyLinkData} />
+              </InputGroup>
             </div>
           </TabPanel>
         </div>
@@ -248,4 +336,4 @@ function HelpPanel({ session, recordingService }: HelpPanelProps) {
   );
 }
 
-export default withServices(HelpPanel, ['session', 'recordingService']);
+export default withServices(HelpPanel, ['session', 'recordingService', 'toastMessenger']);
