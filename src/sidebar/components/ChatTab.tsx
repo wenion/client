@@ -49,7 +49,7 @@ function ChatTab({ api, toastMessenger, mode, queryService, recordingService}: C
   const hint = useMemo(() => {
     if (role) {
       return `The user is a Monash University ${role.teaching_role} in the Faculty of ${role.faculty}, \
-located at the ${role.campus}. The user is teaching ${role.teaching_unit} and \
+located at the ${role.campus} campus. The user is teaching ${role.teaching_unit} and \
 has been working for the university since ${role.joined_year}, \
 with ${role.years_of_experience} ${role.years_of_experience > 1 ? 'years' : 'year'} of teaching experience.`;
     }
