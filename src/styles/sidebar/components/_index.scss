@@ -100,13 +100,13 @@
   font-weight: 700;
 }
 
-.timeline-expanded {
-  display: block;
-}
+// .timeline-expanded {
+//   display: block;
+// }
 
-.timeline-hidden {
-  display: none;
-}
+// .timeline-hidden {
+//   display: none;
+// }
 
 // .timeline-content:hover ~ .timeline-node {
 //   background-color: rgb(203 213 225);
@@ -118,4 +118,26 @@
 
 .chat-height {
   height: calc(100vh - 3.5rem);
+}
+
+.data-comics-height {
+  height: calc(100vh - 8rem);
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+    border-color: rgb(253 186 116);
+    border-width: 5px;
+  }
+  50% {
+    opacity: 0;
+    border-color: rgb(253 186 116);
+    border-width: 5px;
+  }
+}
+
+.blink {
+  animation: blink 1s step-end infinite;
+  border-style: solid; /* Ensure border style is solid */
 }

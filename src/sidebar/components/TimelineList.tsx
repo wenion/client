@@ -4,6 +4,7 @@ import classnames from 'classnames';
 
 import { useSidebarStore } from '../store';
 import MarkdownView from './MarkdownView';
+import DataComicsNote from './DataComics';
 import type { RecordingStepData, Recording } from '../../types/api';
 import { applyTheme } from '../helpers/theme';
 
@@ -176,6 +177,11 @@ export default function TimelineList({
   const [collapsed, setCollapsed] = useState(false);
   // const textStyle = applyTheme(['annotationFontFamily'], {});
 
+  const [dcView, setDcView] = useState(false);
+  const toggleView = () => {
+    setDcView(!dcView);
+  }
+
   const hoverContent = (id: string, visible: boolean) => {
     const hoverItems = document.querySelectorAll('#' + id);
     for (const item of hoverItems) {
@@ -191,40 +197,37 @@ export default function TimelineList({
 
   return (
     <>
-      {/* <div className='flex'>
-        <div className='grow'></div>
-      </div> */}
       <div className='flex items-center'>
         <div className='flex-none size-3 bg-blue-700 rounded-full '></div>
         <h1 className='m-2 grow text-xl'>{recording.taskName}</h1>
+        <Button classes={classnames('flex-none', 'border-black')} onClick={() => toggleView()}>DC</Button>
         <Button classes={classnames('flex-none')} onClick={() => store.clearSelectedRecord()}><LeaveIcon /></Button>
-        {/* <Button
-          classes={classnames('flex-none')}
-          onClick={() => setCollapsed(!collapsed)}
+      </div>
+      {!dcView && recording.steps && recording.steps.map((child, index) => (
+        <div
+          className='message-grid'
         >
-          {collapsed? <ExpandIcon />: <CollapseIcon />}
-        </Button> */}
-      </div>
-      <div
-        className='message-grid'
-      >
-      {recording.steps && recording.steps.map((child, index) => (
-        <StickyNote
-          index={index + 1}
-          id={child.id}
-          defaultCollapsed={collapsed}
-          title={child.description? child.description : child.type}
-          // title={child.description?.includes('Navigate')? child.description : child.description ?? child.type}
-          content={stringifyObject(formatObject(child) as JsonObjectData)}
-          image={child.image}
-          imagePosition={child.image? {width: child.width, height: child.height, offsetX: child.offsetX, offsetY: child.offsetY}: undefined}
-          url={child.description?.toLowerCase().includes('navigate') ? child.url: undefined}
-          urlText={child.description?.toLowerCase().includes('navigate') ? (child.title?? child.url): undefined}
-          hoverContent={hoverContent}
-          onSelectImage={onSelectImage}
-        />
+          <StickyNote
+            index={index + 1}
+            id={child.id}
+            defaultCollapsed={collapsed}
+            title={child.description? child.description : child.type}
+            // title={child.description?.includes('Navigate')? child.description : child.description ?? child.type}
+            content={stringifyObject(formatObject(child) as JsonObjectData)}
+            image={child.image}
+            imagePosition={child.image? {width: child.width, height: child.height, offsetX: child.offsetX, offsetY: child.offsetY}: undefined}
+            url={child.description?.toLowerCase().includes('navigate') ? child.url: undefined}
+            urlText={child.description?.toLowerCase().includes('navigate') ? (child.title?? child.url): undefined}
+            hoverContent={hoverContent}
+            onSelectImage={onSelectImage}
+          />
+        </div>
       ))}
-      </div>
+      {dcView && recording.dc && (
+        <DataComicsNote
+          data={recording.dc}
+        />
+      )}
     </>
   );
 }

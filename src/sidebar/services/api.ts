@@ -8,7 +8,6 @@ import type {
   FileNode,
   EventData,
   RawMessageData,
-  RecordingData,
   Recording,
 } from '../../types/api';
 import { stripInternalProperties } from '../helpers/strip-internal-properties';
@@ -249,10 +248,6 @@ export class APIService {
   push_recommendation: APICall<Record<string, unknown>, {id: string; url: string; type: string; title: string; query: string; context: string}>;
   pull_recommendation: APICall<{url: string}, void, {id: string; url: string; type: string; title: string; query: string; context: string}>;
   message: APICall<Record<string, unknown>, void, RawMessageData[]>;
-  shareFlow: {
-    read: APICall<Record<string, unknown>, void, RecordingData[]>;
-    delete: APICall<{ session_id: string; task_name: string }>;
-  };
   upload: APICallExtend<Record<string, any>, string|Blob, Record<string, any>, unknown>;
   batch: APICall<Record<string, unknown>, void, Recording[]>;
   recording: {
@@ -360,10 +355,6 @@ export class APIService {
     this.push_recommendation = apiCall('push_recommendation') as APICall<Record<string, unknown>, {id: string; url: string; type: string; title: string; query: string; context: string}>;
     this.pull_recommendation = apiCall('pull_recommendation') as APICall<{url: string}, void, {id: string; url: string; type: string; title: string; query: string; context: string}>;
     this.message = apiCall('message') as APICall<Record<string, unknown>, void, RawMessageData[]>;
-    this.shareFlow = {
-      read: apiCall('share_flow.read') as APICall<Record<string, unknown>, void, RecordingData[]>,
-      delete: apiCall('share_flow.delete') as APICall<{session_id: string, task_name: string}>,
-    };
     this.upload = apiCallExtend('upload') as APICallExtend<Record<string, any>, string|Blob, Record<string, any>, unknown>;
 
     this.batch = apiCall('batch') as APICall<

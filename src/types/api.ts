@@ -443,6 +443,29 @@ export type RawMessageData = {
   interval?:number;
 }
 
+export type kmStep = {
+  type: string;
+  url: string;
+  title: string;
+  text: string;
+  description: string;
+  image: string;
+}
+
+export type kmProcess = {
+  title: string;
+  name: string;
+  image: string;
+  steps: kmStep[] | null;
+}
+
+export type dataComics = {
+  userid: string;
+  taskName: string;
+  sessionId: string;
+  KM_Process: kmProcess[] | null;
+}
+
 export type RecordingStepData = {
   type: string;
   id: string;
@@ -464,6 +487,7 @@ export type RecordingData = {
   selectorAttribute?: string;
   date?: number;
   steps: RecordingStepData[] | null;
+  dc: dataComics;
 }
 
 export type Recording = RecordingData & {
