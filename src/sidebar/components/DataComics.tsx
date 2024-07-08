@@ -24,38 +24,48 @@ function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[]
     <>
       <p className="text-3xl font-bold text-yellow-500" >Process Overview</p>
       <div
-        className='timeline-content m-4'
+        className='flex max-h-32 m-2 overflow-y-auto'
         id={id}
       >
         <div className='flex justify-center items-start'>
         {process.map((p, index) => (
           <>
             {index !== 0 &&
-              <div className='-mt-24 -ml-8 -mr-16 -rotate-90-scale-20'>
+              <div className='-mt-24 -ml-8 -mr-8 -rotate-90-scale-20'>
                 <ArrowIcon />
               </div>
             }
-            <div className='grid grid-cols-1 place-items-center'>
-              <div
-                className={classnames(
-                  'border border-gray-300 hover:border-2 hover:border-gray-500',
-                  'flex rounded-full justify-center items-center text-nowrap',
-                  'text-amber-400 relative cursor-pointer w-20 h-20',
-                )}
-                id={id + '_' + index}
-                onClick={() => onImageClick(index)}
-              >
-                {p.name}
-                {/* <img
-                  ref={imageRef}
-                  className='border border-gray-300 hover:border-2 hover:border-gray-500 w-20 h-20'
+            {index === 0 ? (
+              <div className='w-72 grid grid-cols-1 place-items-center'>
+                <div
+                  className={classnames(
+                    'border border-gray-300 hover:border-2 hover:border-gray-500',
+                    'flex rounded-full justify-center items-center text-nowrap',
+                    'text-amber-400 relative cursor-pointer w-20 h-20',
+                  )}
                   id={id + '_' + index}
-                  src={p.image}
                   onClick={() => onImageClick(index)}
-                /> */}
+                >
+                  {p.name}
+                </div>
+                <div className='flex justify-center items-center'>{p.title}</div>
               </div>
-              <div className='flex justify-center items-center'>{p.title}</div>
-            </div>
+            ) : (
+              <div className='grid grid-cols-1 place-items-center'>
+                <div
+                  className={classnames(
+                    'border border-gray-300 hover:border-2 hover:border-gray-500',
+                    'flex rounded-full justify-center items-center text-nowrap',
+                    'text-amber-400 relative cursor-pointer w-20 h-20',
+                  )}
+                  id={id + '_' + index}
+                  onClick={() => onImageClick(index)}
+                >
+                  {p.name}
+                </div>
+                <div className='flex justify-center items-center'>{p.title}</div>
+              </div>
+            )}
           </>
           )
         )}
@@ -74,7 +84,7 @@ function Detail({id, title, process, selected}: {id: string; title: string, proc
       if (selectedElement) {
           selectedElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
           selectedElement.classList.add('blink');
-          
+
           // Remove blink class after 2 seconds
           const timeout = setTimeout(() => {
               selectedElement.classList.remove('blink');
