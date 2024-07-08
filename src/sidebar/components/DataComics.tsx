@@ -1,7 +1,9 @@
 import { Scroll, ScrollContainer, ScrollContent } from '@hypothesis/frontend-shared';
 import { useEffect, useState, useRef } from 'preact/hooks';
+import classnames from 'classnames';
 
 import type { dataComics, kmProcess } from '../../types/api';
+import ArrowIcon from '../../images/icons/dataComicsArrow';
 
 
 function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[], onSelectImage: (id: number) => void;}) {
@@ -11,7 +13,6 @@ function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[]
     if (imageRef.current) {
       imageRef.current.style.width = '80px';
       imageRef.current.style.height = '80px';
-      console.log("")
     }
   }, [])
 
@@ -26,17 +27,36 @@ function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[]
         className='timeline-content m-4'
         id={id}
       >
-        <div className='flex justify-center'>
-        {process.map((child, index) => (
-          <div className='relative cursor-pointer'>
-            <img
-              ref={imageRef}
-              className='border border-gray-300 hover:border-2 hover:border-gray-500 w-20 h-20'
-              id={id + '_' + index}
-              src={child.image}
-              onClick={() => onImageClick(index)}
-            />
-          </div>
+        <div className='flex justify-center items-start'>
+        {process.map((p, index) => (
+          <>
+            {index !== 0 &&
+              <div className='-mt-24 -ml-8 -mr-16 -rotate-90-scale-20'>
+                <ArrowIcon />
+              </div>
+            }
+            <div className='grid grid-cols-1 place-items-center'>
+              <div
+                className={classnames(
+                  'border border-gray-300 hover:border-2 hover:border-gray-500',
+                  'flex rounded-full justify-center items-center text-nowrap',
+                  'text-amber-400 relative cursor-pointer w-20 h-20',
+                )}
+                id={id + '_' + index}
+                onClick={() => onImageClick(index)}
+              >
+                {p.name}
+                {/* <img
+                  ref={imageRef}
+                  className='border border-gray-300 hover:border-2 hover:border-gray-500 w-20 h-20'
+                  id={id + '_' + index}
+                  src={p.image}
+                  onClick={() => onImageClick(index)}
+                /> */}
+              </div>
+              <div className='flex justify-center items-center'>{p.title}</div>
+            </div>
+          </>
           )
         )}
         </div>

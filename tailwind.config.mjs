@@ -224,6 +224,12 @@ export default {
         'px-1.5': '6px',
         'px-2': '8px',
       },
+      rotate: {
+        '-90': '-90deg',
+      },
+      scale: {
+        '20': '0.2',
+      },
     },
   },
   plugins: [
