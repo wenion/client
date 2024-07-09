@@ -78,6 +78,10 @@ function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[]
 function Detail({id, title, process, selected}: {id: string; title: string, process: kmProcess[], selected: number}) {
   // const [currentIndex, setCurrentIndex] = useState(selected);
 
+  const onClick = (url: string) => {
+    window.open(url, '_blank');
+  }
+
   useEffect(() => {
       // Add blink class to the selected element
       const selectedElement = document.getElementById(`${id}_ps_${selected}`);
@@ -122,9 +126,10 @@ function Detail({id, title, process, selected}: {id: string; title: string, proc
                 {p.steps && p.steps.map(step => (
                   step.type === 'Navigation' ? (
                     <img
-                      className='h-20'
+                      className='h-20 cursor-pointer'
                       alt={step.title}
                       src={step.image}
+                      onClick={e => onClick(step.url)}
                     />
                   ) :  (
                     <img
