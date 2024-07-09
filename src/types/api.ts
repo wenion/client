@@ -487,7 +487,7 @@ export type RecordingData = {
   selectorAttribute?: string;
   date?: number;
   steps: RecordingStepData[] | null;
-  dc: dataComics;
+  dc: dataComics | null;
 }
 
 export type Recording = RecordingData & {
