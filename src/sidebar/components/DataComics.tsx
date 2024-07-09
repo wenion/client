@@ -27,7 +27,7 @@ function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[]
         className='flex max-h-32 m-2 overflow-y-auto'
         id={id}
       >
-        <div className='flex justify-center items-start'>
+        <div className='flex min-w-max justify-center items-start'>
         {process.map((p, index) => (
           <>
             {index !== 0 &&
@@ -36,7 +36,7 @@ function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[]
               </div>
             }
             {index === 0 ? (
-              <div className='w-72 grid grid-cols-1 place-items-center'>
+              <div className='grid grid-cols-1 place-items-center'>
                 <div
                   className={classnames(
                     'border border-gray-300 hover:border-2 hover:border-gray-500',
@@ -110,14 +110,14 @@ function Detail({id, title, process, selected}: {id: string; title: string, proc
           (
             <>
               <div
-                className='flex timeline-node cursor-pointer'
-                id={id}
+                className='relative flex justify-center items-center h-full w-full data-comics-node cursor-pointer'
+                id={id + '_ps_' + index}
               >
-                <div className='text-center content-center -rotate-90 m-[-35px]'>{p.name}</div>
+                <div className='content-center -rotate-90'>{p.name}</div>
               </div>
               <div
                 className='timeline-content m-4'
-                id={id + '_ps_' + index}
+                id={id}
               >
                 {p.steps && p.steps.map(step => (
                   step.type === 'Navigation' ? (
@@ -128,7 +128,7 @@ function Detail({id, title, process, selected}: {id: string; title: string, proc
                     />
                   ) :  (
                     <img
-                      className='h-20 inline'
+                      className='h-22 inline'
                       alt={step.title}
                       src={step.image}
                     />
