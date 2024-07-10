@@ -161,7 +161,7 @@ export class StreamerService {
       }
     } else if (message.type === 'knowledge-push') {
       if (message.payload) {
-        let content = message.payload.summary + '\n';
+        let content = message.payload.summary + '\nHere are some additional resources:\n';
 
         message.payload.context.forEach((innerArray: [{
           id: number,
@@ -182,7 +182,7 @@ export class StreamerService {
         const notification: RawMessageData = {
           type: 'Highlights',
           id: '123',
-          title: 'Additional Push',
+          title: 'Additional knowledge available',
           message: content,
           date: Date.now()*1000,
           show_flag: true,
