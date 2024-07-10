@@ -164,6 +164,7 @@ function formatObject(object: RecordingStepData) {
 export type TimelineListProps = {
   recording: Recording,
   onSelectImage: (id: string) => void;
+  onDataComicsEvent: (step: RecordingStepData) => void;
 };
 
 /**
@@ -172,6 +173,7 @@ export type TimelineListProps = {
 export default function TimelineList({
   recording,
   onSelectImage,
+  onDataComicsEvent,
 } : TimelineListProps) {
   const store = useSidebarStore();
   const [collapsed, setCollapsed] = useState(false);
@@ -226,6 +228,7 @@ export default function TimelineList({
       {dcView && recording.dc && (
         <DataComicsNote
           data={recording.dc}
+          onDataComicsEvent={onDataComicsEvent}
         />
       )}
     </>

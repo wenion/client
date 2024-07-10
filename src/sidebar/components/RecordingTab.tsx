@@ -7,6 +7,7 @@ import type { FrameSyncService } from '../services/frame-sync';
 import type { RecordingService } from '../services/recording';
 import TimelineList from './TimelineList';
 import RecordingList from './RecordingList';
+import type { RecordingStepData } from '../../types/api';
 import { generateRandomString } from '../../shared/random';
 
 
@@ -169,8 +170,12 @@ function RecordingTab({
     // get from recordings
     const selectedStep = store.getSelectedRecordingStep();
     if (selectedStep) {
-      frameSync.notifyHost('openImageViewer', selectedStep)
+      frameSync.notifyHost('openImageViewer', selectedStep);
     }
+  }
+
+  const onDataComicsEvent = (step: RecordingStepData) => {
+    frameSync.notifyHost('openImageViewer', step);
   }
 
   const deleteRecording = () => {
@@ -202,7 +207,7 @@ function RecordingTab({
         <RecordingList />
       )}
       {recordingStage === 'Idle' && selectedRecording && selectedRecording.action == 'view' && (
-        <TimelineList recording={selectedRecording} onSelectImage={onSelectImage}/>
+        <TimelineList recording={selectedRecording} onSelectImage={onSelectImage} onDataComicsEvent={onDataComicsEvent}/>
       )}
       {recordingStage === 'Idle' && selectedRecording && selectedRecording.action == 'delete' && (
         <>

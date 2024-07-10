@@ -2,12 +2,13 @@ import { Scroll, ScrollContainer, ScrollContent } from '@hypothesis/frontend-sha
 import { useEffect, useState, useRef } from 'preact/hooks';
 import classnames from 'classnames';
 
-import type { dataComics, kmProcess } from '../../types/api';
+import type { dataComics, kmProcess, RecordingStepData } from '../../types/api';
 import ArrowIcon from '../../images/icons/dataComicsArrow';
 
 
 function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[], onSelectImage: (id: number) => void;}) {
   const imageRef = useRef<HTMLImageElement | null>(null);
+  const scollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (imageRef.current) {
@@ -20,12 +21,26 @@ function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[]
     onSelectImage(id);
   }
 
+  const onWheelEvent = (e: WheelEvent) => {
+    e.preventDefault();
+    if (scollRef.current) {
+      if (e.deltaY > 0) {
+        scollRef.current.scrollLeft += 50;
+      }
+      else {
+        scollRef.current.scrollLeft -= 50;
+      }
+    }
+  }
+
   return (
     <>
       <p className="text-3xl font-bold text-yellow-500" >Process Overview</p>
       <div
         className='flex max-h-32 m-2 overflow-y-auto'
         id={id}
+        ref={scollRef}
+        onWheel={(event) => onWheelEvent(event)}
       >
         <div className='flex min-w-max justify-center items-start'>
         {process.map((p, index) => (
@@ -75,7 +90,7 @@ function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[]
   )
 }
 
-function Detail({id, title, process, selected}: {id: string; title: string, process: kmProcess[], selected: number}) {
+function Detail({id, title, process, selected, onClickImage}: {id: string; title: string, process: kmProcess[], selected: number, onClickImage: (step: RecordingStepData) => void;}) {
   // const [currentIndex, setCurrentIndex] = useState(selected);
 
   const onClick = (url: string) => {
@@ -126,17 +141,37 @@ function Detail({id, title, process, selected}: {id: string; title: string, proc
                 {p.steps && p.steps.map(step => (
                   step.type === 'Navigation' ? (
                     <img
-                      className='h-20 cursor-pointer'
+                      className='cursor-pointer'
                       alt={step.title}
                       src={step.image}
                       onClick={e => onClick(step.url)}
                     />
                   ) :  (
-                    <img
-                      className='h-22 inline'
-                      alt={step.title}
-                      src={step.image}
-                    />
+                    <>
+                      <img
+                        className={classnames('inline',
+                          // 'max-h-24'
+                        )}
+                        alt={step.title}
+                        src={step.image}
+                      />
+                      {step.screenshot && (
+                        <img
+                          className='cursor-pointer'
+                          onClick={() => onClickImage({
+                            type: 'screenshot',
+                            id: 'screenshot',
+                            image: step.screenshot,
+                            width : step.width?? 0,
+                            height : step.width?? 0,
+                            offsetX : step.width?? 0,
+                            offsetY : step.width?? 0,
+                          })}
+                          alt={step.title}
+                          src={step.screenshot}
+                        />
+                      )}
+                    </>
                   )
                 ))}
               </div>
@@ -151,7 +186,7 @@ function Detail({id, title, process, selected}: {id: string; title: string, proc
 /**
  * Create the iframe that will load the notebook application.
  */
-export default function DataComicsNote({data}: {data: dataComics}) {
+export default function DataComicsNote({data, onDataComicsEvent}: {data: dataComics, onDataComicsEvent:(step: RecordingStepData) => void}) {
 
   const [selectIndex, setSelectIndex] = useState(0);
 
@@ -164,7 +199,7 @@ export default function DataComicsNote({data}: {data: dataComics}) {
         <Scroll classes={'mt-1'}>
           <ScrollContent>
             <div className='bg-white'>
-              {data.KM_Process && <Detail id={data.sessionId} title={data.taskName} process={data.KM_Process} selected={selectIndex}/>}
+              {data.KM_Process && <Detail id={data.sessionId} title={data.taskName} process={data.KM_Process} selected={selectIndex} onClickImage={onDataComicsEvent}/>}
             </div>
           </ScrollContent>
         </Scroll>

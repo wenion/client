@@ -434,7 +434,7 @@ export type SavedVideoAnnotation = VideoAnnotation & { id: string };
 export type RawMessageData = {
   type: string;
   id: string;
-  title: string;
+  title?: string;
   message: string;
   date: number;
   show_flag?: boolean;
@@ -450,6 +450,11 @@ export type kmStep = {
   text: string;
   description: string;
   image: string;
+  screenshot?: string;
+  width? : number;
+  height? : number;
+  offsetX? : number;
+  offsetY? : number;
 }
 
 export type kmProcess = {
