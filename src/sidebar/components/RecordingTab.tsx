@@ -174,6 +174,16 @@ function RecordingTab({
     }
   }
 
+  useEffect(() => {
+    if (selectedRecording && selectedRecording.action === 'view') {
+      frameSync.notifyHost('expandSidebar', {action: 'open'});
+    }
+    else {
+      //margin-left: -428px;
+      frameSync.notifyHost('expandSidebar', {action: 'close'});
+    }
+  }, [selectedRecording]);
+
   const onDataComicsEvent = (step: RecordingStepData) => {
     frameSync.notifyHost('openImageViewer', step);
   }

@@ -54,7 +54,7 @@ export default {
         padding: {
           // Precise horizontal padding for annotation-card alignment
           DEFAULT: '9px',
-          lg: '4rem',
+          lg: '1rem',
         },
         // By default, tailwind will provide appropriately-sized containers at
         // every breakpoint available in `screens`, but for the sidebar, only
@@ -62,9 +62,9 @@ export default {
         // The content container should never be larger than that. `container`
         // has a `max-width:100%` until the `lg` breakpoint, after which it
         // never exceeds `768px`.
-        screens: {
-          lg: '768px',
-        },
+        // screens: {
+        //   lg: '768px',
+        // },
       },
       fontFamily: {
         mono: ['"Open Sans Mono"', 'Menlo', '"DejaVu Sans Mono"', 'monospace'],

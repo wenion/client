@@ -540,6 +540,28 @@ export class Sidebar implements Destroyable {
       this.show();
     });
 
+    this._sidebarRPC.on('expandSidebar', (option: {action: string}) => {
+      if (this.iframeContainer) {
+        if (option.action === 'open') {
+          console.log("window", window.innerHeight, window.innerWidth)
+          const suggestedWidth = Math.round(window.innerWidth * 0.6);
+          const stringWidth = suggestedWidth.toString() + 'px';
+          const stringMarginLeft = (-suggestedWidth).toString() + 'px';
+
+          this.iframeContainer.style.marginLeft= stringMarginLeft;
+          this.iframeContainer.style.width = stringWidth;
+        }
+        else {
+          this.iframeContainer.style.marginLeft= '-428px';
+          this.iframeContainer.style.width = '';
+          this.iframeContainer.removeAttribute('width');
+        }
+      }
+      else {
+
+      }
+    })
+
     this._sidebarRPC.on('webClipping', (option: {savePage: boolean}) => {
       // TODO
       const clonedDocument = document.cloneNode(true) as Document;
