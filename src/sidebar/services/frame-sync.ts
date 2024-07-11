@@ -719,6 +719,12 @@ export class FrameSyncService {
       this._sidebarIsOpen = false;
     });
 
+    this._hostRPC.on('selectDataComics', (arg : {session_id: string, user_id: string})=> {
+      this._store.selectTab('recording');
+      this._store.changeRecordingStage('Idle');
+      this._recordingService.getRecording(arg.session_id, arg.user_id)
+    })
+
     // When user toggles the highlight visibility control in the sidebar container,
     // update the visibility in all the guest frames.
     this._hostRPC.on('setHighlightsVisible', (visible: boolean) => {

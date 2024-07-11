@@ -431,6 +431,13 @@ export type VideoAnnotation = Annotation;
  */
 export type SavedVideoAnnotation = VideoAnnotation & { id: string };
 
+export type ExtraDataComics = {
+  pk: string;
+  session_id: string;
+  task_name: string;
+  user_id: string;
+};
+
 export type RawMessageData = {
   type: string;
   id: string;
@@ -441,7 +448,8 @@ export type RawMessageData = {
   unread_flag?: boolean;
   need_save_flag?:boolean;
   interval?:number;
-}
+  extra?: ExtraDataComics[];
+};
 
 export type kmStep = {
   type: string;

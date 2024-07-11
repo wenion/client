@@ -5,10 +5,12 @@ import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'preact/
 import { Panel, Tab, TabList } from '@hypothesis/frontend-shared';
 
 import type { ComponentChildren } from 'preact';
+import type { ExtraDataComics } from '../../types/api';
 // import type { Ref } from 'preact';
 // import type { JSX } from 'preact';
 import MarkdownView from './MarkdownView';
 import { applyTheme } from './Excerpt';
+import { call } from '../../sidebar/util/postmessage-json-rpc';
 
 
 export type ToastMessage = {
@@ -27,6 +29,7 @@ export type ToastMessage = {
    * Defaults to true.
    */
   autoDismiss?: boolean;
+  extra?: ExtraDataComics[];
 };
 type ToastMessageTransitionClasses = {
   /** Classes to apply to a toast message when appended. Defaults to 'animate-fade-in' */
@@ -39,7 +42,9 @@ type ToastMessagesProps = {
   onMessageDismiss: (id: string) => void;
   transitionClasses?: ToastMessageTransitionClasses;
   setTimeout_?: typeof setTimeout;
+  callBack:(arg: any) => void;
 };
+
 
 /**
  * An individual toast message: a brief and transient success or error message.
@@ -48,8 +53,9 @@ type ToastMessagesProps = {
  */
 function ToastMessageContext({
   message,
-  onDismiss
-}: {message:ToastMessage; onDismiss:(id: string) => void;}) {
+  onDismiss,
+  callBack
+}: {message:ToastMessage; onDismiss:(id: string) => void; callBack:(arg: any) => void}) {
   // Capitalize the message type for prepending; Don't prepend a message
   // type for "notice" messages
   const textStyle = applyTheme(['annotationFontFamily'], {});
@@ -63,6 +69,14 @@ function ToastMessageContext({
         markdown={message.message as string}
         style={textStyle}
       />
+      {message.extra && message.extra.map(e => (
+        <div
+          className="cursor-pointer"
+          onClick={() => callBack(e)}
+        >
+          <b>{e.task_name}</b>
+        </div>
+      ))}
       <div className='flex flex-row justify-end'>
         <a
           title='date'
@@ -75,6 +89,8 @@ function ToastMessageContext({
     </Panel>
   )
 }
+
+
 const ToastMessageTransition = ({
   direction,
   onTransitionEnd,
@@ -120,6 +136,8 @@ const ToastMessageTransition = ({
     </div>
   )
 };
+
+
 /**
  * A collection of toast messages. These are rendered within an `aria-live`
  * region for accessibility with screen readers.
@@ -129,7 +147,8 @@ export function ToastMessages({
   onMessageDismiss,
   transitionClasses,
   /* istanbul ignore next - test seam */
-  setTimeout_ = setTimeout
+  setTimeout_ = setTimeout,
+  callBack,
 }: ToastMessagesProps) {
   // List of IDs of toast messages that have been dismissed and have an
   // in-progress 'out' transition
@@ -194,6 +213,7 @@ export function ToastMessages({
               <ToastMessageContext
                 message={message}
                 onDismiss={dismissMessage}
+                callBack={callBack}
               />
             </ToastMessageTransition>
           </li>

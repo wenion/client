@@ -109,6 +109,7 @@ export type HostToSidebarEvent =
   | 'openChat'
   | 'postRating'
   | 'webPage'
+  | 'selectDataComics'
   /**
    * Highlights have been toggled on/off.
    */

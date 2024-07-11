@@ -265,7 +265,19 @@ export class Sidebar implements Destroyable {
       })};
       this._emitter.subscribe('messageIn', _messageIn)
       this._emitter.subscribe('messageOut', _messageOut)
-      render(<ToastMessages emitter={this._emitter} />, this._messagesElement);
+
+      const openDataComics = (arg: {session_id: string, user_id: string}) => {
+        this.open();
+        this._sidebarRPC.call('selectDataComics', arg);
+        this._sidebarRPC.call('traceData', {
+          eventType: 'click',
+          eventSource: 'MESSAGE',
+          tagName: 'OPEN-DATACOMICS',
+          textContent: 'close',
+          interactionContext: JSON.stringify(arg),
+        })
+      }
+      render(<ToastMessages emitter={this._emitter} callBack={(arg)=> openDataComics(arg)}/>, this._messagesElement);
     }
 
     // Register the sidebar as a handler for Hypothesis errors in this frame.
@@ -543,7 +555,6 @@ export class Sidebar implements Destroyable {
     this._sidebarRPC.on('expandSidebar', (option: {action: string}) => {
       if (this.iframeContainer) {
         if (option.action === 'open') {
-          console.log("window", window.innerHeight, window.innerWidth)
           const suggestedWidth = Math.round(window.innerWidth * 0.6);
           const stringWidth = suggestedWidth.toString() + 'px';
           const stringMarginLeft = (-suggestedWidth).toString() + 'px';
