@@ -164,10 +164,10 @@ function SelectionTabs({
           count={allRecordingsCount}
           isWaitingToAnchor={isWaitingToAnchorAnnotations}
           isSelected={selectedTab === 'recording'}
-          label="ShareFlow"
+          label="Data comics"
           onSelect={() => selectTab('recording')}
         >
-          ShareFlow
+          Data comics
         </Tab>
         <Tab
           count={videoAnnotationCount}

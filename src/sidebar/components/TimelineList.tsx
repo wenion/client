@@ -179,7 +179,7 @@ export default function TimelineList({
   const [collapsed, setCollapsed] = useState(false);
   // const textStyle = applyTheme(['annotationFontFamily'], {});
 
-  const [dcView, setDcView] = useState(false);
+  const [dcView, setDcView] = useState(true);
   const toggleView = () => {
     setDcView(!dcView);
   }
@@ -202,7 +202,7 @@ export default function TimelineList({
       <div className='flex items-center'>
         <div className='flex-none size-3 bg-blue-700 rounded-full '></div>
         <h1 className='m-2 grow text-xl'>{recording.taskName}</h1>
-        <Button classes={classnames('flex-none', 'border-black')} onClick={() => toggleView()}>DC</Button>
+        <Button classes={classnames('flex-none', 'border-black')} onClick={() => toggleView()}>Switch</Button>
         <Button classes={classnames('flex-none')} onClick={() => store.clearSelectedRecord()}><LeaveIcon /></Button>
       </div>
       {!dcView && recording.steps && recording.steps.map((child, index) => (

@@ -45,9 +45,9 @@ function RecordingList({
 
   return (
     <>
-      <h1 className='m-4 text-xl'>Saved ShareFlows</h1>
+      <h1 className='m-4 text-xl'>Saved Data Comics</h1>
       <Table
-        title="Saved ShareFlows"
+        title="Saved Data Comics"
         interactive
       >
         <TableBody>
