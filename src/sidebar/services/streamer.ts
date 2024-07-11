@@ -161,7 +161,7 @@ export class StreamerService {
       }
     } else if (message.type === 'knowledge-push') {
       if (message.payload) {
-        let content = message.payload.summary + '\nHere are some additional resources:\n';
+        let content = message.payload.summary + '\n\n**Here are some additional resources:**\n';
 
         message.payload.context.forEach((innerArray: [{
           id: number,
