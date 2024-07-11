@@ -555,7 +555,7 @@ export class Sidebar implements Destroyable {
     this._sidebarRPC.on('expandSidebar', (option: {action: string}) => {
       if (this.iframeContainer) {
         if (option.action === 'open') {
-          const suggestedWidth = Math.round(window.innerWidth * 0.6);
+          const suggestedWidth = Math.round(window.innerWidth * 0.4);
           const stringWidth = suggestedWidth.toString() + 'px';
           const stringMarginLeft = (-suggestedWidth).toString() + 'px';
 

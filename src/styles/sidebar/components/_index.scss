@@ -127,11 +127,11 @@
 @keyframes blink {
   0%, 100% {
     opacity: 1;
-    background-color: #EAB308;
+    background-color: #2a93d5;
   }
   50% {
     opacity: 0;
-    background-color: #EAB308;
+    background-color: #2a93d5;
   }
 }
 
@@ -142,6 +142,16 @@
 
 .data-comics-node {
   position: relative;
+}
+
+.data-comics-grid {
+  display: grid;
+  grid-template-columns: var(--avatar-size) 1fr;
+  grid-auto-rows: auto;
+  column-gap: 0.5rem;
+  row-gap: var(--grid-gap);
+  width: 100%;
+  margin: 0 auto;
 }
 
 // .data-comics-node > .timeline-circle {
@@ -155,8 +165,6 @@
 .data-comics-node::after {
   content: "";
   position: absolute;
-  background-color: #EAB308;
-  width: 2px;
   right: 0;
   margin: 0 auto;
   top: var(--avatar-size);

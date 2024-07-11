@@ -43,6 +43,10 @@ export default {
         },
         blue: {
           quote: '#58cef4',
+          chathams: '#125488',
+          curious: '#2a93d5',
+          picton: '#37caec',
+          light: 'd1ebff'
         },
       },
       // Content in the sidebar should never exceed a max-width of `768px`, and

@@ -35,18 +35,18 @@ function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[]
 
   return (
     <>
-      <p className="text-3xl font-bold text-yellow-500" >Process Overview</p>
+      <div className="text-xl font-bold text-blue-chathams m-2" >Process Overview</div>
       <div
         className='flex max-h-32 m-2 overflow-y-auto'
         id={id}
         ref={scollRef}
         onWheel={(event) => onWheelEvent(event)}
       >
-        <div className='flex min-w-max justify-center items-start'>
+        <div className='flex min-w-max justify-center'>
         {process.map((p, index) => (
           <>
             {index !== 0 &&
-              <div className='-mt-24 -ml-8 -mr-8 -rotate-90-scale-20'>
+              <div className='max-w-16 mx-2'>
                 <ArrowIcon />
               </div>
             }
@@ -55,13 +55,13 @@ function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[]
                 <div
                   className={classnames(
                     'border border-gray-300 hover:border-2 hover:border-gray-500',
-                    'flex rounded-full justify-center items-center text-nowrap',
-                    'text-amber-400 relative cursor-pointer w-20 h-20',
+                    'flex justify-center items-center text-nowrap',
+                    'text-blue-chathams relative cursor-pointer p-4',
                   )}
                   id={id + '_' + index}
                   onClick={() => onImageClick(index)}
                 >
-                  {p.name}
+                  <b>{p.name}</b>
                 </div>
                 <div className='flex justify-center items-center'>{p.title}</div>
               </div>
@@ -70,13 +70,13 @@ function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[]
                 <div
                   className={classnames(
                     'border border-gray-300 hover:border-2 hover:border-gray-500',
-                    'flex rounded-full justify-center items-center text-nowrap',
-                    'text-amber-400 relative cursor-pointer w-20 h-20',
+                    'flex justify-center items-center text-nowrap',
+                    'text-blue-chathams relative cursor-pointer p-4',
                   )}
                   id={id + '_' + index}
                   onClick={() => onImageClick(index)}
                 >
-                  {p.name}
+                  <b>{p.name}</b>
                 </div>
                 <div className='flex justify-center items-center'>{p.title}</div>
               </div>
@@ -90,8 +90,61 @@ function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[]
   )
 }
 
-function Detail({id, title, process, selected, onClickImage}: {id: string; title: string, process: kmProcess[], selected: number, onClickImage: (step: RecordingStepData) => void;}) {
-  // const [currentIndex, setCurrentIndex] = useState(selected);
+function Thumbnail({title, image, size, onClickEvent}: {
+  title: string,
+  image: string,
+  size: {width: number|undefined, height: number|undefined, offsetX: number|undefined, offsetY: number|undefined},
+  onClickEvent: (step: RecordingStepData) => void
+}) {
+  const imageRef = useRef<HTMLImageElement | null>(null);
+  const circleRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (imageRef.current && circleRef.current && size.width && size.height && size.offsetX && size.offsetY) {
+      const width = size.width;
+      const height = size.height;
+      const offsetX = size.offsetX;
+      const offsetY = size.offsetY;
+
+      if (width && height && offsetY && offsetX) {
+        const widthToHeight = width / height;
+        const ratioHeight = imageRef.current.clientHeight/height;
+        const ratioWidth = widthToHeight * imageRef.current.clientHeight / width;
+
+        circleRef.current.style.top = Math.round(offsetY * ratioHeight - 8).toString() + "px";
+        circleRef.current.style.left = Math.round(offsetX * ratioWidth - 8).toString() + "px";
+      }
+    }
+  }, [])
+
+  return (
+    <div className='relative p-1 cursor-pointer border'>
+      <img
+        ref={imageRef}
+        className='cursor-pointer'
+        onClick={() => onClickEvent({
+          type: 'screenshot',
+          id: 'screenshot',
+          image: image,
+          width : size.width?? 0,
+          height : size.height?? 0,
+          offsetX : size.offsetX?? 0,
+          offsetY : size.offsetY?? 0,
+        })}
+        alt={title}
+        src={image}
+      />
+      <div
+        ref={circleRef}
+        className='w-6 h-6 rounded-full absolute border-2 border-blue-500 bg-blue-100/35 transition-all'
+      />
+    </div>
+  )
+
+}
+
+function Detail({id, title, process, selected, onClickImage}:
+  {id: string; title: string, process: kmProcess[], selected: number, onClickImage: (step: RecordingStepData) => void;}) {
 
   const onClick = (url: string) => {
     window.open(url, '_blank');
@@ -116,26 +169,26 @@ function Detail({id, title, process, selected, onClickImage}: {id: string; title
 
   return (
     <>
-      <p className="text-3xl font-bold text-yellow-500" >Process in Detail</p>
-      <div className="text-xl text-center text-yellow-500">
+      <p className="text-xl font-bold text-blue-chathams m-2" >Process in Detail</p>
+      <div className="text-2xl font-bold text-center text-blue-chathams">
         {title}
       </div>
 
       <div
-        className='message-grid'
+        className='data-comics-grid'
       >
       {process.map(
         (p, index) =>
           (
             <>
               <div
-                className='relative flex justify-center items-center h-full w-full data-comics-node cursor-pointer'
+                className='relative flex justify-center h-full w-full data-comics-node cursor-pointer'
                 id={id + '_ps_' + index}
               >
-                <div className='content-center -rotate-90'>{p.name}</div>
+                <div className='text-2xl'>{index}</div>
               </div>
               <div
-                className='timeline-content m-4'
+                className='timeline-content'
                 id={id}
               >
                 {p.steps && p.steps.map(step => (
@@ -156,19 +209,11 @@ function Detail({id, title, process, selected, onClickImage}: {id: string; title
                         src={step.image}
                       />
                       {step.screenshot && (
-                        <img
-                          className='cursor-pointer'
-                          onClick={() => onClickImage({
-                            type: 'screenshot',
-                            id: 'screenshot',
-                            image: step.screenshot,
-                            width : step.width?? 0,
-                            height : step.width?? 0,
-                            offsetX : step.width?? 0,
-                            offsetY : step.width?? 0,
-                          })}
-                          alt={step.title}
-                          src={step.screenshot}
+                        <Thumbnail
+                          title={step.title}
+                          image={step.screenshot}
+                          size={{width:step.width, height:step.height, offsetX:step.offsetX, offsetY:step.offsetY}}
+                          onClickEvent={onClickImage}
                         />
                       )}
                     </>
