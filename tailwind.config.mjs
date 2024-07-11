@@ -62,9 +62,9 @@ export default {
         // The content container should never be larger than that. `container`
         // has a `max-width:100%` until the `lg` breakpoint, after which it
         // never exceeds `768px`.
-        // screens: {
-        //   lg: '768px',
-        // },
+        screens: {
+          lg: '1024px',
+        },
       },
       fontFamily: {
         mono: ['"Open Sans Mono"', 'Menlo', '"DejaVu Sans Mono"', 'monospace'],
