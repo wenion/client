@@ -21,6 +21,29 @@ function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[]
     onSelectImage(id);
   }
 
+  const truncateStringAtWhitespace = (str:string, charLimit:number) => {
+    if (str.length <= charLimit) {
+      return str;
+    }
+
+    // Slice the string to get the first `charLimit` characters
+    let truncatedStr = str.slice(0, charLimit);
+
+    // Find the position of the last whitespace character within the truncated string
+    let lastWhitespaceIndex = truncatedStr.lastIndexOf(' ');
+
+    // If there is a whitespace character, trim the string at that position
+    if (lastWhitespaceIndex !== -1) {
+      truncatedStr = truncatedStr.slice(0, lastWhitespaceIndex);
+    }
+
+    if (!/[a-zA-Z0-9]$/.test(truncatedStr)) {
+      truncatedStr = truncatedStr.slice(0, -1);
+    }
+
+    return truncatedStr + '...';
+  }
+
   const onWheelEvent = (e: WheelEvent) => {
     e.preventDefault();
     if (scollRef.current) {
@@ -37,7 +60,7 @@ function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[]
     <>
       <div className="text-xl font-bold text-blue-chathams m-2" >Process Overview</div>
       <div
-        className='flex max-h-32 m-2 overflow-y-auto'
+        className='flex h-fit m-2 overflow-y-auto'
         id={id}
         ref={scollRef}
         onWheel={(event) => onWheelEvent(event)}
@@ -50,37 +73,20 @@ function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[]
                 <ArrowIcon />
               </div>
             }
-            {index === 0 ? (
-              <div className='grid grid-cols-1 place-items-center'>
-                <div
-                  className={classnames(
-                    'border border-gray-300 hover:border-2 hover:border-gray-500',
-                    'flex justify-center items-center text-nowrap',
-                    'text-blue-chathams relative cursor-pointer p-4',
-                  )}
-                  id={id + '_' + index}
-                  onClick={() => onImageClick(index)}
-                >
-                  <b>{p.name}</b>
-                </div>
-                <div className='flex justify-center items-center'>{p.title}</div>
+            <div className='grid grid-cols-1'>
+              <div
+                className={classnames(
+                  'place-self-center border border-gray-300 hover:border-2 hover:border-gray-500',
+                  'flex justify-center items-center text-nowrap',
+                  'text-blue-chathams relative cursor-pointer max-w-32 p-4',
+                )}
+                id={id + '_' + index}
+                onClick={() => onImageClick(index)}
+              >
+                <b>{p.name}</b>
               </div>
-            ) : (
-              <div className='grid grid-cols-1 place-items-center'>
-                <div
-                  className={classnames(
-                    'border border-gray-300 hover:border-2 hover:border-gray-500',
-                    'flex justify-center items-center text-nowrap',
-                    'text-blue-chathams relative cursor-pointer p-4',
-                  )}
-                  id={id + '_' + index}
-                  onClick={() => onImageClick(index)}
-                >
-                  <b>{p.name}</b>
-                </div>
-                <div className='flex justify-center items-center'>{p.title}</div>
-              </div>
-            )}
+              <div className='flex text-xs text-center max-w-32 p-2'>{truncateStringAtWhitespace(p.title, 40)}</div>
+            </div>
           </>
           )
         )}
@@ -118,7 +124,7 @@ function Thumbnail({title, image, size, onClickEvent}: {
   }, [])
 
   return (
-    <div className='relative p-1 cursor-pointer border'>
+    <div className='relative p-1 cursor-pointer border hover:border-blue-chathams'>
       <img
         ref={imageRef}
         className='cursor-pointer'
@@ -182,19 +188,22 @@ function Detail({id, title, process, selected, onClickImage}:
           (
             <>
               <div
-                className='relative flex justify-center h-full w-full data-comics-node cursor-pointer'
+                className={classnames(
+                  'relative flex justify-center h-full w-full cursor-pointer',
+                  {'data-comics-node': index}
+                )}
                 id={id + '_ps_' + index}
               >
                 <div className='text-2xl'>{index}</div>
               </div>
               <div
-                className='timeline-content'
+                className={classnames({'data-comics-content': index})}
                 id={id}
               >
-                {p.steps && p.steps.map(step => (
+                {p.steps && p.steps.map((step, index, arr)  => (
                   step.type === 'Navigation' ? (
                     <img
-                      className='cursor-pointer'
+                      className='cursor-pointer hover:border-blue-chathams'
                       alt={step.title}
                       src={step.image}
                       onClick={e => onClick(step.url)}
@@ -203,7 +212,8 @@ function Detail({id, title, process, selected, onClickImage}:
                     <>
                       <img
                         className={classnames('inline',
-                          // 'max-h-24'
+                          {'max-w-80': !step.screenshot},
+                          {'max-w-80': step.screenshot && !(index > 0 && arr[index-1].screenshot)} // previous is not screenshot
                         )}
                         alt={step.title}
                         src={step.image}
@@ -233,7 +243,7 @@ function Detail({id, title, process, selected, onClickImage}:
  */
 export default function DataComicsNote({data, onDataComicsEvent}: {data: dataComics, onDataComicsEvent:(step: RecordingStepData) => void}) {
 
-  const [selectIndex, setSelectIndex] = useState(0);
+  const [selectIndex, setSelectIndex] = useState(-1);
 
   return (
     <div className="data-comics-height">
@@ -241,7 +251,7 @@ export default function DataComicsNote({data, onDataComicsEvent}: {data: dataCom
         <div className='bg-white'>
           {data.KM_Process && <SiteMap id={data.sessionId} process={data.KM_Process} onSelectImage={setSelectIndex}/>}
         </div>
-        <Scroll classes={'mt-1'}>
+        <Scroll>
           <ScrollContent>
             <div className='bg-white'>
               {data.KM_Process && <Detail id={data.sessionId} title={data.taskName} process={data.KM_Process} selected={selectIndex} onClickImage={onDataComicsEvent}/>}
