@@ -76,17 +76,21 @@ with ${role.years_of_experience} ${role.years_of_experience > 1 ? 'years' : 'yea
 
   return (
     <div className='chat-height'>
-      {mode === 'Baseline' && subjectId && taskId !== '' && model && token && role ? (
-        <iframe
-          ref={baselineRef}
-          src="https://chat.kmass.io/"
-          title="Baseline Tool"
-          className={classnames('w-full h-full')}
-        />
-      ) : (
-        <Callout status="error">
-          Invalid link. Please check the token or user information!
-        </Callout>
+      {mode === 'Baseline' && (
+        <>
+          {subjectId && taskId !== '' && model && token && role ? (
+            <iframe
+              ref={baselineRef}
+              src="https://chat.kmass.io/"
+              title="Baseline Tool"
+              className={classnames('w-full h-full')}
+            />
+          ) : (
+            <Callout status="error">
+              Invalid link. Please check the token or user information!
+            </Callout>
+          )}
+        </>
       )}
       {mode === 'Query' && (
         <>

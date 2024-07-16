@@ -188,7 +188,7 @@ with ${role.years_of_experience} ${role.years_of_experience > 1 ? 'years' : 'yea
           onClick={() => setActiveSubPanel('baselineInfo')}
           data-testid="baseline-info-tab"
         >
-          Baseline
+          ChatUI
         </Tab>
       </TabHeader>
       <Card
@@ -217,7 +217,7 @@ with ${role.years_of_experience} ${role.years_of_experience > 1 ? 'years' : 'yea
             id={baselinePanelId}
             aria-labelledby={baselineTabId}
             active={activeSubPanel === 'baselineInfo'}
-            title="Baseline details"
+            title="ChatUI details"
           >
             <div className="space-y-4">
               <dl className="grid grid-cols-1 sm:grid-cols-4 sm:gap-x-2">
