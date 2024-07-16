@@ -194,7 +194,7 @@ function Detail({id, title, process, selected, onClickImage}:
                 )}
                 id={id + '_ps_' + index}
               >
-                <div className='text-2xl'>{index}</div>
+                <div className='text-2xl'>{index + 1}</div>
               </div>
               <div
                 className={classnames({'data-comics-content': index})}
