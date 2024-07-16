@@ -71,7 +71,10 @@ function ToastMessageContext({
       />
       {message.extra && message.extra.map(e => (
         <div
-          className="cursor-pointer"
+          className={classnames(
+            "cursor-pointer",
+            "text-red-500 hover:text-blue-600 underline underline-offset-1",
+          )}
           onClick={() => callBack(e)}
         >
           <b>{e.task_name}</b>
