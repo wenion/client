@@ -98,7 +98,7 @@ export default function MessageTab() {
 
   return (
     <>
-      <MessageList title='Comic recommendation' threads={instanceThreads} />
+      <MessageList title='ShareFlow recommendation' threads={instanceThreads} />
       <MessageList title='Organisation event' threads={sortableThreads} />
     </>
   );
