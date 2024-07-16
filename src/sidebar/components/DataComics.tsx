@@ -47,12 +47,16 @@ function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[]
   const onWheelEvent = (e: WheelEvent) => {
     e.preventDefault();
     if (scollRef.current) {
-      if (e.deltaY > 0) {
+      if (e.deltaY > 1) {
         scollRef.current.scrollLeft += 50;
+        return;
       }
-      else {
+      else if (e.deltaY < -1) {
         scollRef.current.scrollLeft -= 50;
+        return;
       }
+
+      scollRef.current.scrollLeft += e.deltaX;
     }
   }
 
