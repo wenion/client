@@ -263,6 +263,19 @@ export class FrameSyncService {
       const _messageType = _data.messageType;
 
       if (_messageType === 'TraceData') {
+        // type === 'getfocus'
+        if (_data.type === 'getfocus') {
+          const focused = this._store.getDefault('focus') as 'onFocused' | 'onUnfocused';
+          if (focused !== _data.textContent) {
+            this._store.setDefault('focus', _data.textContent);
+            if (_data.textContent === 'onUnfocused') {
+              return;
+            }
+          }
+          else {
+            return;
+          }
+        }
         this._streamer.send(this._attachExtraInformation(_data));
       }
       else {

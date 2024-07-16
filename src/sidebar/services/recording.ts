@@ -358,14 +358,16 @@ export class RecordingService extends TinyEmitter{
     let _interval = interval;
     let should_next = next;
     try {
-      const responses = await this._api.message({q: q, interval: interval, url: this._store.mainFrame()?.uri});
-      for (const r of responses) {
-        if (r.type === 'instant_message') {
-          _interval = r.interval?? interval;
-          should_next = r.should_next?? next;
+      if (this._store.getDefault('focus') === 'onFocused') {
+        const responses = await this._api.message({q: q, interval: interval, url: this._store.mainFrame()?.uri});
+        for (const r of responses) {
+          if (r.type === 'instant_message') {
+            _interval = r.interval?? interval;
+            should_next = r.should_next?? next;
+          }
         }
-      }
-      this._store.addMessages(responses);
+        this._store.addMessages(responses);
+    }
     } catch (err) {
       console.log('message catch errors', err)
     }
