@@ -10,6 +10,8 @@ import RecordingList from './RecordingList';
 import type { RecordingStepData } from '../../types/api';
 import { generateRandomString } from '../../shared/random';
 
+import RecordingOffIcon from '../../images/icons/recordingOff';
+
 
 function generateSessionId() {
   return 'se' + Date.now().toString(36) + generateRandomString(5);
@@ -24,6 +26,8 @@ function RecordingPopup({
   frameSync,
 }: RecordingPopupProps) {
   const store = useSidebarStore();
+  const mode = store.getDefault('mode');
+
   const nameEl = useRef<HTMLInputElement>();
   const descriptionEl = useRef<HTMLInputElement>();
   const timeEl = useRef<HTMLInputElement>();
@@ -45,7 +49,7 @@ function RecordingPopup({
   const notifyRecordingStatus = (status: 'off' | 'ready' | 'on', taskName?: string, sessionId?: string, description?: string, selected?: number) => {
     frameSync.updateRecordingStatusView(status);
     frameSync.refreshRecordingStatus(status, taskName, sessionId, description, selected, store.focusedGroupId()?? '')
-    frameSync.notifyHost('updateRecoringStatusFromSidebar', status)
+    frameSync.notifyHost('updateRecoringStatusFromSidebar', {status: status, mode: mode})
   }
 
   const startRecord = () => {
@@ -88,7 +92,7 @@ function RecordingPopup({
   return (
     <Overlay>
       <div className='flex items-center'>
-        <Panel title='New ShareFlow'>
+        <Panel title='New ShareFlow' onClose={() =>cancelRecord()}>
           <div className='flex items-center'>
             <label htmlFor='input-with-label' className='min-w-28 font-semibold'>
               Task name
@@ -161,6 +165,7 @@ function RecordingTab({
 }: RecordingTabProps) {
 
   const store = useSidebarStore();
+  const mode = store.getDefault('mode') as 'Baseline' | 'GoldMind' | 'Query';
 
   const recordingStage = store.currentRecordingStage();
   const selectedRecording = store.getSelectedRecord();
@@ -173,6 +178,10 @@ function RecordingTab({
       frameSync.notifyHost('openImageViewer', selectedStep);
     }
   }
+
+  useEffect(() => {
+
+  }, [mode])
 
   useEffect(() => {
     if (selectedRecording && selectedRecording.action === 'view') {
@@ -198,7 +207,7 @@ function RecordingTab({
     <>
       {recordingStage === 'Request' && (
         <>
-          <RecordingList />
+          {mode === 'GoldMind' && <RecordingList />}
           <RecordingPopup frameSync={frameSync}/>
         </>
       )}
@@ -213,10 +222,13 @@ function RecordingTab({
           </Overlay>
         </>
       )}
-      {recordingStage === 'Idle' && selectedRecording == null && (
+      {recordingStage === 'Idle' && selectedRecording == null && mode === 'GoldMind' && (
         <RecordingList />
       )}
-      {recordingStage === 'Idle' && selectedRecording && selectedRecording.action == 'view' && (
+      {recordingStage === 'Idle' && mode !== 'GoldMind' && (
+        <div >Please click the record button <div className="inline"><RecordingOffIcon className="inline"/></div> on the left side to start ChatUI.</div>
+      )}
+      {recordingStage === 'Idle' && selectedRecording && selectedRecording.action == 'view' && mode === 'GoldMind' &&(
         <TimelineList recording={selectedRecording} onSelectImage={onSelectImage} onDataComicsEvent={onDataComicsEvent}/>
       )}
       {recordingStage === 'Idle' && selectedRecording && selectedRecording.action == 'delete' && (

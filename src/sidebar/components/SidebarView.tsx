@@ -146,7 +146,7 @@ function SidebarView({
     <div>
       {mode === 'Baseline' && (
         <>
-          {taskId === '' && <SelectionTabs isLoading={isLoading} />}
+          {/* {taskId === '' && <SelectionTabs isLoading={isLoading} />} */}
           {taskId === '' && <RecordingTab />}
           {taskId !== '' && <ChatTab mode={mode} />}
         </>
