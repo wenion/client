@@ -761,7 +761,7 @@ export class FrameSyncService {
     this._hostRPC.on('updateRecoringStatusFromHost', (status: 'off' | 'ready' | 'on') => {
       // off
       this.updateRecordingStatusView(status);
-      this.refreshRecordingStatus(status, this._store.ts);
+      this.refreshRecordingStatus(status);
     })
 
     this._hostRPC.on('traceData', (message:
