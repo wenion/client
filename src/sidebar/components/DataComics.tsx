@@ -78,12 +78,17 @@ function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[]
                 className={classnames(
                   'place-self-center border border-gray-300 hover:border-2 hover:border-gray-500',
                   'flex justify-center items-center text-nowrap',
-                  'text-blue-chathams relative cursor-pointer max-w-32 p-4',
+                  'text-blue-chathams relative cursor-pointer max-w-32',
+                  {
+                    'p-4': p.name.toLowerCase() !== 'match',
+                    'px-0': p.name.toLowerCase() === 'match',
+                    'py-4': p.name.toLowerCase() === 'match',
+                  }
                 )}
                 id={id + '_' + index}
                 onClick={() => onImageClick(index)}
               >
-                <b>{p.name}</b>
+                {p.name.toLowerCase() === 'match' ? (<b>&nbsp;</b>) : (<b>{p.name}</b>)}
               </div>
               <div className='flex text-xs text-center max-w-32 p-2'>{truncateStringAtWhitespace(p.title, 40)}</div>
             </div>
