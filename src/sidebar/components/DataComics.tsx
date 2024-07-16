@@ -127,7 +127,9 @@ function Thumbnail({title, image, size, onClickEvent}: {
     <div className='relative p-1 cursor-pointer border hover:border-blue-chathams'>
       <img
         ref={imageRef}
-        className='cursor-pointer'
+        className={classnames(
+          'cursor-pointer',
+        )}
         onClick={() => onClickEvent({
           type: 'screenshot',
           id: 'screenshot',
@@ -202,18 +204,32 @@ function Detail({id, title, process, selected, onClickImage}:
               >
                 {p.steps && p.steps.map((step, index, arr)  => (
                   step.type === 'Navigation' ? (
-                    <img
-                      className='cursor-pointer hover:border-blue-chathams'
-                      alt={step.title}
-                      src={step.image}
+                    <div
+                      className={classnames(
+                        'flex justify-center items-center',
+                        'text-xl text-blue-chathams',
+                        'border-2 border-black',
+                        'cursor-pointer hover:text-2xl',
+                        'p-4'
+                      )}
                       onClick={e => onClick(step.url)}
-                    />
+                    >
+                      <b>Go to:&nbsp;</b> {step.title}
+                    </div>
+                    // <img
+                    //   className='cursor-pointer hover:border-blue-chathams'
+                    //   alt={step.title}
+                    //   src={step.image}
+                    //   onClick={e => onClick(step.url)}
+                    // />
                   ) :  (
                     <>
                       <img
                         className={classnames('inline',
-                          {'max-w-80': !step.screenshot},
-                          {'max-w-80': step.screenshot && !(index > 0 && arr[index-1].screenshot)} // previous is not screenshot
+                          'md:w-[200px]',
+                          'lg:w-[300px]'
+                          // {'max-w-80': !step.screenshot},
+                          // {'max-w-80': step.screenshot && !(index > 0 && arr[index-1].screenshot)} // previous is not screenshot
                         )}
                         alt={step.title}
                         src={step.image}
