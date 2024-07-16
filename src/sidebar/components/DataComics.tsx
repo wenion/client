@@ -225,7 +225,8 @@ function Detail({id, title, process, selected, onClickImage}:
                   ) :  (
                     <>
                       <img
-                        className={classnames('inline',
+                        className={classnames(
+                          'inline cursor-pointer',
                           'md:w-[200px]',
                           'lg:w-[300px]'
                           // {'max-w-80': !step.screenshot},
@@ -233,6 +234,13 @@ function Detail({id, title, process, selected, onClickImage}:
                         )}
                         alt={step.title}
                         src={step.image}
+                        onClick={() => onClickImage({
+                          type: 'screenshot',
+                          id: 'screenshot',
+                          image: step.image,
+                          width : step.width?? 0,
+                          height : step.height?? 0,
+                        })}
                       />
                       {step.screenshot && (
                         <Thumbnail

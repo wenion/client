@@ -60,8 +60,8 @@ export default function ImageViewerModal({
       setSrc(selectedStep.image ?? '');
       setWidth(selectedStep.width ?? 0);
       setHeight(selectedStep.height ?? 0);
-      setOffsetX(selectedStep.offsetX ?? 0);
-      setOffsetY(selectedStep.offsetY ?? 0);
+      setOffsetX(selectedStep.offsetX ?? -1);
+      setOffsetY(selectedStep.offsetY ?? -1);
     });
     emitterRef.current = emitter;
 
@@ -146,19 +146,26 @@ export default function ImageViewerModal({
             <CaretLeftIcon />
           </div> */}
           <div
-            className="w-9/12 relative p-1 border border-gray-300 cursor-pointer"
+            className={classnames(
+              "relative",
+              "cursor-pointer",
+              "md:h-[400px] lg:h-[700px] p-1"
+            )}
             onClick={(event)=>{event.stopPropagation()}}
           >
             <img
+              className={'max-h-full'}
               ref={imageRef}
               src={src}
               onMouseEnter={() => hoverContent(true)}
               onMouseLeave={() => hoverContent(false)}
             />
-            <div
-              ref={circleRef}
-              className='w-11 h-11 rounded-full absolute border-2 border-blue-500 bg-blue-100/35 transition-all'
-            />
+            {offsetX !== -1 && offsetY !== -1 && (
+              <div
+                ref={circleRef}
+                className='w-11 h-11 rounded-full absolute border-2 border-blue-500 bg-blue-100/35 transition-all'
+              />
+            )}
           </div>
           {/* <div className="flex justify-center items-center w-40 h-40 bg-white/50 rounded-2xl m-4 cursor-pointer">
             <CaretRightIcon />
