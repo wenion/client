@@ -220,14 +220,14 @@ with ${role.years_of_experience} ${role.years_of_experience > 1 ? 'years' : 'yea
             title="ChatUI details"
           >
             <div className="space-y-4">
-              <dl className="grid grid-cols-1 sm:grid-cols-4 sm:gap-x-2">
+              <dl className="grid grid-cols-1 sm:grid-cols-4 sm:gap-x-2 items-center">
                 <dt className="col-span-1 sm:text-right font-medium">Model</dt>
                 <dd
                   className={classnames(
                     'col-span-1 sm:col-span-3 text-color-text-light break-words',
                   )}
                 >
-                  {model}
+                  {model? model: (<div className='text-red-700 text-xl'>required!</div>)}
                 </dd>
                 <dt className="col-span-1 sm:text-right font-medium">Task ID</dt>
                 <dd
@@ -235,7 +235,7 @@ with ${role.years_of_experience} ${role.years_of_experience > 1 ? 'years' : 'yea
                     'col-span-1 sm:col-span-3 text-color-text-light break-words',
                   )}
                 >
-                  {taskId === ''? 'None': taskId}
+                  {taskId === ''? (<div className='text-red-700 text-xl'>required!</div>) : taskId}
                 </dd>
                 <dt className="col-span-1 sm:text-right font-medium">Subject ID</dt>
                 <dd
@@ -251,7 +251,7 @@ with ${role.years_of_experience} ${role.years_of_experience > 1 ? 'years' : 'yea
                     'col-span-1 sm:col-span-3 text-color-text-light break-words',
                   )}
                 >
-                  {token}
+                  {token? token : (<div className='text-red-700 text-xl'>required!</div>)}
                 </dd>
               </dl>
               <hr />
@@ -262,7 +262,7 @@ with ${role.years_of_experience} ${role.years_of_experience > 1 ? 'years' : 'yea
                     'col-span-1 sm:col-span-3 text-color-text break-words bg-orange-200',
                   )}
                 >
-                  {role ? role.teaching_role : 'None'}
+                  {(role && role.teaching_role) ? role.teaching_role : (<div className='text-red-700 text-xl'>required!</div>)}
                 </dd>
                 <dt className="col-span-1 sm:text-right font-medium bg-orange-50">Faculty</dt>
                 <dd
@@ -270,7 +270,7 @@ with ${role.years_of_experience} ${role.years_of_experience > 1 ? 'years' : 'yea
                     'col-span-1 sm:col-span-3 text-color-text break-words bg-orange-50',
                   )}
                 >
-                  {role ? role.faculty : 'None'}
+                  {(role && role.faculty)? role.faculty : (<div className='text-red-700 text-xl'>required!</div>)}
                 </dd>
                 <dt className="col-span-1 sm:text-right font-medium bg-orange-200">Campus</dt>
                 <dd
@@ -278,7 +278,7 @@ with ${role.years_of_experience} ${role.years_of_experience > 1 ? 'years' : 'yea
                     'col-span-1 sm:col-span-3 text-color-text break-words bg-orange-200',
                   )}
                 >
-                  {role ? role.campus : 'None'}
+                  {(role && role.campus) ? role.campus : (<div className='text-red-700 text-xl'>required!</div>)}
                 </dd>
                 <dt className="col-span-1 sm:text-right font-medium bg-orange-50">Teaching unit</dt>
                 <dd
@@ -286,7 +286,7 @@ with ${role.years_of_experience} ${role.years_of_experience > 1 ? 'years' : 'yea
                     'col-span-1 sm:col-span-3 text-color-text break-words bg-orange-50',
                   )}
                 >
-                  {role ? role.teaching_unit : 'None'}
+                  {(role && role.teaching_unit) ? role.teaching_unit : (<div className='text-red-700 text-xl'>required!</div>)}
                 </dd>
                 <dt className="col-span-1 sm:text-right font-medium bg-orange-200">Years joined Monash</dt>
                 <dd
@@ -294,7 +294,7 @@ with ${role.years_of_experience} ${role.years_of_experience > 1 ? 'years' : 'yea
                     'col-span-1 sm:col-span-3 text-color-text break-words bg-orange-200',
                   )}
                 >
-                  {role ? role.joined_year : 'None'}
+                  {(role && role.joined_year)? role.joined_year : (<div className='text-red-700 text-xl'>required!</div>)}
                 </dd>
                 <dt className="col-span-1 sm:text-right font-medium bg-orange-50">The years of teaching experience</dt>
                 <dd
@@ -302,7 +302,7 @@ with ${role.years_of_experience} ${role.years_of_experience > 1 ? 'years' : 'yea
                     'col-span-1 sm:col-span-3 text-color-text break-words bg-orange-50',
                   )}
                 >
-                  {role ? role.years_of_experience : 'None'}
+                  {(role && role.years_of_experience) ? role.years_of_experience : (<div className='text-red-700 text-xl'>required!</div>)}
                 </dd>
               </dl>
               <hr />
