@@ -167,7 +167,7 @@ function Detail({id, title, process, selected, onClickImage}:
       // Add blink class to the selected element
       const selectedElement = document.getElementById(`${id}_ps_${selected}`);
       if (selectedElement) {
-          selectedElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          selectedElement.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'start' });
           selectedElement.classList.add('blink');
 
           // Remove blink class after 2 seconds
