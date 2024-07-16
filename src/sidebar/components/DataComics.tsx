@@ -60,6 +60,25 @@ function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[]
     }
   }
 
+  const onArrowClick = (index: number) => {
+    let totallength = 0;
+    for (let i = 0; i < index; i++) {
+      const nodeElement = document.getElementById(`${id}` + '_' + `${i}`);
+      if (nodeElement) {
+        totallength += nodeElement.clientWidth + 30;
+      }
+      const arrowElement = document.getElementById(`${id}` + '_' + `${i}` + '_arrow');
+      if (arrowElement) {
+        totallength += arrowElement.clientWidth;
+      }
+    }
+
+    if (scollRef.current) {
+      scollRef.current.scrollTo({left: totallength, behavior: 'smooth'});
+      onSelectImage(index);
+    }
+  }
+
   return (
     <>
       <div className="text-xl font-bold text-blue-chathams m-2" >Process Overview</div>
@@ -73,7 +92,11 @@ function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[]
         {process.map((p, index) => (
           <>
             {index !== 0 &&
-              <div className='max-w-16 mx-2'>
+              <div
+                className='max-w-16 mx-1 cursor-pointer'
+                id={id + '_' + index + '_arrow'}
+                onClick={() => onArrowClick(index)}
+              >
                 <ArrowIcon />
               </div>
             }
@@ -94,7 +117,7 @@ function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[]
               >
                 {p.name.toLowerCase() === 'match' ? (<b>&nbsp;</b>) : (<b>{p.name}</b>)}
               </div>
-              <div className='flex text-xs text-center max-w-32 p-2'>{truncateStringAtWhitespace(p.title, 40)}</div>
+              <div className='flex text-xs text-center max-w-32 pt-2'>{truncateStringAtWhitespace(p.title, 40)}</div>
             </div>
           </>
           )
