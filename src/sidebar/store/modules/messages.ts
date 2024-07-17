@@ -157,6 +157,10 @@ function allInstanceMessages(state: State) {
   return state.messages.filter(m => m.type === 'instant_message')
 }
 
+function allAdditionalMessages(state: State) {
+  return state.messages.filter(m => m.type === 'additional_knoledge')
+}
+
 function unreadMessages(state: State) {
   return state.unreadMessages;
 }
@@ -188,6 +192,7 @@ export const messagesModule = createStoreModule(initialState, {
     allMessages,
     allOrganisationEventMessages,
     allInstanceMessages,
+    allAdditionalMessages,
     unreadMessages,
     unreadMessageCount,
     allMessageCount,

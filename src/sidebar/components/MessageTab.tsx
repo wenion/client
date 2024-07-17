@@ -92,12 +92,14 @@ function MessageList({
  */
 export default function MessageTab() {
   const store = useSidebarStore();
+  const additionalThread = store.allAdditionalMessages();
   const organisationEventThreads = store.allOrganisationEventMessages();
   const instanceThreads = store.allInstanceMessages();
   const sortableThreads = organisationEventThreads.sort((a, b) => b.date - a.date); // Z -> A
 
   return (
     <>
+      <MessageList title='Additional knowledge' threads={additionalThread} />
       <MessageList title='ShareFlow recommendation' threads={instanceThreads} />
       <MessageList title='Organisation event' threads={sortableThreads} />
     </>
