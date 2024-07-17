@@ -281,17 +281,26 @@ function Detail({id, title, process, selected, onClickImage}:
                         'cursor-pointer',
                         'p-2'
                       )}
+                      title={step.url}
                       onClick={e => onClick(step.url)}
                     >
                       <b>Go to:&nbsp;</b> {step.title}
                     </div>
-                    // <img
-                    //   className='cursor-pointer hover:border-blue-chathams'
-                    //   alt={step.title}
-                    //   src={step.image}
-                    //   onClick={e => onClick(step.url)}
-                    // />
-                  ) :  (
+                  ) : step.type === 'getfocus' ? (
+                    <div
+                      className={classnames(
+                        'text-lg text-blue-chathams text-center',
+                        'border border-black my-0.5',
+                        'hover:shadow-lg',
+                        'cursor-pointer',
+                        'p-2'
+                      )}
+                      title={step.url}
+                      onClick={e => onClick(step.url)}
+                    >
+                      <b>Switch to&nbsp;</b> {step.title}
+                    </div>
+                  ) : (
                     <>
                       <img
                         className={classnames(
