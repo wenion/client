@@ -1,20 +1,25 @@
 import { CaretDownIcon, CaretRightIcon } from '@hypothesis/frontend-shared';
 import { useEffect, useState } from 'preact/hooks';
 import classnames from 'classnames';
+import { withServices } from '../service-context';
 
 import type { RawMessageData } from '../../types/api';
 import { useSidebarStore } from '../store';
 import MarkdownView from './MarkdownView';
 import { applyTheme } from '../helpers/theme';
 
+import type { RecordingService } from '../services/recording';
+
 type MessageListProps = {
   title: string;
   threads: RawMessageData[];
+  recordingService: RecordingService;
 };
 
 function MessageList({
   title,
   threads,
+  recordingService,
 }: MessageListProps) {
   const store = useSidebarStore();
   const isLoggedIn = store.isLoggedIn();
@@ -79,6 +84,23 @@ function MessageList({
                 markdown={child.message as string}
                 style={textStyle}
               />
+              {child.extra && child.extra.map(e => (
+              <div
+                className={classnames(
+                  "cursor-pointer",
+                  "text-blue-curious hover:text-blue-chathams underline underline-offset-1",
+                )}
+                onClick={() => {
+                  if (e.session_id && e.user_id) {
+                    store.selectTab('recording');
+                    store.changeRecordingStage('Idle');
+                    recordingService.getRecording(e.session_id, e.user_id)
+                  }
+                }}
+              >
+                <b>{e.task_name}</b>
+              </div>
+            ))}
             </div>
           </div>
         </div>
@@ -90,7 +112,7 @@ function MessageList({
 /**
  * The main content for the single annotation page (aka. https://hypothes.is/a/<annotation ID>)
  */
-export default function MessageTab() {
+function MessageTab({recordingService}: {recordingService: RecordingService;}) {
   const store = useSidebarStore();
   const additionalThread = store.allAdditionalMessages();
   const organisationEventThreads = store.allOrganisationEventMessages();
@@ -99,10 +121,11 @@ export default function MessageTab() {
 
   return (
     <>
-      <MessageList title='Additional knowledge' threads={additionalThread} />
-      <MessageList title='ShareFlow recommendation' threads={instanceThreads} />
-      <MessageList title='Organisation event' threads={sortableThreads} />
+      <MessageList title='Additional knowledge' threads={additionalThread} recordingService={recordingService} />
+      <MessageList title='ShareFlow recommendation' threads={instanceThreads} recordingService={recordingService} />
+      <MessageList title='Organisation event' threads={sortableThreads} recordingService={recordingService} />
     </>
   );
 }
 
+export default withServices(MessageTab, ['recordingService']);
