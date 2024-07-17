@@ -73,7 +73,7 @@ function ToastMessageContext({
         <div
           className={classnames(
             "cursor-pointer",
-            "text-red-500 hover:text-blue-600 underline underline-offset-1",
+            "text-blue-curious hover:text-blue-chathams underline underline-offset-1",
           )}
           onClick={() => callBack(e)}
         >

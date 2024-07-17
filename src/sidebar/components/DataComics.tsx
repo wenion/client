@@ -191,7 +191,7 @@ function Thumbnail({title, image, size, onClickEvent}: {
   }, [])
 
   return (
-    <div className='relative p-1 cursor-pointer border hover:border-blue-chathams'>
+    <div className='relative p-1 cursor-pointer border hover:shadow-lg my-0.5'>
       <img
         ref={imageRef}
         className={classnames(
@@ -275,11 +275,11 @@ function Detail({id, title, process, selected, onClickImage}:
                   step.type === 'Navigation' ? (
                     <div
                       className={classnames(
-                        'flex justify-center items-center',
-                        'text-xl text-blue-chathams',
-                        'border-2 border-black',
-                        'cursor-pointer hover:text-2xl',
-                        'p-4'
+                        'text-lg text-blue-chathams text-center',
+                        'border border-black my-0.5',
+                        'hover:shadow-lg',
+                        'cursor-pointer',
+                        'p-2'
                       )}
                       onClick={e => onClick(step.url)}
                     >
@@ -295,7 +295,8 @@ function Detail({id, title, process, selected, onClickImage}:
                     <>
                       <img
                         className={classnames(
-                          'inline cursor-pointer',
+                          'inline cursor-pointer my-0.5',
+                          'hover:shadow-lg',
                           'md:w-[200px]',
                           'lg:w-[300px]'
                           // {'max-w-80': !step.screenshot},
