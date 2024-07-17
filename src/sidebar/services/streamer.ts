@@ -180,14 +180,14 @@ export class StreamerService {
           })
         })
         const notification: RawMessageData = {
-          type: 'Highlights',
-          id: '123',
+          type: 'additional_knoledge',
+          id: generateHexString(7),
           title: 'Additional knowledge available',
           message: content,
           date: Date.now()*1000,
           show_flag: true,
           unread_flag: true,
-          need_save_flag: false,
+          need_save_flag: true,
         }
         this._store.addMessages([notification,]);
       }
