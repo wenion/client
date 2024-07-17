@@ -169,7 +169,7 @@ function SelectionTabs({
         >
           ShareFlow
         </Tab>
-        <Tab
+        {/* <Tab
           count={videoAnnotationCount}
           isWaitingToAnchor={isWaitingToAnchorAnnotations}
           isSelected={selectedTab === 'video'}
@@ -177,7 +177,7 @@ function SelectionTabs({
           onSelect={() => selectTab('video')}
         >
           Video annotations
-        </Tab>
+        </Tab> */}
         {orphanCount > 0 && (
           <Tab
             count={orphanCount}

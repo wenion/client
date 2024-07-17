@@ -629,17 +629,17 @@ export class Sidebar implements Destroyable {
 
   _setupGestures() {
     const toggleButton = this.toolbar.sidebarToggleButton;
-    if (toggleButton) {
-      this._hammerManager = new Hammer.Manager(toggleButton);
-      this._hammerManager.on(
-        'panstart panend panleft panright',
-        /* istanbul ignore next */
-        event => this._onPan(event),
-      );
-      this._hammerManager.add(
-        new Hammer.Pan({ direction: Hammer.DIRECTION_HORIZONTAL }),
-      );
-    }
+    // if (toggleButton) {
+    //   this._hammerManager = new Hammer.Manager(toggleButton);
+    //   this._hammerManager.on(
+    //     'panstart panend panleft panright',
+    //     /* istanbul ignore next */
+    //     event => this._onPan(event),
+    //   );
+    //   this._hammerManager.add(
+    //     new Hammer.Pan({ direction: Hammer.DIRECTION_HORIZONTAL }),
+    //   );
+    // }
   }
 
   // Schedule any changes needed to update the sidebar layout.
