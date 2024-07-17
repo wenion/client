@@ -1,7 +1,9 @@
 import { Scroll, ScrollContainer, ScrollContent } from '@hypothesis/frontend-shared';
-import { useEffect, useState, useRef } from 'preact/hooks';
+import { useEffect, useState, useRef, useLayoutEffect } from 'preact/hooks';
 import classnames from 'classnames';
+import debounce from 'lodash.debounce';
 
+import { ListenerCollection } from '../../shared/listener-collection';
 import type { dataComics, kmProcess, RecordingStepData } from '../../types/api';
 import ArrowIcon from '../../images/icons/dataComicsArrow';
 
@@ -137,6 +139,39 @@ function Thumbnail({title, image, size, onClickEvent}: {
   const imageRef = useRef<HTMLImageElement | null>(null);
   const circleRef = useRef<HTMLDivElement | null>(null);
 
+  useLayoutEffect(() => {
+    const listeners = new ListenerCollection();
+
+    const updateCirclePosition = debounce(
+      () => {
+        if (imageRef.current && circleRef.current && size.width && size.height && size.offsetX && size.offsetY) {
+          const width = size.width;
+          const height = size.height;
+          const offsetX = size.offsetX;
+          const offsetY = size.offsetY;
+
+          if (width && height && offsetY && offsetX) {
+            const widthToHeight = width / height;
+            const ratioHeight = imageRef.current.clientHeight/height;
+            const ratioWidth = widthToHeight * imageRef.current.clientHeight / width;
+
+            circleRef.current.style.top = Math.round(offsetY * ratioHeight - 8).toString() + "px";
+            circleRef.current.style.left = Math.round(offsetX * ratioWidth - 8).toString() + "px";
+          }
+        }
+      },
+      10,
+      { maxWait: 1000 }
+    );
+
+    listeners.add(window, 'resize', updateCirclePosition);
+
+    return () => {
+      listeners.removeAll();
+      updateCirclePosition.cancel();
+    };
+  }, [])
+
   useEffect(() => {
     if (imageRef.current && circleRef.current && size.width && size.height && size.offsetX && size.offsetY) {
       const width = size.width;
@@ -174,10 +209,12 @@ function Thumbnail({title, image, size, onClickEvent}: {
         alt={title}
         src={image}
       />
-      <div
-        ref={circleRef}
-        className='w-6 h-6 rounded-full absolute border-2 border-blue-500 bg-blue-100/35 transition-all'
-      />
+      {size && size.offsetX && size.offsetY && (
+        <div
+          ref={circleRef}
+          className='w-6 h-6 rounded-full absolute border-2 border-blue-500 bg-blue-100/35 transition-all'
+        />
+      )}
     </div>
   )
 
