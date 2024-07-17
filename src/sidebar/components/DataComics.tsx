@@ -341,9 +341,9 @@ export default function DataComicsNote({data, onDataComicsEvent}: {data: dataCom
   return (
     <div className="data-comics-height">
       <ScrollContainer borderless>
-        <div className='bg-white'>
+        {/* <div className='bg-white'>
           {data.KM_Process && <SiteMap id={data.sessionId} process={data.KM_Process} onSelectImage={setSelectIndex}/>}
-        </div>
+        </div> */}
         <Scroll>
           <ScrollContent>
             <div className='bg-white'>
