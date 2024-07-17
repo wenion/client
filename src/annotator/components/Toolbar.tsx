@@ -6,8 +6,8 @@ import {
   CaretLeftIcon,
   HideIcon,
   NoteIcon,
+  SearchIcon,
   ShowIcon,
-  IconButton,
 } from '@hypothesis/frontend-shared';
 import type { ButtonProps } from '@hypothesis/frontend-shared/lib/components/input/Button';
 import type {
@@ -254,9 +254,18 @@ export default function Toolbar({
                 onClick={createAnnotation}
               />
               <ToolbarButton
-                title='Chat'
-                icon={isOnChat? chatIcon : chatOffIcon}
+                title='Find more'
+                icon={SearchIcon}
                 onClick={toggleChatting}
+                classes={isOnChat? classnames(
+                  'justify-center rounded',
+                  'w-[30px] h-[30px]',
+                  'shadow border bg-white text-blue-curious'
+                ) : classnames(
+                    'justify-center rounded',
+                    'w-[30px] h-[30px]',
+                    'shadow border bg-white text-grey-6 hover:text-grey-9')
+                  }
               />
             </>
           )}
