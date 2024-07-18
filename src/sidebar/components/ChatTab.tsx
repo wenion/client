@@ -1,6 +1,7 @@
 import { Callout } from '@hypothesis/frontend-shared';
 import { useEffect, useRef, useMemo } from 'preact/hooks';
 
+import { useShortcut } from '../../shared/shortcut';
 import classnames from 'classnames';
 import { withServices } from '../service-context';
 import { username } from '../helpers/account-id';
@@ -35,7 +36,7 @@ function ChatTab({ api, toastMessenger, mode, queryService, recordingService}: C
 
   const role = store.profile().role ?? null;
 
-  const onQuery = (event: Event) => {
+  const onQuery = () => {
     queryService.queryActivity(inputRef.current!.value);
   }
 
@@ -73,6 +74,8 @@ with ${role.years_of_experience} ${role.years_of_experience > 1 ? 'years' : 'yea
       bl.src = 'https://chat.kmass.io/'
     }
   }, [subjectId, taskId, model, token])
+
+  useShortcut('Enter', () => onQuery());
 
   return (
     <div className='chat-height'>
