@@ -571,7 +571,7 @@ export class Sidebar implements Destroyable {
         }
       }
       else {
-
+        close();
       }
     })
 
@@ -851,6 +851,7 @@ export class Sidebar implements Destroyable {
   turnOnChat(value: boolean) {
     this.toolbar.isOnChat = value
     this._sidebarRPC.call('openChat', value);
+    this.open();
   }
 
   notifyRecordingStatus(status: 'off' | 'ready' | 'on') {
