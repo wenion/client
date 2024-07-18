@@ -83,30 +83,36 @@ function RecordingTab({
           </Overlay>
         </>
       )}
-      {recordingStage === 'Idle' && selectedRecording == null && (
-        <RecordingList />
-      )}
-      {recordingStage === 'Idle' && selectedRecording && selectedRecording.action == 'view' &&(
-        <TimelineList recording={selectedRecording} onSelectImage={onSelectImage} onDataComicsEvent={onDataComicsEvent}/>
-      )}
-      {recordingStage === 'Idle' && selectedRecording && selectedRecording.action == 'delete' && (
+      {recordingStage === 'Idle' && (
         <>
-          <RecordingList />
-          <Overlay class='bg-black/80' onClick={()=>store.clearSelectedRecord()}>
-            <div className='flex items-center'>
-              <Panel title='Confirm Delete' onClick={(event)=>event.stopPropagation()} buttons={<>
-                <Button onClick={()=>store.clearSelectedRecord()}>
-                  Cancel
-                </Button>
-                <Button onClick={()=>deleteRecording()} variant="primary">
-                  Delete
-                </Button>
-              </>}>
-                <p>Are you sure you want to delete "<b>{selectedRecording.taskName}</b>"?</p>
-              </Panel>
-            </div>
-          </Overlay>
-      </>
+          {selectedRecording ? (
+            <>
+            {selectedRecording.action == 'delete' ? (
+              <>
+                <RecordingList />
+                <Overlay class='bg-black/80' onClick={()=>store.clearSelectedRecord()}>
+                  <div className='flex items-center'>
+                    <Panel title='Confirm Delete'
+                      onClick={(event)=>event.stopPropagation()}
+                      buttons={(
+                        <>
+                          <Button onClick={()=>store.clearSelectedRecord()}>Cancel</Button>
+                          <Button onClick={()=>deleteRecording()} variant="primary">Delete</Button>
+                        </>)}
+                    >
+                      <p>Are you sure you want to delete "<b>{selectedRecording.taskName}</b>"?</p>
+                    </Panel>
+                  </div>
+                </Overlay>
+              </>
+            ) : (
+              <TimelineList recording={selectedRecording} onSelectImage={onSelectImage} onDataComicsEvent={onDataComicsEvent}/>
+            )}
+            </>
+          ) : (
+            <RecordingList />
+          )}
+        </>
       )}
     </>
   );
