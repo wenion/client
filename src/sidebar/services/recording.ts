@@ -367,7 +367,8 @@ export class RecordingService extends TinyEmitter{
     let should_next = next;
     try {
       const url = this._store.mainFrame()?.uri;
-      if (this._store.getDefault('focus') === 'onFocused' && this.isInWhitelist(url) && _interval >= 0) {
+      console.log("focus", this._store.getDefault('focus'), "_interval", _interval)
+      if (this._store.getDefault('focus') === 'onFocused' && _interval >= 0) {
         const responses = await this._api.pull({q: q, interval: interval, url: url});
         for (const r of responses) {
           if (r.type === 'instant_message') {
