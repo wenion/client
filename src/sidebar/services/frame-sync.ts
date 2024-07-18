@@ -451,9 +451,9 @@ export class FrameSyncService {
           this._hostRPC.call('isLoggedIn', true)
           this._hostRPC.call('webClipping', {savePage: false})
         }
-        if (isLoggedIn && isLoggedIn !== prevIsLoggedIn) {
-          this._recordingService.fetchHighlight(this._store.mainFrame()?.uri)
-        }
+        // if (isLoggedIn && isLoggedIn !== prevIsLoggedIn) {
+        //   this._recordingService.fetchHighlight(this._store.mainFrame()?.uri)
+        // }
         else {
           this._recordingService.unloadRecords();
           this._store.clearMessages();
