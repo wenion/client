@@ -477,7 +477,6 @@ export class Sidebar implements Destroyable {
         this.toolbar.enableFeatures = true
       }
       else {
-        this.open();
         this.toolbar.enableFeatures = false
         this.setHighlightsVisible(false);
         this.setIsSilent(true);
