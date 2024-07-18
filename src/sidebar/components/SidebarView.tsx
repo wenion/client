@@ -16,11 +16,14 @@ import ThreadList from './ThreadList';
 import VideoThreadList from './VideoThreadList';
 import MessageTab from './MessageTab';
 import RecordingTab from './RecordingTab';
+import RecordingPopup from './RecordingPopup';
 import ChatTab from './ChatTab';
 import { useRootThread } from './hooks/use-root-thread';
 import { useRootVideoThread } from './hooks/use-root-video-thread';
 import FilterStatus from './old-search/FilterStatus';
 import FilterAnnotationsStatus from './search/FilterAnnotationsStatus';
+
+import RecordingOffIcon from '../../images/icons/recordingOff';
 
 export type SidebarViewProps = {
   onLogin: () => void;
@@ -69,6 +72,7 @@ function SidebarView({
   const userId = store.profile().userid;
   const mode = store.getDefault('mode') as 'Baseline' | 'GoldMind' | 'Query' ;
   const taskId = recordingService.getExtensionStatus().recordingTaskName;
+  const recordingStage = store.currentRecordingStage();
 
   // If, after loading completes, no `linkedAnnotation` object is present when
   // a `linkedAnnotationId` is set, that indicates an error
@@ -146,9 +150,17 @@ function SidebarView({
     <div>
       {mode === 'Baseline' && (
         <>
-          {/* {taskId === '' && <SelectionTabs isLoading={isLoading} />} */}
-          {taskId === '' && <RecordingTab />}
-          {taskId !== '' && <ChatTab mode={mode} />}
+          {recordingStage === 'Request' && <RecordingPopup/>}
+          {recordingStage === 'Idle' && (
+            <div>
+              Please click the record button
+              <div className="inline">
+                <RecordingOffIcon className="inline"/>
+              </div>
+              on the left side to start ChatUI.
+            </div>
+          )}
+          {recordingStage === 'Start' && <ChatTab mode={mode} />}
         </>
       )}
       {mode === 'GoldMind' && (

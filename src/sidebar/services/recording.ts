@@ -354,12 +354,21 @@ export class RecordingService extends TinyEmitter{
     )
   }
 
+  isInWhitelist(url?: string) {
+    if (url) {
+      const whitelist = this._store.getWhitelist();
+      return whitelist.some(whitelist => url.includes(whitelist));
+    }
+    return false;
+  }
+
   async fetchMessage(q: string, interval: number, next: boolean) {
     let _interval = interval;
     let should_next = next;
     try {
-      if (this._store.getDefault('focus') === 'onFocused') {
-        const responses = await this._api.message({q: q, interval: interval, url: this._store.mainFrame()?.uri});
+      const url = this._store.mainFrame()?.uri;
+      if (this._store.getDefault('focus') === 'onFocused' && this.isInWhitelist(url) && _interval >= 0) {
+        const responses = await this._api.pull({q: q, interval: interval, url: url});
         for (const r of responses) {
           if (r.type === 'instant_message') {
             _interval = r.interval?? interval;

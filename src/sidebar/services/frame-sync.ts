@@ -473,9 +473,9 @@ export class FrameSyncService {
 
     watch(
       this._store.subscribe,
-      () => this._store.mainFrame(),
-      (mainFrame, prevMainFrame) => {
-        if (mainFrame && !prevMainFrame) {
+      () => this._store.getWhitelist(),
+      (whitelist, prevWhitelist) => {
+        if (whitelist.length && !prevWhitelist.length) {
           this._recordingService.startFecthMessage();
         }
       }
