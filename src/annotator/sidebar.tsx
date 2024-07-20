@@ -555,7 +555,7 @@ export class Sidebar implements Destroyable {
     this._sidebarRPC.on('expandSidebar', (option: {action: string}) => {
       if (this.iframeContainer) {
         if (option.action === 'open') {
-          this.open();
+          // this.open();
           const suggestedWidth = Math.round(window.innerWidth * 0.4);
           const stringWidth = suggestedWidth.toString() + 'px';
           const stringMarginLeft = (-suggestedWidth).toString() + 'px';
@@ -567,7 +567,7 @@ export class Sidebar implements Destroyable {
           this.iframeContainer.style.marginLeft= '-428px';
           this.iframeContainer.style.width = '';
           this.iframeContainer.removeAttribute('width');
-          close();
+          // close();
         }
       }
       else {
