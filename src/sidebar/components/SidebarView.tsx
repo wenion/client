@@ -18,6 +18,7 @@ import MessageTab from './MessageTab';
 import RecordingTab from './RecordingTab';
 import RecordingPopup from './RecordingPopup';
 import ChatTab from './ChatTab';
+import QueryTab from './QueryTab';
 import { useRootThread } from './hooks/use-root-thread';
 import { useRootVideoThread } from './hooks/use-root-video-thread';
 import FilterStatus from './old-search/FilterStatus';
@@ -146,21 +147,29 @@ function SidebarView({
     }
   }, [hasFetchedProfile, isLoggedIn, sidebarHasOpened, streamer]);
 
+  useEffect(() => {}, [mode])
+
   return (
     <div>
       {mode === 'Baseline' && (
         <>
-          {recordingStage === 'Request' && <RecordingPopup/>}
-          {recordingStage === 'Idle' && (
-            <div>
-              Please click the record button
-              <div className="inline">
-                <RecordingOffIcon className="inline"/>
+        {taskId !== '' ? (
+          <ChatTab />
+        ) : (
+          <>
+            {recordingStage === 'Request' && <RecordingPopup/>}
+            {recordingStage === 'Idle' && (
+              <div>
+                Please click the record button
+                <div className="inline">
+                  <RecordingOffIcon className="inline"/>
+                </div>
+                on the left side to start ChatUI.
               </div>
-              on the left side to start ChatUI.
-            </div>
-          )}
-          {recordingStage === 'Start' && <ChatTab mode={mode} />}
+            )}
+            {/* {recordingStage === 'Start' && <ChatTab/>} */}
+          </>
+        )}
         </>
       )}
       {mode === 'GoldMind' && (
@@ -190,7 +199,7 @@ function SidebarView({
         </>
       )}
       {mode === 'Query' && (
-        <ChatTab mode={mode}/>
+        <QueryTab/>
       )}
     </div>
   );
