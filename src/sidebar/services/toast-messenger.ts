@@ -154,7 +154,7 @@ export class ToastMessengerService extends TinyEmitter {
   message(rawMessage: RawMessageData, options?: MessageOptions) {
     const message: ToastMessage = {
       ...rawMessage,
-      autoDismiss: false,
+      autoDismiss: true,
       visuallyHidden: this._visuallyHidden,
     };
 
