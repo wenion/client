@@ -221,21 +221,26 @@ export class RecordingService extends TinyEmitter{
   }
 
   async clearNewRecording(sessionId:string) {
-    const result = await this._api.recording.update({
-      id: sessionId
-    }, {
-      endstamp: Date.now(),
-      action: 'finish',
-    })
-    if (result.steps) {
-      result.steps = result.steps.map(step => {
-        return mapToObjectFormat(step);
-      });
+    try {
+      const result = await this._api.recording.update(
+        { id: sessionId },
+        {
+          endstamp: Date.now(),
+          action: 'finish',
+        }
+      );
+      if (result.steps) {
+        result.steps = result.steps.map(step => {
+          return mapToObjectFormat(step);
+        });
+      }
+      this._store.addRecords([result,]);
+      this._store.selectTab('recording');
+      this._store.selectRecordBySessionId(sessionId, 'view');
+      this.refreshRecordingInfo('off', '', '');
+    } catch (error) {
+      this.refreshRecordingInfo('off', '', '');
     }
-    this._store.addRecords([result,]);
-    this._store.selectTab('recording');
-    this._store.selectRecordBySessionId(sessionId, 'view');
-    this.refreshRecordingInfo('off', '', '')
   }
 
   async loadBatchRecords(uri: string) {
