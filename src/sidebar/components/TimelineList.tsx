@@ -202,14 +202,8 @@ export default function TimelineList({
   return (
     <>
       <div className='flex items-center mb-1'>
-        {dcView ? (
-          <div className="flex-1"></div>
-        ) : (
-          <>
-            <div className='flex-none size-3 bg-blue-700 rounded-full'></div>
-            <h1 className='m-2 grow text-xl'>{recording.taskName}</h1>
-         </>
-        )}
+        <div className='flex-none size-3 bg-blue-700 rounded-full'></div>
+        <h1 className='m-2 grow text-xl'>{recording.taskName}</h1>
         <Button classes={classnames('flex-none', 'border-black')} onClick={() => toggleView()}>Switch</Button>
         <Button classes={classnames('flex-none')} onClick={() => store.clearSelectedRecord()}><LeaveIcon /></Button>
       </div>
