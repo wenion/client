@@ -4,17 +4,19 @@ import { useEffect, useRef, useMemo } from 'preact/hooks';
 import classnames from 'classnames';
 import { withServices } from '../service-context';
 import { username } from '../helpers/account-id';
+import type { FrameSyncService } from '../services/frame-sync';
 import type { RecordingService } from '../services/recording';
 import { useSidebarStore } from '../store';
 
 export type ChatTabProps = {
+  frameSync: FrameSyncService;
   recordingService: RecordingService;
 };
 
 /**
  * The main content of the "stream" route (https://hypothes.is/stream)
  */
-function ChatTab({recordingService}: ChatTabProps) {
+function ChatTab({frameSync, recordingService}: ChatTabProps) {
   const baselineRef = useRef<HTMLIFrameElement | null>(null);
   const store = useSidebarStore();
   const subjectId = username(store.profile().userid);
@@ -52,6 +54,17 @@ with ${role.years_of_experience} ${role.years_of_experience > 1 ? 'years' : 'yea
     }
   }, [subjectId, taskId, model, token])
 
+  const onMouseEvent = (text: string) => {
+    console.log(text);
+    frameSync.sendTraceData(
+      'click',
+      'MESSAGE',
+      'hypothesis-sidebar',
+      text,
+      JSON.stringify({text: text, source: 'ChatUI'}),
+    )
+  }
+
   return (
     <div className='chat-height'>
     {subjectId && taskId !== '' && model && token && role ? (
@@ -60,6 +73,8 @@ with ${role.years_of_experience} ${role.years_of_experience > 1 ? 'years' : 'yea
         src="https://chat.kmass.io/"
         title="Baseline Tool"
         className={classnames('w-full h-full')}
+        onMouseOver={() => onMouseEvent("ENTERING_PULL_STATE")}
+        onMouseOut={() => onMouseEvent("EXITING_PULL_STATE")}
       />
     ) : (
       <Callout status="error">
@@ -70,4 +85,4 @@ with ${role.years_of_experience} ${role.years_of_experience > 1 ? 'years' : 'yea
   );
 }
 
-export default withServices(ChatTab, ['recordingService']);
+export default withServices(ChatTab, ['frameSync', 'recordingService']);
