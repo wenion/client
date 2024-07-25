@@ -75,12 +75,12 @@ function RecordingTab({
       {recordingStage === 'Start' && (
         <>
           <RecordingList />
-          <Overlay class='bg-black/80'>
+          {/* <Overlay class='bg-black/80'>
             <div className='flex items-center'>
               <Spinner color='text' size='lg'/>
               <div className='text-2xl'>{taskName && taskName + '  is recording now...'}</div>
             </div>
-          </Overlay>
+          </Overlay> */}
         </>
       )}
       {recordingStage === 'Idle' && (
