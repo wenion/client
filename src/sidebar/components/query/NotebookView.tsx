@@ -61,7 +61,7 @@ function NotebookView({ queryService }: NotebookViewProps) {
 
   return (
     <div>
-      <div className="text-xl my-4" data-testid="notebook-group-name">
+      <div className="text-xl my-4 break-all" data-testid="notebook-group-name">
         Search results for: {queryService.getQueryWord()}
       </div>
       <p className="text-xl">

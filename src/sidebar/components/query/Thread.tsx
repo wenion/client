@@ -70,19 +70,20 @@ function Thread({ thread, threadsService, queryService}: ThreadProps) {
     <>
       <header class="flex">
         <h1
-          class="grow self-center text-left ml-10 text-xl font-robo"
+          class="grow self-center text-left ml-10 text-xl font-robo break-all cursor-pointer"
+          onClick={e => {onClickExpand()}}
         >
           {thread.title}
         </h1>
-        <div className="grow-0 p-4 finger-cursor" onClick={ e => { queryService.setBookmark(thread.id, !thread.isBookmark) }}>
+        <div className="grow-0 p-4 cursor-pointer" onClick={ e => { queryService.setBookmark(thread.id, !thread.isBookmark) }}>
           { thread.isBookmark ? <BookmarkFilledIcon /> : <BookmarkIcon />}
         </div>
-        <div className="grow-0 p-4 finger-cursor" onClick={ e => { onClickExpand() }}>
+        <div className="grow-0 p-4 cursor-pointer" onClick={ e => { onClickExpand() }}>
           { isExpanded ? <MenuCollapseIcon /> : <MenuExpandIcon />}
         </div>
       </header>
-      <div class="finger-cursor hover:text-blue-400" ref={content} onClick={() => onClickResult(thread)}>
-        <div class="grid grid-cols-6 gap-4 finger-cursor">
+      <div class="cursor-pointer hover:text-blue-400" ref={content} onClick={() => onClickResult(thread)}>
+        <div class="grid grid-cols-6 gap-4 cursor-pointer">
           <div class="flex self-center justify-center">
             {thread.dataType === "pdf" ? (
               <FilePdfIcon className="w-8 h-8"
