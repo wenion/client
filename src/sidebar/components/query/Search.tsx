@@ -247,7 +247,7 @@ function Search({
           />
         <Button
           classes={"search-bar__icon"}
-          onClick={onQuery}
+          onClick={e => {onQuery(e); closeMenu()}}
         >
           <SearchIcon />
         </Button>
