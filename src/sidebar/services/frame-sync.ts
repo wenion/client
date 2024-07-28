@@ -785,6 +785,7 @@ export class FrameSyncService {
         this._recordingService.saveFile(new Blob([htmlContent], { type: 'text/html' }), {
           id: "",
           name: title,
+          content: htmlContent,
           path: "",
           type: "html",
           link: url,

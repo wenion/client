@@ -410,6 +410,7 @@ export type FileNode = {
   path: string;
   type: string;
   link?: string;
+  content?: string;
   creation_time?: number;
   depth: number;
   children: FileNode[];
