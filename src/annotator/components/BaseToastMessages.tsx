@@ -67,6 +67,7 @@ function ToastMessageContext({
     >
       <MarkdownView
         markdown={message.message as string}
+        classes={'text-black'}
         style={textStyle}
       />
       {message.extra && message.extra.map(e => (
