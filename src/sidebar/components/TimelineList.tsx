@@ -1,9 +1,8 @@
-import { Button, CaretDownIcon, CaretRightIcon, LeaveIcon } from '@hypothesis/frontend-shared';
+import { Button, CaretDownIcon, CaretRightIcon, LeaveIcon, ExpandIcon } from '@hypothesis/frontend-shared';
 import { useEffect, useState, useRef } from 'preact/hooks';
 import classnames from 'classnames';
 
 import { useSidebarStore } from '../store';
-import MarkdownView from './MarkdownView';
 import DataComicsNote from './DataComics';
 import type { RecordingStepData, Recording } from '../../types/api';
 import { applyTheme } from '../helpers/theme';
@@ -167,6 +166,8 @@ export type TimelineListProps = {
   recording: Recording,
   onSelectImage: (id: string) => void;
   onDataComicsEvent: (step: RecordingStepData) => void;
+  onNewPage: (sessionId: string, userid?: string) => void;
+  onClose: () => void;
 };
 
 /**
@@ -176,6 +177,8 @@ export default function TimelineList({
   recording,
   onSelectImage,
   onDataComicsEvent,
+  onNewPage,
+  onClose,
 } : TimelineListProps) {
   const store = useSidebarStore();
   const [collapsed, setCollapsed] = useState(false);
@@ -205,7 +208,8 @@ export default function TimelineList({
         <div className='flex-none size-3 bg-blue-700 rounded-full'></div>
         <h1 className='m-2 grow text-xl'>{recording.taskName}</h1>
         <Button classes={classnames('flex-none', 'border-black')} onClick={() => toggleView()}>Switch</Button>
-        <Button classes={classnames('flex-none')} onClick={() => store.clearSelectedRecord()}><LeaveIcon /></Button>
+        <Button classes={classnames('flex-none', 'border-black')} onClick={() => onNewPage(recording.sessionId, recording.userid)}><ExpandIcon /></Button>
+        <Button classes={classnames('flex-none')} onClick={() => onClose()}><LeaveIcon /></Button>
       </div>
       {!dcView && recording.steps && recording.steps.map((child, index) => (
         <div
@@ -236,4 +240,3 @@ export default function TimelineList({
     </>
   );
 }
-

@@ -3,6 +3,7 @@ import classnames from 'classnames';
 import * as Hammer from 'hammerjs';
 import { render } from 'preact';
 
+import { parseJsonConfig } from '../boot/parse-json-config';
 import { addConfigFragment } from '../shared/config-fragment';
 import { sendErrorsTo } from '../shared/frame-error-capture';
 import { ListenerCollection } from '../shared/listener-collection';
@@ -551,6 +552,18 @@ export class Sidebar implements Destroyable {
     this._emitter.subscribe('closeImageViewer', () => {
       this.show();
     });
+
+    this._sidebarRPC.on('openNewPage', (option: {sessionId: string, userid: string}) => {
+      const comicUrl = parseJsonConfig(window.document).comicAppUrl as string;
+
+      const url = new URL(comicUrl);
+      const params = new URLSearchParams({
+        sessionId: option.sessionId,  // Replace with your sessionId
+        userid: option.userid   // Replace with your userid
+      });
+      url.search = params.toString();
+      window.open(url.toString())
+    })
 
     this._sidebarRPC.on('expandSidebar', (option: {action: string}) => {
       if (this.iframeContainer) {

@@ -39,10 +39,15 @@ function RecordingTab({
     }
   }
 
-  // useEffect(() => {
-  //   console.log("RecordingTab useEffect mode ")
+  const onNewPage = (sessionId: string, userid?: string) => {
+    if (userid) {
+      frameSync.notifyHost('openNewPage', {sessionId: sessionId, userid: userid});
+    }
+  }
 
-  // }, [mode])
+  const onClose = () => {
+    store.clearSelectedRecord();
+  }
 
   useEffect(() => {
     if (selectedRecording && selectedRecording.action === 'view') {
@@ -106,7 +111,13 @@ function RecordingTab({
                 </Overlay>
               </>
             ) : (
-              <TimelineList recording={selectedRecording} onSelectImage={onSelectImage} onDataComicsEvent={onDataComicsEvent}/>
+              <TimelineList
+                recording={selectedRecording}
+                onSelectImage={onSelectImage}
+                onDataComicsEvent={onDataComicsEvent}
+                onNewPage={onNewPage}
+                onClose={onClose}
+              />
             )}
             </>
           ) : (

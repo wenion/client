@@ -1,6 +1,6 @@
 import type { SidebarStore } from '../store';
 
-type RouteName = 'annotation' | 'notebook' | 'profile' | 'stream' | 'sidebar';
+type RouteName = 'annotation' | 'comic' | 'notebook' | 'profile' | 'stream' | 'sidebar';
 
 type RouteParams = Record<string, string>;
 
@@ -51,6 +51,9 @@ export class RouterService {
       case 'a':
         route = 'annotation';
         params.id = pathSegments[1] || '';
+        break;
+      case 'comic':
+        route = 'comic';
         break;
       case 'notebook':
         route = 'notebook';

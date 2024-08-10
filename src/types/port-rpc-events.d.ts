@@ -212,6 +212,7 @@ export type SidebarToHostEvent =
    */
   | 'openNotebook'
   | 'openImageViewer'
+  | 'openNewPage'
   | 'expandSidebar'
   | 'webClipping'
 
