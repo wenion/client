@@ -460,6 +460,7 @@ export class FrameSyncService {
           this._messageChannel.port1.postMessage({source:"sidebar", loggedOut: !isLoggedIn})
           this._hostRPC.call('isLoggedIn', false)
         }
+        this._messageChannel.port1.postMessage({source:"sidebar", init: true})
       }
     );
 

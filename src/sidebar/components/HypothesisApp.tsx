@@ -70,7 +70,7 @@ function HypothesisApp({
     if (unreadMessages.length) {
       unreadMessages.map(
         msg => {
-          if (msg.show_flag) {
+          if (msg.show_flag && store.getDefault('focus') === 'onFocused') {
             toastMessenger.message(msg)
           }
         }
