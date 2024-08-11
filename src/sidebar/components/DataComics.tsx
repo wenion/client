@@ -1,10 +1,12 @@
 import { Scroll, ScrollContainer, ScrollContent } from '@hypothesis/frontend-shared';
 import { useEffect, useState, useRef, useLayoutEffect } from 'preact/hooks';
+import scrollIntoView from 'scroll-into-view';
 import classnames from 'classnames';
 import debounce from 'lodash.debounce';
 
 import { ListenerCollection } from '../../shared/listener-collection';
 import type { dataComics, kmProcess, RecordingStepData } from '../../types/api';
+import Detail from './DataComicsDetail';
 import ArrowIcon from '../../images/icons/dataComicsArrow';
 
 
@@ -220,127 +222,6 @@ function Thumbnail({title, image, size, onClickEvent}: {
 
 }
 
-function Detail({id, title, process, selected, onClickImage}:
-  {id: string; title: string, process: kmProcess[], selected: number, onClickImage: (step: RecordingStepData) => void;}) {
-
-  const onClick = (url: string) => {
-    window.open(url, '_blank');
-  }
-
-  useEffect(() => {
-      // Add blink class to the selected element
-      const selectedElement = document.getElementById(`${id}_ps_${selected}`);
-      if (selectedElement) {
-          selectedElement.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'start' });
-          selectedElement.classList.add('blink');
-
-          // Remove blink class after 2 seconds
-          const timeout = setTimeout(() => {
-              selectedElement.classList.remove('blink');
-          }, 1500);
-
-          // Clean up timeout if component unmounts or selected changes
-          return () => clearTimeout(timeout);
-      }
-  }, [selected]);
-
-  return (
-    <>
-      <p className="text-xl font-bold text-blue-chathams m-2" >Process in Detail</p>
-      <div className="text-2xl font-bold text-center text-blue-chathams">
-        {title}
-      </div>
-
-      <div
-        className='data-comics-grid'
-      >
-      {process.map(
-        (p, index) =>
-          (
-            <>
-              <div
-                className={classnames(
-                  'relative flex justify-center h-full w-full cursor-pointer',
-                  {'data-comics-node': index}
-                )}
-                id={id + '_ps_' + index}
-              >
-                <div className='text-2xl'>{index + 1}</div>
-              </div>
-              <div
-                className={classnames({'data-comics-content': index})}
-                id={id}
-              >
-                {p.steps && p.steps.map((step, index, arr)  => (
-                  step.type === 'Navigation' ? (
-                    <div
-                      className={classnames(
-                        'text-lg text-blue-chathams text-center',
-                        'border border-black my-0.5',
-                        'hover:shadow-lg',
-                        'cursor-pointer',
-                        'p-2'
-                      )}
-                      title={step.url}
-                      onClick={e => onClick(step.url)}
-                    >
-                      <b>Go to:&nbsp;</b> {step.title}
-                    </div>
-                  ) : step.type === 'getfocus' ? (
-                    <div
-                      className={classnames(
-                        'text-lg text-blue-chathams text-center',
-                        'border border-black my-0.5',
-                        'hover:shadow-lg',
-                        'cursor-pointer',
-                        'p-2'
-                      )}
-                      title={step.url}
-                      onClick={e => onClick(step.url)}
-                    >
-                      <b>Switch to&nbsp;</b> {step.title}
-                    </div>
-                  ) : (
-                    <>
-                      <img
-                        className={classnames(
-                          'inline cursor-pointer my-0.5',
-                          'hover:shadow-lg',
-                          'md:w-[200px]',
-                          'lg:w-[300px]'
-                          // {'max-w-80': !step.screenshot},
-                          // {'max-w-80': step.screenshot && !(index > 0 && arr[index-1].screenshot)} // previous is not screenshot
-                        )}
-                        alt={step.title}
-                        src={step.image}
-                        onClick={() => onClickImage({
-                          type: 'screenshot',
-                          id: 'screenshot',
-                          image: step.image,
-                          width : step.width?? 0,
-                          height : step.height?? 0,
-                        })}
-                      />
-                      {step.screenshot && (
-                        <Thumbnail
-                          title={step.title}
-                          image={step.screenshot}
-                          size={{width:step.width, height:step.height, offsetX:step.offsetX, offsetY:step.offsetY}}
-                          onClickEvent={onClickImage}
-                        />
-                      )}
-                    </>
-                  )
-                ))}
-              </div>
-            </>
-          )
-      )}
-      </div>
-    </>
-  )
-}
-
 /**
  * Create the iframe that will load the notebook application.
  */
@@ -357,7 +238,7 @@ export default function DataComicsNote({data, onDataComicsEvent}: {data: dataCom
         <Scroll>
           <ScrollContent>
             <div className='bg-white'>
-              {data.KM_Process && <Detail id={data.sessionId} title={data.taskName} process={data.KM_Process} selected={selectIndex} onClickImage={onDataComicsEvent}/>}
+              {data.KM_Process && <Detail id={data.sessionId} userid={data.userid} title={data.taskName} process={data.KM_Process} selected={selectIndex} onClickImage={onDataComicsEvent}/>}
             </div>
           </ScrollContent>
         </Scroll>

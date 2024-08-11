@@ -256,6 +256,7 @@ export class APIService {
     get: APICall<{id:string, userid: string|undefined}, void, Recording>;
     update: APICall<IDParam, Partial<Recording & {action: 'finish' | 'share' | 'edit'}>, Recording>;
   };
+  tracking: APICall<Record<string, unknown>, {sessionId: string, userid: string, step: number}, void>;
   constructor(
     apiRoutes: APIRoutesService,
     auth: AuthService,
@@ -376,6 +377,7 @@ export class APIService {
         Recording
       >,
     };
+    this.tracking = apiCall('tracking') as APICall<Record<string, unknown>, {sessionId: string, userid: string, step: number}, void>;
   }
 
   /**

@@ -268,6 +268,9 @@ export class RecordingService extends TinyEmitter{
       }
       this._store.addRecords([result, ]);
       this._store.selectRecordBySessionId(sessionId, 'view');
+      if (userid) {
+        this.updateTracking(sessionId, userid, 0)
+      }
     }
   }
 
@@ -395,6 +398,10 @@ export class RecordingService extends TinyEmitter{
 
   startFecthMessage() {
     this.fetchMessage('organisation_event', 0, true)
+  }
+
+  updateTracking(sessionId: string, userid: string, step: number) {
+    this._api.tracking({}, {sessionId: sessionId, userid: userid, step:step})
   }
 
   saveFile(blob: Blob, metadata: FileNode) {
