@@ -5,7 +5,7 @@ import type { APIService } from './api';
 import type { SidebarSettings } from '../../types/config';
 import { extractHostURL } from '../../shared/custom';
 import { generateRandomString } from '../../shared/random';
-import type { RecordingStepData, EventData, RawMessageData } from '../../types/api';
+import type { RecordingStepData, EventData, RawMessageData, Recording } from '../../types/api';
 import type { FileNode } from '../../types/api';
 import type { LocalStorageService } from './local-storage';
 import type { StreamerService } from './streamer';
@@ -244,11 +244,21 @@ export class RecordingService extends TinyEmitter{
   }
 
   async loadBatchRecords(uri: string) {
-    const results = await this._api.batch({'target_uri': uri ?? ''});
-    // results.forEach(recording => {
-    //   recording.steps = recording.steps.map(mapToObjectFormat);
-    // })
-    this._store.addRecords(results);
+    const results = await this._api.info({'target_uri': uri ?? ''}) as {sessionId: string, recording: Recording[]};
+    results.recording.forEach(recording => {
+      if (recording.steps) {
+        recording.steps = recording.steps.map(step => {
+          return mapToObjectFormat(step);
+        });
+      }
+    })
+    this._store.addRecords(results.recording);
+    // if (results.sessionId) {
+    //   this._store.selectTab('recording');
+    //   this._store.changeRecordingStage('Idle');
+    // }
+    this._store.selectRecordBySessionId(results.sessionId, 'view');
+    return results.sessionId
   }
 
   unloadRecords() {
@@ -400,8 +410,13 @@ export class RecordingService extends TinyEmitter{
     this.fetchMessage('organisation_event', 0, true)
   }
 
-  updateTracking(sessionId: string, userid: string, step: number) {
-    this._api.tracking({}, {sessionId: sessionId, userid: userid, step:step})
+  updateTracking(sessionId: string | undefined, userid: string, step: number) {
+    if (sessionId) {
+      this._api.tracking({}, {sessionId: sessionId, userid: userid, step:step});
+    }
+    else {
+      this._api.tracking({});
+    }
   }
 
   saveFile(blob: Blob, metadata: FileNode) {

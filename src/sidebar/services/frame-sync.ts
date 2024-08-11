@@ -447,7 +447,15 @@ export class FrameSyncService {
       (isLoggedIn, prevIsLoggedIn) => {
         if (isLoggedIn) {
           this._messageChannel.port1.postMessage({source:"sidebar", loggedIn: isLoggedIn})
-          this._recordingService.loadBatchRecords(this._store.mainFrame()?.uri ?? '');
+          const sessionId = this._recordingService.loadBatchRecords(this._store.mainFrame()?.uri ?? '').then(
+            response => {
+              if (response) {
+                this.notifyHost('openSidebar');
+                this._store.selectTab('recording');
+                this._store.changeRecordingStage('Idle');
+              }
+            }
+          )
           this._hostRPC.call('isLoggedIn', true)
           this._hostRPC.call('webClipping', {savePage: false})
         }
