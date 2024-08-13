@@ -116,7 +116,7 @@ function MessageTab({recordingService}: {recordingService: RecordingService;}) {
   const store = useSidebarStore();
   const additionalThread = store.allAdditionalMessages();
   const organisationEventThreads = store.allOrganisationEventMessages();
-  const instanceThreads = store.allInstanceMessages();
+  const instanceThreads = store.allInstanceMessages().sort((a, b) => b.date - a.date);
   const sortableThreads = organisationEventThreads.sort((a, b) => b.date - a.date); // Z -> A
 
   return (
