@@ -1,11 +1,11 @@
 import { Scroll, ScrollContainer, ScrollContent } from '@hypothesis/frontend-shared';
-import { useEffect, useState, useRef, useLayoutEffect } from 'preact/hooks';
-import scrollIntoView from 'scroll-into-view';
+import { useEffect, useState, useRef } from 'preact/hooks';
 import classnames from 'classnames';
-import debounce from 'lodash.debounce';
 
-import { ListenerCollection } from '../../shared/listener-collection';
+import { withServices } from '../service-context';
+import { useSidebarStore } from '../store';
 import type { dataComics, kmProcess, RecordingStepData } from '../../types/api';
+import { RecordingService } from '../services/recording';
 import Detail from './DataComicsDetail';
 import ArrowIcon from '../../images/icons/dataComicsArrow';
 
@@ -132,102 +132,37 @@ function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[]
   )
 }
 
-function Thumbnail({title, image, size, onClickEvent}: {
-  title: string,
-  image: string,
-  size: {width: number|undefined, height: number|undefined, offsetX: number|undefined, offsetY: number|undefined},
-  onClickEvent: (step: RecordingStepData) => void
-}) {
-  const imageRef = useRef<HTMLImageElement | null>(null);
-  const circleRef = useRef<HTMLDivElement | null>(null);
-
-  useLayoutEffect(() => {
-    const listeners = new ListenerCollection();
-
-    const updateCirclePosition = debounce(
-      () => {
-        if (imageRef.current && circleRef.current && size.width && size.height && size.offsetX && size.offsetY) {
-          const width = size.width;
-          const height = size.height;
-          const offsetX = size.offsetX;
-          const offsetY = size.offsetY;
-
-          if (width && height && offsetY && offsetX) {
-            const widthToHeight = width / height;
-            const ratioHeight = imageRef.current.clientHeight/height;
-            const ratioWidth = widthToHeight * imageRef.current.clientHeight / width;
-
-            circleRef.current.style.top = Math.round(offsetY * ratioHeight - 8).toString() + "px";
-            circleRef.current.style.left = Math.round(offsetX * ratioWidth - 8).toString() + "px";
-          }
-        }
-      },
-      10,
-      { maxWait: 1000 }
-    );
-
-    listeners.add(window, 'resize', updateCirclePosition);
-
-    return () => {
-      listeners.removeAll();
-      updateCirclePosition.cancel();
-    };
-  }, [])
-
-  useEffect(() => {
-    if (imageRef.current && circleRef.current && size.width && size.height && size.offsetX && size.offsetY) {
-      const width = size.width;
-      const height = size.height;
-      const offsetX = size.offsetX;
-      const offsetY = size.offsetY;
-
-      if (width && height && offsetY && offsetX) {
-        const widthToHeight = width / height;
-        const ratioHeight = imageRef.current.clientHeight/height;
-        const ratioWidth = widthToHeight * imageRef.current.clientHeight / width;
-
-        circleRef.current.style.top = Math.round(offsetY * ratioHeight - 8).toString() + "px";
-        circleRef.current.style.left = Math.round(offsetX * ratioWidth - 8).toString() + "px";
-      }
-    }
-  }, [])
-
-  return (
-    <div className='relative p-1 cursor-pointer border hover:shadow-lg my-0.5'>
-      <img
-        ref={imageRef}
-        className={classnames(
-          'cursor-pointer',
-        )}
-        onClick={() => onClickEvent({
-          type: 'screenshot',
-          id: 'screenshot',
-          image: image,
-          width : size.width?? 0,
-          height : size.height?? 0,
-          offsetX : size.offsetX?? 0,
-          offsetY : size.offsetY?? 0,
-        })}
-        alt={title}
-        src={image}
-      />
-      {size && size.offsetX && size.offsetY && (
-        <div
-          ref={circleRef}
-          className='w-6 h-6 rounded-full absolute border-2 border-blue-500 bg-blue-100/35 transition-all'
-        />
-      )}
-    </div>
-  )
-
-}
 
 /**
  * Create the iframe that will load the notebook application.
  */
-export default function DataComicsNote({data, onDataComicsEvent}: {data: dataComics, onDataComicsEvent:(step: RecordingStepData) => void}) {
-
+function DataComicsNote({recordingService, data, onDataComicsEvent}:
+  {recordingService: RecordingService; data: dataComics; onDataComicsEvent:(step: RecordingStepData) => void}) {
+  const store = useSidebarStore();
   const [selectIndex, setSelectIndex] = useState(-1);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const scrollTop = store.getStep();
+
+  const onScroll = (e: Event) => {
+    if (scrollRef.current) {
+      const scrollTop = scrollRef.current.scrollTop;
+      console.log('');
+      store.setStep(scrollTop);
+    }
+  }
+
+  const comicCompleted = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollTop;
+    }
+  }
+
+  const onMouseLeave = () => {
+    if (scrollRef.current) {
+      const scrollTop = scrollRef.current.scrollTop;
+      recordingService.updateTracking(data.sessionId, data.userid, scrollTop);
+    }
+  }
 
   return (
     <div className="data-comics-height">
@@ -235,10 +170,24 @@ export default function DataComicsNote({data, onDataComicsEvent}: {data: dataCom
         {/* <div className='bg-white'>
           {data.KM_Process && <SiteMap id={data.sessionId} process={data.KM_Process} onSelectImage={setSelectIndex}/>}
         </div> */}
-        <Scroll>
+        <Scroll
+          onMouseLeave={(e) => onMouseLeave()}
+          onScroll={(e) => onScroll(e)}
+          elementRef={scrollRef}
+        >
           <ScrollContent>
             <div className='bg-white'>
-              {data.KM_Process && <Detail id={data.sessionId} userid={data.userid} title={data.taskName} process={data.KM_Process} selected={selectIndex} onClickImage={onDataComicsEvent}/>}
+              {data.KM_Process && (
+                <Detail
+                  id={data.sessionId}
+                  userid={data.userid}
+                  title={data.taskName}
+                  process={data.KM_Process}
+                  selected={selectIndex}
+                  onClickImage={onDataComicsEvent}
+                  onRendered={comicCompleted}
+                />
+              )}
             </div>
           </ScrollContent>
         </Scroll>
@@ -246,3 +195,5 @@ export default function DataComicsNote({data, onDataComicsEvent}: {data: dataCom
     </div>
   );
 }
+
+export default withServices(DataComicsNote, ['recordingService']);

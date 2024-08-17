@@ -244,7 +244,7 @@ export class RecordingService extends TinyEmitter{
   }
 
   async loadBatchRecords(uri: string) {
-    const results = await this._api.info({'target_uri': uri ?? ''}) as {sessionId: string, recording: Recording[]};
+    const results = await this._api.info({'target_uri': uri ?? ''}) as {sessionId: string, step: number, recording: Recording[]};
     results.recording.forEach(recording => {
       if (recording.steps) {
         recording.steps = recording.steps.map(step => {
@@ -253,10 +253,7 @@ export class RecordingService extends TinyEmitter{
       }
     })
     this._store.addRecords(results.recording);
-    // if (results.sessionId) {
-    //   this._store.selectTab('recording');
-    //   this._store.changeRecordingStage('Idle');
-    // }
+    this._store.setStep(results.step);
     this._store.selectRecordBySessionId(results.sessionId, 'view');
     return results.sessionId
   }
@@ -278,9 +275,6 @@ export class RecordingService extends TinyEmitter{
       }
       this._store.addRecords([result, ]);
       this._store.selectRecordBySessionId(sessionId, 'view');
-      if (userid) {
-        this.updateTracking(sessionId, userid, 0)
-      }
     }
   }
 
