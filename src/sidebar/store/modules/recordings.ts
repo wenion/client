@@ -25,6 +25,7 @@ export type State = {
   selectedRecordingStep: RecordingStepData | null;
   records: Recording[];
   selectedRecord: Recording & {action: "delete" | "view" | "share"} | null;
+  step: number; // scrollTop
 };
 
 function initialState(): State {
@@ -33,6 +34,7 @@ function initialState(): State {
     selectedRecordingStep: null,
     records: [],
     selectedRecord: null,
+    step: 0,
   }
 }
 
@@ -123,6 +125,12 @@ const reducers = {
     }
   },
 
+  SET_STEP(state: State, {step}: {step:number},) {
+    return {
+      step
+    };
+  },
+
   CHANG_RECORDING_STAGE(state: State, action: {newStage: RecordingStage}) {
     return { recordingStage: action.newStage }
   },
@@ -165,6 +173,10 @@ function clearSelectedRecord() {
   return makeAction(reducers, 'CLEAR_RECORD', undefined)
 }
 
+function setStep(step: number) {
+  return makeAction(reducers, 'SET_STEP', {step: step})
+}
+
 function selectRecordingStep(stepId: string) {
   return makeAction(reducers, 'SELECT_STEP', {stepId: stepId})
 }
@@ -197,6 +209,10 @@ function Records(state:State) {
   return state.records;
 }
 
+function getStep(state:State) {
+  return state.step;
+}
+
 export const recordingsModule = createStoreModule(initialState, {
   namespace: 'recordings',
   reducers,
@@ -210,6 +226,7 @@ export const recordingsModule = createStoreModule(initialState, {
     selectRecordingStep,
     clearSelectedRecordingStep,
     changeRecordingStage,
+    setStep,
   },
   selectors: {
     allRecordingsCount,
@@ -217,5 +234,6 @@ export const recordingsModule = createStoreModule(initialState, {
     currentRecordingStage,
     getSelectedRecordingStep,
     getSelectedRecord,
+    getStep,
   },
 });

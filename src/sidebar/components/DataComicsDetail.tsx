@@ -1,5 +1,4 @@
 import { useEffect, useState, useRef, useLayoutEffect } from 'preact/hooks';
-import scrollIntoView from 'scroll-into-view';
 import classnames from 'classnames';
 import debounce from 'lodash.debounce';
 
@@ -96,36 +95,27 @@ function Thumbnail({title, image, size, onClickEvent}: {
       )}
     </div>
   )
-
 }
 
-function Detail({recordingService, id, userid, title, process, selected, onClickImage}:
-  {recordingService: RecordingService; id: string; userid: string, title: string, process: kmProcess[], selected: number, onClickImage: (step: RecordingStepData) => void;}) {
+type DetailProps = {
+  recordingService: RecordingService;
+  id: string;
+  userid: string;
+  title: string;
+  process: kmProcess[];
+  selected: number;
+  onClickImage: (step: RecordingStepData) => void;
+  onRendered: () => void;
+};
 
+function Detail({recordingService, id, userid, title, process, selected, onClickImage, onRendered}: DetailProps) {
   const onClick = (url: string) => {
     window.open(url, '_blank');
   }
 
-  const onMouseLeave = (step: number) => {
-    recordingService.updateTracking(id, userid, step);
-  }
-
   useEffect(() => {
-      // Add blink class to the selected element
-      const selectedElement = document.getElementById(`${id}_ps_${selected}`);
-      if (selectedElement) {
-          selectedElement.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'start' });
-          selectedElement.classList.add('blink');
-
-          // Remove blink class after 2 seconds
-          const timeout = setTimeout(() => {
-              selectedElement.classList.remove('blink');
-          }, 1500);
-
-          // Clean up timeout if component unmounts or selected changes
-          return () => clearTimeout(timeout);
-      }
-  }, [selected]);
+    setTimeout(onRendered, 500)
+  }, [])
 
   return (
     <>
@@ -147,7 +137,6 @@ function Detail({recordingService, id, userid, title, process, selected, onClick
                   {'data-comics-node': index}
                 )}
                 id={id + '_ps_' + index}
-                onMouseLeave={(e) => onMouseLeave(index)}
               >
                 <div className='text-2xl'>{index + 1}</div>
               </div>
