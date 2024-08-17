@@ -36,7 +36,7 @@ function ComicView({ recordingService }: ComicViewProps) {
           onSelectImage={() => {}}
           onDataComicsEvent={() => {}}
           onNewPage={() =>{}}
-          onClose={() => {}}
+          onClose={() => {window.close();}}
         />
       ) : (
         <div>invaild params</div>)
