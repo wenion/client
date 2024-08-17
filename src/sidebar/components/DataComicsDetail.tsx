@@ -7,6 +7,16 @@ import { ListenerCollection } from '../../shared/listener-collection';
 import type { kmProcess, RecordingStepData } from '../../types/api';
 import { RecordingService } from '../services/recording';
 
+import ClickIcon from '../../images/icons/action-click';
+import TypeIcon from '../../images/icons/action-type';
+import ScrollUpIcon from '../../images/icons/action-scroll-up';
+import SelectionIcon from '../../images/icons/action-selection';
+import SelectAreaIcon from '../../images/icons/action-select-area';
+import SubmitIcon from '../../images/icons/action-submit';
+import ScrollDownIcon from '../../images/icons/action-scroll-down';
+import SearchIcon from '../../images/icons/action-search';
+import QuestionIcon from '../../images/icons/action-question';
+
 
 function Thumbnail({title, image, size, onClickEvent}: {
   title: string,
@@ -97,6 +107,58 @@ function Thumbnail({title, image, size, onClickEvent}: {
   )
 }
 
+function DigitImage({type, text, context, title}: {
+  type: string,
+  text: string
+  context: string,
+  title: string
+}) {
+  return (
+    <div
+      className={classnames(
+        'grid grid-rows-3 grid-flow-col gap-x-4 gap-y-1',
+        'text-lg text-blue-chathams text-center',
+        'border border-black my-0.5',
+        'hover:shadow-lg',
+        'cursor-pointer',
+      )}
+      title={title}
+      // onClick={e => onClick(step.url)}
+    >
+      <div class="row-span-3 min-w-20 max-w-24 p-4">
+        {type.toLowerCase() === "click" ? (
+          <ClickIcon />
+        ) : type.toLowerCase() === "type" || type.toLowerCase() === "keyup"  ? (
+          <TypeIcon />
+        ) : type.toLowerCase() === "scroll" && text.toLowerCase() === "scroll down" ? (
+          <ScrollDownIcon />
+        ) : type.toLowerCase() === "scroll" && text.toLowerCase() === "scroll up" ? (
+          <ScrollUpIcon />
+        ) : type.toLowerCase() === "submit" ? (
+          <SubmitIcon />
+        ) : type.toLowerCase() === "search" ? (
+          <SearchIcon />
+        ) : type.toLowerCase() === "select" ? (
+          <SelectionIcon />
+        ) : type.toLowerCase() === "selectarea" ? (
+          <SelectAreaIcon />
+        ) : (
+          <QuestionIcon />
+        )}
+      </div>
+      <span className={classnames(
+        "col-span-2 border-b border-l border-black",
+        "text-lg text-black content-center"
+      )}>
+        {type}
+      </span>
+      <div className="row-span-2 col-span-2 justify-self-center content-center max-w-64">
+        {context}
+      </div>
+    </div>
+  )
+}
+
 type DetailProps = {
   recordingService: RecordingService;
   id: string;
@@ -175,7 +237,7 @@ function Detail({recordingService, id, userid, title, process, selected, onClick
                     </div>
                   ) : (
                     <>
-                      <img
+                      {/* <img
                         className={classnames(
                           'inline cursor-pointer my-0.5',
                           'hover:shadow-lg',
@@ -193,6 +255,12 @@ function Detail({recordingService, id, userid, title, process, selected, onClick
                           width : step.width?? 0,
                           height : step.height?? 0,
                         })}
+                      /> */}
+                      <DigitImage
+                        type={step.type.toLowerCase()}
+                        text={step.text}
+                        context={step.description}
+                        title={step.title}
                       />
                       {step.screenshot && (
                         <Thumbnail
