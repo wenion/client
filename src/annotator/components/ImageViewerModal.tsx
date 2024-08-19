@@ -1,7 +1,9 @@
 import { IconButton, CancelIcon, CaretLeftIcon, CaretRightIcon } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState, useLayoutEffect } from 'preact/hooks';
+import debounce from 'lodash.debounce';
 
+import { ListenerCollection } from '../../shared/listener-collection';
 import type { EventBus, Emitter } from '../util/emitter';
 import type { RecordingStepData } from '../../types/api';
 
@@ -70,21 +72,47 @@ export default function ImageViewerModal({
     };
   }, [eventBus]);
 
-  useEffect(() => {
-    if (imageRef.current && circleRef.current) {
-      const widthToHeight = width / height;
-      const ratioHeight = imageRef.current.clientHeight/height;
-      const ratioWidth = widthToHeight * imageRef.current.clientHeight / width;
-
-      circleRef.current.style.top = (offsetY * ratioHeight - 22).toString() + "px";
-      circleRef.current.style.left = (offsetX * ratioWidth - 22).toString() + "px";
-    }
-  }, [src])
-
   const onClose = () => {
     setIsHidden(true);
     emitterRef.current?.publish('closeImageViewer');
   };
+
+  useLayoutEffect(() => {
+    const listeners = new ListenerCollection();
+
+    const updateCirclePosition = debounce(
+      () => {
+        if (imageRef.current && circleRef.current) {
+          const widthToHeight = width / height;
+          const ratioHeight = imageRef.current.clientHeight/height;
+          const ratioWidth = widthToHeight * imageRef.current.clientHeight / width;
+
+          circleRef.current.style.top = (offsetY * ratioHeight - 22).toString() + "px";
+          circleRef.current.style.left = (offsetX * ratioWidth - 22).toString() + "px";
+        }
+      },
+      10,
+      { maxWait: 1000 }
+    );
+
+    const onError = () => {
+      if (src) {
+        window.open(src, '_blank');
+      }
+      onClose();
+    }
+
+    listeners.add(window, 'resize', updateCirclePosition);
+    if (imageRef.current) {
+      imageRef.current.onerror = onError;
+    }
+
+    return () => {
+      listeners.removeAll();
+      updateCirclePosition.cancel();
+    };
+
+  }, [src])
 
   const hoverContent = (visible: boolean) => {
     if (visible && imageRef.current && circleRef.current) {
