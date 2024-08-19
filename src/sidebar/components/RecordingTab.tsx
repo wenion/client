@@ -48,6 +48,7 @@ function RecordingTab({
   const onClose = () => {
     store.clearSelectedRecord();
     recordingService.updateTracking(undefined, '', 0)
+    store.setStep(0);
   }
 
   useEffect(() => {

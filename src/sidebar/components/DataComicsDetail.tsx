@@ -107,16 +107,21 @@ function Thumbnail({title, image, size, onClickEvent}: {
   )
 }
 
-function DigitImage({type, text, context, title}: {
+function DigitImage({type, text, context, title, isAlign = false}: {
   type: string,
   text: string
   context: string,
-  title: string
+  title: string,
+  isAlign: boolean,
 }) {
   return (
     <div
       className={classnames(
         'grid grid-rows-3 grid-flow-col gap-x-4 gap-y-1',
+        'justify-self-center content-center',
+        {
+          'max-h-32 min-w-64': isAlign,
+        },
         'text-lg text-blue-chathams text-center',
         'border border-black my-0.5',
         'hover:shadow-lg',
@@ -125,7 +130,7 @@ function DigitImage({type, text, context, title}: {
       title={title}
       // onClick={e => onClick(step.url)}
     >
-      <div class="row-span-3 min-w-20 max-w-24 p-4">
+      <div class="justify-self-center content-center row-span-3 min-w-20 max-w-24 p-4">
         {type.toLowerCase() === "click" ? (
           <ClickIcon />
         ) : type.toLowerCase() === "type" || type.toLowerCase() === "keyup"  ? (
@@ -178,6 +183,14 @@ function Detail({recordingService, id, userid, title, process, selected, onClick
   useEffect(() => {
     setTimeout(onRendered, 500)
   }, [])
+
+  const getFirstQuotationContent = (text: string) => {
+    const match = text.match(/"([^"]*)"/);
+    if (match) {
+      return(match[1]); // Output: 'the text'
+    }
+    return ""
+  }
 
   return (
     <>
@@ -256,20 +269,41 @@ function Detail({recordingService, id, userid, title, process, selected, onClick
                           height : step.height?? 0,
                         })}
                       /> */}
-                      <DigitImage
-                        type={step.type.toLowerCase()}
-                        text={step.text}
-                        context={step.description}
-                        title={step.title}
-                      />
-                      {step.screenshot && (
-                        <Thumbnail
-                          title={step.title}
-                          image={step.screenshot}
-                          size={{width:step.width, height:step.height, offsetX:step.offsetX, offsetY:step.offsetY}}
-                          onClickEvent={onClickImage}
-                        />
-                      )}
+                      {/* {step.type.toLowerCase() === 'click' && step.screenshot ? (
+                        <div class="flex">
+                          <DigitImage
+                            type={step.type.toLowerCase()}
+                            text={step.text}
+                            context={step.description}
+                            title={step.title}
+                            isAlign={true}
+                          />
+                          <Thumbnail
+                            title={step.title}
+                            image={step.screenshot}
+                            size={{width:step.width, height:step.height, offsetX:step.offsetX, offsetY:step.offsetY}}
+                            onClickEvent={onClickImage}
+                          />
+                        </div>
+                      ) : ( */}
+                        <>
+                          <DigitImage
+                            type={step.type.toLowerCase()}
+                            text={step.text}
+                            context={step.description}
+                            title={step.title}
+                            isAlign={false}
+                          />
+                          {step.screenshot && (
+                            <Thumbnail
+                              title={step.title}
+                              image={step.screenshot}
+                              size={{width:step.width, height:step.height, offsetX:step.offsetX, offsetY:step.offsetY}}
+                              onClickEvent={onClickImage}
+                            />
+                          )}
+                        </>
+                      {/* )} */}
                     </>
                   )
                 ))}
