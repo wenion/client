@@ -53,6 +53,9 @@ function Thumbnail({title, image, size, onClickEvent}: {
     );
 
     listeners.add(window, 'resize', updateCirclePosition);
+    if (imageRef.current) {
+      imageRef.current.onload = updateCirclePosition;
+    }
 
     return () => {
       listeners.removeAll();
