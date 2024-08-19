@@ -110,6 +110,11 @@ function Thumbnail({title, image, size, onClickEvent}: {
   )
 }
 
+function capitalizeFirstLetter(str: string): string {
+  if (str.length === 0) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 function DigitImage({type, text, context, title, isAlign = false}: {
   type: string,
   text: string
@@ -156,9 +161,9 @@ function DigitImage({type, text, context, title, isAlign = false}: {
       </div>
       <span className={classnames(
         "col-span-2 border-b border-l border-black",
-        "text-lg text-black content-center"
+        "text-lg text-black font-bold content-center"
       )}>
-        {type}
+        {capitalizeFirstLetter(type)}
       </span>
       <div className="row-span-2 col-span-2 justify-self-center content-center max-w-64">
         {context}
