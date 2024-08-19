@@ -18,11 +18,12 @@ import SearchIcon from '../../images/icons/action-search';
 import QuestionIcon from '../../images/icons/action-question';
 
 
-function Thumbnail({title, image, size, onClickEvent}: {
+function Thumbnail({title, image, size, onClickEvent, onLoad}: {
   title: string,
   image: string,
   size: {width: number|undefined, height: number|undefined, offsetX: number|undefined, offsetY: number|undefined},
-  onClickEvent: (step: RecordingStepData) => void
+  onClickEvent: (step: RecordingStepData) => void,
+  onLoad: () => void,
 }) {
   const imageRef = useRef<HTMLImageElement | null>(null);
   const circleRef = useRef<HTMLDivElement | null>(null);
@@ -47,6 +48,7 @@ function Thumbnail({title, image, size, onClickEvent}: {
             circleRef.current.style.left = Math.round(offsetX * ratioWidth - 8).toString() + "px";
           }
         }
+        onLoad();
       },
       10,
       { maxWait: 1000 }
@@ -188,10 +190,6 @@ function Detail({recordingService, id, userid, title, process, selected, onClick
     window.open(url, '_blank');
   }
 
-  useEffect(() => {
-    setTimeout(onRendered, 500)
-  }, [])
-
   const getFirstQuotationContent = (text: string) => {
     const match = text.match(/"([^"]*)"/);
     if (match) {
@@ -302,14 +300,23 @@ function Detail({recordingService, id, userid, title, process, selected, onClick
                             title={step.title}
                             isAlign={false}
                           />
-                          {step.screenshot && (
+                          {step.screenshot && (index !== arr.length - 1 ? (
                             <Thumbnail
                               title={step.title}
                               image={step.screenshot}
                               size={{width:step.width, height:step.height, offsetX:step.offsetX, offsetY:step.offsetY}}
                               onClickEvent={onClickImage}
+                              onLoad={()=>{}}
                             />
-                          )}
+                          ) : (
+                            <Thumbnail
+                              title={step.title}
+                              image={step.screenshot}
+                              size={{width:step.width, height:step.height, offsetX:step.offsetX, offsetY:step.offsetY}}
+                              onClickEvent={onClickImage}
+                              onLoad={onRendered}
+                            />
+                          ))}
                         </>
                       {/* )} */}
                     </>
