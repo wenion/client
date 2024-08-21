@@ -167,7 +167,14 @@ function DigitImage({type, text, context, title, isAlign = false}: {
       )}>
         {capitalizeFirstLetter(type)}
       </span>
-      <div className="row-span-2 col-span-2 justify-self-center content-center break-all max-w-64">
+      <div
+        className={classnames(
+          "row-span-2 col-span-2",
+          "justify-self-center content-center break-words max-w-64",
+          {"text-sm": context.length >= 60 && context.length <100},
+          {"text-xs": context.length >= 100}
+        )}
+      >
         {context}
       </div>
     </div>
