@@ -175,3 +175,13 @@
   top: var(--avatar-size);
   bottom: var(--grid-gap);
 }
+
+.data-comics-image {
+  max-height: clamp(4rem, 5vh + 4rem, 6rem);
+  min-width: clamp(8rem, 5vw + 8rem, 13rem);
+}
+
+.data-comics-icon {
+  height: clamp(4rem, 5vh + 4rem, 6rem);
+  width: clamp(1rem, 1vw + 1rem, 2rem);
+}

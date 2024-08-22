@@ -127,11 +127,12 @@ function DigitImage({type, text, context, title, isAlign = false}: {
   return (
     <div
       className={classnames(
-        'grid grid-rows-3 grid-flow-col gap-x-4 gap-y-1',
+        'grid grid-rows-3 grid-flow-col gap-y-1',
         'justify-self-center content-center',
         {
-          'max-h-32 min-w-64': isAlign,
+          'gap-x-4': !isAlign,
         },
+        {'data-comics-image gap-x-2': isAlign},
         'text-lg text-blue-chathams text-center',
         'border border-black my-0.5',
         'hover:shadow-lg',
@@ -140,7 +141,15 @@ function DigitImage({type, text, context, title, isAlign = false}: {
       title={title}
       // onClick={e => onClick(step.url)}
     >
-      <div class="justify-self-center content-center row-span-3 min-w-20 max-w-24 p-4">
+      <div
+        className={classnames(
+          "justify-self-center content-center row-span-3",
+          {"data-comics-icon": isAlign},
+          {
+            "min-w-20 max-w-24 p-4": !isAlign,
+          },
+        )}
+      >
         {type.toLowerCase() === "click" ? (
           <ClickIcon />
         ) : type.toLowerCase() === "type" || type.toLowerCase() === "keyup"  ? (
@@ -170,9 +179,12 @@ function DigitImage({type, text, context, title, isAlign = false}: {
       <div
         className={classnames(
           "row-span-2 col-span-2",
-          "justify-self-center content-center break-words max-w-64",
-          {"text-sm": context.length >= 60 && context.length <100},
-          {"text-xs": context.length >= 100}
+          "justify-self-center content-center",
+          {"italic": isAlign},
+          {"break-all": context.includes("http://") || context.includes("https://")},
+          {"break-words": !context.includes("http://") && !context.includes("https://")},
+          {"text-sm": context.length >= 35 && context.length <60},
+          {"text-xs": context.length >= 60}
         )}
       >
         {context}
@@ -202,7 +214,7 @@ function Detail({recordingService, id, userid, title, process, selected, onClick
     if (match) {
       return(match[1]); // Output: 'the text'
     }
-    return ""
+    return text
   }
 
   return (
@@ -263,42 +275,34 @@ function Detail({recordingService, id, userid, title, process, selected, onClick
                     </div>
                   ) : (
                     <>
-                      {/* <img
-                        className={classnames(
-                          'inline cursor-pointer my-0.5',
-                          'hover:shadow-lg',
-                          'md:w-[200px]',
-                          'lg:w-[300px]'
-                          // {'max-w-80': !step.screenshot},
-                          // {'max-w-80': step.screenshot && !(index > 0 && arr[index-1].screenshot)} // previous is not screenshot
-                        )}
-                        alt={step.title}
-                        src={step.image}
-                        onClick={() => onClickImage({
-                          type: 'screenshot',
-                          id: 'screenshot',
-                          image: step.image,
-                          width : step.width?? 0,
-                          height : step.height?? 0,
-                        })}
-                      /> */}
-                      {/* {step.type.toLowerCase() === 'click' && step.screenshot ? (
+                      {step.type.toLowerCase() === 'click' ? (
                         <div class="flex">
                           <DigitImage
                             type={step.type.toLowerCase()}
                             text={step.text}
-                            context={step.description}
+                            context={getFirstQuotationContent(step.description)}
                             title={step.title}
                             isAlign={true}
                           />
-                          <Thumbnail
-                            title={step.title}
-                            image={step.screenshot}
-                            size={{width:step.width, height:step.height, offsetX:step.offsetX, offsetY:step.offsetY}}
-                            onClickEvent={onClickImage}
-                          />
+                          {step.screenshot && (index !== arr.length - 1 ? (
+                            <Thumbnail
+                              title={step.title}
+                              image={step.screenshot}
+                              size={{width:step.width, height:step.height, offsetX:step.offsetX, offsetY:step.offsetY}}
+                              onClickEvent={onClickImage}
+                              onLoad={()=>{}}
+                            />
+                          ) : (
+                              <Thumbnail
+                                title={step.title}
+                                image={step.screenshot}
+                                size={{width:step.width, height:step.height, offsetX:step.offsetX, offsetY:step.offsetY}}
+                                onClickEvent={onClickImage}
+                                onLoad={onRendered}
+                              />
+                          ))}
                         </div>
-                      ) : ( */}
+                      ) : (
                         <>
                           <DigitImage
                             type={step.type.toLowerCase()}
@@ -325,7 +329,7 @@ function Detail({recordingService, id, userid, title, process, selected, onClick
                             />
                           ))}
                         </>
-                      {/* )} */}
+                      )}
                     </>
                   )
                 ))}
