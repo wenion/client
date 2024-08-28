@@ -89,6 +89,8 @@ export default function ImageViewerModal({
 
           circleRef.current.style.top = (offsetY * ratioHeight - 22).toString() + "px";
           circleRef.current.style.left = (offsetX * ratioWidth - 22).toString() + "px";
+
+          circleRef.current.classList.add('animate-blink');
         }
       },
       10,
@@ -104,6 +106,7 @@ export default function ImageViewerModal({
 
     listeners.add(window, 'resize', updateCirclePosition);
     if (imageRef.current) {
+      imageRef.current.onload = updateCirclePosition;
       imageRef.current.onerror = onError;
     }
 

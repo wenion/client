@@ -56,7 +56,6 @@ function StickyNote({
 
         circleRef.current.style.top = Math.round(offsetY * ratioHeight - 8).toString() + "px";
         circleRef.current.style.left = Math.round(offsetX * ratioWidth - 8).toString() + "px";
-
       }
     }
   }, [collapsed])
