@@ -65,24 +65,6 @@ function Thumbnail({title, image, size, onClickEvent, onLoad}: {
     };
   }, [])
 
-  useEffect(() => {
-    if (imageRef.current && circleRef.current && size.width && size.height && size.offsetX && size.offsetY) {
-      const width = size.width;
-      const height = size.height;
-      const offsetX = size.offsetX;
-      const offsetY = size.offsetY;
-
-      if (width && height && offsetY && offsetX) {
-        const widthToHeight = width / height;
-        const ratioHeight = imageRef.current.clientHeight/height;
-        const ratioWidth = widthToHeight * imageRef.current.clientHeight / width;
-
-        circleRef.current.style.top = Math.round(offsetY * ratioHeight - 8).toString() + "px";
-        circleRef.current.style.left = Math.round(offsetX * ratioWidth - 8).toString() + "px";
-      }
-    }
-  }, [])
-
   return (
     <div className='relative p-1 cursor-pointer border hover:shadow-lg my-0.5'>
       <img
