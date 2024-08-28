@@ -194,7 +194,7 @@ export default function ImageViewerModal({
             {offsetX !== -1 && offsetY !== -1 && (
               <div
                 ref={circleRef}
-                className='w-11 h-11 rounded-full absolute border-2 border-blue-500 bg-blue-100/35 transition-all'
+                className='w-11 h-11 rounded-full absolute border-2 border-red-500 bg-red-100/35 transition-all'
               />
             )}
           </div>

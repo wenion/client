@@ -26,7 +26,7 @@ export default {
         'slide-in-from-right': 'slide-in-from-right 0.3s forwards ease-in-out',
         'slide-in-from-right-slow': 'right-to-left 1s forwards ease-in-out',
         'slide-in-from-left-slow': 'left-to-right 1s forwards ease-in-out',
-        'blink': 'blink 1s ease-in-out 4',
+        'blink': 'blink 1s ease-in-out infinite',
       },
       boxShadow: {
         // A more prominent shadow than the one used by tailwind, intended for

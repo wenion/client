@@ -65,6 +65,15 @@ function Thumbnail({title, image, size, onClickEvent, onLoad}: {
     };
   }, [])
 
+  const hover = (hoved: boolean) => {
+    if (hoved && circleRef.current) {
+      circleRef.current.classList.add("animate-blink");
+    }
+    if (!hoved && circleRef.current) {
+      circleRef.current.classList.remove("animate-blink");
+    }
+  }
+
   return (
     <div className='relative p-1 cursor-pointer border hover:shadow-lg my-0.5'>
       <img
@@ -81,13 +90,15 @@ function Thumbnail({title, image, size, onClickEvent, onLoad}: {
           offsetX : size.offsetX?? 0,
           offsetY : size.offsetY?? 0,
         })}
+        onMouseEnter={() => hover(true)}
+        onMouseLeave={() => hover(false)}
         alt={title}
         src={image}
       />
       {size && size.offsetX && size.offsetY && (
         <div
           ref={circleRef}
-          className='w-6 h-6 rounded-full absolute border-2 border-blue-500 bg-blue-100/35 transition-all'
+          className='w-6 h-6 rounded-full absolute border-2 border-red-500 bg-red-100/35 transition-all'
         />
       )}
     </div>

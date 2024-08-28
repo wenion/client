@@ -115,7 +115,7 @@ function StickyNote({
               {imagePosition && imagePosition.offsetX && imagePosition.offsetY && (
                 <div
                   ref={circleRef}
-                  className='w-6 h-6 rounded-full absolute border-2 border-blue-500 bg-blue-100/35 transition-all'
+                  className='w-6 h-6 rounded-full absolute border-2 border-red-500 bg-red-100/35 transition-all'
                 />
               )}
             </div>
