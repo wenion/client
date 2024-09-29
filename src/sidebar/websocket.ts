@@ -21,20 +21,20 @@ export const CLOSE_ABNORMAL = 1006;
  * - An EventEmitter API
  * - Queuing of messages passed to send() whilst the socket is
  *   connecting
+ * - Storing Unsent Messages when the WebSocket connection isn't ready or is
+ *   temporarily disconnected
  */
 export class Socket extends TinyEmitter {
   private _socket: WebSocket;
 
   /** Queue of JSON objects which have not yet been submitted. */
-  private _messageQueue: object[];
+  private static _messageQueue: object[] = [];
 
   /**
    * Connect to the WebSocket endpoint at `url`.
    */
   constructor(url: string) {
     super();
-
-    this._messageQueue = [];
 
     this._socket = new WebSocket(url);
     this._socket.onopen = event => {
@@ -81,7 +81,7 @@ export class Socket extends TinyEmitter {
    * for later delivery if not currently connected.
    */
   send(message: object) {
-    this._messageQueue.push(message);
+    Socket._messageQueue.push(message);
     if (this.isConnected()) {
       this.sendMessages();
     }
@@ -93,8 +93,8 @@ export class Socket extends TinyEmitter {
   }
 
   private sendMessages() {
-    while (this._messageQueue.length > 0) {
-      const messageString = JSON.stringify(this._messageQueue.shift());
+    while (Socket._messageQueue.length > 0) {
+      const messageString = JSON.stringify(Socket._messageQueue.shift());
       this._socket.send(messageString);
     }
   }
