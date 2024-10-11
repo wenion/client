@@ -20,6 +20,10 @@ import type {
   GuestToSidebarEvent,
 } from '../../types/port-rpc-events';
 import type {
+  ExtensionToSidebarEvent,
+  SidebarToExtensionEvent,
+} from '../../types/extension-port-rpc-events';
+import type {
   SiteToSidebarEvent,
   SidebarToSiteEvent,
 } from '../../types/site-port-rpc-events';
@@ -34,6 +38,7 @@ import type { VideoAnnotationsService } from './video-annotations';
 import type { ToastMessengerService } from './toast-messenger';
 import { RecordingService } from './recording';
 import { ADDITIONAL_TAG } from '../../shared/custom'
+
 /**
  * Return a minimal representation of an annotation that can be sent from the
  * sidebar app to a guest frame.
@@ -129,6 +134,11 @@ export class FrameSyncService {
   private _hostRPC: PortRPC<HostToSidebarEvent, SidebarToHostEvent>;
 
   /**
+   * Channel for sidebar-extension communication.
+   */
+  private _extensionRPC: PortRPC<ExtensionToSidebarEvent, SidebarToExtensionEvent>;
+
+  /**
    * Channel for site-sidebar communication. KMASS Project
    */
   private _siteRPC: PortRPC<SiteToSidebarEvent, SidebarToSiteEvent>;
@@ -177,8 +187,6 @@ export class FrameSyncService {
   /** Indicates if the sidebar is currently open or closed */
   private _sidebarIsOpen: boolean;
 
-  private _messageChannel: MessageChannel;
-
   // Test seam
   private _window: Window;
 
@@ -205,10 +213,10 @@ export class FrameSyncService {
     this._listeners = new ListenerCollection();
 
     this._hostRPC = new PortRPC();
+    this._extensionRPC = new PortRPC();
     this._siteRPC = new PortRPC();
     this._guestRPC = new Map();
     this._inFrame = new Set<string>();
-    this._messageChannel =  new MessageChannel();
     this._highlightsVisible = false;
 
     this._pendingScrollToTag = null;
@@ -228,10 +236,10 @@ export class FrameSyncService {
     this._setupSyncToGuests();
     this._setupHostEvents();
     this._setupSiteEvents();
+    this._setupExtensionEvents();
     this._setupFeatureFlagSync();
     this._setupToastMessengerEvents();
     this._setupStatusSync();
-    this._setupMessageChannel();
   }
 
   private _attachExtraInformation(_data: {
@@ -257,58 +265,16 @@ export class FrameSyncService {
     })
   }
 
-  private _setupMessageChannel() {
-    this._messageChannel.port1.onmessage = (event) => {
-      const _data = event.data;
-      const _messageType = _data.messageType;
-
-      if (_messageType === 'TraceData') {
-        // type === 'getfocus'
-        if (_data.type === 'getfocus') {
-          const focused = this._store.getDefault('focus') as 'onFocused' | 'onUnfocused';
-          if (focused !== _data.textContent) {
-            this._store.setDefault('focus', _data.textContent);
-            if (_data.textContent === 'onUnfocused') {
-              return;
-            }
-          }
-          else {
-            return;
-          }
-        }
-        this._streamer.send(this._attachExtraInformation(_data));
-      }
-      else {
-        if (_data.mode) {
-          const currentMode = this._store.getDefault('mode') as 'Baseline' | 'GoldMind' | 'Query';
-          if (currentMode === 'GoldMind' || currentMode === 'Baseline'|| currentMode === null) {
-            this._store.setDefault('mode', _data.mode)
-            this._hostRPC.call('changeMode', _data.mode)
-          }
-          else { // if Query, return the origin mode
-            this._messageChannel.port1.postMessage({
-              source:"sidebar",
-              mode: currentMode === 'Query' ? 'GoldMind': currentMode,
-            })
-          }
-        }
-        if (_data.remove) {
-          console.log("remove ", _data)
-        }
-        if (_data.recording && _data.recording === 'request') {
-          this._messageChannel.port1.postMessage({
-            source:"sidebar",
-            recording: this._recordingService.getExtensionStatus(),
-          })
-        }
-        if (_data.model) {
-          this._store.setDefault('model', _data.model)
-        }
-        if(_data.token) {
-          this._store.setDefault('token', _data.token)
-        }
-      }
-    }
+  private _setupExtensionEvents() {
+      this._extensionRPC.on('close', ()=> {
+        console.log("extension close")
+      })
+      this._extensionRPC.on('connect', ()=> {
+          console.log("extension connect")
+      })
+      this._extensionRPC.on('traceData', (message) => {
+        this._streamer.send(this._attachExtraInformation(message))
+      });
   }
 
   sendTraceData(
@@ -446,7 +412,6 @@ export class FrameSyncService {
       () => this._store.isLoggedIn(),
       (isLoggedIn, prevIsLoggedIn) => {
         if (isLoggedIn) {
-          this._messageChannel.port1.postMessage({source:"sidebar", loggedIn: isLoggedIn})
           const sessionId = this._recordingService.loadBatchRecords(this._store.mainFrame()?.uri ?? '').then(
             response => {
               if (response) {
@@ -465,10 +430,8 @@ export class FrameSyncService {
         else {
           this._recordingService.unloadRecords();
           this._store.clearMessages();
-          this._messageChannel.port1.postMessage({source:"sidebar", loggedOut: !isLoggedIn})
           this._hostRPC.call('isLoggedIn', false)
         }
-        this._messageChannel.port1.postMessage({source:"sidebar", init: true})
       }
     );
 
@@ -476,7 +439,13 @@ export class FrameSyncService {
       this._store.subscribe,
       () => this._store.isConnected(),
       (isConnected, prevIsConnected) => {
-        this._hostRPC.call('websocketConnected', isConnected)
+        this._hostRPC.call('websocketConnected', isConnected);
+        // this._messageChannel?.port1.postMessage(
+        //   createMessage(
+        //     "clientSocketConnectionStatus",
+        //     isConnected,
+        //   )
+        // );
       }
     )
 
@@ -710,23 +679,17 @@ export class FrameSyncService {
       const taskName = this._recordingService.getExtensionStatus().recordingTaskName;
       const sessionId = this._recordingService.getExtensionStatus().recordingSessionId;
       if (sessionId) {
+        // websocket TODO
         this.sendTraceData('click', 'RECORDING', 'RECORD', 'end', JSON.stringify({taskName:taskName, sessionId:sessionId}))
+        // http TODO
         await this._recordingService.clearNewRecording(sessionId);
       }
-      this._messageChannel.port1.postMessage({
-        source:"sidebar",
-        recording: this._recordingService.getExtensionStatus(),
-      })
     }
     else if (status === 'on') {
       this._recordingService.createNewRecording(taskName!, sessionId!, description!, start!, groupid?? '');
       this.sendTraceData('click', 'RECORDING', 'RECORD', 'start', JSON.stringify({taskName:taskName, sessionId:sessionId}))
-      this._messageChannel.port1.postMessage({
-        source:"sidebar",
-        recording: this._recordingService.getExtensionStatus(),
-      })
-      // TODO checkout the return
     }
+    this._extensionRPC.call('recording', this._recordingService.getExtensionStatus());
   }
 
   /**
@@ -982,10 +945,7 @@ export class FrameSyncService {
         if (status) {
           this.updateRecordingStatusView(status.recordingStatus);
           this._hostRPC.call('statusUpdated', status)
-          this._messageChannel.port1.postMessage({
-            source:"sidebar",
-            recording: this._recordingService.getExtensionStatus(),
-          })
+          this._extensionRPC.call('recording', this._recordingService.getExtensionStatus())
         }
     })
   }
@@ -1024,17 +984,12 @@ export class FrameSyncService {
         })
       ) {
         this._siteRPC.connect(ports[0]);
-        // setTimeout(()=>{this._siteRPC.call('updateProfile'); console.log('sent update profile')}, 5000);
       }
     });
-    this._window.parent.postMessage(
-      {
-        frame1: 'sidebar',
-        frame2: 'extension',
-        type: 'request',
-      },
-      '*',
-      [this._messageChannel.port2]);
+
+    // Create channel for sidebar-extension communication.
+    const extensionPort = await this._portFinder.discover('extension');
+    this._extensionRPC.connect(extensionPort, [JSON.stringify(this._recordingService.getExtensionStatus())]);
   }
 
   /**
