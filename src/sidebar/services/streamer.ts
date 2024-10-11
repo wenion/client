@@ -28,7 +28,6 @@ import type { RawMessageData } from '../../types/api';
  * @inject
  */
 export class StreamerService {
-  private _messageQueue: object[];
   private _auth: AuthService;
   private _groups: GroupsService;
   private _session: SessionService;
@@ -58,6 +57,9 @@ export class StreamerService {
   /** The randomly generated session ID */
   clientId: string;
 
+  /** Queue of JSON objects which have not yet been submitted. */
+  private _messageQueue: object[];
+
   constructor(
     store: SidebarStore,
     apiRoutes: APIRoutesService,
@@ -65,8 +67,6 @@ export class StreamerService {
     groups: GroupsService,
     session: SessionService,
   ) {
-    this._messageQueue = [];
-
     this._auth = auth;
     this._groups = groups;
     this._session = session;
@@ -74,6 +74,7 @@ export class StreamerService {
     this._websocketURL = apiRoutes.links().then(links => links.websocket);
 
     this.clientId = generateHexString(32);
+    this._messageQueue = [];
 
     this._socket = null;
     this._updateImmediately = true;
@@ -248,7 +249,8 @@ export class StreamerService {
     newSocket.on('open', () => {
       this._reconnectionAttempts = 0;
       this._sendClientConfig(newSocket);
-      this._on(newSocket);
+
+      this._flushMessages();
       this._store.updateConnectionStatus(true);
     });
     newSocket.on('disconnect', () => {
@@ -268,6 +270,9 @@ export class StreamerService {
     });
     newSocket.on('error', (event: ErrorEvent) => {
       this._handleSocketError(websocketURL, event);
+      this._store.updateConnectionStatus(false);
+    });
+    newSocket.on('close', (event: CloseEvent) => {
       this._store.updateConnectionStatus(false);
     });
     newSocket.on('message', (event: MessageEvent) =>
@@ -319,17 +324,23 @@ export class StreamerService {
     await this._reconnect();
   }
 
+  /**
+   * Send a JSON object via the WebSocket connection, or queue it
+   * for later delivery if not currently connected.
+   */
   send(message: Object) {
-    this._messageQueue.push(message);
-    if (this._socket) {
-      this._on(this._socket);
-    }
+    const _message = Object.assign(message, {client_id: this.clientId});
+    this._messageQueue.push(_message);
+
+    this._flushMessages();
   }
 
-  private _on(socket: Socket) {
-    while (this._messageQueue.length > 0) {
-      const _message = this._messageQueue.shift();
-      socket.send(_message!);
+  private _flushMessages() {
+    if (this._socket && this._socket.isConnected()) {
+      while (this._messageQueue.length > 0) {
+        const _message = this._messageQueue.shift() as Object;
+        this._socket.send(_message);
+      }
     }
   }
 }

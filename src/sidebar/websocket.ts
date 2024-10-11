@@ -21,14 +21,9 @@ export const CLOSE_ABNORMAL = 1006;
  * - An EventEmitter API
  * - Queuing of messages passed to send() whilst the socket is
  *   connecting
- * - Storing Unsent Messages when the WebSocket connection isn't ready or is
- *   temporarily disconnected
  */
 export class Socket extends TinyEmitter {
   private _socket: WebSocket;
-
-  /** Queue of JSON objects which have not yet been submitted. */
-  private static _messageQueue: object[] = [];
 
   /**
    * Connect to the WebSocket endpoint at `url`.
@@ -38,7 +33,6 @@ export class Socket extends TinyEmitter {
 
     this._socket = new WebSocket(url);
     this._socket.onopen = event => {
-      this.sendMessages();
       this.emit('open', event);
     };
     this._socket.onclose = event => {
@@ -76,26 +70,14 @@ export class Socket extends TinyEmitter {
     this._socket.close(CLOSE_NORMAL);
   }
 
-  /**
-   * Send a JSON object via the WebSocket connection, or queue it
-   * for later delivery if not currently connected.
-   */
+  /** Send a serialized JSON messages. */
   send(message: object) {
-    Socket._messageQueue.push(message);
-    if (this.isConnected()) {
-      this.sendMessages();
-    }
+    const messageString = JSON.stringify(message);
+    this._socket.send(messageString);
   }
 
   /** Returns true if the WebSocket is currently connected. */
   isConnected() {
     return this._socket.readyState === WebSocket.OPEN;
-  }
-
-  private sendMessages() {
-    while (Socket._messageQueue.length > 0) {
-      const messageString = JSON.stringify(Socket._messageQueue.shift());
-      this._socket.send(messageString);
-    }
   }
 }
