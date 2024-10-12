@@ -7,7 +7,7 @@ import { username } from '../helpers/account-id';
 import { VersionData } from '../helpers/version-data';
 import { withServices } from '../service-context';
 import type { ToastMessengerService } from '../services/toast-messenger';
-import { copyText } from '../util/copy-to-clipboard';
+import { copyPlainText } from '../util/copy-to-clipboard';
 import type { SessionService } from '../services/session';
 import type { RecordingService } from '../services/recording';
 import { useSidebarStore } from '../store';
@@ -96,7 +96,7 @@ with ${role.years_of_experience} ${role.years_of_experience > 1 ? 'years' : 'yea
 
   const copyLinkData = () => {
     try {
-      copyText(link);
+      copyPlainText(link);
       toastMessenger.success('Copied link to clipboard');
     } catch (err) {
       toastMessenger.error('Unable to copy the link');

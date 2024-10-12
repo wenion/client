@@ -8,7 +8,7 @@ import { withServices } from '../../service-context';
 import type { GroupsService } from '../../services/groups';
 import type { ToastMessengerService } from '../../services/toast-messenger';
 import { useSidebarStore } from '../../store';
-import { copyText } from '../../util/copy-to-clipboard';
+import { copyPlainText } from '../../util/copy-to-clipboard';
 import MenuItem from '../MenuItem';
 
 export type GroupListItemProps = {
@@ -77,7 +77,7 @@ function GroupListItem({
 
   const copyLink = (url: string) => {
     try {
-      copyText(url);
+      copyPlainText(url);
       toastMessenger.success(`Copied link for "${group.name}"`);
     } catch (err) {
       toastMessenger.error('Unable to copy link');

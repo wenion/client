@@ -463,6 +463,9 @@ export class Sidebar implements Destroyable {
 
     this._sidebarRPC.on('updateRecoringStatusFromSidebar', (value: {status: 'off' | 'ready' | 'on', mode: 'Baseline' | 'GoldMind' | 'Query'}) => {
       this.updateRecordingStatusView(value.status, value.mode)
+      if (value.status === 'on') {
+        this.close();
+      }
     });
 
     this._sidebarRPC.on('websocketConnected', (value) => {
@@ -871,7 +874,9 @@ export class Sidebar implements Destroyable {
     this._sidebarRPC.call('updateRecoringStatusFromHost', status);
 
     this.updateRecordingStatusView(status)
-    if (status === 'off' || status === 'ready') this.open();
+    if (status === 'off' || status === 'ready') {
+      this.open();
+    }
   }
 
   updateRecordingStatusView(status: 'off' | 'ready' | 'on', mode?: 'Baseline' | 'GoldMind' | 'Query') {

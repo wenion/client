@@ -6,7 +6,6 @@ import {
   CaretLeftIcon,
   HideIcon,
   NoteIcon,
-  SearchIcon,
   ShowIcon,
 } from '@hypothesis/frontend-shared';
 import type { ButtonProps } from '@hypothesis/frontend-shared/lib/components/input/Button';
@@ -21,8 +20,6 @@ import RecordingIcon from '../../images/icons/recording';
 import RecordingOffIcon from '../../images/icons/recordingOff';
 import NotificationsIcon from '../../images/icons/notifications';
 import NotificationsOffIcon from '../../images/icons/notificationsOff';
-import chatIcon from '../../images/icons/chat';
-import chatOffIcon from '../../images/icons/chatOff';
 import DisconnectedIcon from '../../images/icons/disconnected';
 
 // TODO: ToolbarButton should be extracted as a shared design pattern or

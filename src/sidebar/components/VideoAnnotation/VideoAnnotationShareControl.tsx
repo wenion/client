@@ -1,4 +1,4 @@
-import { useElementShouldClose } from '@hypothesis/frontend-shared';
+import { usePopoverShouldClose } from '@hypothesis/frontend-shared';
 import {
   Card,
   IconButton,
@@ -17,7 +17,7 @@ import { isPrivate } from '../../helpers/permissions';
 import { withServices } from '../../service-context';
 import type { ToastMessengerService } from '../../services/toast-messenger';
 import { useSidebarStore } from '../../store';
-import { copyText } from '../../util/copy-to-clipboard';
+import { copyPlainText } from '../../util/copy-to-clipboard';
 import MenuArrow from '../MenuArrow';
 import ShareLinks from '../ShareLinks';
 
@@ -63,7 +63,7 @@ function VideoAnnotationShareControl({
   const closePanel = () => setOpen(false);
 
   // Interactions outside of the component when it is open should close it
-  useElementShouldClose(shareRef, isOpen, closePanel);
+  usePopoverShouldClose(shareRef, closePanel, { enabled: isOpen });
 
   useEffect(() => {
     if (wasOpen.current !== isOpen) {
@@ -96,7 +96,7 @@ function VideoAnnotationShareControl({
 
   const copyShareLink = () => {
     try {
-      copyText(shareUri);
+      copyPlainText(shareUri);
       toastMessenger.success('Copied share link to clipboard');
     } catch (err) {
       toastMessenger.error('Unable to copy link');

@@ -1,4 +1,4 @@
-import { useElementShouldClose } from '@hypothesis/frontend-shared';
+import { usePopoverShouldClose } from '@hypothesis/frontend-shared';
 import {
   Card,
   IconButton,
@@ -17,7 +17,7 @@ import { isPrivate } from '../../helpers/permissions';
 import { withServices } from '../../service-context';
 import type { ToastMessengerService } from '../../services/toast-messenger';
 import { useSidebarStore } from '../../store';
-import { copyText } from '../../util/copy-to-clipboard';
+import { copyPlainText } from '../../util/copy-to-clipboard';
 import MenuArrow from '../MenuArrow';
 import ShareLinks from '../ShareLinks';
 
@@ -62,8 +62,7 @@ function AnnotationShareControl({
   const toggleSharePanel = () => setOpen(!isOpen);
   const closePanel = () => setOpen(false);
 
-  // Interactions outside of the component when it is open should close it
-  useElementShouldClose(shareRef, isOpen, closePanel);
+  usePopoverShouldClose(shareRef, closePanel, { enabled: isOpen });
 
   useEffect(() => {
     if (wasOpen.current !== isOpen) {
@@ -96,7 +95,7 @@ function AnnotationShareControl({
 
   const copyShareLink = () => {
     try {
-      copyText(shareUri);
+      copyPlainText(shareUri);
       toastMessenger.success('Copied share link to clipboard');
     } catch (err) {
       toastMessenger.error('Unable to copy link');
@@ -130,7 +129,7 @@ function AnnotationShareControl({
     // Make the container div focusable by setting a non-null `tabIndex`.
     // This prevents clicks on non-focusable contents from "leaking out" and
     // focusing a focusable ancester. If something outside of the panel gains
-    // focus, `useElementShouldClose`'s focus listener will close the panel.
+    // focus, `usePopoverShouldClose`'s focus listener will close the panel.
     // "Catch focus" here to prevent this.
     // See https://github.com/hypothesis/client/issues/5196
     <div className="relative" ref={shareRef} tabIndex={-1}>

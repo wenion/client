@@ -1,21 +1,17 @@
 import { LinkButton, HelpIcon, ShareIcon } from '@hypothesis/frontend-shared';
-import { IconButton, GlobeAltIcon } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 
 import type { SidebarSettings } from '../../types/config';
 import { serviceConfig } from '../config/service-config';
 import { applyTheme } from '../helpers/theme';
 import { withServices } from '../service-context';
-import type { FileTreeService } from '../services/file-tree';
 import type { FrameSyncService } from '../services/frame-sync';
 import { useSidebarStore } from '../store';
 import GroupList from './GroupList';
-import PendingUpdatesButton from './PendingUpdatesButton';
-import PressableIconButton from './PressableIconButton';
-import ReconnectStreamButton from './ReconnectStreamButton';
 import SortMenu from './SortMenu';
+import TopBarToggleButton from './TopBarToggleButton';
 import UserMenu from './UserMenu';
-import SearchInput from './old-search/SearchInput';
+import ReconnectStreamButton from './ReconnectStreamButton';
 import SearchIconButton from './search/SearchIconButton';
 import StreamSearchInput from './search/StreamSearchInput';
 
@@ -36,7 +32,6 @@ export type TopBarProps = {
   onSignUp: () => void;
 
   // injected
-  fileTreeService: FileTreeService;
   frameSync: FrameSyncService;
   settings: SidebarSettings;
 };
@@ -50,17 +45,14 @@ function TopBar({
   onLogin,
   onLogout,
   onSignUp,
-  fileTreeService,
   frameSync,
   settings,
 }: TopBarProps) {
   const loginLinkStyle = applyTheme(['accentColor'], settings);
 
   const store = useSidebarStore();
-  const filterQuery = store.filterQuery();
   const isLoggedIn = store.isLoggedIn();
   const hasFetchedProfile = store.hasFetchedProfile();
-  const searchPanelEnabled = store.isFeatureEnabled('search_panel');
 
   const toggleSharePanel = () => {
     store.toggleSidebarPanel('shareGroupAnnotations');
@@ -68,7 +60,6 @@ function TopBar({
 
   const toggleSavePanel = (e: Event) => {
     frameSync.notifyHost('webClipping', {savePage: true});
-    // fileTreeService.uploadFile();
   }
 
   const isHelpPanelOpen = store.isSidebarPanelOpen('help');
@@ -111,7 +102,7 @@ function TopBar({
       >
         {isSidebar ? <GroupList /> : <StreamSearchInput />}
         <div className="grow flex items-center justify-end">
-          <PressableIconButton
+          <TopBarToggleButton
             icon={CloudUploadIcon}
             onClick={toggleSavePanel}
             size='custom'
@@ -120,38 +111,29 @@ function TopBar({
           {isSidebar && (
             <>
               <ReconnectStreamButton />
-              <PendingUpdatesButton />
-              {!searchPanelEnabled && (
-                <SearchInput
-                  query={filterQuery || null}
-                  onSearch={store.setFilterQuery}
-                />
-              )}
-              {searchPanelEnabled && <SearchIconButton />}
+              <SearchIconButton />
               <SortMenu />
-              <PressableIconButton
+              <TopBarToggleButton
                 icon={ShareIcon}
                 expanded={isAnnotationsPanelOpen}
                 pressed={isAnnotationsPanelOpen}
                 onClick={toggleSharePanel}
-                size="xs"
                 title="Share annotations on this page"
                 data-testid="share-icon-button"
               />
             </>
           )}
-          <PressableIconButton
+          <TopBarToggleButton
             icon={HomeIcon}
             onClick={requestQuery}
             size='custom'
             title="Go to the home page"
           />
-          <PressableIconButton
+          <TopBarToggleButton
             icon={HelpIcon}
             expanded={isHelpPanelOpen}
             pressed={isHelpPanelOpen}
             onClick={requestHelp}
-            size="xs"
             title="Help"
             data-testid="help-icon-button"
           />
@@ -192,4 +174,4 @@ function TopBar({
   );
 }
 
-export default withServices(TopBar, ['fileTreeService', 'frameSync', 'settings']);
+export default withServices(TopBar, ['frameSync', 'settings']);

@@ -5,7 +5,7 @@ import type { ComponentChildren } from 'preact';
 import type { VersionData } from '../helpers/version-data';
 import { withServices } from '../service-context';
 import type { ToastMessengerService } from '../services/toast-messenger';
-import { copyText } from '../util/copy-to-clipboard';
+import { copyPlainText } from '../util/copy-to-clipboard';
 
 type VersionInfoItemProps = {
   label: string;
@@ -39,7 +39,7 @@ export type VersionInfoProps = {
 function VersionInfo({ toastMessenger, versionData }: VersionInfoProps) {
   const copyVersionData = () => {
     try {
-      copyText(versionData.asFormattedString());
+      copyPlainText(versionData.asFormattedString());
       toastMessenger.success('Copied version info to clipboard');
     } catch (err) {
       toastMessenger.error('Unable to copy version info');

@@ -1,9 +1,11 @@
 import renderToString from 'preact-render-to-string/jsx';
 
+import type { CSVSeparator } from '../../shared/csv';
 import { escapeCSVValue } from '../../shared/csv';
 import { trimAndDedent } from '../../shared/trim-and-dedent';
 import type { APIAnnotationData, Profile } from '../../types/api';
 import {
+  annotationRole,
   documentMetadata,
   isReply,
   pageLabel,
@@ -12,6 +14,7 @@ import {
 import { annotationDisplayName } from '../helpers/annotation-user';
 import { stripInternalProperties } from '../helpers/strip-internal-properties';
 import { VersionData } from '../helpers/version-data';
+import { renderMathAndMarkdown } from '../render-markdown';
 import { formatDateTime } from '../util/time';
 
 export type JSONExportContent = {
@@ -26,12 +29,21 @@ export type JSONExportOptions = {
   now?: Date;
 };
 
-export type ExportOptions = {
+type CommonExportOptions = {
   defaultAuthority?: string;
   displayNamesEnabled?: boolean;
   groupName?: string;
+};
+
+export type TextExportOptions = CommonExportOptions & {
   now?: Date;
 };
+
+export type CSVExportOptions = CommonExportOptions & {
+  separator?: CSVSeparator;
+};
+
+export type HTMLExportOptions = TextExportOptions;
 
 /**
  * Generates annotations exports
@@ -67,7 +79,7 @@ export class AnnotationsExporter {
       defaultAuthority = '',
       /* istanbul ignore next - test seam */
       now = new Date(),
-    }: ExportOptions = {},
+    }: TextExportOptions = {},
   ): string {
     const { uri, title, uniqueUsers, replies, extractUsername } =
       this._exportCommon(annotations, {
@@ -77,11 +89,13 @@ export class AnnotationsExporter {
 
     const annotationsAsText = annotations.map((annotation, index) => {
       const page = pageLabel(annotation);
+      const annotationQuote = quote(annotation);
       const lines = [
         `Created at: ${formatDateTime(new Date(annotation.created))}`,
         `Author: ${extractUsername(annotation)}`,
         page ? `Page: ${page}` : undefined,
-        `Quote: "${quote(annotation)}"`,
+        `Type: ${annotationRole(annotation)}`,
+        annotationQuote ? `Quote: "${annotationQuote}"` : undefined,
         `Comment: ${annotation.text}`,
         annotation.tags.length > 0
           ? `Tags: ${annotation.tags.join(', ')}`
@@ -112,13 +126,13 @@ export class AnnotationsExporter {
       groupName = '',
       defaultAuthority = '',
       displayNamesEnabled = false,
-    }: Exclude<ExportOptions, 'now'> = {},
+      separator = ',',
+    }: CSVExportOptions = {},
   ): string {
     const { uri, extractUsername } = this._exportCommon(annotations, {
       displayNamesEnabled,
       defaultAuthority,
     });
-
     const annotationToRow = (annotation: APIAnnotationData) =>
       [
         formatDateTime(new Date(annotation.created)),
@@ -126,13 +140,13 @@ export class AnnotationsExporter {
         pageLabel(annotation) ?? '',
         uri,
         groupName,
-        isReply(annotation) ? 'Reply' : 'Annotation',
+        annotationRole(annotation),
         quote(annotation) ?? '',
         annotation.text,
         annotation.tags.join(','),
       ]
-        .map(escapeCSVValue)
-        .join(',');
+        .map(value => escapeCSVValue(value, separator))
+        .join(separator);
 
     const headers = [
       'Created at',
@@ -140,11 +154,11 @@ export class AnnotationsExporter {
       'Page',
       'URL',
       'Group',
-      'Annotation/Reply Type',
+      'Type',
       'Quote',
       'Comment',
       'Tags',
-    ].join(',');
+    ].join(separator);
     const annotationsContent = annotations
       .map(anno => annotationToRow(anno))
       .join('\n');
@@ -160,7 +174,7 @@ export class AnnotationsExporter {
       defaultAuthority = '',
       /* istanbul ignore next - test seam */
       now = new Date(),
-    }: ExportOptions = {},
+    }: HTMLExportOptions = {},
   ): string {
     const { uri, title, uniqueUsers, replies, extractUsername } =
       this._exportCommon(annotations, {
@@ -190,7 +204,7 @@ export class AnnotationsExporter {
             </p>
 
             <table>
-              <tbody>
+              <tbody style={{ verticalAlign: 'top' }}>
                 <tr>
                   <td>Group:</td>
                   <td>{groupName}</td>
@@ -219,11 +233,22 @@ export class AnnotationsExporter {
             <h1>Annotations</h1>
             {annotations.map((annotation, index) => {
               const page = pageLabel(annotation);
+              const annotationQuote = quote(annotation);
+              const renderedComment = renderMathAndMarkdown(annotation.text);
+
+              // When the result of rendering the text's markdown is just a
+              // single paragraph, we fall back to the annotation text, to
+              // avoid extra margins added by some editors, like Google Docs
+              const comment =
+                renderedComment === `<p>${annotation.text}</p>`
+                  ? annotation.text
+                  : renderedComment;
+
               return (
                 <article key={annotation.id}>
                   <h2>Annotation {index + 1}:</h2>
                   <table>
-                    <tbody>
+                    <tbody style={{ verticalAlign: 'top' }}>
                       <tr>
                         <td>Created at:</td>
                         <td>
@@ -243,16 +268,26 @@ export class AnnotationsExporter {
                         </tr>
                       )}
                       <tr>
-                        <td>Quote:</td>
-                        <td>
-                          <blockquote style={{ margin: 0 }}>
-                            {quote(annotation)}
-                          </blockquote>
-                        </td>
+                        <td>Type:</td>
+                        <td>{annotationRole(annotation)}</td>
                       </tr>
+                      {annotationQuote && (
+                        <tr>
+                          <td>Quote:</td>
+                          <td>
+                            <blockquote style={{ margin: 0 }}>
+                              {annotationQuote}
+                            </blockquote>
+                          </td>
+                        </tr>
+                      )}
                       <tr>
                         <td>Comment:</td>
-                        <td>{annotation.text}</td>
+                        <td
+                          dangerouslySetInnerHTML={{
+                            __html: comment,
+                          }}
+                        />
                       </tr>
                       {annotation.tags.length > 0 && (
                         <tr>
@@ -270,7 +305,10 @@ export class AnnotationsExporter {
       </html>,
       {},
       { pretty: true },
-    );
+      // `renderToString` indents lines with tabs when using `pretty: true`.
+      // Replacing them with double spaces we avoid side effects when pasting
+      // the result in a web app.
+    ).replace(/\t/g, '  ');
   }
 
   private _exportCommon(
@@ -278,9 +316,7 @@ export class AnnotationsExporter {
     {
       displayNamesEnabled,
       defaultAuthority,
-    }: Required<
-      Pick<ExportOptions, 'displayNamesEnabled' | 'defaultAuthority'>
-    >,
+    }: Required<Omit<CommonExportOptions, 'groupName'>>,
   ) {
     const [firstAnnotation] = annotations;
     if (!firstAnnotation) {

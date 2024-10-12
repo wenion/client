@@ -11,7 +11,7 @@ import { pageSharingLink } from '../../helpers/annotation-sharing';
 import { withServices } from '../../service-context';
 import type { ToastMessengerService } from '../../services/toast-messenger';
 import { useSidebarStore } from '../../store';
-import { copyText } from '../../util/copy-to-clipboard';
+import { copyPlainText } from '../../util/copy-to-clipboard';
 import ShareLinks from '../ShareLinks';
 import LoadingSpinner from './LoadingSpinner';
 
@@ -35,7 +35,7 @@ function ShareAnnotations({ toastMessenger }: ShareAnnotationsProps) {
   const copyShareLink = useCallback(() => {
     try {
       if (shareURI) {
-        copyText(shareURI);
+        copyPlainText(shareURI);
         toastMessenger.success('Copied share link to clipboard');
       }
     } catch (err) {

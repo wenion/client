@@ -149,7 +149,7 @@ const reducers = {
     return { filters: updatedFilters };
   },
 
-  SET_FILTER_QUERY(state: State, action: { query: string }) {
+  SET_FILTER_QUERY(state: State, action: { query: string | null }) {
     return { query: action.query };
   },
 
@@ -219,7 +219,7 @@ function setFilter(filterName: FilterKey, filterOption: FilterOption) {
 /**
  * Set the query used to filter displayed annotations.
  */
-function setFilterQuery(query: string) {
+function setFilterQuery(query: string | null) {
   return makeAction(reducers, 'SET_FILTER_QUERY', { query });
 }
 

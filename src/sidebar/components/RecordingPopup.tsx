@@ -1,4 +1,4 @@
-import { Overlay, Panel, Input, Button, Spinner, SelectNext } from '@hypothesis/frontend-shared';
+import { Overlay, Panel, Input, Button } from '@hypothesis/frontend-shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 
 import { useSidebarStore } from '../store';

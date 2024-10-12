@@ -1,4 +1,4 @@
-import { useElementShouldClose } from '@hypothesis/frontend-shared';
+import { usePopoverShouldClose } from '@hypothesis/frontend-shared';
 import { SearchIcon } from '@hypothesis/frontend-shared';
 import { MutableRef, useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import classnames from 'classnames';
@@ -118,7 +118,7 @@ function Search({
 
   // Menu element should close via `closeMenu` whenever it's open and there
   // are user interactions outside of it (e.g. clicks) in the document
-  useElementShouldClose(menuRef, isOpen, closeMenu);
+  usePopoverShouldClose(menuRef, closeMenu, { enabled: isOpen });
 
   const stopPropagation = (e: Event) => e.stopPropagation();
 

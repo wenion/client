@@ -3,16 +3,13 @@ import {
   CardActions,
   Link,
   Input,
-  SelectNext,
+  CopyIcon,
+  Select,
 } from '@hypothesis/frontend-shared';
 import { useCallback, useId, useMemo, useState } from 'preact/hooks';
 
-import {
-  downloadCSVFile,
-  downloadHTMLFile,
-  downloadJSONFile,
-  downloadTextFile,
-} from '../../../shared/download-file';
+import { downloadFile } from '../../../shared/download-file';
+import { pluralize } from '../../../shared/pluralize';
 import type { APIAnnotationData } from '../../../types/api';
 import { annotationDisplayName } from '../../helpers/annotation-user';
 import type { UserAnnotations } from '../../helpers/annotations-by-user';
@@ -22,6 +19,7 @@ import { withServices } from '../../service-context';
 import type { AnnotationsExporter } from '../../services/annotations-exporter';
 import type { ToastMessengerService } from '../../services/toast-messenger';
 import { useSidebarStore } from '../../store';
+import { copyPlainText, copyHTML } from '../../util/copy-to-clipboard';
 import LoadingSpinner from './LoadingSpinner';
 import { UserAnnotationsListItem } from './UserAnnotationsListItem';
 
@@ -59,18 +57,28 @@ const exportFormats: ExportFormat[] = [
     description: 'For import into word processors as plain text',
   },
   {
-    value: 'csv',
-    title: 'Table (CSV)',
-    shortTitle: 'CSV',
-    description: 'For import into a spreadsheet',
-  },
-  {
     value: 'html',
     title: 'Rich text (HTML)',
     shortTitle: 'HTML',
     description: 'For import into word processors as rich text',
   },
+  {
+    value: 'csv',
+    title: 'Table (CSV)',
+    shortTitle: 'CSV',
+    description: 'For import into a spreadsheet',
+  },
 ];
+
+function formatToMimeType(format: ExportFormat['value']): string {
+  const typeForFormat: Record<ExportFormat['value'], string> = {
+    json: 'application/json',
+    txt: 'text/plain',
+    csv: 'text/csv',
+    html: 'text/html',
+  };
+  return typeForFormat[format];
+}
 
 /**
  * Render content for "export" tab panel: allow user to export annotations
@@ -109,13 +117,19 @@ function ExportAnnotations({
     }),
     [exportableAnnotations],
   );
-  const [selectedUser, setSelectedUser] = useState(
-    // Try to preselect current user
-    userList.find(userInfo => userInfo.userid === currentUser) ??
+
+  // Try to preselect current user
+  const [selectedUserId, setSelectedUserId] = useState(currentUser);
+  // Re-compute selectedUserAnnotations if:
+  //  - `userList` changes: This means annotations where created/deleted/updated
+  //  - `selectedUserId` changes: This means user was manually changed
+  const selectedUserAnnotations = useMemo(
+    () =>
+      userList.find(user => user.userid === selectedUserId) ??
       allAnnotationsOption,
+    [allAnnotationsOption, selectedUserId, userList],
   );
 
-  const exportFormatsEnabled = store.isFeatureEnabled('export_formats');
   const [exportFormat, setExportFormat] = useState(exportFormats[0]);
 
   const fileInputId = useId();
@@ -133,30 +147,20 @@ function ExportAnnotations({
   );
   const [customFilename, setCustomFilename] = useState<string>();
 
-  if (!exportReady) {
-    return <LoadingSpinner />;
-  }
-
-  const exportAnnotations = (e: Event) => {
-    e.preventDefault();
-
-    try {
-      const format = exportFormat.value;
+  const buildExportContent = useCallback(
+    (format: ExportFormat['value'], context: 'file' | 'clipboard'): string => {
       const annotationsToExport =
-        selectedUser?.annotations ?? exportableAnnotations;
-      const filename = `${customFilename ?? defaultFilename}.${format}`;
-
+        selectedUserAnnotations?.annotations ?? exportableAnnotations;
       switch (format) {
         case 'json': {
-          const exportData = annotationsExporter.buildJSONExportContent(
+          const data = annotationsExporter.buildJSONExportContent(
             annotationsToExport,
             { profile },
           );
-          downloadJSONFile(exportData, filename);
-          break;
+          return JSON.stringify(data, null, 2);
         }
         case 'txt': {
-          const exportData = annotationsExporter.buildTextExportContent(
+          return annotationsExporter.buildTextExportContent(
             annotationsToExport,
             {
               groupName: group?.name,
@@ -164,23 +168,23 @@ function ExportAnnotations({
               displayNamesEnabled,
             },
           );
-          downloadTextFile(exportData, filename);
-          break;
         }
         case 'csv': {
-          const exportData = annotationsExporter.buildCSVExportContent(
+          return annotationsExporter.buildCSVExportContent(
             annotationsToExport,
             {
+              // We want to use tabs when copying to clipboard, so that it's
+              // possible to paste in apps like Google Sheets or OneDrive Excel.
+              // They do not properly populate a grid for comma-based CSV.
+              separator: context === 'file' ? ',' : '\t',
               groupName: group?.name,
               defaultAuthority,
               displayNamesEnabled,
             },
           );
-          downloadCSVFile(exportData, filename);
-          break;
         }
         case 'html': {
-          const exportData = annotationsExporter.buildHTMLExportContent(
+          return annotationsExporter.buildHTMLExportContent(
             annotationsToExport,
             {
               groupName: group?.name,
@@ -188,19 +192,69 @@ function ExportAnnotations({
               displayNamesEnabled,
             },
           );
-          downloadHTMLFile(exportData, filename);
-          break;
         }
+        /* istanbul ignore next - This should never happen */
+        default:
+          throw new Error(`Invalid format: ${format}`);
       }
-    } catch (e) {
-      toastMessenger.error('Exporting annotations failed');
-    }
-  };
+    },
+    [
+      annotationsExporter,
+      defaultAuthority,
+      displayNamesEnabled,
+      exportableAnnotations,
+      group?.name,
+      profile,
+      selectedUserAnnotations?.annotations,
+    ],
+  );
+  const exportAnnotations = useCallback(
+    (e: Event) => {
+      e.preventDefault();
 
-  // Naive simple English pluralization
-  const pluralize = (count: number, singular: string, plural: string) => {
-    return count === 1 ? singular : plural;
-  };
+      try {
+        const format = exportFormat.value;
+        const filename = `${customFilename ?? defaultFilename}.${format}`;
+        const exportData = buildExportContent(format, 'file');
+        const mimeType = formatToMimeType(format);
+
+        downloadFile(exportData, mimeType, filename);
+      } catch (e) {
+        toastMessenger.error(`Exporting annotations failed: ${e.message}`, {
+          autoDismiss: false,
+        });
+      }
+    },
+    [
+      buildExportContent,
+      customFilename,
+      defaultFilename,
+      exportFormat.value,
+      toastMessenger,
+    ],
+  );
+  const copyAnnotationsExport = useCallback(async () => {
+    const format = exportFormat.value;
+    const exportData = buildExportContent(format, 'clipboard');
+
+    try {
+      if (format === 'html') {
+        await copyHTML(exportData);
+      } else {
+        await copyPlainText(exportData);
+      }
+
+      toastMessenger.success('Annotations copied');
+    } catch (e) {
+      toastMessenger.error(`Copying annotations failed: ${e.message}`, {
+        autoDismiss: false,
+      });
+    }
+  }, [buildExportContent, exportFormat.value, toastMessenger]);
+
+  if (!exportReady) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <form
@@ -210,40 +264,65 @@ function ExportAnnotations({
     >
       {exportableAnnotations.length > 0 ? (
         <>
-          <p className="text-color-text-light mb-3">
+          <p className="text-color-text-light">
             <Link
               variant="text-light"
               underline="always"
-              href="https://colam.kmass.cloud.edu.au/help/exporting-and-importing-annotations-in-the-hypothesis-web-app/"
+              href="https://web.hypothes.is/help/exporting-and-importing-annotations-in-the-hypothesis-web-app/"
               target="_blank"
             >
               Learn more
             </Link>{' '}
             about copying and exporting annotations.
           </p>
-          <label
-            data-testid="export-count"
-            htmlFor={fileInputId}
-            className="font-medium"
-          >
-            Name of export file:
-          </label>
-          <div className="flex">
-            <Input
-              classes="grow"
-              data-testid="export-filename"
-              id={fileInputId}
-              defaultValue={defaultFilename}
-              value={customFilename}
-              onChange={e =>
-                setCustomFilename((e.target as HTMLInputElement).value)
+          <div className="flex flex-col gap-y-3">
+            <label htmlFor={userSelectId} className="font-medium">
+              Select which user{"'"}s annotations to export:
+            </label>
+            <Select
+              value={selectedUserId}
+              onChange={setSelectedUserId}
+              buttonId={userSelectId}
+              buttonContent={
+                <UserAnnotationsListItem
+                  userAnnotations={selectedUserAnnotations}
+                />
               }
-              required
-              maxLength={250}
-            />
-            {exportFormatsEnabled && (
+              data-testid="user-select"
+            >
+              <Select.Option value={undefined}>
+                <UserAnnotationsListItem
+                  userAnnotations={allAnnotationsOption}
+                />
+              </Select.Option>
+              {userList.map(userInfo => (
+                <Select.Option key={userInfo.userid} value={userInfo.userid}>
+                  <UserAnnotationsListItem userAnnotations={userInfo} />
+                </Select.Option>
+              ))}
+            </Select>
+            <label
+              data-testid="export-count"
+              htmlFor={fileInputId}
+              className="font-medium"
+            >
+              Name of export file:
+            </label>
+            <div className="flex">
+              <Input
+                classes="grow"
+                data-testid="export-filename"
+                id={fileInputId}
+                defaultValue={defaultFilename}
+                value={customFilename}
+                onChange={e =>
+                  setCustomFilename((e.target as HTMLInputElement).value)
+                }
+                required
+                maxLength={250}
+              />
               <div className="grow-0 ml-2 min-w-[5rem]">
-                <SelectNext
+                <Select
                   value={exportFormat}
                   onChange={setExportFormat}
                   buttonContent={exportFormat.shortTitle ?? exportFormat.title}
@@ -251,7 +330,7 @@ function ExportAnnotations({
                   right
                 >
                   {exportFormats.map(exportFormat => (
-                    <SelectNext.Option
+                    <Select.Option
                       key={exportFormat.value}
                       value={exportFormat}
                     >
@@ -263,33 +342,12 @@ function ExportAnnotations({
                           {exportFormat.description}
                         </div>
                       </div>
-                    </SelectNext.Option>
+                    </Select.Option>
                   ))}
-                </SelectNext>
+                </Select>
               </div>
-            )}
+            </div>
           </div>
-          <label htmlFor={userSelectId} className="block font-medium">
-            Select which user{"'"}s annotations to export:
-          </label>
-          <SelectNext
-            value={selectedUser}
-            onChange={setSelectedUser}
-            buttonId={userSelectId}
-            buttonContent={
-              <UserAnnotationsListItem userAnnotations={selectedUser} />
-            }
-            data-testid="user-select"
-          >
-            <SelectNext.Option value={allAnnotationsOption}>
-              <UserAnnotationsListItem userAnnotations={allAnnotationsOption} />
-            </SelectNext.Option>
-            {userList.map(userInfo => (
-              <SelectNext.Option key={userInfo.userid} value={userInfo}>
-                <UserAnnotationsListItem userAnnotations={userInfo} />
-              </SelectNext.Option>
-            ))}
-          </SelectNext>
         </>
       ) : (
         <p data-testid="no-annotations-message">
@@ -304,6 +362,14 @@ function ExportAnnotations({
         </p>
       )}
       <CardActions>
+        <Button
+          data-testid="copy-button"
+          icon={CopyIcon}
+          onClick={copyAnnotationsExport}
+          disabled={exportableAnnotations.length === 0}
+        >
+          Copy to clipboard
+        </Button>
         <Button
           data-testid="export-button"
           variant="primary"
