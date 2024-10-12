@@ -253,20 +253,6 @@ export default function Toolbar({
                 icon={newAnnotationType === 'note' ? NoteIcon : AnnotateIcon}
                 onClick={createAnnotation}
               />
-              <ToolbarButton
-                title='Find more'
-                icon={SearchIcon}
-                onClick={toggleChatting}
-                classes={isOnChat? classnames(
-                  'justify-center rounded',
-                  'w-[30px] h-[30px]',
-                  'shadow border bg-white text-blue-curious'
-                ) : classnames(
-                    'justify-center rounded',
-                    'w-[30px] h-[30px]',
-                    'shadow border bg-white text-grey-6 hover:text-grey-9')
-                  }
-              />
             </>
           )}
           </div>

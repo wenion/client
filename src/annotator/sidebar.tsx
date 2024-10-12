@@ -871,20 +871,11 @@ export class Sidebar implements Destroyable {
     this._sidebarRPC.call('updateRecoringStatusFromHost', status);
 
     this.updateRecordingStatusView(status)
-    if (status === 'off') this.open();
+    if (status === 'off' || status === 'ready') this.open();
   }
 
   updateRecordingStatusView(status: 'off' | 'ready' | 'on', mode?: 'Baseline' | 'GoldMind' | 'Query') {
     this.toolbar.recordingStatus = status;
-    if (status === 'ready') {
-      this.open();
-    }
-    else if (mode && mode !== 'GoldMind' && status === 'on') {
-      return;
-    }
-    else if (status === 'on') {
-      this.close();
-    }
   }
 
   /**

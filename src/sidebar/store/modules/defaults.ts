@@ -19,8 +19,6 @@ export type State = {
   focusedGroup: string | null;
   focus: 'onFocused' | 'onUnfocused';
   mode: 'Baseline' | 'GoldMind' | 'Query' | null;
-  model: string | null;
-  token: string | null;
 };
 
 export type Key = keyof State;
@@ -29,9 +27,7 @@ const initialState: State = {
   annotationPrivacy: null,
   focusedGroup: null,
   focus: 'onFocused',
-  mode: null,
-  model: null,
-  token: null,
+  mode: 'GoldMind',
 };
 
 const reducers = {

@@ -1,4 +1,4 @@
-import { Overlay, Panel, Input, Button, Spinner, SelectNext } from '@hypothesis/frontend-shared';
+import { Overlay, Panel, Input, Button, Spinner } from '@hypothesis/frontend-shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 
 import { useSidebarStore } from '../store';
@@ -50,16 +50,6 @@ function RecordingTab({
     recordingService.updateTracking(undefined, '', 0)
     store.setStep(0);
   }
-
-  useEffect(() => {
-    if (selectedRecording && selectedRecording.action === 'view') {
-      frameSync.notifyHost('expandSidebar', {action: 'open'});
-    }
-    else {
-      //margin-left: -428px;
-      frameSync.notifyHost('expandSidebar', {action: 'close'});
-    }
-  }, [selectedRecording]);
 
   const onDataComicsEvent = (step: RecordingStepData) => {
     frameSync.notifyHost('openImageViewer', step);
