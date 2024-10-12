@@ -10,7 +10,8 @@ type Channel =
   | 'guest-host'
   | 'guest-sidebar'
   | 'notebook-sidebar'
-  | 'sidebar-host';
+  | 'sidebar-host'
+  | 'sidebar-extension';
 
 /**
  * PortProvider creates a `MessageChannel` for communication between two
@@ -128,6 +129,12 @@ export class PortProvider implements Destroyable {
         allowedOrigin: '*',
         frame1: 'site',
         frame2: 'sidebar',
+        type: 'request',
+      },
+      {
+        allowedOrigin: '*',
+        frame1: 'sidebar',
+        frame2: 'extension',
         type: 'request',
       },
     ];
@@ -249,6 +256,8 @@ export class PortProvider implements Destroyable {
         ]);
       } else if (frame2 === 'host') {
         this._emitter.emit('frameConnected', frame1, messageChannel.port2);
+      } else if (frame2 === 'extension') {
+        window.postMessage(message, '*', [messageChannel.port2]);
       }
     };
 

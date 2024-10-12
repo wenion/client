@@ -1,4 +1,4 @@
-export type Frame = 'guest' | 'host' | 'notebook' | 'profile' | 'sidebar' | 'site';
+export type Frame = 'guest' | 'host' | 'notebook' | 'profile' | 'sidebar' | 'site' | 'extension';
 
 /**
  * Message sent by `PortProvider` and `PortFinder` to establish a
