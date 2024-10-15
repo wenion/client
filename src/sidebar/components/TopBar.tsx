@@ -8,6 +8,7 @@ import { withServices } from '../service-context';
 import type { FrameSyncService } from '../services/frame-sync';
 import { useSidebarStore } from '../store';
 import GroupList from './GroupList';
+import PendingUpdatesButton from './PendingUpdatesButton';
 import SortMenu from './SortMenu';
 import TopBarToggleButton from './TopBarToggleButton';
 import UserMenu from './UserMenu';
@@ -111,6 +112,7 @@ function TopBar({
           {isSidebar && (
             <>
               <ReconnectStreamButton />
+              <PendingUpdatesButton />
               <SearchIconButton />
               <SortMenu />
               <TopBarToggleButton
