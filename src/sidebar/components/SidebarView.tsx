@@ -16,15 +16,11 @@ import ThreadList from './ThreadList';
 import VideoThreadList from './VideoThreadList';
 import MessageTab from './MessageTab';
 import RecordingTab from './RecordingTab';
-import RecordingPopup from './RecordingPopup';
-import ChatTab from './ChatTab';
-import QueryTab from './QueryTab';
 import { useRootThread } from './hooks/use-root-thread';
 import { useRootVideoThread } from './hooks/use-root-video-thread';
 import FilterStatus from './old-search/FilterStatus';
 import FilterAnnotationsStatus from './search/FilterAnnotationsStatus';
 
-import RecordingOffIcon from '../../images/icons/recordingOff';
 
 export type SidebarViewProps = {
   onLogin: () => void;
@@ -33,7 +29,6 @@ export type SidebarViewProps = {
   // injected
   frameSync: FrameSyncService;
   loadAnnotationsService: LoadAnnotationsService;
-  recordingService: RecordingService;
   streamer: StreamerService;
 };
 
@@ -45,7 +40,6 @@ function SidebarView({
   onLogin,
   onSignUp,
   loadAnnotationsService,
-  recordingService,
   streamer,
 }: SidebarViewProps) {
   const rootThread = useRootThread();
@@ -71,9 +65,6 @@ function SidebarView({
   const selectedTab = store.selectedTab();
   const sidebarHasOpened = store.hasSidebarOpened();
   const userId = store.profile().userid;
-  const mode = store.getDefault('mode') as 'Baseline' | 'GoldMind' | 'Query' ;
-  const taskId = recordingService.getExtensionStatus().recordingTaskName;
-  const recordingStage = store.currentRecordingStage();
 
   // If, after loading completes, no `linkedAnnotation` object is present when
   // a `linkedAnnotationId` is set, that indicates an error
@@ -147,60 +138,30 @@ function SidebarView({
     }
   }, [hasFetchedProfile, isLoggedIn, sidebarHasOpened, streamer]);
 
-  useEffect(() => {}, [mode])
-
   return (
     <div>
-      {mode === 'Baseline' && (
-        <>
-        {taskId !== '' ? (
-          <ChatTab />
-        ) : (
-          <>
-            {recordingStage === 'Request' && <RecordingPopup/>}
-            {recordingStage === 'Idle' && (
-              <div>
-                Please click the record button
-                <div className="inline">
-                  <RecordingOffIcon className="inline"/>
-                </div>
-                on the left side to start ChatUI.
-              </div>
-            )}
-            {/* {recordingStage === 'Start' && <ChatTab/>} */}
-          </>
-        )}
-        </>
+      <h2 className="sr-only">Annotations</h2>
+      {showFilterStatus && <FilterStatus />}
+      {searchPanelEnabled && <FilterAnnotationsStatus />}
+      <LoginPromptPanel onLogin={onLogin} onSignUp={onSignUp} />
+      {hasDirectLinkedAnnotationError && (
+        <SidebarContentError
+          errorType="annotation"
+          onLoginRequest={onLogin}
+          showClearSelection={true}
+        />
       )}
-      {mode === 'GoldMind' && (
-        <>
-          <h2 className="sr-only">Annotations</h2>
-          {showFilterStatus && <FilterStatus />}
-          {searchPanelEnabled && <FilterAnnotationsStatus />}
-          <LoginPromptPanel onLogin={onLogin} onSignUp={onSignUp} />
-          {hasDirectLinkedAnnotationError && (
-            <SidebarContentError
-              errorType="annotation"
-              onLoginRequest={onLogin}
-              showClearSelection={true}
-            />
-          )}
-          {hasDirectLinkedGroupError && (
-            <SidebarContentError errorType="group" onLoginRequest={onLogin} />
-          )}
-          <SelectionTabs isLoading={isLoading} />
-          {selectedTab == 'video' && <VideoThreadList threads={rootVideoThread.children} />}
-          {selectedTab == 'message' && <MessageTab />}
-          {selectedTab == 'recording' && <RecordingTab />}
-          {(selectedTab == 'annotation' || selectedTab == 'note' || selectedTab == 'orphan')&& (
-            <ThreadList threads={rootThread.children}/>
-          )}
-          {showLoggedOutMessage && <LoggedOutMessage onLogin={onLogin} />}
-        </>
+      {hasDirectLinkedGroupError && (
+        <SidebarContentError errorType="group" onLoginRequest={onLogin} />
       )}
-      {mode === 'Query' && (
-        <QueryTab/>
+      <SelectionTabs isLoading={isLoading} />
+      {selectedTab == 'video' && <VideoThreadList threads={rootVideoThread.children} />}
+      {selectedTab == 'message' && <MessageTab />}
+      {selectedTab == 'recording' && <RecordingTab />}
+      {(selectedTab == 'annotation' || selectedTab == 'note' || selectedTab == 'orphan')&& (
+        <ThreadList threads={rootThread.children}/>
       )}
+      {showLoggedOutMessage && <LoggedOutMessage onLogin={onLogin} />}
     </div>
   );
 }
@@ -208,6 +169,5 @@ function SidebarView({
 export default withServices(SidebarView, [
   'frameSync',
   'loadAnnotationsService',
-  'recordingService',
   'streamer',
 ]);
