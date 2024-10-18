@@ -192,6 +192,8 @@ export class StreamerService {
         }
         this._store.addMessages([notification,]);
       }
+    } else if (message.type === 'instant_message'){
+      this._store.addMessages([message,]);
     } else {
       warnOnce('Received unsupported notification', message.type);
     }

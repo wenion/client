@@ -400,8 +400,11 @@ export class RecordingService extends TinyEmitter{
     }
   }
 
-  startFecthMessage() {
-    this.fetchMessage('organisation_event', 0, true)
+  async loadMessages() {
+    // Load user account's messages
+    const url = this._store.mainFrame()?.uri;
+    const responses = await this._api.pull({q: "q", interval: 0, url: url});
+    this._store.addMessages(responses);
   }
 
   updateTracking(sessionId: string | undefined, userid: string, step: number) {

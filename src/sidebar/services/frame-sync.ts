@@ -423,6 +423,7 @@ export class FrameSyncService {
           )
           this._hostRPC.call('isLoggedIn', true)
           this._hostRPC.call('webClipping', {savePage: false})
+          this._recordingService.loadMessages()
         }
         // if (isLoggedIn && isLoggedIn !== prevIsLoggedIn) {
         //   this._recordingService.fetchHighlight(this._store.mainFrame()?.uri)
@@ -446,16 +447,6 @@ export class FrameSyncService {
         //     isConnected,
         //   )
         // );
-      }
-    )
-
-    watch(
-      this._store.subscribe,
-      () => this._store.mainFrame(),
-      (mainFrame, prevMainFrame) => {
-        if (mainFrame && !prevMainFrame) {
-          this._recordingService.startFecthMessage();
-        }
       }
     )
 
