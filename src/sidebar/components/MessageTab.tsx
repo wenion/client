@@ -41,7 +41,7 @@ function MessageList({
         </h4>
         {collapsed ? <CaretDownIcon className='grow-0'/> : <CaretRightIcon className='grow-0'/>}
       </div>
-      {!collapsed && isLoggedIn && threads.map(child => (
+      {!collapsed && threads.map(child => (
         <div
           className={classnames(
             // The goal is to space out each annotation card vertically. Typically

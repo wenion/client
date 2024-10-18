@@ -149,17 +149,6 @@ function SelectionTabs({
           Page Notes
         </Tab>
         )}
-        {selectedTab === 'message' && (
-          <Tab
-            count={allMessageCount}
-            isWaitingToAnchor={isWaitingToAnchorAnnotations}
-            isSelected={selectedTab === 'message'}
-            label="Notifications"
-            onSelect={() => selectTab('message')}
-          >
-            Notifications
-          </Tab>
-        )}
         <Tab
           count={allRecordingsCount}
           isWaitingToAnchor={isWaitingToAnchorAnnotations}
@@ -168,6 +157,15 @@ function SelectionTabs({
           onSelect={() => selectTab('recording')}
         >
           ShareFlow
+        </Tab>
+        <Tab
+          count={allMessageCount}
+          isWaitingToAnchor={isWaitingToAnchorAnnotations}
+          isSelected={selectedTab === 'message'}
+          label="Notifications"
+          onSelect={() => selectTab('message')}
+        >
+          Notifications
         </Tab>
         {/* <Tab
           count={videoAnnotationCount}
