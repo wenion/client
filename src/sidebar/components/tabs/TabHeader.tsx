@@ -2,14 +2,16 @@ import { CloseButton, TabList } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import type { ComponentChildren } from 'preact';
 
+export type TabHeaderProps = {
+  children: ComponentChildren;
+  /** Title for the close button. */
+  closeTitle: string;
+};
+
 /**
  * Render a header to go above a Card, with contents in a TabList
  */
-export default function TabHeader({
-  children,
-}: {
-  children: ComponentChildren;
-}) {
+export default function TabHeader({ children, closeTitle }: TabHeaderProps) {
   return (
     <div data-testid="tab-header" className="flex items-center">
       <CloseButton
@@ -23,8 +25,14 @@ export default function TabHeader({
           // font size
           'text-[16px]',
           'text-grey-6 hover:text-grey-7 hover:bg-grey-3/50',
+
+          // Keep the close button the same height on touch devices.
+          //
+          // This is needed so that the close button remains the same height as
+          // the `Tab` components rendered inside the `TabList`. See issue #6131.
+          'touch:!min-h-0',
         )}
-        title="Close"
+        title={closeTitle}
         variant="custom"
         size="sm"
       />
