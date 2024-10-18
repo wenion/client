@@ -5,7 +5,6 @@ import { tabForAnnotation } from '../helpers/tabs';
 import { withServices } from '../service-context';
 import type { FrameSyncService } from '../services/frame-sync';
 import type { LoadAnnotationsService } from '../services/load-annotations';
-import type { RecordingService } from '../services/recording';
 import type { StreamerService } from '../services/streamer';
 import { useSidebarStore } from '../store';
 import LoggedOutMessage from './LoggedOutMessage';
