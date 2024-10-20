@@ -230,6 +230,14 @@ function hasPendingUpdates(state: State): boolean {
   return Object.keys(state.pendingUpdates).length > 0;
 }
 
+/**
+ * Return true if at least one annotation has been created or deleted on the
+ * server, but it has not yet been applied.
+ */
+function hasPendingUpdatesOrDeletions(state: State): boolean {
+  return pendingUpdateCount(state) > 0;
+}
+
 export const realTimeUpdatesModule = createStoreModule(initialState, {
   namespace: 'realTimeUpdates',
   reducers,
@@ -241,6 +249,7 @@ export const realTimeUpdatesModule = createStoreModule(initialState, {
   selectors: {
     hasPendingDeletion,
     hasPendingUpdates,
+    hasPendingUpdatesOrDeletions,
     pendingDeletions,
     pendingUpdates,
     pendingUpdateCount,

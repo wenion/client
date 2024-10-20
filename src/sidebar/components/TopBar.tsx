@@ -8,14 +8,13 @@ import { withServices } from '../service-context';
 import type { FrameSyncService } from '../services/frame-sync';
 import { useSidebarStore } from '../store';
 import GroupList from './GroupList';
-import PendingUpdatesButton from './PendingUpdatesButton';
 import SortMenu from './SortMenu';
 import TopBarToggleButton from './TopBarToggleButton';
 import UserMenu from './UserMenu';
-import ReconnectStreamButton from './ReconnectStreamButton';
 import SearchIconButton from './search/SearchIconButton';
 import StreamSearchInput from './search/StreamSearchInput';
 
+import ReconnectStreamButton from './ReconnectStreamButton';
 import HomeIcon from '../../images/icons/home';
 import CloudUploadIcon from '../../images/icons/cloudUpload';
 
@@ -103,16 +102,17 @@ function TopBar({
       >
         {isSidebar ? <GroupList /> : <StreamSearchInput />}
         <div className="grow flex items-center justify-end">
-          <TopBarToggleButton
-            icon={CloudUploadIcon}
-            onClick={toggleSavePanel}
-            size='custom'
-            title="Save the page to your repository"
-          />
+          {isLoggedIn && (
+            <TopBarToggleButton
+              icon={CloudUploadIcon}
+              onClick={toggleSavePanel}
+              size='custom'
+              title="Save the page to your repository"
+            />
+          )}
           {isSidebar && (
             <>
               <ReconnectStreamButton />
-              <PendingUpdatesButton />
               <SearchIconButton />
               <SortMenu />
               <TopBarToggleButton

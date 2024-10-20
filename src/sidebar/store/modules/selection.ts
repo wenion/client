@@ -21,7 +21,6 @@ const TAB_SORTKEY_DEFAULT: Record<TabName, SortKey> = {
   video: 'Location',
   message: 'Location',
   recording: 'Location',
-  chat: 'Location',
 };
 
 function initialSelection(settings: SidebarSettings): BooleanMap {

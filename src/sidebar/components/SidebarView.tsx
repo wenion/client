@@ -9,17 +9,10 @@ import type { StreamerService } from '../services/streamer';
 import { useSidebarStore } from '../store';
 import LoggedOutMessage from './LoggedOutMessage';
 import LoginPromptPanel from './LoginPromptPanel';
-import SelectionTabs from './SelectionTabs';
+import PendingUpdatesNotification from './PendingUpdatesNotification';
 import SidebarContentError from './SidebarContentError';
-import ThreadList from './ThreadList';
-import VideoThreadList from './VideoThreadList';
-import MessageTab from './MessageTab';
-import RecordingTab from './RecordingTab';
-import { useRootThread } from './hooks/use-root-thread';
-import { useRootVideoThread } from './hooks/use-root-video-thread';
-import FilterStatus from './old-search/FilterStatus';
-import FilterAnnotationsStatus from './search/FilterAnnotationsStatus';
-
+import SidebarTabs from './SidebarTabs';
+import FilterControls from './search/FilterControls';
 
 export type SidebarViewProps = {
   onLogin: () => void;
@@ -41,14 +34,9 @@ function SidebarView({
   loadAnnotationsService,
   streamer,
 }: SidebarViewProps) {
-  const rootThread = useRootThread();
-  const rootVideoThread = useRootVideoThread();
-
   // Store state values
   const store = useSidebarStore();
   const focusedGroupId = store.focusedGroupId();
-  const hasAppliedFilter =
-    store.hasAppliedFilter() || store.hasSelectedAnnotations();
   const isLoading = store.isLoading();
   const isLoggedIn = store.isLoggedIn();
 
@@ -61,7 +49,6 @@ function SidebarView({
     : 'annotation';
 
   const searchUris = store.searchUris();
-  const selectedTab = store.selectedTab();
   const sidebarHasOpened = store.hasSidebarOpened();
   const userId = store.profile().userid;
 
@@ -75,8 +62,11 @@ function SidebarView({
   const hasContentError =
     hasDirectLinkedAnnotationError || hasDirectLinkedGroupError;
 
-  const searchPanelEnabled = store.isFeatureEnabled('search_panel');
-  const showFilterStatus = !hasContentError && !searchPanelEnabled;
+  // Whether to render the new filter UI. Note that when the search panel is
+  // open, filter controls are integrated into it. The UI may render nothing
+  // if no filters are configured or selection is active.
+  const isSearchPanelOpen = store.isSidebarPanelOpen('searchAnnotations');
+  const showFilterControls = !hasContentError && !isSearchPanelOpen;
 
   // Show a CTA to log in if successfully viewing a direct-linked annotation
   // and not logged in
@@ -138,10 +128,22 @@ function SidebarView({
   }, [hasFetchedProfile, isLoggedIn, sidebarHasOpened, streamer]);
 
   return (
-    <div>
+    <div className="relative">
       <h2 className="sr-only">Annotations</h2>
-      {showFilterStatus && <FilterStatus />}
-      {searchPanelEnabled && <FilterAnnotationsStatus />}
+      <div
+        className={classnames(
+          // z-10 ensures this appears over sidebar panels, which use the same
+          // z-index but render lower in the DOM
+          'fixed z-10',
+          // Setting 9px to the right instead of some standard tailwind size,
+          // so that it matches the padding of the sidebar's container.
+          // DEFAULT `.container` padding is defined in tailwind.conf.js
+          'right-[9px] top-12',
+        )}
+      >
+        <PendingUpdatesNotification />
+      </div>
+      {showFilterControls && <FilterControls withCardContainer />}
       <LoginPromptPanel onLogin={onLogin} onSignUp={onSignUp} />
       {hasDirectLinkedAnnotationError && (
         <SidebarContentError
@@ -153,13 +155,7 @@ function SidebarView({
       {hasDirectLinkedGroupError && (
         <SidebarContentError errorType="group" onLoginRequest={onLogin} />
       )}
-      <SelectionTabs isLoading={isLoading} />
-      {selectedTab == 'video' && <VideoThreadList threads={rootVideoThread.children} />}
-      {selectedTab == 'message' && <MessageTab />}
-      {selectedTab == 'recording' && <RecordingTab />}
-      {(selectedTab == 'annotation' || selectedTab == 'note' || selectedTab == 'orphan')&& (
-        <ThreadList threads={rootThread.children}/>
-      )}
+      {!hasContentError && <SidebarTabs isLoading={isLoading} />}
       {showLoggedOutMessage && <LoggedOutMessage onLogin={onLogin} />}
     </div>
   );

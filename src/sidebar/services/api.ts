@@ -177,10 +177,10 @@ type ListGroupParams = {
   expand?: string[];
 };
 
-type RecordingBatchResult = {
-  rows: Recording[];
-  // replies: Recording[];
-  total: number;
+export type AnalyticsEventName = 'client.realtime.apply_updates';
+
+export type AnalyticsEvent = {
+  event: AnalyticsEventName;
 };
 
 /**
@@ -235,6 +235,11 @@ export class APIService {
     };
     read: APICall<{ authority?: string }, void, Profile>;
     update: APICall<Record<string, unknown>, Partial<Profile>, Profile>;
+  };
+  analytics: {
+    events: {
+      create: APICall<Record<string, unknown>, AnalyticsEvent>;
+    };
   };
 
   event: APICall<Record<string, unknown>, EventData>;
@@ -345,6 +350,14 @@ export class APIService {
         Partial<Profile>,
         Profile
       >,
+    };
+    this.analytics = {
+      events: {
+        create: apiCall('analytics.events.create') as APICall<
+          Record<string, unknown>,
+          AnalyticsEvent
+        >,
+      },
     };
 
     this.event = apiCall('event') as APICall<Record<string, unknown>, EventData>;

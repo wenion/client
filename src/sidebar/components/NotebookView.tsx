@@ -1,4 +1,5 @@
 import { Link, Panel } from '@hypothesis/frontend-shared';
+import classnames from 'classnames';
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import scrollIntoView from 'scroll-into-view';
 
@@ -10,7 +11,7 @@ import { useSidebarStore } from '../store';
 import NotebookFilters from './NotebookFilters';
 import NotebookResultCount from './NotebookResultCount';
 import PaginatedThreadList from './PaginatedThreadList';
-import PendingUpdatesButton from './PendingUpdatesButton';
+import PendingUpdatesNotification from './PendingUpdatesNotification';
 import { useRootThread } from './hooks/use-root-thread';
 
 export type NotebookViewProps = {
@@ -33,7 +34,7 @@ function NotebookView({ loadAnnotationsService, streamer }: NotebookViewProps) {
   const isLoading = store.isLoading();
   const resultCount = store.annotationResultCount();
 
-  const rootThread = useRootThread();
+  const { rootThread } = useRootThread();
 
   const groupName = focusedGroup?.name ?? '…';
 
@@ -129,11 +130,22 @@ function NotebookView({ loadAnnotationsService, streamer }: NotebookViewProps) {
           {groupName}
         </h1>
       </header>
+      <div className="absolute w-full z-5 left-0 lg:top-8 top-5">
+        <div
+          className={classnames(
+            'container flex flex-row-reverse relative',
+            // Compensate for container's right padding, which is defined in
+            // tailwind.config.js
+            'right-[4rem]',
+          )}
+        >
+          <PendingUpdatesNotification />
+        </div>
+      </div>
       <div className="justify-self-start">
         <NotebookFilters />
       </div>
       <div className="flex items-center lg:justify-self-end text-md font-medium">
-        <PendingUpdatesButton />
         <NotebookResultCount
           forcedVisibleCount={forcedVisibleCount}
           isFiltered={hasAppliedFilter}
