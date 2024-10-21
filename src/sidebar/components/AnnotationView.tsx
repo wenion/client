@@ -23,7 +23,7 @@ function AnnotationView({
 }: AnnotationViewProps) {
   const store = useSidebarStore();
   const annotationId = store.routeParams().id ?? '';
-  const rootThread = useRootThread();
+  const { rootThread } = useRootThread();
   const userid = store.profile().userid;
 
   const [fetchError, setFetchError] = useState(false);
@@ -60,8 +60,6 @@ function AnnotationView({
         // not shown until the user expands the thread.
         annots.forEach(annot => annot.id && store.setExpanded(annot.id, true));
 
-        // FIXME - This should show a visual indication of which reply the
-        // annotation ID in the URL refers to. That isn't currently working.
         if (topLevelAnnot.id !== annotationId) {
           store.highlightAnnotations([annotationId]);
         }
