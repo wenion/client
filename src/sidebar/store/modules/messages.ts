@@ -3,17 +3,19 @@
  * sidebar.
  */
 import { createStoreModule, makeAction } from '../create-store';
-import type { RawMessageData } from '../../../types/api'
+import type { RawMessageData, MessagePanelName } from '../../../types/api'
 
 const initialState = {
   activated: true,
   interval: 20000,
+  expandedMessagePanels: ['organization', ],
   messages: [],
   unreadMessages: [],
 } as {
   /** Set of currently-loaded annotations */
   activated: boolean;
   interval: number;
+  expandedMessagePanels: MessagePanelName[];
   messages: RawMessageData[];
   unreadMessages: RawMessageData[];
 };
@@ -92,6 +94,16 @@ const reducers = {
     return { messages: [], unreadMessages: []};
   },
 
+  CHANGE_PANEL(state: State, action: { panel: MessagePanelName }) {
+    const include = state.expandedMessagePanels.includes(action.panel)
+
+    return include ? {
+      expandedMessagePanels: state.expandedMessagePanels.filter((panel => panel !== action.panel))
+    } : {
+      expandedMessagePanels : [...state.expandedMessagePanels, action.panel]
+    }
+  },
+
   SET_INTERVAL(state: State, action: {value: number | null}): Partial<State> {
     return { interval: action.value == null? 30000 : action.value};
   },
@@ -132,7 +144,9 @@ function setActivated(value: boolean) {
   return makeAction(reducers, 'SET_ACTIVATED', { value });
 }
 
-/* Selectors */
+function toggleMessagePanelExpansion(panel: MessagePanelName) {
+  return makeAction(reducers, 'CHANGE_PANEL', { panel });
+}
 
 /**
  * Count the number of messages (as opposed to notes or orphans)
@@ -177,6 +191,10 @@ function getActivated(state: State) {
   return state.activated;
 }
 
+function isMessagePanelExpanded(state: State, panelName: MessagePanelName) {
+  return state.expandedMessagePanels.includes(panelName);
+}
+
 export const messagesModule = createStoreModule(initialState, {
   namespace: 'messagess',
   reducers,
@@ -186,6 +204,7 @@ export const messagesModule = createStoreModule(initialState, {
     removeOverTimeMessage,
     clearMessages,
     setInterval,
+    toggleMessagePanelExpansion,
     setActivated,
   },
   selectors: {
@@ -198,6 +217,7 @@ export const messagesModule = createStoreModule(initialState, {
     allMessageCount,
     getInterval,
     getActivated,
+    isMessagePanelExpanded,
     findMessagesByPubid,
   },
 });
