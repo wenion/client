@@ -1,12 +1,12 @@
 import { CaretDownIcon, CaretRightIcon } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 
-import type { MessagePanelName, RawMessageData } from '../../types/api';
+import type { MessageType, RawMessageData } from '../../types/api';
 import { useSidebarStore } from '../store';
 import MessageCard from './MessageCard';
 
 type MessageListProps = {
-  id: MessagePanelName;
+  id: MessageType;
   title: string;
   threads: RawMessageData[];
 };

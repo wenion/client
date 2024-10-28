@@ -1,21 +1,22 @@
+import type { ToastMessengerService } from '../services/toast-messenger';
 import { useSidebarStore } from '../store';
 import MessageList from './MessageList';
 
-/**
- * The main content for the single annotation page (aka. https://hypothes.is/a/<annotation ID>)
- */
+export type MessageTabProps = {
+  toastMessenger: ToastMessengerService;
+};
+
 export default function MessageTab() {
   const store = useSidebarStore();
-  const additionalThread = store.allAdditionalMessages();
-  const organisationEventThreads = store.allOrganisationEventMessages();
-  const instanceThreads = store.allInstanceMessages().sort((a, b) => b.date - a.date);
-  const sortableThreads = organisationEventThreads.sort((a, b) => b.date - a.date); // Z -> A
+  const addtionMessages = store.addtionMessages();
+  const shareFlowMessages = store.shareFlowMessages();
+  const organizationMessages = store.organizationMessages();
 
   return (
     <>
-      <MessageList id='addition' title='Additional knowledge' threads={additionalThread} />
-      <MessageList id='shareflow' title='ShareFlow recommendation' threads={instanceThreads} />
-      <MessageList id='organization' title='Organisation event' threads={sortableThreads} />
+      <MessageList id='addition' title='Additional Knowledge' threads={addtionMessages} />
+      <MessageList id='shareflow' title='ShareFlow Recommendation' threads={shareFlowMessages} />
+      <MessageList id='organization' title='Organisation Event' threads={organizationMessages} />
     </>
   );
 }

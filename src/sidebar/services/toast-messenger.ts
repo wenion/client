@@ -151,13 +151,19 @@ export class ToastMessengerService extends TinyEmitter {
   /**
    * Add a warn/notice toast message with `messageText`
    */
-  message(rawMessage: RawMessageData, options?: MessageOptions) {
-    const message: ToastMessage = {
-      ...rawMessage,
-      autoDismiss: true,
-      visuallyHidden: this._visuallyHidden,
-    };
+  message(rawMessages: RawMessageData[], options?: MessageOptions) {
+    rawMessages.map(msg => {
+      const message: RawMessageData & {visuallyHidden: boolean}= {
+        ...msg,
+        visuallyHidden: false,
+      };
 
-    this.emit('toastMessageAdded', message);
+      if (this._store.hasMessage(message.id)) {
+        return;
+      }
+
+      this._store.addMessages(msg);
+      this.emit('toastMessageAdded', message);
+    })
   }
 }

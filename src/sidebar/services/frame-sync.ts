@@ -913,8 +913,13 @@ export class FrameSyncService {
       // Forward hidden messages to "host" when sidebar is collapsed, with the
       // intention that another container can be used to render those messages
       // there, ensuring screen readers announce them.
-      if (!this._recordingService.getExtensionStatus().isSilentMode && 'show_flag' in message) {
-        // to src/annotator/sidebar.tsx
+      if (
+        (message.visuallyHidden && !this._sidebarIsOpen) ||
+        (!this._recordingService.getExtensionStatus().isSilentMode &&
+          'show_flag' in message &&
+          message['show_flag']
+        )
+      ) {
         this.notifyHost('toastMessageAdded', message);
       }
     });

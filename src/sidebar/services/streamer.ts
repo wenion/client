@@ -9,6 +9,7 @@ import type { GroupsService } from './groups';
 import type { SessionService } from './session';
 
 import type { RawMessageData } from '../../types/api';
+import type { ToastMessengerService } from './toast-messenger';
 
 /**
  * `StreamerService` manages the WebSocket connection to the Hypothesis Real-Time
@@ -35,6 +36,7 @@ export class StreamerService {
   private _websocketURL: Promise<string>;
   private _socket: Socket | null;
   private _reconnectSetUp: boolean;
+  private _toastMessenger: ToastMessengerService;
 
   /**
    * Flag that controls whether to apply updates immediately or defer them
@@ -66,6 +68,7 @@ export class StreamerService {
     auth: AuthService,
     groups: GroupsService,
     session: SessionService,
+    toastMessenger: ToastMessengerService,
   ) {
     this._auth = auth;
     this._groups = groups;
@@ -81,6 +84,7 @@ export class StreamerService {
     this._configMessages = {};
     this._reconnectionAttempts = 0;
     this._reconnectSetUp = false;
+    this._toastMessenger = toastMessenger;
   }
 
   /**
@@ -190,10 +194,10 @@ export class StreamerService {
           unread_flag: true,
           need_save_flag: true,
         }
-        this._store.addMessages([notification,]);
+        this._toastMessenger.message([notification, ]);
       }
     } else if (message.type === 'instant_message'){
-      this._store.addMessages([message,]);
+      this._toastMessenger.message([message,]);
     } else {
       warnOnce('Received unsupported notification', message.type);
     }

@@ -439,7 +439,7 @@ export type ExtraDataComics = {
   user_id: string;
 };
 
-export type MessagePanelName = 'addition' | 'shareflow' | 'organization';
+export type MessageType = 'addition' | 'shareflow' | 'organization';
 
 export type RawMessageData = {
   type: string;

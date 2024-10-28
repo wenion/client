@@ -279,11 +279,9 @@ function SidebarTabs({
           {selectedTab === 'message' && <MessageTab />}
           {selectedTab === 'recording' && <RecordingTab />}
           {/* {selectedTab == 'video' && <VideoThreadList threads={rootVideoThread.children} />} */}
-          {(selectedTab === 'annotation' ||
-            selectedTab === 'note' ||
-              selectedTab === 'orphan' )&& (
-                <ThreadList threads={rootThread.children} />
-              )}
+          {(selectedTab === 'annotation' || selectedTab === 'note' || selectedTab === 'orphan' ) && (
+            <ThreadList threads={rootThread.children} />
+          )}
         </div>
       </div>
     </>

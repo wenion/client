@@ -344,27 +344,27 @@ export class RecordingService extends TinyEmitter{
       return false;
   }
 
-  fetchHighlight(url: string| undefined) {
-    if (url === undefined) return;
-    this._api.pull_recommendation({url: encodeURIComponent(url)}).then(
-      response => {
-        if (response.id === '') return;
-        const notification: RawMessageData = {
-          type: 'Highlights',
-          id: response.id,
-          title: response.title,
-          message: response.context,
-          date: Date.now()*1000,
-          show_flag: true,
-          unread_flag: true,
-          need_save_flag: false,
-        }
-        let emptyArray = [];
-        emptyArray.push(notification);
-        this._store.addMessages(emptyArray);
-      }
-    )
-  }
+  // fetchHighlight(url: string| undefined) {
+  //   if (url === undefined) return;
+  //   this._api.pull_recommendation({url: encodeURIComponent(url)}).then(
+  //     response => {
+  //       if (response.id === '') return;
+  //       const notification: RawMessageData = {
+  //         type: 'Highlights',
+  //         id: response.id,
+  //         title: response.title,
+  //         message: response.context,
+  //         date: Date.now()*1000,
+  //         show_flag: true,
+  //         unread_flag: true,
+  //         need_save_flag: false,
+  //       }
+  //       let emptyArray = [];
+  //       emptyArray.push(notification);
+  //       this._store.addMessages(emptyArray);
+  //     }
+  //   )
+  // }
 
   isInWhitelist(url?: string) {
     if (url) {
@@ -374,37 +374,11 @@ export class RecordingService extends TinyEmitter{
     return false;
   }
 
-  async fetchMessage(q: string, interval: number, next: boolean) {
-    let _interval = interval;
-    let should_next = next;
-    try {
-      const url = this._store.mainFrame()?.uri;
-      console.log("focus", this._store.getDefault('focus'), "_interval", _interval)
-      if (this._store.getDefault('focus') === 'onFocused' && _interval >= 0) {
-        const responses = await this._api.pull({q: q, interval: interval, url: url});
-        for (const r of responses) {
-          if (r.type === 'instant_message') {
-            _interval = r.interval?? interval;
-            should_next = r.should_next?? next;
-          }
-        }
-        this._store.addMessages(responses);
-    }
-    } catch (err) {
-      console.log('message catch errors', err)
-    }
-
-    if (should_next) {
-      if (_interval === 0) {_interval = this._store.getInterval();}
-      setTimeout(() => this.fetchMessage('organisation_event', _interval, should_next), _interval);
-    }
-  }
-
   async loadMessages() {
     // Load user account's messages
     const url = this._store.mainFrame()?.uri;
     const responses = await this._api.pull({q: "q", interval: 0, url: url});
-    this._store.addMessages(responses);
+    this._toastMessenger.message(responses);
   }
 
   updateTracking(sessionId: string | undefined, userid: string, step: number) {

@@ -31,6 +31,7 @@ function RecordingMenu({
       <EllipsisIcon />
     </span>
   );
+
   return (
     <div
       className={classnames(
@@ -39,7 +40,8 @@ function RecordingMenu({
         'enabled:hover:text-grey-9 enabled:hover:bg-grey-2',
         'aria-pressed:text-grey-9 aria-expanded:text-grey-9',
         'grow-0 m-1 bg-grey-0 hover:bg-blue-400',
-      )}>
+      )}
+    >
       <Menu
         label={menuLabel}
         title='More actions'

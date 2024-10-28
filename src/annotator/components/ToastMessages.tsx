@@ -1,8 +1,8 @@
-import { ToastMessages as BaseToastMessages } from './BaseToastMessages';
-import type { ToastMessage } from './BaseToastMessages';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
 import type { Emitter } from '../util/emitter';
+import { ToastMessages as BaseToastMessages } from './BaseToastMessages';
+import type { ToastMessage } from './BaseToastMessages';
 
 export type ToastMessagesProps = {
   emitter: Emitter;

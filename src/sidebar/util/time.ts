@@ -88,6 +88,23 @@ type Breakpoint = {
 
 const BREAKPOINTS: Breakpoint[] = [
   {
+    // The date is in the future
+    test: (date, now) => delta(date, now) < 0,
+    formatter: (date) => format(
+      date,
+      {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        weekday: 'long',
+        hour: '2-digit',
+        minute: '2-digit',
+      },
+      Intl,
+    ),
+    nextUpdate: null,
+  },
+  {
     // Less than 30 seconds
     test: (date, now) => delta(date, now) < 30 * SECOND,
     formatter: () => 'Just now',

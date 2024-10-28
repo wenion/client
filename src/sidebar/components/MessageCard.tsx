@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 
+import { formatRelativeDate } from '../util/time';
 import { withServices } from '../service-context';
 import type { RawMessageData } from '../../types/api';
 import { useSidebarStore } from '../store';
@@ -10,12 +11,15 @@ import MarkdownView from './MarkdownView';
 import { applyTheme } from '../helpers/theme';
 import type { RecordingService } from '../services/recording';
 
-export type MessageCardProps = {
+type MessageCardProps = {
   message: RawMessageData;
   recordingService: RecordingService;
 };
 
 function MessageCard({ message, recordingService }: MessageCardProps) {
+  const now = new Date();
+  const createdDate = new Date(message.date/1000);
+
   const store = useSidebarStore();
   const textStyle = applyTheme(['annotationFontFamily'], {});
 
@@ -41,8 +45,7 @@ function MessageCard({ message, recordingService }: MessageCardProps) {
                 <div className="flex gap-x-1 items-baseline flex-wrap-reverse">
                   <h3 className="text-color-text font-bold">{message.title}</h3>
                   <div className="flex justify-end grow">
-                    {new Date(message.date/1000).toLocaleDateString('en-AU', {
-                      day: '2-digit', month: '2-digit', year:'numeric', hour: '2-digit', minute:'2-digit', hour12: true})}
+                    {formatRelativeDate(createdDate, now)}
                   </div>
                 </div>
               </header>
@@ -92,6 +95,5 @@ function MessageCard({ message, recordingService }: MessageCardProps) {
     </Card>
   )
 }
-
 
 export default withServices(MessageCard, ['recordingService']);

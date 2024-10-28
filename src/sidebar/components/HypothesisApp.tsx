@@ -49,7 +49,6 @@ function HypothesisApp({
   const store = useSidebarStore();
   const profile = store.profile();
   const route = store.route();
-  const unreadMessages = store.unreadMessages();
   const isModalRoute = route === 'notebook' || route === 'profile';
 
   const backgroundStyle = useMemo(
@@ -65,20 +64,6 @@ function HypothesisApp({
       store.openSidebarPanel('help');
     }
   }, [isSidebar, profile, settings, store]);
-
-  useEffect(() => {
-    if (unreadMessages.length) {
-      unreadMessages.map(
-        msg => {
-          if (msg.show_flag && store.getDefault('focus') === 'onFocused') {
-            toastMessenger.message(msg)
-          }
-        }
-      );
-      store.removeFromUnreadMessage(unreadMessages);
-      store.removeOverTimeMessage();
-    }
-  }, [unreadMessages, store])
 
   const isThirdParty = isThirdPartyService(settings);
 

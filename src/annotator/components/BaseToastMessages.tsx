@@ -1,24 +1,21 @@
 // var _jsxFileName = "/home/runner/work/frontend-shared/frontend-shared/src/components/feedback/ToastMessages.tsx";
 import classnames from 'classnames';
+import { Card, CardHeader, CardContent } from '@hypothesis/frontend-shared';
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
-// import Callout from './Callout';
-import { Panel, Tab, TabList } from '@hypothesis/frontend-shared';
-
 import type { ComponentChildren } from 'preact';
+
+import { formatSortableDateTime } from '../../shared/time';
 import type { ExtraDataComics } from '../../types/api';
-// import type { Ref } from 'preact';
-// import type { JSX } from 'preact';
+import StyledText from './StyledText';
 import MarkdownView from './MarkdownView';
 import { applyTheme } from './Excerpt';
-import { call } from '../../sidebar/util/postmessage-json-rpc';
-
 
 export type ToastMessage = {
   id: string;
-  type: 'error' | 'success' | 'notice';
+  type: 'error' | 'success' | 'notice' | 'message';
   title: string;
   message: ComponentChildren;
-  date?: number;
+  date: number;
   /**
    * Visually hidden messages are announced to screen readers but not visible.
    * Defaults to false.
@@ -37,14 +34,6 @@ type ToastMessageTransitionClasses = {
   /** Classes to apply to a toast message being dismissed. Defaults to 'animate-fade-out' */
   transitionOut?: string;
 };
-type ToastMessagesProps = {
-  messages: ToastMessage[];
-  onMessageDismiss: (id: string) => void;
-  transitionClasses?: ToastMessageTransitionClasses;
-  setTimeout_?: typeof setTimeout;
-  callBack:(arg: any) => void;
-};
-
 
 /**
  * An individual toast message: a brief and transient success or error message.
@@ -59,41 +48,37 @@ function ToastMessageContext({
   // Capitalize the message type for prepending; Don't prepend a message
   // type for "notice" messages
   const textStyle = applyTheme(['annotationFontFamily'], {});
+  const time = "date" in message ? new Date(message.date/1000): new Date();
 
   return (
-    <Panel
-      title={message.title}
-      onClose={() => onDismiss(message.id)}
-    >
-      <MarkdownView
-        markdown={message.message as string}
-        classes={'text-black'}
-        style={textStyle}
-      />
-      {message.extra && message.extra.map(e => (
-        <div
-          className={classnames(
-            "cursor-pointer",
-            "text-blue-curious hover:text-blue-chathams underline underline-offset-1",
-          )}
-          onClick={() => callBack(e)}
-        >
-          <b>{e.task_name}</b>
+    <Card>
+      <CardHeader title={message.title} onClose={() => onDismiss(message.id)} />
+      <CardContent>
+        <StyledText>
+          <MarkdownView
+            markdown={message.message as string}
+            classes={'text-black'}
+            style={textStyle}
+          />
+        </StyledText>
+        {message.extra && message.extra.map(e => (
+          <div
+            className={classnames(
+              "cursor-pointer",
+              "text-blue-curious hover:text-blue-chathams underline underline-offset-1",
+            )}
+            onClick={() => callBack(e)}
+          >
+            <b>{e.task_name}</b>
+          </div>
+        ))}
+        <div className='flex flex-row justify-end'>
+          {formatSortableDateTime(time)}
         </div>
-      ))}
-      <div className='flex flex-row justify-end'>
-        <a
-          title='date'
-          className='text-xs leading-3 font-normal tracking-wide text-gray-400'
-        >
-          {message.date && new Date(message.date/1000).toLocaleDateString('en-AU', {
-                    day: '2-digit', month: '2-digit', year:'numeric', hour: '2-digit', minute:'2-digit', hour12: true})}
-        </a>
-      </div>
-    </Panel>
+      </CardContent>
+    </Card>
   )
 }
-
 
 const ToastMessageTransition = ({
   direction,
@@ -125,6 +110,7 @@ const ToastMessageTransition = ({
       [transitionOut]: isDismissed
     };
   }, [isDismissed, transitionClasses]);
+
   return (
     <div
       data-testid="animation-container"
@@ -141,6 +127,13 @@ const ToastMessageTransition = ({
   )
 };
 
+type ToastMessagesProps = {
+  messages: ToastMessage[];
+  onMessageDismiss: (id: string) => void;
+  transitionClasses?: ToastMessageTransitionClasses;
+  setTimeout_?: typeof setTimeout;
+  callBack:(arg: any) => void;
+};
 
 /**
  * A collection of toast messages. These are rendered within an `aria-live`
@@ -159,25 +152,29 @@ export function ToastMessages({
   const [dismissedMessages, setDismissedMessages] = useState<string[]>([]);
   // Tracks not finished timeouts for auto-dismiss toast messages
   const messageSchedules = useRef(new Map());
-  const dismissMessage = useCallback((id: string) => setDismissedMessages(ids => [...ids, id]), []);
-  const scheduleMessageDismiss = useCallback((id: string) => {
+  const dismissMessage = useCallback((id: string) => {setDismissedMessages(ids => [...ids, id])}, []);
+
+  const scheduleMessageDismiss = useCallback((id: string, index: number) => {
+    // index: show animation-fade-out in order
     const timeout = setTimeout_(() => {
       dismissMessage(id);
       messageSchedules.current.delete(id);
-    }, 10000);
+    }, 5000 + 1000 * index);
     messageSchedules.current.set(id, timeout);
   }, [dismissMessage, setTimeout_]);
-  const onTransitionEnd = useCallback((direction: string, message: ToastMessage) => {
+
+  const onTransitionEnd = useCallback((direction: string, message: ToastMessage, index: number) => {
     var _message$autoDismiss;
     const autoDismiss = (_message$autoDismiss = message.autoDismiss) !== null && _message$autoDismiss !== void 0 ? _message$autoDismiss : true;
     if (direction === 'in' && autoDismiss) {
-      scheduleMessageDismiss(message.id);
+      scheduleMessageDismiss(message.id, index);
     }
     if (direction === 'out') {
       onMessageDismiss(message.id);
       setDismissedMessages(ids => ids.filter(id => id !== message.id));
     }
   }, [onMessageDismiss]);
+
   useLayoutEffect(() => {
     // Clear all pending timeouts for not yet dismissed toast messages when the
     // component is unmounted
@@ -186,6 +183,7 @@ export function ToastMessages({
       pendingTimeouts.forEach(timeout => clearTimeout(timeout));
     };
   }, []);
+
   return (
     <ul
       aria-live="polite"
@@ -198,7 +196,7 @@ export function ToastMessages({
       )}
       data-component="ToastMessages"
     >
-      {messages.map(message => {
+      {messages.map((message, index) => {
         const isDismissed = dismissedMessages.includes(message.id);
         return (
           <li
@@ -211,7 +209,7 @@ export function ToastMessages({
           >
             <ToastMessageTransition
               direction={isDismissed ? 'out' : 'in'}
-              onTransitionEnd= {direction => onTransitionEnd(direction, message)}
+              onTransitionEnd={direction => onTransitionEnd(direction, message, index)}
               transitionClasses={transitionClasses}
             >
               <ToastMessageContext
