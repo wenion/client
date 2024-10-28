@@ -20,7 +20,6 @@ function RecordingPopup({
   frameSync,
 }: RecordingPopupProps) {
   const store = useSidebarStore();
-  const mode = store.getDefault('mode');
 
   const nameEl = useRef<HTMLInputElement>();
   const descriptionEl = useRef<HTMLInputElement>();
@@ -43,7 +42,7 @@ function RecordingPopup({
   const notifyRecordingStatus = (status: 'off' | 'ready' | 'on', taskName?: string, sessionId?: string, description?: string, selected?: number) => {
     frameSync.updateRecordingStatusView(status);
     frameSync.refreshRecordingStatus(status, taskName, sessionId, description, selected, store.focusedGroupId()?? '')
-    frameSync.notifyHost('updateRecoringStatusFromSidebar', {status: status, mode: mode})
+    frameSync.notifyHost('updateRecoringStatusFromSidebar', {status: status})
   }
 
   const startRecord = () => {

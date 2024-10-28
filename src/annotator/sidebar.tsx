@@ -462,8 +462,8 @@ export class Sidebar implements Destroyable {
       this.updateRecordingStatusView(status.recordingStatus); //TODO
     })
 
-    this._sidebarRPC.on('updateRecoringStatusFromSidebar', (value: {status: 'off' | 'ready' | 'on', mode: 'Baseline' | 'GoldMind' | 'Query'}) => {
-      this.updateRecordingStatusView(value.status, value.mode)
+    this._sidebarRPC.on('updateRecoringStatusFromSidebar', (value: {status: 'off' | 'ready' | 'on'}) => {
+      this.updateRecordingStatusView(value.status)
       if (value.status === 'on') {
         this.close();
       }
@@ -867,7 +867,6 @@ export class Sidebar implements Destroyable {
 
   turnOnChat(value: boolean) {
     this.toolbar.isOnChat = value
-    this._sidebarRPC.call('openChat', value);
     this.open();
   }
 
@@ -880,7 +879,7 @@ export class Sidebar implements Destroyable {
     }
   }
 
-  updateRecordingStatusView(status: 'off' | 'ready' | 'on', mode?: 'Baseline' | 'GoldMind' | 'Query') {
+  updateRecordingStatusView(status: 'off' | 'ready' | 'on') {
     this.toolbar.recordingStatus = status;
   }
 

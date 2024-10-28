@@ -106,7 +106,6 @@ export type HostToSidebarEvent =
   | 'traceData'
   | 'updateRecoringStatusFromHost'
   | 'setVisuallyHidden'
-  | 'openChat'
   | 'postRating'
   | 'webPage'
   | 'selectDataComics'
