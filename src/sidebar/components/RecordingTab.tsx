@@ -25,11 +25,10 @@ function RecordingTab({
 }: RecordingTabProps) {
 
   const store = useSidebarStore();
-  const mode = store.getDefault('mode') as 'Baseline' | 'GoldMind' | 'Query';
+  console.log("recording tab")
 
   const recordingStage = store.currentRecordingStage();
   const selectedRecording = store.getSelectedRecord();
-  const taskName = recordingService.getExtensionStatus().recordingTaskName;
 
   const onSelectImage = (id: string) => {
     // get from recordings

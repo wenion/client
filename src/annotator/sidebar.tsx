@@ -263,7 +263,8 @@ export class Sidebar implements Destroyable {
           tagName: 'EXPERT-TRACE_CLOSE',
           textContent: 'close',
           interactionContext: JSON.stringify({id: messageId}),
-      })};
+        })
+      };
       this._emitter.subscribe('messageIn', _messageIn)
       this._emitter.subscribe('messageOut', _messageOut)
 
