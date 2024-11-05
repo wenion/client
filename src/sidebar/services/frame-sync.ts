@@ -34,6 +34,7 @@ import type { Frame } from '../store/modules/frames';
 import { watch } from '../util/watch';
 import type { AnnotationsService } from './annotations';
 import type { StreamerService } from './streamer';
+import type { PersistedDefaultsService } from './persisted-defaults';
 import type { VideoAnnotationsService } from './video-annotations';
 import type { ToastMessengerService } from './toast-messenger';
 import { RecordingService } from './recording';
@@ -113,6 +114,7 @@ export class FrameSyncService {
   private _annotationsService: AnnotationsService;
   private _videoAnnotationsService: VideoAnnotationsService;
   private _recordingService: RecordingService;
+  private _persistedDefaults: PersistedDefaultsService;
 
   /**
    * Map of guest frame ID to channel for communicating with guest.
@@ -197,12 +199,14 @@ export class FrameSyncService {
     recordingService: RecordingService,
     store: SidebarStore,
     streamer: StreamerService,
+    persistedDefaults: PersistedDefaultsService,
     toastMessenger: ToastMessengerService,
   ) {
     this._window = $window;
     this._annotationsService = annotationsService;
     this._videoAnnotationsService = videoAnnotationsService;
     this._recordingService = recordingService;
+    this._persistedDefaults = persistedDefaults;
     this._store = store;
     this._streamer = streamer;
     this._toastMessenger = toastMessenger;
@@ -239,6 +243,7 @@ export class FrameSyncService {
     this._setupExtensionEvents();
     this._setupFeatureFlagSync();
     this._setupToastMessengerEvents();
+    this._setupSyncChangeEffect();
     this._setupStatusSync();
   }
 
@@ -687,6 +692,10 @@ export class FrameSyncService {
    * Listen for messages coming from the host frame.
    */
   private _setupHostEvents() {
+    this._hostRPC.on('connect', () => {
+      this._store.setSync('muted', this._store.getSync('muted'));
+      this._store.setSync('highlightsVisible', this._store.getSync('highlightsVisible'));
+    })
     this._hostRPC.on('sidebarOpened', () => {
       this._sidebarIsOpen = true;
       this._store.setSidebarOpened(true);
@@ -704,13 +713,11 @@ export class FrameSyncService {
     // When user toggles the highlight visibility control in the sidebar container,
     // update the visibility in all the guest frames.
     this._hostRPC.on('setHighlightsVisible', (visible: boolean) => {
-      this._highlightsVisible = visible;
-      this._guestRPC.forEach(rpc => rpc.call('setHighlightsVisible', visible));
-      this._recordingService.refreshShowHighlights(visible);
+      this._store.setSync('highlightsVisible', visible);
     });
 
     this._hostRPC.on('setVisuallyHidden', (visible: boolean) => {
-      this._recordingService.refreshSilentMode(visible);
+      this._store.setSync('muted', visible);
     });
 
     this._hostRPC.on('updateRecoringStatusFromHost', (status: 'off' | 'ready' | 'on') => {
@@ -907,10 +914,7 @@ export class FrameSyncService {
       // there, ensuring screen readers announce them.
       if (
         (message.visuallyHidden && !this._sidebarIsOpen) ||
-        (!this._recordingService.getExtensionStatus().isSilentMode &&
-          'show_flag' in message &&
-          message['show_flag']
-        )
+        (!this._store.getSync('muted') && 'show_flag' in message && !!message['show_flag'])
       ) {
         this.notifyHost('toastMessageAdded', message);
       }
@@ -918,6 +922,17 @@ export class FrameSyncService {
     this._toastMessenger.on('toastMessageDismissed', (messageId: string) => {
       this.notifyHost('toastMessageDismissed', messageId);
     });
+  }
+
+  private _setupSyncChangeEffect() {
+    this._persistedDefaults.register_sync_changed_event((change: Record<string, any>) => {
+      this._hostRPC.call('syncStorageChanged', change);
+
+      // Sync variable change effect
+      const visible = change['highlightsVisible'];
+      this._highlightsVisible = visible;
+      this._guestRPC.forEach(rpc => rpc.call('setHighlightsVisible', visible));
+    })
   }
 
   private _setupStatusSync() {

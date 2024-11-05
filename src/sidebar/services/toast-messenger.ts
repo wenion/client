@@ -43,7 +43,7 @@ type MessageData = {
 export class ToastMessengerService extends TinyEmitter {
   private _store: SidebarStore;
   private _window: Window;
-  private _visuallyHidden: boolean;
+  // private _visuallyHidden: boolean;
 
   /**
    * This holds a queue of delayed messages that need to be published as soon as
@@ -57,7 +57,7 @@ export class ToastMessengerService extends TinyEmitter {
     this._store = store;
     this._window = $window;
     this._delayedMessageQueue = [];
-    this._visuallyHidden = true;
+    // this._visuallyHidden = true;
 
     this._window.addEventListener('focus', () => {
       this._delayedMessageQueue.forEach(({ type, messageText, options }) =>
@@ -144,9 +144,9 @@ export class ToastMessengerService extends TinyEmitter {
     this._addMessage('notice', messageText, options);
   }
 
-  setVisuallyHidden(visible: boolean) {
-    this._visuallyHidden = visible
-  }
+  // setVisuallyHidden(visible: boolean) {
+  //   this._visuallyHidden = visible
+  // }
 
   /**
    * Add a warn/notice toast message with `messageText`

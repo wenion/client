@@ -14,7 +14,7 @@ import type {
   Destroyable,
   PullingData,
 } from '../types/annotator';
-import type { EventData, RecordingStepData } from '../types/api';
+import type { RecordingStepData } from '../types/api';
 import type { Service } from '../types/config';
 import type {
   GuestToHostEvent,
@@ -213,7 +213,6 @@ export class Sidebar implements Destroyable {
           // Allow pointer events to go through this container to page elements
           // (eg. scroll bar thumbs) which are behind it.
           'pointer-events-none',
-          // 'cursor-col-resize', TODO
         );
         this.iframeContainer.append(sidebarEdge);
 
@@ -298,7 +297,11 @@ export class Sidebar implements Destroyable {
     const toolbarContainer = document.createElement('div');
     this.toolbar = new ToolbarController(toolbarContainer, {
       createAnnotation: () => {
-        if(!this.toolbar.highlightsVisible) return;
+        // Annotations are not allowed if highlight is disabled
+        if (!this.toolbar.highlightsVisible) {
+          return;
+        }
+
         if (this._guestRPC.length === 0) {
           return;
         }
@@ -307,8 +310,8 @@ export class Sidebar implements Destroyable {
         rpc.call('createAnnotation');
       },
       setSidebarOpen: open => (open ? this.open() : this.close()),
-      setHighlightsVisible: show => this.setHighlightsVisible(show),
-      setSilentMode: silent => this.setIsSilent(silent),
+      setHighlightsVisible: () => this.setHighlightsVisible(!this.toolbar.highlightsVisible),
+      setSilentMode: () => this.setIsSilent(!this.toolbar.isSilentMode),
       toggleChatting: value => this.turnOnChat(value),
       toggleRecording: (status: 'off' | 'ready' | 'on') => this.notifyRecordingStatus(status),
     });
@@ -449,6 +452,11 @@ export class Sidebar implements Destroyable {
     annotationCounts(document.body, this._sidebarRPC);
     sidebarTrigger(document.body, () => this.open());
 
+    this._sidebarRPC.on('syncStorageChanged', (change: Record<string, any>)=> {
+      this.toolbar.isSilentMode = change.muted;
+      this.toolbar.highlightsVisible = change.highlightsVisible;
+    })
+
     this._sidebarRPC.on('statusUpdated', (
       status: {
         isSilentMode: boolean,
@@ -457,8 +465,6 @@ export class Sidebar implements Destroyable {
         recordingSessionId: string,
         recordingTaskName: string,
       }) => {
-      this.setIsSilent(status.isSilentMode);
-      this.setHighlightsVisible(status.showHighlights);
       this.updateRecordingStatusView(status.recordingStatus); //TODO
     })
 
@@ -475,17 +481,6 @@ export class Sidebar implements Destroyable {
 
     this._sidebarRPC.on('isLoggedIn', (value) => {
       this.toolbar.isLoggedIn = value;
-    })
-
-    this._sidebarRPC.on('changeMode', (value: string) => {
-      if (value === 'GoldMind') {
-        this.toolbar.enableFeatures = true
-      }
-      else {
-        this.toolbar.enableFeatures = false
-        this.setHighlightsVisible(false);
-        this.setIsSilent(true);
-      }
     })
 
     this._sidebarRPC.on(
@@ -505,12 +500,10 @@ export class Sidebar implements Destroyable {
         this.iframeContainer.style.display = '';
       }
 
-      const showHighlights = this._config.showHighlights === 'always';
-      this.setHighlightsVisible(showHighlights);
+      // const showHighlights = this._config.showHighlights === 'always';
+      // this.setHighlightsVisible(showHighlights);
 
-      this.setIsSilent(status.isSilentMode);
       this.updateRecordingStatusView(status.recordingStatus);
-      this.setHighlightsVisible(status.showHighlights);
 
       if (
         this._config.openSidebar ||
@@ -647,17 +640,17 @@ export class Sidebar implements Destroyable {
 
   _setupGestures() {
     const toggleButton = this.toolbar.sidebarToggleButton;
-    // if (toggleButton) {
-    //   this._hammerManager = new Hammer.Manager(toggleButton);
-    //   this._hammerManager.on(
-    //     'panstart panend panleft panright',
-    //     /* istanbul ignore next */
-    //     event => this._onPan(event),
-    //   );
-    //   this._hammerManager.add(
-    //     new Hammer.Pan({ direction: Hammer.DIRECTION_HORIZONTAL }),
-    //   );
-    // }
+    if (toggleButton) {
+      this._hammerManager = new Hammer.Manager(toggleButton);
+      this._hammerManager.on(
+        'panstart panend panleft panright',
+        /* istanbul ignore next */
+        event => this._onPan(event),
+      );
+      this._hammerManager.add(
+        new Hammer.Pan({ direction: Hammer.DIRECTION_HORIZONTAL }),
+      );
+    }
   }
 
   // Schedule any changes needed to update the sidebar layout.
@@ -854,14 +847,11 @@ export class Sidebar implements Destroyable {
    * Set whether highlights are visible in guest frames.
    */
   setHighlightsVisible(visible: boolean) {
-    this.toolbar.highlightsVisible = visible;
-
     // Notify sidebar app of change which will in turn reflect state to guest frames.
     this._sidebarRPC.call('setHighlightsVisible', visible);
   }
 
   setIsSilent(isSilent: boolean) {
-    this.toolbar.isSilentMode = isSilent
     this._sidebarRPC.call('setVisuallyHidden', isSilent);
   }
 

@@ -17,6 +17,7 @@ import { routeModule } from './modules/route';
 import { selectionModule } from './modules/selection';
 import { sessionModule } from './modules/session';
 import { sidebarPanelsModule } from './modules/sidebar-panels';
+import { syncStorageModule } from './modules/sync-storage';
 import { toastMessagesModule } from './modules/toast-messages';
 import { videoAnnotationsModule } from './modules/video-annotations';
 import { messagesModule } from './modules/messages';
@@ -62,6 +63,7 @@ export function createSidebarStore(settings: SidebarSettings) {
     selectionModule,
     sessionModule,
     sidebarPanelsModule,
+    syncStorageModule,
     toastMessagesModule,
     videoAnnotationsModule,
     videoDraftsModule,

@@ -219,7 +219,6 @@ export default function Toolbar({
               <ToolbarButton
                 title={isSilentMode ? 'Silent mode on' : 'Silent mode off'}
                 icon={isSilentMode ? NotificationsOffIcon : NotificationsIcon}
-                pressed={!isSilentMode}
                 onClick={toggleSilentMode}
               />
             </>

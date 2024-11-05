@@ -168,10 +168,10 @@ export type SidebarToGuestEvent =
  * Events that the sidebar sends to the host
  */
 export type SidebarToHostEvent =
+  | 'syncStorageChanged'
   |'statusUpdated'
   |'updateRecoringStatusFromSidebar'
   |'pullRecommendation'
-  | 'changeMode'
   | 'websocketConnected'
   | 'isLoggedIn'
   /**
