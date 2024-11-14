@@ -47,9 +47,11 @@ export default function MarkdownView({
           className={classes}
           data-testid="markdown-text"
           ref={content}
-          dangerouslySetInnerHTML={{ __html: html }}
+          // dangerouslySetInnerHTML={{ __html: html }}
           style={style}
-        />
+        >
+          {markdown}
+        </div>
       </StyledText>
     </div>
   );

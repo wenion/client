@@ -586,9 +586,8 @@ export class Sidebar implements Destroyable {
     })
 
     this._sidebarRPC.on('webClipping', (option: {savePage: boolean}) => {
-      // TODO
-      const clonedDocument = document.cloneNode(true) as Document;
-      const elementsToRemove = clonedDocument.querySelectorAll([
+      const bodyContent = document.body.innerHTML;
+      const tagsToRemove = [
         'hypothesis-sidebar',
         'hypothesis-notebook',
         'hypothesis-profile',
@@ -596,14 +595,13 @@ export class Sidebar implements Destroyable {
         'hypothesis-adder',
         'hypothesis-tooltip',
         'hypothesis-highlight-cluster-toolbar',
-      ].join(
-          ',',
-        ),
+      ];
+
+      const pattern = new RegExp(
+        `<(${tagsToRemove.join('|')})(\\s[^>]*)?>.*?</\\1>`,
+        'gis'
       );
-      elementsToRemove.forEach(element => {
-          element.remove();
-      });
-      const htmlContent = clonedDocument.documentElement.outerHTML;
+      const htmlContent = bodyContent.replace(pattern, '');
       this._sidebarRPC.call('webPage', htmlContent, document.title, window.location.href, option.savePage);
     });
 
