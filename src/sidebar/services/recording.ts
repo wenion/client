@@ -43,7 +43,9 @@ export class RecordingService {
           const traceSteps = await this._api.traces.list({ id: id });
           traceSteps.map(step => {
             if (step.image)
-              step.image = this._store.getLink('index') + 'api/image/' + step.image + '.jpg'
+              step.image = this._store.getLink('index') + 'api/image/' + step.image + '.jpg';
+            if (!step.title)
+              step.title = step.type;
           })
           this._store.addRecordSteps(traceSteps);
           this._store.selectTab('recording');

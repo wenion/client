@@ -51,7 +51,11 @@ function RecordingTab({
   }
 
   const onOpen = (record: RecordItem, scrollTop: number) => {
-    recordingService.selectRecordTabView('view', record.id);
+    let id = record.id;
+    if (record.timestamp < 1733800000000) {
+      id = record.sessionId;
+    }
+    recordingService.selectRecordTabView('view', id);
     store.setStep(scrollTop);
   };
 

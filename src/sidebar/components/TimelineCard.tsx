@@ -1,11 +1,15 @@
+import { Link } from '@hypothesis/frontend-shared';
+
 import { useState, useRef, useLayoutEffect } from 'preact/hooks';
 import classnames from 'classnames';
 import debounce from 'lodash.debounce';
 
 import type { RecordStep } from '../../types/api';
 
-const capitalize = (word: string) => {
-  return word.charAt(0).toUpperCase() + word.slice(1);
+const capitalize = (word: string | null) => {
+  if (word)
+    return word.charAt(0).toUpperCase() + word.slice(1);
+  return '';
 }
 
 type TimelineCardProps = {
@@ -83,7 +87,7 @@ export default function TimelineCard({
       <div
         className={classnames(
           'timeline-content py-1',
-          'hover:bg-blue-200/50'
+          'hover:bg-blue-200/50',
         )}
         id={trace.id}
         // onClick={() => toggleStep(id)}
@@ -92,14 +96,10 @@ export default function TimelineCard({
           className='flex gap-x-1 cursor-pointer'
           onClick={() => {setCollapsed(!collapsed)}}
         >
-          <b>{capitalize(trace.title)}</b>
-          <div
-            className={classnames(
-              'inline px-1 ml-1 break-all',
-            )}
-          >
+          <Link href={trace.url} target="_blank" underline="none">
+            <strong>{capitalize(trace.title)}</strong>{' '}
             {trace.description}
-          </div>
+          </Link>
         </div>
         <div className='flex justify-center'>
           {trace.image && (
