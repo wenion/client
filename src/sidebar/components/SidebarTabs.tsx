@@ -120,7 +120,7 @@ function SidebarTabs({
   const noteCount = tabCounts.note;
 
   const allMessageCount = store.allMessageCount();
-  const allRecordingsCount = store.allRecordingsCount();
+  const recordItemsCount = store.recordItemsCount();
   const videoAnnotationCount = store.videoAnnotationCount();
 
   const annotationCount = tabCounts.annotation;
@@ -176,7 +176,7 @@ function SidebarTabs({
             Annotations
           </Tab>
           <Tab
-            count={allRecordingsCount}
+            count={recordItemsCount}
             isWaitingToAnchor={isWaitingToAnchorAnnotations}
             isSelected={selectedTab === 'recording'}
             label="ShareFlows"

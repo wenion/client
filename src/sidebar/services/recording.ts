@@ -1,333 +1,149 @@
-import { TinyEmitter } from 'tiny-emitter';
-
+import { extractHostURL } from '../../shared/custom';
+import type { FileNode } from '../../types/api';
 import type { SidebarStore } from '../store';
 import type { APIService } from './api';
-import type { SidebarSettings } from '../../types/config';
-import { extractHostURL } from '../../shared/custom';
-import { generateRandomString } from '../../shared/random';
-import type { RecordingStepData, EventData, RawMessageData, Recording } from '../../types/api';
-import type { FileNode } from '../../types/api';
-import type { LocalStorageService } from './local-storage';
-import type { StreamerService } from './streamer';
 import type { ToastMessengerService } from './toast-messenger';
-
-
-type StatusInfo = {
-  isSilentMode: boolean;
-  showHighlights: boolean;
-  recordingStatus: 'off' | 'ready' | 'on';
-  recordingSessionId: string;
-  recordingTaskName: string;
-}
-
-const isStatusInfo = (status: unknown): status is StatusInfo =>
-  !!status &&
-  typeof status === 'object' &&
-  'isSilentMode' in status &&
-  typeof status.isSilentMode === 'boolean' &&
-  'showHighlights' in status &&
-  typeof status.showHighlights === 'boolean' &&
-  'recordingStatus' in status &&
-  (status.recordingStatus === 'off' || status.recordingStatus === 'ready' || status.recordingStatus === 'on') &&
-  'recordingSessionId' in status &&
-  typeof status.recordingSessionId === 'string' &&
-  'recordingTaskName' in status &&
-  typeof status.recordingTaskName === 'string';
-
-function generateStepId() {
-  return 'st' + Date.now().toString(36) + generateRandomString(5);
-}
-
-// Mapping function
-function mapToObjectFormat(inputObject: RecordingStepData): RecordingStepData {
-  return {
-    type: inputObject.type,
-    id: inputObject.id ?? generateStepId(),
-    url: inputObject.url,
-    description: inputObject.description,
-    title: inputObject.title,
-    width: inputObject.width,
-    height: inputObject.height,
-    offsetX: inputObject.offsetX,
-    offsetY: inputObject.offsetY,
-    position: inputObject.position,
-    image: inputObject.image,
-  };
-}
 
 /**
  * A service that manages the association between the route and route parameters
  * implied by the URL and the corresponding route state in the store.
  */
 // @inject
-export class RecordingService extends TinyEmitter{
-  private _statusInfoPromise: Promise<StatusInfo | null> | null;
-
-  private _api: APIService;
-  private _localStorage: LocalStorageService;
-  private _settings: SidebarSettings;
+export class RecordingService {
   private _store: SidebarStore;
-  private _streamer: StreamerService;
+  private _api: APIService;
   private _toastMessenger: ToastMessengerService;
-  private _window: Window;
 
   constructor(
-    $window: Window,
-    api: APIService,
-    localStorage: LocalStorageService,
-    settings: SidebarSettings,
     store: SidebarStore,
-    streamer: StreamerService,
+    api: APIService,
     toastMessenger: ToastMessengerService,
   ) {
-    super();
-
-    this._statusInfoPromise = null;
-
-    this._api = api;
-    this._localStorage = localStorage;
-    this._settings = settings;
     this._store = store;
-    this._streamer = streamer;
+    this._api = api;
     this._toastMessenger = toastMessenger;
-    this._window = $window;
-
-    this._listenForTokenStorageEvents();
   }
 
-  private _listenForTokenStorageEvents() {
-    this._window.addEventListener('storage', ({ key }) => {
-      if (key === this._storageKey()) {
-        const status = this._loadStatus()
-        this.emit('statusChanged', status);
-      }
-    });
+  async loadRecordItems(uri: string) {
+    const result = await this._api.recordings.list({'target_uri': uri ?? ''});
+    this._store.addRecordItems(result);
+    return await this._api.tracking.read({});
   }
 
-  private _storageKey() {
-    // Use a unique key per annotation service. Currently OAuth tokens are only
-    // persisted for the default annotation service. If in future we support
-    // logging into other services from the client, this function will need to
-    // take the API URL as an argument.
-    let apiDomain = new URL(this._settings.apiUrl).hostname;
-
-    // Percent-encode periods to avoid conflict with section delimeters.
-    apiDomain = apiDomain.replace(/\./g, '%2E');
-
-    return `hypothesis.oauth.${apiDomain}.status`;
+  unloadRecordItems() {
+    this._store.clearRecordItems();
   }
 
-  private _initStatus() {
-    const status = this._localStorage.getObject(this._storageKey());
-    // init
-    if (status === null) {
-      this._saveStatus(false, true, 'off', '', '');
-      return;
-    }
-    // update
-    if (!!status && typeof status === 'object' && !isStatusInfo(status)) {
-      const isSilentMode =
-        'isSilentMode' in status && typeof status.isSilentMode === 'boolean' ? status.isSilentMode: false;
-      const showHighlights =
-        'showHighlights' in status && typeof status.showHighlights === 'boolean' ? status.showHighlights: false;
-      const recordingStatus =
-        'recordingStatus' in status &&
-        (status.recordingStatus === 'off' || status.recordingStatus === 'ready' || status.recordingStatus === 'on') ? status.recordingStatus: 'off';
-      const recordingSessionId =
-        'recordingSessionId' in status && typeof status.recordingSessionId === 'string' ? status.recordingSessionId : '';
-      const recordingTaskName =
-        'recordingTaskName' in status && typeof status.recordingTaskName === 'string' ? status.recordingTaskName: '';
-      this._saveStatus(isSilentMode, showHighlights, recordingStatus, recordingSessionId, recordingTaskName);
-    }
-  }
+  async selectRecordTabView(newView: 'list' | 'view' | 'ongoing', id?: string, scrollTop: number = 0) {
+    const currentView = this._store.getRecordTabView();
 
-  private _loadStatus() {
-    const status = this._localStorage.getObject(this._storageKey());
-
-    if (!isStatusInfo(status)) {
-      return null;
-    }
-
-    return {
-      isSilentMode: status.isSilentMode,
-      showHighlights: status.showHighlights,
-      recordingStatus: status.recordingStatus,
-      recordingSessionId: status.recordingSessionId,
-      recordingTaskName: status.recordingTaskName,
-    }
-  }
-
-  private _saveStatus(isSilentMode: boolean, showHighlights: boolean, recordingStatus: 'off' | 'ready' | 'on', recordingSessionId: string, recordingTaskName: string) {
-    const status = {
-      isSilentMode: isSilentMode,
-      showHighlights: showHighlights,
-      recordingStatus: recordingStatus,
-      recordingSessionId: recordingSessionId,
-      recordingTaskName: recordingTaskName,
-    }
-    this._localStorage.setObject(this._storageKey(), status)
-  }
-
-  refreshSilentMode(isSilentMode: boolean) {
-    const status = this._loadStatus();
-    if (status) {
-      this._saveStatus(isSilentMode, status.showHighlights, status.recordingStatus, status.recordingSessionId, status.recordingTaskName)
-      return true
-    }
-    return false
-  }
-
-  refreshShowHighlights(showHighlights: boolean) {
-    const status = this._loadStatus();
-    if (status) {
-      this._saveStatus(status.isSilentMode, showHighlights, status.recordingStatus, status.recordingSessionId, status.recordingTaskName)
-      return true
-    }
-    return false
-  }
-
-  refreshRecordingInfo(recordingStatus: 'off' | 'ready' | 'on', recordingSessionId: string, recordingTaskName: string) {
-    const status = this._loadStatus();
-    if (status) {
-      this._saveStatus(status.isSilentMode, status.showHighlights, recordingStatus, recordingSessionId, recordingTaskName)
-      return true
-    }
-    return false
-  }
-
-  getExtensionStatus(): StatusInfo {
-    const status = this._loadStatus();
-    if (!status) {
-      this._initStatus();
-      return this.getExtensionStatus();
-    }
-    return status;
-  }
-
-  async createNewRecording(taskName: string, sessionId: string, description: string, start: number, groupid: string) {
-    this.refreshRecordingInfo('on', sessionId, taskName);
-    await this._api.recording.create({}, {
-      startstamp: Date.now(),
-      sessionId: sessionId,
-      taskName: taskName,
-      session_id: sessionId,
-      task_name: taskName,
-      description: description,
-      target_uri: extractHostURL(this._window.location.hash),
-      start: start,
-      groupid: groupid
-    });
-    this._store.selectRecordBySessionId(sessionId, 'view');
-  }
-
-  async clearNewRecording(sessionId:string) {
-    try {
-      const result = await this._api.recording.update(
-        { id: sessionId },
-        {
-          endstamp: Date.now(),
-          action: 'finish',
-        }
-      );
-      if (result.steps) {
-        result.steps = result.steps.map(step => {
-          return mapToObjectFormat(step);
-        });
-      }
-      this._store.addRecords([result,]);
-      this._store.selectTab('recording');
-      this._store.selectRecordBySessionId(sessionId, 'view');
-      this.refreshRecordingInfo('off', '', '');
-    } catch (error) {
-      this.refreshRecordingInfo('off', '', '');
-    }
-  }
-
-  async loadBatchRecords(uri: string) {
-    const results = await this._api.info({'target_uri': uri ?? ''}) as {sessionId: string, step: number, recording: Recording[]};
-    results.recording.forEach(recording => {
-      if (recording.steps) {
-        recording.steps = recording.steps.map(step => {
-          return mapToObjectFormat(step);
-        });
-      }
-    })
-    this._store.addRecords(results.recording);
-    this._store.setStep(results.step);
-    this._store.selectRecordBySessionId(results.sessionId, 'view');
-    return results.sessionId
-  }
-
-  unloadRecords() {
-    this._store.clearRecords();
-    this._store.clearSelectedRecordingStep();
-  }
-
-  async getRecording(sessionId: string, userid: string | undefined) {
-    this._store.selectRecordBySessionId(sessionId, 'view');
-    const selected = this._store.getSelectedRecord();
-    if (selected && !selected.steps) {
-      const result = await this._api.recording.get({id: sessionId, userid: userid});
-      if (result.steps) {
-        result.steps = result.steps.map(step => {
-          return mapToObjectFormat(step);
-        });
-      }
-      this._store.addRecords([result, ]);
-      this._store.selectRecordBySessionId(sessionId, 'view');
-    }
-  }
-
-  async updateRecording(sessionId: string, shared: boolean) {
-    const result = await this._api.recording.update({
-      id: sessionId
-    }, {
-      shared: shared,
-      action: 'share',
-    })
-    this._store.addRecords([result,])
-  }
-
-  async deleteRecording() {
-    const recording = this._store.getSelectedRecord()
-
-    const result = await this._api.recording.delete({id: recording!.session_id}) as unknown as string
-    if (recording!.sessionId === result) {
-      this._store.removeRecords([recording!.session_id])
-      this._store.clearSelectedRecord();
-    }
-  }
-
-  async sendUserEvent(eventData: EventData, needToCheck: boolean = true) {
-    const sessionId = this._loadStatus()?.recordingSessionId;
-    const taskName = this._loadStatus()?.recordingTaskName;
-
-    const userEventData = {
-      ...eventData,
-      timestamp: Date.now(),
-      session_id: sessionId ? sessionId : '',
-      task_name: taskName ? taskName : '',
-      image: (sessionId && eventData.image) ? eventData.image : undefined,
-      title: this._store.mainFrame()?.metadata.title,
-      // image: true ? eventData.image : undefined,
-    }
-
-    try {
-      const url = new URL(userEventData.base_url);
-      if (needToCheck) {
-        for (const link of this._store.getWhitelist()) {
-          if (url.href.includes(link)) {
-            this._api.event({}, userEventData);
-            break;
-          }
+    if (newView !== currentView) {
+      if (newView === 'view' && id) {
+        try {
+          const traceSteps = await this._api.traces.list({ id: id });
+          traceSteps.map(step => {
+            if (step.image)
+              step.image = this._store.getLink('index') + 'api/image/' + step.image + '.jpg'
+          })
+          this._store.addRecordSteps(traceSteps);
+          this._store.selectTab('recording');
+          this._store.setRecordTabView(id);
+        } catch (err) {
+          this._store.setRecordTabView('list');
+          this._toastMessenger.error('This shareflow is not accessible. Error: ' + err.message);
         }
       }
       else {
-        this._api.event({}, userEventData)
+        this._store.selectTab('recording');
+        this._store.setRecordTabView(newView);
       }
-    } catch (err) {
-      this._api.event({}, userEventData);
     }
+  }
+
+  getRecordTabView() {
+    const currentView = this._store.getRecordTabView();
+    if (currentView !== 'list' && currentView !== 'ongoing') {
+      return 'view';
+    } else {
+      return currentView;
+    }
+  }
+
+  getSessionId() {
+    const currentView = this._store.getRecordTabView();
+    if (currentView !== 'list' && currentView !== 'ongoing') {
+      return null;
+    } else {
+      return currentView;
+    }
+  }
+
+  updateSyncRecording(isRecording: boolean, id?: string | null, taskName?: string | null) {
+    if (isRecording && id && taskName) {
+      this._store.setSync('recording', true);
+      this._store.setSync('recordingSessionId', id);
+      this._store.setSync('recordingTaskName', taskName);
+    } else {
+      this._store.setSync('recording', false);
+      this._store.setSync('recordingSessionId', null);
+      this._store.setSync('recordingTaskName', null);
+    }
+  }
+
+  async createRecord(
+    taskName: string,
+    sessionId: string,
+    description: string,
+    backdate: number,
+  ) {
+    // try {
+    const result = await this._api.recording.create({}, {
+      sessionId: sessionId,
+      taskName: taskName,
+      description: description,
+      startstamp: Date.now(),
+      backdate: backdate,
+    });
+    this._store.addRecordItems([result]);
+    this.updateSyncRecording(true, result.id, result.taskName);
+    // } catch (err) {
+    //   this.updateSyncRecording(false);
+    // }
+  }
+
+  async stopRecord(id: string, options: Record<string, any>) {
+    try {
+      const recordItem = await this._api.recording.update(
+        { id: id },
+        options
+      );
+      this._store.updateRecordItem(recordItem);
+      this.selectRecordTabView('view', recordItem.id);
+    } catch (err) {
+      if (err.response.status === 404) {
+        this._toastMessenger.error('Error: '+ err.response.status);
+      }
+    }
+    this.updateSyncRecording(false);
+  }
+
+  async updateRecord(id: string, options: Record<string, any>) {
+    try {
+      const recordItem = await this._api.recording.update(
+        { id: id },
+        options
+      );
+      this._store.updateRecordItem(recordItem);
+    } catch (err) {
+      if (err.response.status === 404) {
+        this._toastMessenger.error('Error: '+ err.response.status);
+      }
+    }
+  }
+
+  async deleteRecord(id: string) {
+    await this._api.recording.delete({ id: id });
+    this._store.removeRecordItem(id);
   }
 
   isOnRequestPage(hostname: string) {
@@ -381,12 +197,12 @@ export class RecordingService extends TinyEmitter{
     this._toastMessenger.message(responses);
   }
 
-  updateTracking(sessionId: string | undefined, userid: string, step: number) {
-    if (sessionId) {
-      this._api.tracking({}, {sessionId: sessionId, userid: userid, step:step});
+  updateTracking(id?: string, scrollTop: number = 0) {
+    if (id) {
+      this._api.tracking.update({}, {id: id, scrollTop: scrollTop});
     }
     else {
-      this._api.tracking({});
+      this._api.tracking.update({}, {id: null, scrollTop: null});
     }
   }
 

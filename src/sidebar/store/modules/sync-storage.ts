@@ -17,6 +17,9 @@ import { createStoreModule, makeAction } from '../create-store';
 export type State = {
   muted: boolean | null;
   highlightsVisible: boolean | null;
+  recording: boolean | null;
+  recordingTaskName: string | null;
+  recordingSessionId: string | null;
 };
 
 export type Key = keyof State;
@@ -24,16 +27,19 @@ export type Key = keyof State;
 const initialState: State = {
   muted: null,
   highlightsVisible: null,
+  recording: null,
+  recordingTaskName: null,
+  recordingSessionId: null,
 };
 
 const reducers = {
-  SET_DEFAULT(state: State, action: { defaultKey: Key; value: boolean | null }) {
+  SET_SYNC(state: State, action: { defaultKey: Key; value: boolean | string | null }) {
     return { [action.defaultKey]: action.value };
   },
 };
 
-function setSync(defaultKey: Key, value: boolean | null) {
-  return makeAction(reducers, 'SET_DEFAULT', { defaultKey, value });
+function setSync(defaultKey: Key, value: boolean | string | null) {
+  return makeAction(reducers, 'SET_SYNC', { defaultKey, value });
 }
 
 /** Selectors */

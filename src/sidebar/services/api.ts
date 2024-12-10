@@ -6,9 +6,10 @@ import type {
   Profile,
   QueryResponseObject,
   FileNode,
-  EventData,
   RawMessageData,
-  Recording,
+  RecordStep,
+  RecordItem,
+  RecordItemParams,
 } from '../../types/api';
 import { stripInternalProperties } from '../helpers/strip-internal-properties';
 import type { SidebarStore } from '../store';
@@ -183,6 +184,11 @@ export type AnalyticsEvent = {
   event: AnalyticsEventName;
 };
 
+export type Track = {
+  id: string | null;
+  scrollTop: number | null;
+};
+
 /**
  * API client for the Hypothesis REST API.
  *
@@ -242,7 +248,6 @@ export class APIService {
     };
   };
 
-  event: APICall<Record<string, unknown>, EventData>;
   query: APICall<{ q: string }, void, QueryResponseObject>;
   repository: APICall<Record<string, unknown>, void, FileNode>;
   delete: APICall<{ file: string }, void, string>;
@@ -254,15 +259,30 @@ export class APIService {
   pull_recommendation: APICall<{url: string}, void, {id: string; url: string; type: string; title: string; query: string; context: string}>;
   pull: APICall<Record<string, unknown>, void, RawMessageData[]>;
   upload: APICallExtend<Record<string, any>, string|Blob, Record<string, any>, unknown>;
-  batch: APICall<Record<string, unknown>, void, Recording[]>;
+
   recording: {
-    create: APICall<Record<string, unknown>, Partial<Recording>, Recording>;
+    create: APICall<Record<string, unknown>, Partial<RecordItemParams>, RecordItem>;
     delete: APICall<IDParam>;
-    get: APICall<{id:string, userid: string|undefined}, void, Recording>;
-    update: APICall<IDParam, Partial<Recording & {action: 'finish' | 'share' | 'edit'}>, Recording>;
+    get: APICall<IDParam, void, RecordItem>;
+    update: APICall<IDParam, Partial<RecordItemParams>, RecordItem>;
   };
-  tracking: APICall<Record<string, unknown>, {sessionId: string, userid: string, step: number} | undefined, void>;
-  info: APICall<Record<string, unknown>, void, unknown>;
+  recordings: {
+    list: APICall<Record<string, unknown>, void, RecordItem[]>;
+  };
+  trace: {
+    create: APICall<Record<string, unknown>, Partial<RecordStep>, RecordStep>;
+    delete: APICall<IDParam>;
+    get: APICall<IDParam, void, RecordStep>;
+    update: APICall<IDParam, Partial<RecordStep>, RecordStep>;
+  };
+  traces: {
+    list: APICall<IDParam, void, RecordStep[]>;
+  };
+  tracking: {
+    read: APICall<Record<string, unknown>, void, Track>;
+    update: APICall<Record<string, unknown>, Track, void>;
+  };
+
 
   constructor(
     apiRoutes: APIRoutesService,
@@ -360,7 +380,6 @@ export class APIService {
       },
     };
 
-    this.event = apiCall('event') as APICall<Record<string, unknown>, EventData>;
     this.query = apiCall('query') as APICall<{ q: string }, void, QueryResponseObject>;
     this.repository = apiCall('repository') as APICall<Record<string, unknown>, void, FileNode>;
     this.delete = apiCall('delete') as APICall<{ file: string }, void, string>;
@@ -373,31 +392,48 @@ export class APIService {
     this.pull = apiCall('message') as APICall<Record<string, unknown>, void, RawMessageData[]>;
     this.upload = apiCallExtend('upload') as APICallExtend<Record<string, any>, string|Blob, Record<string, any>, unknown>;
 
-    this.batch = apiCall('batch') as APICall<
-      Record<string, unknown>,
-      void,
-      Recording[]
-    >;
     this.recording = {
       create: apiCall('recording.create') as APICall<
         Record<string, unknown>,
-        Partial<Recording>,
-        Recording
+        Partial<RecordItem>,
+        RecordItem
       >,
       delete: apiCall('recording.delete') as APICall<IDParam>,
-      get: apiCall('recording.read') as APICall<IDParam, void, Recording>,
+      get: apiCall('recording.read') as APICall<IDParam, void, RecordItem>,
       update: apiCall('recording.update') as APICall<
         IDParam,
-        Partial<Recording & {action: 'finish' | 'share' | 'edit'}>,
-        Recording
+        Partial<RecordItem>,
+        RecordItem
       >,
     };
-    this.tracking = apiCall('tracking') as APICall<Record<string, unknown>, {sessionId: string, userid: string, step: number} | undefined, void>;
-    this.info = apiCall('info') as APICall<
-      Record<string, unknown>,
-      void,
-      unknown
-    >;
+    this.recordings = {
+      list: apiCall('recordings.read') as APICall<
+        Record<string, unknown>,
+        void,
+        RecordItem[]
+      >,
+    };
+    this.trace = {
+      create: apiCall('trace.create') as APICall<
+        Record<string, unknown>,
+        Partial<RecordStep>,
+        RecordStep
+      >,
+      delete: apiCall('trace.delete') as APICall<IDParam>,
+      get: apiCall('trace.read') as APICall<IDParam, void, RecordStep>,
+      update: apiCall('trace.update') as APICall<
+        IDParam,
+        Partial<RecordStep>,
+        RecordStep
+      >,
+    };
+    this.traces = {
+      list: apiCall('traces.read') as APICall<IDParam, void, RecordStep[]>,
+    };
+    this.tracking = {
+      read: apiCall('tracking.read') as APICall<Record<string, unknown>, void, Track>,
+      update: apiCall('tracking.update') as APICall<Record<string, unknown>, Track, void>,
+    };
   }
 
   /**

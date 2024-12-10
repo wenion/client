@@ -343,32 +343,6 @@ export type SearchResponse = {
 };
 
 /**
- * Response to an `/api/event` API call.
- *
- */
-export type EventData = {
-  event_type: string;
-  timestamp: number;
-  base_url: string;
-  tag_name: string;
-  text_content: string;
-  interaction_context: string;
-  event_source: string;
-  target: string; // main or extension
-  x_path: string; // selector
-  offset_x: number;
-  offset_y: number;
-  session_id: string,
-  task_name: string,
-  width: number,
-  height: number,
-  doc_id: string;
-  userid: string;
-  image?: string;
-  title?: string;
-};
-
-/**
  * Response to an `/api/query` API call.
  *
  */
@@ -496,27 +470,105 @@ export type RecordingStepData = {
   offsetY? : number;
 }
 
-export type RecordingData = {
-  taskName: string;
+export type RecordItemParams = {
+  /**
+   * Client-side identifier: set even if annotation does not have a
+   * server-provided `id` (i.e. is unsaved)
+   */
   sessionId: string;
-  title?: string;
-  selectorAttribute?: string;
-  date?: number;
-  steps: RecordingStepData[] | null;
-  dc: dataComics | null;
-}
 
-export type Recording = RecordingData & {
+  taskName: string;
+  description: string;
   startstamp: number;
   endstamp: number;
-  timestamp: number;
-  task_name: string;
-  session_id: string;
-  description: string;
-  target_uri: string;
-  start: number;
-  completed: boolean;
-  userid?: string;
-  groupid?: string;
+  targetUri: string;
+  backdate: number;
+  groupid: string;
   shared: boolean;
+};
+
+export type RecordItem = {
+  /**
+   * The server-assigned ID for the record item. This is only set once the
+   * record item has been saved to the backend.
+   */
+  id: string;
+
+  sessionId: string;
+  taskName: string;
+  description: string;
+  groupid: string;
+  role: string;
+  shared: boolean;
+  timestamp: number;
+  userid: string;
+};
+
+export type RecordStep = {
+  index?: number;
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  timestamp: number;
+  tagName: string;
+  width: number;
+  height: number;
+  clientX: number;
+  clientY: number;
+  url: string;
+  image: string | null;
+};
+
+export type Trace = {
+  type: string,
+  custom: string,
+  tagName: string,
+  label: string,
+  textContent: string,
+  interactionContext: string,
+  xpath: string,
+  eventSource: string,
+  width: number,
+  height: number,
+  //
+  messageType: string,
+  url: string,
+  tabId: string,
+  windowId: string,
+  timestamp: number,
+  image: string,
+};
+
+export type ClickTrace = {
+  clientX: number,
+  clientY: number,
+} & Trace;
+
+export type KeyTrace = {
+  code: string;
+  key: string;
+  ctrlKey: boolean;
+  altKey: boolean;
+  metaKey: boolean;
+  shiftKey: boolean;
+  display: boolean;
+} & Trace;
+
+export type ScrollTrace = {
+  scrollX: number;
+  scrollY: number;
+} & Trace;
+
+export type ChangeTrace = {
+  display: boolean;
+} & Trace;
+
+export type ClientTrace = {
+  userid: string;
+  title: string;
+  region: string;
+  sessionId: string | null;
+  taskName: string | null;
+  ipAddress: string;
 };

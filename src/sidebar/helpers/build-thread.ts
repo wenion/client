@@ -307,20 +307,23 @@ export function buildThread(
 
   let thread = threadAnnotations(annotations);
 
+  // When a selection is present, it overrides other filters.
   if (hasSelection) {
-    // Remove threads (annotations) that are not selected or
-    // are not forced-visible
     thread.children = thread.children.filter(child => {
       const isSelected = options.selected.includes(child.id);
       const isForcedVisible =
         hasForcedVisible && options.forcedVisible.includes(child.id);
       return isSelected || isForcedVisible;
     });
-  }
-
-  if (options.threadFilterFn) {
+  } else if (options.threadFilterFn) {
     // Remove threads not matching thread-level filters
-    thread.children = thread.children.filter(options.threadFilterFn);
+    const threadFilterFn = options.threadFilterFn;
+    thread.children = thread.children.filter(thread => {
+      if (hasForcedVisible && options.forcedVisible.includes(thread.id)) {
+        return true;
+      }
+      return threadFilterFn(thread);
+    });
   }
 
   // Set visibility for threads.
@@ -329,6 +332,12 @@ export function buildThread(
   // are the top-level annotations.
   thread.visible = false;
   thread = mapThread(thread, thread => {
+    if (hasSelection) {
+      // When a selection is active, make the full conversation thread for
+      // each selected annotation visible.
+      return { ...thread, visible: true };
+    }
+
     let threadIsVisible = thread.visible;
 
     if (options.filterFn) {

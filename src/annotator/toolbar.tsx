@@ -9,7 +9,7 @@ export type ToolbarOptions = {
   setHighlightsVisible: (visible: boolean) => void;
   setSilentMode: (visible: boolean) => void;
   toggleChatting: (value: boolean) => void;
-  toggleRecording: (recordingStatus: 'off' | 'ready' | 'on') => void;
+  toggleRecording: (value: boolean) => void;
 };
 
 /**
@@ -26,7 +26,7 @@ export class ToolbarController {
   private _highlightsVisible: boolean;
   private _isSilentMode: boolean;
   private _isOnChat:boolean;
-  private _recordingStatus: 'off' | 'ready' | 'on';
+  private _recordingStatus: boolean;
   private _sidebarOpen: boolean;
   private _isConnected: boolean;
   private _isLoggedIn: boolean;
@@ -55,9 +55,9 @@ export class ToolbarController {
     this._isLoggedIn = false;
     this._isSilentMode = false;
     this._isOnChat = false;
-    this._recordingStatus = 'off';
+    this._recordingStatus = false;
     this._toggleSilentMode = () => setSilentMode(!this._isSilentMode);
-    this._toggleRecording = () => toggleRecording(this._recordingStatus === 'off'? 'ready' : this._recordingStatus === 'on' ? 'off': 'ready');
+    this._toggleRecording = () => toggleRecording(!this._recordingStatus);
     this._toggleChatting = () => toggleChatting(!this._isOnChat);
 
     this._closeSidebar = () => setSidebarOpen(false);
@@ -167,7 +167,7 @@ export class ToolbarController {
     return this._isOnChat;
   }
 
-  set recordingStatus(recordingStatus: 'off' | 'ready' | 'on') {
+  set recordingStatus(recordingStatus) {
     this._recordingStatus = recordingStatus;
     this.render();
   }

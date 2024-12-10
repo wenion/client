@@ -2,12 +2,12 @@ import { TrashIcon, EllipsisIcon } from '@hypothesis/frontend-shared';
 import { useState } from 'preact/hooks';
 import classnames from 'classnames';
 
+import { confirm } from '../../shared/prompts';
 import { withServices } from '../service-context';
-import { useSidebarStore } from '../store';
 import ShareIcon from '../../images/icons/shared';
 import UnshareIcon from '../../images/icons/unshared';
 import type { RecordingService } from '../services/recording';
-import type { Recording } from '../../types/api';
+import type { RecordItem } from '../../types/api';
 
 import Menu from './Menu';
 import MenuItem from './MenuItem';
@@ -16,15 +16,41 @@ import MenuSection from './MenuSection';
 
 export type RecordingMenuProps = {
   recordingService: RecordingService;
-  recording: Recording;
+  recordItem: RecordItem;
 };
 
 function RecordingMenu({
   recordingService,
-  recording,
+  recordItem,
 }: RecordingMenuProps) {
-  const store = useSidebarStore();
   const [isOpen, setOpen] = useState(false);
+
+  const onDelete = async (recordItem: RecordItem) => {
+    if (
+      await confirm({
+        title: `Delete ${recordItem.taskName.toLowerCase()}?`,
+        message: `Are you sure you want to delete ${recordItem.taskName.toLowerCase()}?`,
+        confirmAction: 'Delete',
+      })
+    ) {
+      try {
+        recordingService.deleteRecord(recordItem.id);
+      } catch (err) {
+        // toastMessenger.error(err.message);
+        console.error(err);
+      }
+    }
+  };
+
+  const onUpdate = (recordItem: RecordItem, share: boolean) => {
+    recordingService.updateRecord(
+      recordItem.id,
+      {
+        shared: share,
+      }
+    );
+
+  };
 
   const menuLabel = (
     <span className="rotate-90 p-2">
@@ -52,18 +78,14 @@ function RecordingMenu({
       >
         <MenuSection>
           <MenuItem
-            label={!!recording.shared? 'Unshare' : 'Share'}
-            icon={!!recording.shared? UnshareIcon: ShareIcon}
-            onClick={() => {
-              recordingService.updateRecording(recording.session_id, !recording.shared);
-            }}
+            label={recordItem.shared? 'Unshare' : 'Share'}
+            icon={recordItem.shared? UnshareIcon: ShareIcon}
+            onClick={() => onUpdate(recordItem, !recordItem.shared)}
           />
           <MenuItem
             label='Delete'
             icon={TrashIcon}
-            onClick={() => {
-              store.selectRecordBySessionId(recording.sessionId, 'delete')
-            }}
+            onClick={() => onDelete(recordItem)}
           />
         </MenuSection>
       </Menu>

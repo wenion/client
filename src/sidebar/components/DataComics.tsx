@@ -146,8 +146,6 @@ function DataComicsNote({recordingService, data, onDataComicsEvent}:
   const onScroll = (e: Event) => {
     if (scrollRef.current) {
       const scrollTop = scrollRef.current.scrollTop;
-      console.log('');
-      store.setStep(scrollTop);
     }
   }
 
@@ -160,7 +158,7 @@ function DataComicsNote({recordingService, data, onDataComicsEvent}:
   const onMouseLeave = () => {
     if (scrollRef.current) {
       const scrollTop = scrollRef.current.scrollTop;
-      recordingService.updateTracking(data.sessionId, data.userid, scrollTop);
+      // recordingService.updateTracking(data.sessionId, data.userid, scrollTop);
     }
   }
 

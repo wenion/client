@@ -4,6 +4,7 @@ import type { DebouncedFunction } from 'lodash.debounce';
 import shallowEqual from 'shallowequal';
 
 import { ListenerCollection } from '../../shared/listener-collection';
+import { recordingPrompt } from '../../shared/recording-prompt';
 import {
   PortFinder,
   PortRPC,
@@ -12,7 +13,15 @@ import {
 } from '../../shared/messaging';
 import type { Message } from '../../shared/messaging';
 import type { AnnotationData, DocumentInfo } from '../../types/annotator';
-import type { Annotation } from '../../types/api'; //RawMessageData
+import type { Annotation } from '../../types/api';
+import type {
+  Trace,
+  ClickTrace,
+  KeyTrace,
+  ScrollTrace,
+  ChangeTrace,
+  ClientTrace,
+} from '../../types/api';
 import type {
   SidebarToHostEvent,
   HostToSidebarEvent,
@@ -37,8 +46,30 @@ import type { StreamerService } from './streamer';
 import type { PersistedDefaultsService } from './persisted-defaults';
 import type { VideoAnnotationsService } from './video-annotations';
 import type { ToastMessengerService } from './toast-messenger';
-import { RecordingService } from './recording';
-import { ADDITIONAL_TAG } from '../../shared/custom'
+import type { RecordingService } from './recording';
+import { ADDITIONAL_TAG } from '../../shared/custom';
+
+export function createEmptyTrace(): Trace {
+  const now = Date.now();
+  return {
+    messageType: '',
+    type: '',
+    custom: 'undefined',
+    tagName: '',
+    label: '',
+    textContent: '',
+    interactionContext: '',
+    xpath: '',
+    eventSource: '',
+    width: 0,
+    height: 0,
+    url: '',
+    tabId: '',
+    windowId: '',
+    timestamp: now,
+    image: '',
+  };
+}
 
 /**
  * Return a minimal representation of an annotation that can be sent from the
@@ -192,6 +223,9 @@ export class FrameSyncService {
   // Test seam
   private _window: Window;
 
+  private _lastTrace: Trace | ClickTrace | KeyTrace | ScrollTrace | ChangeTrace;
+  private _firstScrollTrace: ScrollTrace;
+
   constructor(
     $window: Window,
     annotationsService: AnnotationsService,
@@ -236,6 +270,12 @@ export class FrameSyncService {
     }, 10);
 
     this._sidebarIsOpen = false;
+    this._lastTrace = createEmptyTrace();
+    this._firstScrollTrace = {
+      ...this._lastTrace,
+      scrollX: 0,
+      scrollY: 0,
+    };
 
     this._setupSyncToGuests();
     this._setupHostEvents();
@@ -244,42 +284,246 @@ export class FrameSyncService {
     this._setupFeatureFlagSync();
     this._setupToastMessengerEvents();
     this._setupSyncChangeEffect();
-    this._setupStatusSync();
   }
 
-  private _attachExtraInformation(_data: {
-    messageType: string,
-    type: string,
-    tagName: string,
-    textContent: string,
-    interactionContext: string,
-    eventSource: string,
-    xpath: string,
-    url: string,
-    width: number | null,
-    height: number | null,
-  }) {
-    return Object.assign(_data, {
-      userid: this._store.profile().userid,
-      timestamp: Date.now(),
-      title: this._store.mainFrame()?.metadata.title,
+  private _addClientInformation(trace : Trace | ClickTrace | KeyTrace | ScrollTrace | ChangeTrace) {
+    return {
+      ...trace,
+      userid: this._store.profile().userid ?? trace.tabId + '_' + trace.windowId,
+      title: this._store.mainFrame()?.metadata.title?? '',
       region: '',
-      session_id: this._recordingService.getExtensionStatus().recordingSessionId,
-      task_name: this._recordingService.getExtensionStatus().recordingTaskName,
-      ip_address: '',
-    })
+      sessionId: this._store.getSync('recordingSessionId') as string | null,
+      taskName: this._store.getSync('recordingTaskName') as string | null,
+      ipAddress: '',
+    }
   }
 
   private _setupExtensionEvents() {
-      this._extensionRPC.on('close', ()=> {
-        console.log("extension close")
-      })
-      this._extensionRPC.on('connect', ()=> {
-          console.log("extension connect")
-      })
-      this._extensionRPC.on('traceData', (message) => {
-        this._streamer.send(this._attachExtraInformation(message))
-      });
+    this._extensionRPC.on('close', ()=> {
+      console.log("extension close")
+    })
+    this._extensionRPC.on('connect', ()=> {
+      console.log("extension connect")
+    })
+    this._extensionRPC.on(
+      'traceData',
+      (_trace : Trace | ClickTrace | KeyTrace | ScrollTrace | ChangeTrace) => {
+      let skip = false;
+      let discard = false;
+      let trace = this._addClientInformation(_trace);
+
+      if (trace.type === 'keydown' && trace.custom === 'type') {
+        const customChangeTrace = trace as KeyTrace;
+        if (customChangeTrace.display) {
+          skip = false;
+          discard = false;
+        } else {
+          skip = true;
+          discard = false;
+        }
+      }
+
+      if (trace.custom === 'keydown' && this._lastTrace.custom !== 'keydown') {
+        const keyTrace = trace as KeyTrace;
+        if (keyTrace.display) {
+          skip = true;
+          discard = false;
+        }
+        else {
+          skip = true;
+          discard = true;
+        }
+      }
+
+      if (
+        trace.custom === 'keydown' &&
+        this._lastTrace.custom === 'keydown' &&
+        this._lastTrace.xpath === trace.xpath
+      ) {
+        const keyTrace = trace as KeyTrace;
+        if (keyTrace.display) {
+          skip = true;
+          discard = false;
+          trace.label = this._lastTrace.label + trace.label;
+          trace.textContent = trace.label;
+        } else {
+          skip = true;
+          discard = true;
+        }
+      }
+
+      if (
+        trace.custom === 'keydown' &&
+        this._lastTrace.custom === 'keydown' &&
+        this._lastTrace.xpath !== trace.xpath
+      ) {
+        const add = { ...this._lastTrace };
+        add.custom = 'type';
+        this._streamer.send(add);
+        if (this._store.getSync('recording')) {
+          const msg = {
+            title: add.custom,
+            type: add.type,
+            description: add.label,
+            imgSrc: add.image === '' ? null : add.image,
+            width: add.width,
+            height: add.height,
+            clientX: null,
+            clientY: null,
+          };
+          this._store.addTrace(msg);
+        }
+        this._lastTrace = add;
+
+        const keyTrace = trace as KeyTrace;
+        if (keyTrace.display) {
+          skip = true;
+          discard = false;
+        } else {
+          skip = true;
+          discard = true;
+        }
+      }
+
+      if (trace.custom !== 'keydown' && this._lastTrace.custom === 'keydown') {
+        if (trace.custom === 'type' && trace.type === 'keydown') {
+          const add = { ...this._lastTrace};
+          add.custom = 'type';
+
+          this._streamer.send(add);
+          if (this._store.getSync('recording')) {
+            const msg = {
+              title: add.custom,
+              type: add.type,
+              description: add.label,
+              imgSrc: add.image === '' ? null : add.image,
+              width: add.width,
+              height: add.height,
+              clientX: null,
+              clientY: null,
+            };
+            this._store.addTrace(msg);
+          }
+          this._lastTrace = add;
+        } else if (trace.type !== 'change') {
+          // add onchange2
+          const added = { ...this._lastTrace};
+          added.custom = 'type';
+
+          this._streamer.send(added);
+          if (this._store.getSync('recording')) {
+            const msg = {
+              title: added.custom,
+              type: added.type,
+              description: added.label,
+              imgSrc: added.image === '' ? null : added.image,
+              width: added.width,
+              height: added.height,
+              clientX: null,
+              clientY: null,
+            };
+            this._store.addTrace(msg);
+          }
+          this._lastTrace = added;
+        }
+      }
+
+      if (trace.type === 'scroll' && this._lastTrace.type !== 'scroll') {
+        skip = true;
+        const scrollTrace = trace as ScrollTrace;
+        this._firstScrollTrace = scrollTrace;
+      }
+
+      if (trace.type === 'scroll' && this._lastTrace.type === 'scroll') {
+        skip = true;
+      }
+
+      if (trace.type !== 'scroll' && this._lastTrace.type === 'scroll') {
+        const lastTrace = this._lastTrace as ScrollTrace;
+
+        const offsetX = lastTrace.scrollX - this._firstScrollTrace.scrollX;
+        const offsetY = lastTrace.scrollY - this._firstScrollTrace.scrollY;
+
+        if (offsetX === 0 && offsetY === 0) {
+          skip = true
+        } else {
+          let labelString = offsetX < 0 ? 'left' : offsetX === 0 ? '' : 'right';
+          if (labelString === '') {
+            labelString = offsetY < 0 ? 'up' : offsetY === 0 ? '' : 'down';
+          } else {
+            labelString += offsetY < 0 ? ' and up' : offsetY === 0 ? '' : ' and down';
+          }
+          const add = {
+            ...lastTrace,
+            label: labelString,
+            textContent: labelString,
+            offsetX: offsetX,
+            offsetY: offsetY,
+          };
+
+          this._streamer.send(add);
+          if (this._store.getSync('recording')) {
+            const msg = {
+              title: add.custom,
+              type: add.type,
+              description: add.label,
+              imgSrc: add.image === '' ? null : add.image,
+              width: add.width,
+              height: add.height,
+              clientX: null,
+              clientY: null,
+            };
+            this._store.addTrace(msg);
+          }
+        }
+      }
+
+      if (
+        trace.custom === 'go to' ||
+        trace.custom === 'switch to'
+      ) {
+        trace.label = trace.title === '' ? trace.url : trace.title;
+      }
+
+      if(
+        trace.type === this._lastTrace.type &&
+        (trace.custom === 'click' || trace.custom === 'switch to') &&
+        trace.xpath === this._lastTrace.xpath &&
+        trace.textContent === this._lastTrace.textContent
+      ) {
+        // repeat trace
+        skip = true;
+        discard = false;
+      }
+
+      if (!skip) {
+        this._streamer.send(trace);
+        if (this._store.getSync('recording')) {
+          let clientX = null;
+          let clientY = null;
+          if (trace.custom === 'click') {
+            const clickTrace = trace as ClickTrace;
+            clientX = clickTrace.clientX;
+            clientY = clickTrace.clientY;
+          }
+          const msg = {
+            title: trace.custom,
+            type: trace.type,
+            description: trace.label,
+            imgSrc: trace.image === '' ? null : trace.image,
+            width: trace.width,
+            height: trace.height,
+            clientX: clientX,
+            clientY: clientY,
+          };
+          this._store.addTrace(msg);
+        }
+      }
+
+      if (!discard) {
+        this._lastTrace = trace;
+      }
+    });
   }
 
   sendTraceData(
@@ -289,25 +533,15 @@ export class FrameSyncService {
     textContent: string,
     interactionContext: string
   ) {
-    this._streamer.send({
-      messageType: 'TraceData',
-      type: eventType,
-      tagName: tagName,
-      textContent: textContent,
-      interactionContext: interactionContext,
-      eventSource: eventSource,
-      xpath: '',
-      width: null,
-      height: null,
-      userid: this._store.profile().userid,
-      timestamp: Date.now(),
-      title: this._store.mainFrame()?.metadata.title,
-      region: '',
-      session_id: this._recordingService.getExtensionStatus().recordingSessionId,
-      task_name: this._recordingService.getExtensionStatus().recordingTaskName,
-      url: this._store.mainFrame()?.uri ?? '',
-      ip_address: '',
-    })
+    this._extensionRPC.call(
+      'customEvent',
+      {
+        eventType: 'client',
+        custom: eventType,
+        tagName: tagName,
+        textContent: textContent,
+      }
+    );
   }
 
   /**
@@ -415,26 +649,26 @@ export class FrameSyncService {
     watch(
       this._store.subscribe,
       () => this._store.isLoggedIn(),
-      (isLoggedIn, prevIsLoggedIn) => {
+      async (isLoggedIn, prevIsLoggedIn) => {
         if (isLoggedIn) {
-          const sessionId = this._recordingService.loadBatchRecords(this._store.mainFrame()?.uri ?? '').then(
-            response => {
-              if (response) {
-                this.notifyHost('openSidebar');
-                this._store.selectTab('recording');
-                this._store.changeRecordingStage('Idle');
-              }
-            }
-          )
-          this._hostRPC.call('isLoggedIn', true)
-          this._hostRPC.call('webClipping', {savePage: false})
+          // session cookies
+          const track = await this._recordingService.loadRecordItems(this._store.mainFrame()?.uri ?? '');
+          if (track.id) {
+            this._hostRPC.call('openSidebar');
+            this._store.selectTab('recording');
+            this._recordingService.selectRecordTabView('view', track.id);
+            this._store.setStep(track.scrollTop?? 0);
+          }
+
+          this._hostRPC.call('isLoggedIn', true);
+          this._hostRPC.call('webClipping', {savePage: false});
           this._recordingService.loadMessages();
         }
         // if (isLoggedIn && isLoggedIn !== prevIsLoggedIn) {
         //   this._recordingService.fetchHighlight(this._store.mainFrame()?.uri)
         // }
         else {
-          this._recordingService.unloadRecords();
+          this._recordingService.unloadRecordItems();
           // this._store.clearMessages();
           this._hostRPC.call('isLoggedIn', false)
         }
@@ -656,45 +890,12 @@ export class FrameSyncService {
     }
   }
 
-  updateRecordingStatusView(status: 'off' | 'ready' | 'on') {
-    if (status === 'off') {
-      this._store.changeRecordingStage('Idle');
-    }
-    else if (status === 'ready') {
-      this._store.selectTab('recording');
-      this._store.changeRecordingStage('Request')
-    }
-    else {
-      this._store.selectTab('recording');
-      this._store.changeRecordingStage('Start')
-    }
-  }
-
-  async refreshRecordingStatus(status: 'off' | 'ready' | 'on', taskName?: string, sessionId?: string, description?: string, start?: number, groupid?: string) {
-    if (status === 'off') {
-      const taskName = this._recordingService.getExtensionStatus().recordingTaskName;
-      const sessionId = this._recordingService.getExtensionStatus().recordingSessionId;
-      if (sessionId) {
-        // websocket TODO
-        this.sendTraceData('click', 'RECORDING', 'RECORD', 'end', JSON.stringify({taskName:taskName, sessionId:sessionId}))
-        // http TODO
-        await this._recordingService.clearNewRecording(sessionId);
-      }
-    }
-    else if (status === 'on') {
-      this._recordingService.createNewRecording(taskName!, sessionId!, description!, start!, groupid?? '');
-      this.sendTraceData('click', 'RECORDING', 'RECORD', 'start', JSON.stringify({taskName:taskName, sessionId:sessionId}))
-    }
-    this._extensionRPC.call('recording', this._recordingService.getExtensionStatus());
-  }
-
   /**
    * Listen for messages coming from the host frame.
    */
   private _setupHostEvents() {
     this._hostRPC.on('connect', () => {
-      this._store.setSync('muted', this._store.getSync('muted'));
-      this._store.setSync('highlightsVisible', this._store.getSync('highlightsVisible'));
+      this._applySyncSideEffects(this._store.getAllSync());
     })
     this._hostRPC.on('sidebarOpened', () => {
       this._sidebarIsOpen = true;
@@ -706,24 +907,90 @@ export class FrameSyncService {
 
     this._hostRPC.on('selectDataComics', (arg : {session_id: string, user_id: string})=> {
       this._store.selectTab('recording');
-      this._store.changeRecordingStage('Idle');
-      this._recordingService.getRecording(arg.session_id, arg.user_id)
     })
 
     // When user toggles the highlight visibility control in the sidebar container,
     // update the visibility in all the guest frames.
     this._hostRPC.on('setHighlightsVisible', (visible: boolean) => {
       this._store.setSync('highlightsVisible', visible);
+      // this._highlightsVisible = visible;
+      // this._guestRPC.forEach(rpc => rpc.call('setHighlightsVisible', visible));
     });
 
     this._hostRPC.on('setVisuallyHidden', (visible: boolean) => {
       this._store.setSync('muted', visible);
     });
 
-    this._hostRPC.on('updateRecoringStatusFromHost', (status: 'off' | 'ready' | 'on') => {
-      // off
-      this.updateRecordingStatusView(status);
-      this.refreshRecordingStatus(status);
+    this._hostRPC.on('toggleRecording', async (status: boolean) => {
+      const isRecroding = this._store.getSync('recording');
+      const sessionId = this._store.getSync('recordingSessionId') as null | string;
+
+      if (status !== isRecroding) {
+        if (status) {
+          // recording prompt
+          this._hostRPC.call('openSidebar');
+          this._store.selectTab('recording');
+
+          let taskName = '';
+          let description = '';
+          let startTime = 0;
+          let init = true;
+
+          let info = await recordingPrompt({
+            message: {init: init, name: taskName, description : description, startTime: startTime,}
+          });
+
+          while (info.result) {
+            // click confirm
+            if (
+              info.taskName !== '' &&
+              info.description !== '' &&
+              info.sessionId !== '' &&
+              Number.isInteger(parseInt(info.startTime)) &&
+              parseInt(info.startTime) <= 0
+            ) {
+              await this._recordingService.createRecord(
+                info.taskName,
+                info.sessionId,
+                info.description,
+                parseInt(info.startTime),
+              );
+              this._extensionRPC.call(
+                'customEvent',
+                {
+                  eventType: 'client',
+                  custom: 'record',
+                  tagName: 'RECORD',
+                  textContent: 'start',
+                }
+              );
+              break;
+            } else {
+              init = false;
+              taskName = info.taskName;
+              description = info.description;
+              startTime = Number.isInteger(parseInt(info.startTime)) ? parseInt(info.startTime): 0;
+              info = await recordingPrompt({
+                message: {init: init, name: taskName, description : description, startTime: startTime,}
+              });
+            }
+          }
+        } else {
+          if (isRecroding && sessionId) {
+            this._extensionRPC.call(
+              'customEvent',
+              {
+                eventType: 'client',
+                custom: 'record',
+                tagName: 'RECORD',
+                textContent: 'finish',
+              }
+            )
+            await this._recordingService.stopRecord(sessionId, { endstamp: Date.now() });
+          }
+          this._store.clearTraces();
+        }
+      }
     })
 
     this._hostRPC.on('traceData', (message:
@@ -924,33 +1191,36 @@ export class FrameSyncService {
     });
   }
 
-  private _setupSyncChangeEffect() {
-    this._persistedDefaults.register_sync_changed_event((change: Record<string, any>) => {
-      this._hostRPC.call('syncStorageChanged', change);
+  private _applySyncSideEffects(change: Record<string, any>) {
+    // make effect to the sidebar
+    this._hostRPC.call('syncStorageChanged', change);
 
-      // Sync variable change effect
-      const visible = change['highlightsVisible'];
-      this._highlightsVisible = visible;
-      this._guestRPC.forEach(rpc => rpc.call('setHighlightsVisible', visible));
-    })
+    // highlightsVisible
+    const visible = change['highlightsVisible'];
+    this._highlightsVisible = visible;
+    this._guestRPC.forEach(rpc => rpc.call('setHighlightsVisible', visible));
+
+    // recording - extension
+    const recording = change['recording'];
+    this._extensionRPC.call(
+      'recording',
+      {
+        'recording': recording,
+      }
+    );
+
+    // Frame-sync tab view
+    // if (recording) {
+    //   this._recordingService.selectRecordTabView('ongoing');
+    // } else {
+    //   this._recordingService.selectRecordTabView('list');
+    // }
   }
 
-  private _setupStatusSync() {
-    this._recordingService.on(
-      'statusChanged', (
-        status: {
-        isSilentMode: boolean,
-        showHighlights: boolean,
-        recordingStatus: 'off' | 'ready' | 'on',
-        recordingSessionId: string,
-        recordingTaskName: string,
-      }) => {
-        if (status) {
-          this.updateRecordingStatusView(status.recordingStatus);
-          this._hostRPC.call('statusUpdated', status)
-          this._extensionRPC.call('recording', this._recordingService.getExtensionStatus())
-        }
-    })
+  private _setupSyncChangeEffect() {
+    this._persistedDefaults.register_sync_changed_event(
+      (change: Record<string, any>) => this._applySyncSideEffects(change)
+    );
   }
 
   /**
@@ -959,7 +1229,7 @@ export class FrameSyncService {
   async connect() {
     // Create channel for sidebar-host communication.
     const hostPort = await this._portFinder.discover('host');
-    this._hostRPC.connect(hostPort, [JSON.stringify(this._recordingService.getExtensionStatus())]);
+    this._hostRPC.connect(hostPort);
 
     // Listen for guests connecting to the sidebar.
     this._listeners.add(hostPort, 'message', event => {
@@ -992,7 +1262,7 @@ export class FrameSyncService {
 
     // Create channel for sidebar-extension communication.
     const extensionPort = await this._portFinder.discover('extension');
-    this._extensionRPC.connect(extensionPort, [JSON.stringify(this._recordingService.getExtensionStatus())]);
+    this._extensionRPC.connect(extensionPort, [JSON.stringify({'recording': this._store.getSync('recording')})]);
   }
 
   /**

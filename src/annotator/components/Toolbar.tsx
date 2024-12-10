@@ -95,7 +95,7 @@ export type ToolbarProps = {
   isSilentMode: boolean;
   isOnChat:boolean;
   toggleSilentMode: () => void;
-  recordingStatus: 'off' | 'ready' | 'on';
+  recordingStatus: boolean;
   toggleRecording: () => void;
   toggleChatting: () => void;
 
@@ -226,8 +226,8 @@ export default function Toolbar({
           {isConnected && isLoggedIn && (
             <>
               <ToolbarButton
-                title={recordingStatus === 'on' ? 'Recording' : 'Recording off'}
-                icon={recordingStatus === 'on' ? RecordingIcon : RecordingOffIcon}
+                title={recordingStatus ? 'Currently Recording' : 'Not Recording'}
+                icon={recordingStatus ? RecordingIcon : RecordingOffIcon}
                 onClick={toggleRecording}
               />
               </>

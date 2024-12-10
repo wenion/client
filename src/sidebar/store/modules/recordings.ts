@@ -1,45 +1,27 @@
-/**
- * State management for the set of annotations currently loaded into the
- * sidebar.
- */
 import type { Dispatch } from 'redux';
+import { createSelector } from 'reselect';
 
+import type { RecordItem, RecordStep } from '../../../types/api';
 import { createStoreModule, makeAction } from '../create-store';
-import type { RecordingStepData } from '../../../types/api';
-import type { Recording } from '../../../types/api';
-
-type BooleanMap = Record<string, boolean>;
-type RecordingStage = 'Request' | 'Start' | 'End' | 'Idle'
-
-export type Selector = { [key: string]: string; };
-
-function excludeRecords(
-  current: Recording[],
-  records_id: string[],
-) {
-  return current.filter(recording => !records_id.includes(recording.session_id))
-}
 
 export type State = {
-  recordingStage: RecordingStage;
-  selectedRecordingStep: RecordingStepData | null;
-  records: Recording[];
-  selectedRecord: Recording & {action: "delete" | "view" | "share"} | null;
+  tabView: 'list' | 'ongoing' | string;
   step: number; // scrollTop
+  recordItems: RecordItem[];
+  recordSteps: RecordStep[];
 };
 
 function initialState(): State {
   return {
-    recordingStage: 'Idle',
-    selectedRecordingStep: null,
-    records: [],
-    selectedRecord: null,
+    tabView: 'list',
     step: 0,
+    recordItems: [],
+    recordSteps: [],
   }
 }
 
-function findBySessionId(recordings: Recording[], id: string) {
-  return recordings.find(r => r.session_id === id);
+function sortByTaskName(a: RecordItem, b: RecordItem) {
+  return a.taskName.localeCompare(b.taskName);
 }
 
 /**
@@ -55,185 +37,176 @@ function findBySessionId(recordings: Recording[], id: string) {
  */
 
 const reducers = {
-  ADD_RECORDS(
-    state: State,
-    action: { records: Recording[] },
-  ): Partial<State> {
-    const updatedIDs = new Map();
+  SET_TAB_VIEW(state: State, action: { tabView: string }) {
+    return { tabView: action.tabView };
+  },
 
+  SET_STEP(state: State, action: { step: number }) {
+    return { step: action.step };
+  },
+
+  ADD_RECORDITEMS(state: State, action: {recordItems: RecordItem[] }): Partial<State> {
     const added = [];
-    const merged = [];
 
-    for (const record of action.records) {
-      let existing = findBySessionId(state.records, record.session_id)
-      if (existing) {
-        updatedIDs.set(record.session_id, Object.assign({}, existing, record));
-      } else {
-        added.push(record)
-      }
-    }
+    for (const record of action.recordItems) {
+      let existing;
+      existing = state.recordItems.find(r => r.id === record.id);
 
-    for (const record of state.records) {
-      if (updatedIDs.has(record.session_id)) {
-        merged.push(updatedIDs.get(record.session_id));
-      }
-      else {
-        merged.push(record);
+      if (!existing) {
+        added.push(record);
       }
     }
 
     return {
-      records: merged.concat(added),
+      recordItems: state.recordItems.concat(added).sort(sortByTaskName),
     };
   },
 
-  CLEAR_RECORDS(): Partial<State> {
-    return { records: [] };
+  CLEAR_RECORDITEMS(): Partial<State> {
+    return { recordItems: [] };
   },
 
-  REMOVE_RECORDS(
+  REMOVE_RECORDITEM(
     state: State,
     action: {
-      recordsToRemove: string[];
-      remainingRecords: Recording[];
+      remainingRecordItems: RecordItem[]
     },
   ): Partial<State> {
-    return { records: [...action.remainingRecords] };
-  },
-
-  SELECT_RECORD(state: State, action: {record: Recording, action: "delete" | "view" | "share"}): Partial<State> {
     return {
-      selectedRecord: {...action.record, action: action.action}
-    }
-  },
-
-  CLEAR_RECORD(state: State): Partial<State> {
-    return {
-      selectedRecord: null
-    }
-  },
-
-  SELECT_STEP(state: State, action: {stepId: string | null}): Partial<State> {
-    if (state.selectedRecord && state.selectedRecord.steps && action.stepId) {
-      const selectedStep = state.selectedRecord.steps.find(r => r.id === action.stepId)
-      return {
-        selectedRecordingStep: selectedStep ?? null,
-      }
-    }
-    return {
-      selectedRecordingStep: null,
-    }
-  },
-
-  SET_STEP(state: State, {step}: {step:number},) {
-    return {
-      step
+      recordItems: [...action.remainingRecordItems].sort(sortByTaskName),
     };
   },
 
-  CHANG_RECORDING_STAGE(state: State, action: {newStage: RecordingStage}) {
-    return { recordingStage: action.newStage }
+  UPDATE_RECORDITEM(state: State, action: { recordItem: RecordItem },): Partial<State> {
+    const remain = state.recordItems.filter(r => r.id !== action.recordItem.id);
+    return {
+      recordItems: remain.concat(action.recordItem).sort(sortByTaskName),
+    }
+  },
+
+  ADD_RECORDSTEPS(state: State, action: {recordSteps: RecordStep[] }): Partial<State> {
+    return {
+      recordSteps: action.recordSteps,
+    };
+  },
+
+  CLEAR_RECORDSTEPS(): Partial<State> {
+    return { recordSteps: [] };
   },
 };
 
-/* Action creators */
-function addRecords(records: Recording[]) {
-  return makeAction(reducers, 'ADD_RECORDS', {records:records})
-}
+// Action creators
 
-function removeRecords(recordings_name: string[]) {
-  return (dispatch: Dispatch, getState: () => {recordings: State}) => {
-    const remainingRecords = excludeRecords(
-      getState().recordings.records,
-      recordings_name,
-    );
-    dispatch(
-      makeAction(reducers, 'REMOVE_RECORDS', {
-        recordsToRemove: recordings_name,
-        remainingRecords: remainingRecords,
-      }),
-    );
-  };
-}
-
-function clearRecords() {
-  return makeAction(reducers, 'CLEAR_RECORDS', undefined)
-}
-
-function selectRecordBySessionId(sessionId: string, action: "delete" | "view" | "share") {
-  return (dispatch: Dispatch, getState: () => {recordings: State}) => {
-      const selected = getState().recordings.records.find(r => r.session_id === sessionId)
-      if (selected) {
-        dispatch(makeAction(reducers, 'SELECT_RECORD', {record: selected, action: action}))
-      }
-    }
-}
-
-function clearSelectedRecord() {
-  return makeAction(reducers, 'CLEAR_RECORD', undefined)
+function setRecordTabView(RecordTabView: string) {
+  return makeAction(reducers, 'SET_TAB_VIEW', {tabView: RecordTabView});
 }
 
 function setStep(step: number) {
-  return makeAction(reducers, 'SET_STEP', {step: step})
+  return makeAction(reducers, 'SET_STEP', {step: step});
 }
 
-function selectRecordingStep(stepId: string) {
-  return makeAction(reducers, 'SELECT_STEP', {stepId: stepId})
+function addRecordItems(recordItems: RecordItem[]) {
+  return makeAction(reducers, 'ADD_RECORDITEMS', {recordItems: recordItems});
 }
 
-function clearSelectedRecordingStep() {
-  return makeAction(reducers, 'SELECT_STEP', {stepId: null})
+function clearRecordItems() {
+  return makeAction(reducers, 'CLEAR_RECORDITEMS', undefined);
 }
 
-function changeRecordingStage(newStage: RecordingStage) {
-  return makeAction(reducers, 'CHANG_RECORDING_STAGE', {newStage: newStage})
+function updateRecordItem(recordItem: RecordItem) {
+  return makeAction(reducers, 'UPDATE_RECORDITEM', { recordItem });
 }
 
-function getSelectedRecord(state: State) {
-  return state.selectedRecord;
+function removeRecordItem(id: string) {
+  return (dispatch: Dispatch, getState: () => { recordings: State }) => {
+    const remaining = getState().recordings.recordItems.filter(r => r.id !== id);
+    dispatch(makeAction(reducers, 'REMOVE_RECORDITEM', {remainingRecordItems: remaining}));
+  }
 }
 
-function getSelectedRecordingStep(state: State) {
-  return state.selectedRecordingStep;
+function addRecordSteps(recordSteps: RecordStep[]) {
+  return makeAction(reducers, 'ADD_RECORDSTEPS', {recordSteps: recordSteps});
 }
 
-function currentRecordingStage(state: State) {
-  return state.recordingStage;
+function clearRecordSteps() {
+  return makeAction(reducers, 'CLEAR_RECORDSTEPS', undefined);
 }
 
-function allRecordingsCount(state: State) {
-  return state.records.length;
+// Selectors
+
+function getRecordTabView(state: State) {
+  return state.tabView;
 }
 
-function Records(state:State) {
-  return state.records;
-}
-
-function getStep(state:State) {
+function getStep(state: State) {
   return state.step;
 }
+
+function getRecordItemById(state: State, id: string) {
+  const recordItem = state.recordItems.find(r => r.id === id);
+  return recordItem?? null;
+}
+
+const getRecordItem = createSelector(
+  (state: State) => state.recordItems,
+  (state: State) => state.tabView,
+  (recordItems, tabView) => {
+    const recordItem = recordItems.find(r => r.id === tabView);
+    return recordItem?? null;
+  },
+)
+
+function recordItemsCount(state: State) {
+  return state.recordItems.length;
+}
+
+function recordItems(state: State) {
+  return state.recordItems;
+}
+
+function recordSteps(state: State) {
+  return state.recordSteps;
+}
+
+// type RootState = {
+//   recordings: State;
+//   defaults: DefaultsState;
+// }
+
+// const currentRecordItem = createSelector(
+//   (rootState: RootState) => rootState.recordings.recordItems,
+//   (rootState: RootState) =>
+//     defaultsModule.selectors.getDefault(rootState.defaults, 'recordTabView'),
+//   (recordItems, sessionId) => {
+//     const result = recordItems.find((r) => r.sessionId === sessionId);
+//     console.log("currentRecordItem", recordItems, sessionId, result)
+//     return result ?? null;
+//   }
+// );
 
 export const recordingsModule = createStoreModule(initialState, {
   namespace: 'recordings',
   reducers,
-
   actionCreators: {
-    addRecords,
-    removeRecords,
-    clearRecords,
-    selectRecordBySessionId,
-    clearSelectedRecord,
-    selectRecordingStep,
-    clearSelectedRecordingStep,
-    changeRecordingStage,
+    setRecordTabView,
     setStep,
+    addRecordItems,
+    updateRecordItem,
+    clearRecordItems,
+    removeRecordItem,
+    addRecordSteps,
+    clearRecordSteps,
   },
   selectors: {
-    allRecordingsCount,
-    Records,
-    currentRecordingStage,
-    getSelectedRecordingStep,
-    getSelectedRecord,
+    getRecordTabView,
     getStep,
+    getRecordItem,
+    getRecordItemById,
+    recordItems,
+    recordItemsCount,
+    recordSteps,
   },
+  // rootSelectors: {
+  //   currentRecordItem,
+  // }
 });

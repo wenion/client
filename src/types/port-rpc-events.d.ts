@@ -104,7 +104,7 @@ export type HostToGuestEvent =
  */
 export type HostToSidebarEvent =
   | 'traceData'
-  | 'updateRecoringStatusFromHost'
+  | 'toggleRecording'
   | 'setVisuallyHidden'
   | 'postRating'
   | 'webPage'

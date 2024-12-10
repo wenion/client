@@ -16,7 +16,7 @@ import type {
   SidebarLayout,
   SideBySideOptions,
 } from '../types/annotator';
-import type { Target, EventData } from '../types/api';
+import type { Target } from '../types/api';
 import type {
   HostToGuestEvent,
   GuestToHostEvent,
