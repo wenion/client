@@ -33,6 +33,9 @@ export type ThreadAnnotationsResult = {
     annotation: number;
     note: number;
     orphan: number;
+    video: number;
+    message: number;
+    recording: number;
   };
 
   /**
