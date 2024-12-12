@@ -93,6 +93,7 @@ export default function AnnotationTimestamps({
           // Link is used here
           classes="text-color-text-light hover:text-color-text-light hover:underline"
           target="_blank"
+          rel="noopener noreferrer"
           title={created.absolute}
           href={annotationURL}
           underline="hover"

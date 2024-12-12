@@ -23,6 +23,7 @@ function LoggedOutMessage({ onLogin }: LoggedOutMessageProps) {
           variant="text"
           href={store.getLink('signup')}
           target="_blank"
+          rel="noopener noreferrer"
           underline="always"
         >
           create a free account
@@ -38,6 +39,7 @@ function LoggedOutMessage({ onLogin }: LoggedOutMessageProps) {
           href="https://colam.kmass.cloud.edu.au"
           aria-label="GoldMind homepage"
           target="_blank"
+          rel="noopener noreferrer"
           title="GoldMind homepage"
           underline="none"
           variant="custom"

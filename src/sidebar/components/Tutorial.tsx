@@ -53,6 +53,7 @@ function Tutorial({ settings }: TutorialProps) {
         <Link
           href="https://colam.kmass.cloud.edu.au/help/why-are-highlights-private-by-default/"
           target="_blank"
+          rel="noopener noreferrer"
           underline="always"
         >
           visible only to you
@@ -67,6 +68,7 @@ function Tutorial({ settings }: TutorialProps) {
           <Link
             href="https://colam.kmass.cloud.edu.au/help/how-to-join-a-private-group/"
             target="_blank"
+            rel="noopener noreferrer"
             underline="always"
           >
             join link

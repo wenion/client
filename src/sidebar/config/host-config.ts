@@ -94,9 +94,9 @@ export function hostPageConfig(window: Window): ConfigFromAnnotator {
     },
   };
 
-  const result: Record<string, unknown> = {};
+  const result: Record<string, unknown> = Object.create(null);
   for (const [key, value] of Object.entries(config)) {
-    if (!paramWhiteList.includes(key)) {
+    if (!paramWhiteList.includes(key) || ['__proto__', 'constructor', 'prototype'].includes(key)) {
       continue;
     }
 
@@ -107,11 +107,7 @@ export function hostPageConfig(window: Window): ConfigFromAnnotator {
       continue;
     }
 
-    if (coercions[key]) {
-      result[key] = coercions[key](value);
-    } else {
-      result[key] = value;
-    }
+    result[key] = coercions[key] ? coercions[key](value) : value;
   }
-  return result;
+  return Object.freeze(result);
 }

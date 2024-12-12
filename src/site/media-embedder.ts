@@ -45,6 +45,9 @@ function iframe(src: string, aspectRatio = 16 / 9): HTMLElement {
   iframe_.setAttribute('frameborder', '0');
   iframe_.setAttribute('allowfullscreen', '');
 
+  // Add sandbox with appropriate permissions
+  iframe_.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups');
+
   return wrapInAspectRatioContainer(iframe_, aspectRatio);
 }
 

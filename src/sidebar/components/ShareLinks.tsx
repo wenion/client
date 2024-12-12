@@ -29,6 +29,7 @@ function ShareLink({ label, icon: Icon, uri }: ShareLinkProps) {
         href={uri}
         title={label}
         target="_blank"
+        rel="noopener noreferrer"
         variant="custom"
         underline="none"
       >

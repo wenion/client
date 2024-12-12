@@ -270,6 +270,7 @@ function ExportAnnotations({
               underline="always"
               href="https://web.hypothes.is/help/exporting-and-importing-annotations-in-the-hypothesis-web-app/"
               target="_blank"
+              rel="noopener noreferrer"
             >
               Learn more
             </Link>{' '}

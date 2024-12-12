@@ -173,6 +173,17 @@ export class OAuthClient {
     }
   }
 
+  byteToHex(val: number): string {
+    const str = val.toString(16);
+    return str.length === 1 ? '0' + str : str;
+  }
+
+  generateHexString(len: number): string {
+    const bytes = new Uint8Array(len / 2);
+    window.crypto.getRandomValues(bytes);
+    return Array.from(bytes).map(this.byteToHex).join('');
+  }
+
   /**
    * Prompt the user for permission to access their data.
    *
@@ -186,16 +197,19 @@ export class OAuthClient {
     // See https://tools.ietf.org/html/rfc6749#section-4.1.1.
     const state = generateHexString(16);
 
+    const origin = new URL($window.location.origin).origin;
+
     // Promise which resolves or rejects when the user accepts or closes the
     // auth popup.
     const authResponse = new Promise<AuthorizationCodeResponse>(
       (resolve, reject) => {
         function authRespListener(event: MessageEvent) {
-          if (typeof event.data !== 'object') {
+          if (typeof event.data !== 'object' || event.data === null) {
             return;
           }
           const response = event.data as AuthorizationResponse;
           if (response.state !== state) {
+            console.warn('Invalid state detected in auth response');
             // This message came from a different popup window.
             return;
           }
@@ -215,7 +229,7 @@ export class OAuthClient {
     // Authorize user and retrieve grant token
     const authURL = new URL(this.authorizationEndpoint);
     authURL.searchParams.set('client_id', this.clientId);
-    authURL.searchParams.set('origin', $window.location.origin);
+    authURL.searchParams.set('origin', origin);
     authURL.searchParams.set('response_mode', 'web_message');
     authURL.searchParams.set('response_type', 'code');
     authURL.searchParams.set('state', state);

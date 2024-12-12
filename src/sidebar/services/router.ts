@@ -1,3 +1,5 @@
+import DOMPurify from 'dompurify';
+
 import type { SidebarStore } from '../store';
 
 type RouteName = 'annotation' | 'comic' | 'notebook' | 'profile' | 'stream' | 'sidebar';
@@ -26,10 +28,15 @@ export class RouterService {
   currentRoute(): { route: RouteName; params: RouteParams } {
     const path = this._window.location.pathname;
     const pathSegments = path.slice(1).split('/');
-    const searchParams = new URLSearchParams(this._window.location.search);
+    const sanitizedSearch = DOMPurify.sanitize(this._window.location.search);
+    const searchParams = new URLSearchParams(sanitizedSearch);
 
-    const params: Record<string, string> = {};
+    const params: Record<string, string> = Object.create(null);
     for (const [key, value] of searchParams) {
+      // Block prototype-sensitive keys
+      if (['__proto__', 'constructor', 'prototype'].includes(key)) {
+        continue;
+      }
       params[key] = value;
     }
 

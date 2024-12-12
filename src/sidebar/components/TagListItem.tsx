@@ -30,6 +30,7 @@ export default function TagListItem({
             href={href}
             lang=""
             target="_blank"
+            rel="noopener noreferrer"
             aria-label={`Tag: ${tag}`}
             title={`View annotations with tag: ${tag}`}
             underline="none"

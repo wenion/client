@@ -86,6 +86,9 @@ function createSidebarIframe(config: SidebarConfig): HTMLIFrameElement {
   // Enable media in annotations to be shown fullscreen
   sidebarFrame.setAttribute('allowfullscreen', '');
 
+  // Add sandbox with appropriate permissions
+  sidebarFrame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups');
+
   sidebarFrame.src = sidebarAppSrc;
   sidebarFrame.title = 'Hypothesis annotation viewer';
   sidebarFrame.className = 'sidebar-frame';

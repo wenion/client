@@ -29,6 +29,7 @@ function AnnotationGroupInfo({ group }: AnnotationGroupInfoProps) {
           )}
           href={group.links.html}
           target="_blank"
+          rel="noopener noreferrer"
           underline="hover"
           variant="custom"
         >

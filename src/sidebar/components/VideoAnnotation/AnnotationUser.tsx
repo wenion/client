@@ -14,7 +14,7 @@ function AnnotationUser({ authorLink, displayName }: AnnotationUserProps) {
 
   if (authorLink) {
     return (
-      <Link href={authorLink} target="_blank" underline="none" variant="custom">
+      <Link href={authorLink} target="_blank" rel="noopener noreferrer" underline="none" variant="custom">
         {user}
       </Link>
     );

@@ -296,6 +296,7 @@ function Toolbar({ isPreviewing, onCommand, onTogglePreview }: ToolbarProps) {
           classes="text-grey-7 hover:!text-grey-7"
           href="https://colam.kmass.cloud.edu.au/help/formatting-annotations-with-markdown/"
           target="_blank"
+          rel="noopener noreferrer"
           title="Formatting help"
           aria-label="Formatting help"
           underline="none"

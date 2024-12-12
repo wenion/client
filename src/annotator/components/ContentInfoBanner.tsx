@@ -39,6 +39,7 @@ export default function ContentInfoBanner({ info }: ContentInfoBannerProps) {
           <Link
             href={info.logo.link}
             target="_blank"
+            rel="noopener noreferrer"
             data-testid="logo-link"
             underline="none"
           >
@@ -86,6 +87,7 @@ export default function ContentInfoBanner({ info }: ContentInfoBannerProps) {
               href={info.links.previousItem}
               underline="always"
               target="_blank"
+              rel="noopener noreferrer"
               data-testid="content-previous-link"
             >
               <div className="flex gap-x-1 items-center text-annotator-sm whitespace-nowrap">
@@ -109,6 +111,7 @@ export default function ContentInfoBanner({ info }: ContentInfoBannerProps) {
             href={info.links.currentItem}
             data-testid="content-item-link"
             target="_blank"
+            rel="noopener noreferrer"
             unstyled
           >
             {itemTitle}
@@ -123,6 +126,7 @@ export default function ContentInfoBanner({ info }: ContentInfoBannerProps) {
               href={info.links.nextItem}
               underline="always"
               target="_blank"
+              rel="noopener noreferrer"
               data-testid="content-next-link"
             >
               <div className="flex gap gap-x-1 items-center text-annotator-sm whitespace-nowrap">

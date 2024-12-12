@@ -79,7 +79,6 @@ export class FileTreeService {
           return this._api.upload({}, blob, metadata);
         })
           .then(response => {
-            console.log('response', response)
             if (response?.succ !== undefined)
               this._toastMessenger.success('This page (' + response.succ.name + ') has been saved')
             else if (response?.error !== undefined)
@@ -87,7 +86,6 @@ export class FileTreeService {
             // handle response
           })
           .catch(error => {
-            console.log('error', error)
             this._toastMessenger.error(error)
             // handle error
           });
