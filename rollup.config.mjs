@@ -114,10 +114,10 @@ export default [
     format: 'iife',
   }),
   bundleConfig({ name: 'sidebar', entry: 'src/sidebar/index.tsx' }),
-  bundleConfig({
-    name: 'ui-playground',
-    entry: 'dev-server/ui-playground/index.js',
-  }),
+  // bundleConfig({
+  //   name: 'ui-playground',
+  //   entry: 'dev-server/ui-playground/index.js',
+  // }),
   bundleConfig({
     name: 'site',
     entry: 'src/site/index.tsx',

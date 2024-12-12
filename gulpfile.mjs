@@ -8,8 +8,8 @@ import {
 import changed from 'gulp-changed';
 import gulp from 'gulp';
 
-import serveDev from './dev-server/serve-dev.js';
-import servePackage from './dev-server/serve-package.js';
+// import serveDev from './dev-server/serve-dev.js';
+// import servePackage from './dev-server/serve-package.js';
 import tailwindConfig from './tailwind.config.mjs';
 import annotatorTailwindConfig from './tailwind-annotator.config.mjs';
 import sidebarTailwindConfig from './tailwind-sidebar.config.mjs';
@@ -160,15 +160,15 @@ gulp.task('watch-client', () =>{
   );
 });
 
-gulp.task('serve-package', () => {
-  servePackage(3001);
-});
+// gulp.task('serve-package', () => {
+//   servePackage(3001);
+// });
 
-gulp.task('serve-test-pages', () => {
-  serveDev(3000, { clientUrl: `//{current_host}:3001/hypothesis` });
-  // Starts an additional dev web server to test cross-origin functionality
-  serveDev(3002, { clientUrl: `//{current_host}:3001/hypothesis` });
-});
+// gulp.task('serve-test-pages', () => {
+//   serveDev(3000, { clientUrl: `//{current_host}:3001/hypothesis` });
+//   // Starts an additional dev web server to test cross-origin functionality
+//   serveDev(3002, { clientUrl: `//{current_host}:3001/hypothesis` });
+// });
 
 gulp.task(
   'build',
@@ -182,8 +182,8 @@ gulp.task(
 gulp.task(
   'watch',
   gulp.parallel(
-    'serve-package',
-    'serve-test-pages',
+    // 'serve-package',
+    // 'serve-test-pages',
     'watch-boot-script',
     'watch-css',
     'watch-fonts',
