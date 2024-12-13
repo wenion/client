@@ -3,7 +3,7 @@ import {
   CardContent,
   Button,
   FileGenericIcon,
-  // MinusIcon,
+  MinusIcon,
   PlusIcon,
   ProfileIcon,
 } from '@hypothesis/frontend-shared';
@@ -83,7 +83,7 @@ function FilterToggle({
         })}
       />
       {active ? (
-        <PlusIcon className="w-em h-em" />
+        <MinusIcon className="w-em h-em" />
       ) : (
         <PlusIcon className="w-em h-em" />
       )}
