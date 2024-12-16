@@ -1,9 +1,7 @@
 import { Link } from '@hypothesis/frontend-shared';
 
-import { useState, useRef, useLayoutEffect } from 'preact/hooks';
+import { useState, useRef, useLayoutEffect, useMemo } from 'preact/hooks';
 import classnames from 'classnames';
-import debounce from 'lodash.debounce';
-
 import type { RecordStep } from '../../types/api';
 
 const capitalize = (word: string | null) => {
@@ -14,72 +12,57 @@ const capitalize = (word: string | null) => {
 
 type TimelineCardProps = {
   trace: RecordStep;
-  // onSelectImage: (id: string) => void;
-  onLoaded: () => void,
+  onElementSizeChanged: () => void,
 };
 
 export default function TimelineCard({
   trace,
-  // hoverContent,
-  // onSelectImage,
-  onLoaded,
+  onElementSizeChanged,
 }: TimelineCardProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  const [circleTop, setCircleTop] = useState(0);
+  const [circleLeft, setCircleLeft] = useState(0);
   const imageRef = useRef<HTMLImageElement | null>(null);
   const circleRef = useRef<HTMLDivElement | null>(null);
 
-  useLayoutEffect(() => {
-    const updateCirclePosition = debounce(
-      () => {
-        if (imageRef.current && circleRef.current) {
-          const width = trace.width;
-          const height = trace.height;
-          const offsetX = trace.clientX;
-          const offsetY = trace.clientY;
+  const updateCirclePosition = () => {
+    if (!imageRef.current) return;
+    const imageHeight = imageRef.current.clientHeight;
+    const { width, height, clientX: offsetX, clientY: offsetY } = trace;
 
-          if (width && height && offsetY && offsetX) {
-            const widthToHeight = width / height;
-            const ratioHeight = imageRef.current.clientHeight/height;
-            const ratioWidth = widthToHeight * imageRef.current.clientHeight / width;
-    
-            circleRef.current.style.top = Math.round(offsetY * ratioHeight - 8).toString() + "px";
-            circleRef.current.style.left = Math.round(offsetX * ratioWidth - 8).toString() + "px";
-          }
-        }
-        onLoaded();
-      },
-      10,
-      { maxWait: 1000 }
-    );
+    if (width > 0 && height > 0 && offsetX >= 0 && offsetY >= 0) {
+      const widthToHeight = width / height;
+      const ratioHeight = imageHeight/height;
+      const ratioWidth = widthToHeight * imageHeight / width;
 
-    if (!collapsed) {
-      updateCirclePosition();
+      setCircleTop(Math.round(offsetY * ratioHeight - 8));
+      setCircleLeft(Math.round(offsetX * ratioWidth - 8));
     }
+  };
 
-    if (imageRef.current) {
-      imageRef.current.onload = updateCirclePosition;
-    }
+  const onToggleCollapse = () => {
+    setCollapsed((prev) => !prev);
+  };
 
-    return () => {
-      updateCirclePosition.cancel();
-    }
-  }, [collapsed, ])
+  const onLoad = () => {
+    setLoaded(true);
+  };
 
-  // const toggleStep = (id: string) => {
-  //   store.selectRecordingStep(id);
-  // }
+  useLayoutEffect(()=> {
+    updateCirclePosition();
+    onElementSizeChanged();
+  }, [collapsed, loaded])
 
-  const onImageClick = (id: string) => {
-    // store.selectRecordingStep(id);
-    // onSelectImage(id)
-  }
+  const title = useMemo(
+    () => capitalize(trace.title),
+    [trace]
+  );
 
   return (
     <>
-      <div
-        className='timeline-node cursor-pointer py-1'
-        id={trace.id}
-      >
+      <div className='timeline-node cursor-pointer py-1'>
         <div className='timeline-circle text-blue-700 text-center bg-blue-200/50'>
           <span>{trace.index}</span>
         </div>
@@ -89,17 +72,22 @@ export default function TimelineCard({
           'timeline-content py-1',
           'hover:bg-blue-200/50',
         )}
-        id={trace.id}
-        // onClick={() => toggleStep(id)}
       >
         <div
           className='flex gap-x-1 cursor-pointer'
-          onClick={() => {setCollapsed(!collapsed)}}
+          onClick={onToggleCollapse}
         >
-          <Link href={trace.url} target="_blank" underline="none">
-            <strong>{capitalize(trace.title)}</strong>{' '}
-            {trace.description}
-          </Link>
+          <p>
+            <strong>{title}</strong>{' '}
+            {title === 'Go to' || title === 'Switch to' ? (
+              <Link href={trace.url} target="_blank" underline="none">
+                {trace.description}
+                </Link>
+              ) : (
+                trace.description
+              )
+            }
+          </p>
         </div>
         <div className='flex justify-center'>
           {trace.image && (
@@ -115,14 +103,16 @@ export default function TimelineCard({
                 id={'img' + trace.id}
                 alt={trace.title}
                 src={trace.image}
+                onLoad={onLoad}
               />
-              {!collapsed && trace.clientX && trace.clientY && (
+              {!collapsed && (
                 <div
                   ref={circleRef}
                   className={classnames(
                     'w-6 h-6 rounded-full',
                     'absolute border-2 border-red-500 bg-red-100/35 transition-all',
                   )}
+                  style={{ top: `${circleTop}px`, left: `${circleLeft}px` }}
                 />
               )}
             </div>

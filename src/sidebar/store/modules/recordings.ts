@@ -3,10 +3,11 @@ import { createSelector } from 'reselect';
 
 import type { RecordItem, RecordStep } from '../../../types/api';
 import { createStoreModule, makeAction } from '../create-store';
+import type { State as LinksState } from './links';
 
 export type State = {
   tabView: 'list' | 'ongoing' | string;
-  step: number; // scrollTop
+  focusedStepId: string | null;
   recordItems: RecordItem[];
   recordSteps: RecordStep[];
 };
@@ -14,7 +15,7 @@ export type State = {
 function initialState(): State {
   return {
     tabView: 'list',
-    step: 0,
+    focusedStepId: null,
     recordItems: [],
     recordSteps: [],
   }
@@ -41,8 +42,8 @@ const reducers = {
     return { tabView: action.tabView };
   },
 
-  SET_STEP(state: State, action: { step: number }) {
-    return { step: action.step };
+  SET_FOCUSED_STEP_ID(state: State, action: { scrollToId: string | null }) {
+    return { focusedStepId: action.scrollToId };
   },
 
   ADD_RECORDITEMS(state: State, action: {recordItems: RecordItem[] }): Partial<State> {
@@ -101,8 +102,8 @@ function setRecordTabView(RecordTabView: string) {
   return makeAction(reducers, 'SET_TAB_VIEW', {tabView: RecordTabView});
 }
 
-function setStep(step: number) {
-  return makeAction(reducers, 'SET_STEP', {step: step});
+function setFocusedStepId(scrollToId: string | null) {
+  return makeAction(reducers, 'SET_FOCUSED_STEP_ID', {scrollToId: scrollToId});
 }
 
 function addRecordItems(recordItems: RecordItem[]) {
@@ -125,7 +126,30 @@ function removeRecordItem(id: string) {
 }
 
 function addRecordSteps(recordSteps: RecordStep[]) {
-  return makeAction(reducers, 'ADD_RECORDSTEPS', {recordSteps: recordSteps});
+  return (
+    dispatch: Dispatch,
+     getState: () => {
+      recordings: State;
+      links: LinksState;
+    }) => {
+      const linksState = getState().links;
+      const link = linksState? linksState['index'] : null;
+      recordSteps.map(step => {
+        step.id = 'tr' + step.id;
+        if (step.image && link) {
+          step.image = link + 'api/image/' + step.image + '.jpg';
+        }
+        /* backwards compatibility */
+        if (!step.title) {
+          step.title = step.type;
+        }
+      })
+      dispatch(
+        makeAction(reducers, 'ADD_RECORDSTEPS', {
+          recordSteps: recordSteps
+        })
+      );
+    }
 }
 
 function clearRecordSteps() {
@@ -138,8 +162,8 @@ function getRecordTabView(state: State) {
   return state.tabView;
 }
 
-function getStep(state: State) {
-  return state.step;
+function getFocusedStepId(state: State) {
+  return state.focusedStepId;
 }
 
 function getRecordItemById(state: State, id: string) {
@@ -189,7 +213,7 @@ export const recordingsModule = createStoreModule(initialState, {
   reducers,
   actionCreators: {
     setRecordTabView,
-    setStep,
+    setFocusedStepId,
     addRecordItems,
     updateRecordItem,
     clearRecordItems,
@@ -198,8 +222,8 @@ export const recordingsModule = createStoreModule(initialState, {
     clearRecordSteps,
   },
   selectors: {
+    getFocusedStepId,
     getRecordTabView,
-    getStep,
     getRecordItem,
     getRecordItemById,
     recordItems,

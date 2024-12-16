@@ -186,7 +186,7 @@ export type AnalyticsEvent = {
 
 export type Track = {
   id: string | null;
-  scrollTop: number | null;
+  scrollToId: string | null;
 };
 
 /**

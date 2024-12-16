@@ -27,7 +27,6 @@ export class RecordingService {
   async loadRecordItems(uri: string) {
     const result = await this._api.recordings.list({'target_uri': uri ?? ''});
     this._store.addRecordItems(result);
-    return await this._api.tracking.read({});
   }
 
   unloadRecordItems() {
@@ -41,12 +40,6 @@ export class RecordingService {
       if (newView === 'view' && id) {
         try {
           const traceSteps = await this._api.traces.list({ id: id });
-          traceSteps.map(step => {
-            if (step.image)
-              step.image = this._store.getLink('index') + 'api/image/' + step.image + '.jpg';
-            if (!step.title)
-              step.title = step.type;
-          })
           this._store.addRecordSteps(traceSteps);
           this._store.selectTab('recording');
           this._store.setRecordTabView(id);
@@ -199,13 +192,18 @@ export class RecordingService {
     this._toastMessenger.message(responses);
   }
 
-  updateTracking(id?: string, scrollTop: number = 0) {
-    if (id) {
-      this._api.tracking.update({}, {id: id, scrollTop: scrollTop});
-    }
-    else {
-      this._api.tracking.update({}, {id: null, scrollTop: null});
-    }
+  updateTracking(): void;
+  updateTracking(id: string): void;
+  updateTracking(id: string, scrollToId: string): void;
+  updateTracking(id?: string, scrollToId?: string): void {
+    this._api.tracking.update({}, {
+      id: id || null,
+      scrollToId: scrollToId || null,
+    });
+  }
+
+  async readTracking() {
+    return await this._api.tracking.read({});
   }
 
   saveFile(blob: Blob, metadata: FileNode) {

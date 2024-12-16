@@ -79,7 +79,7 @@ function RecordingSlider({
 }
 
 export type RecordingListProps = {
-  onOpen: (record: RecordItem, scrollTop: number) => void;
+  onOpen: (record: RecordItem) => void;
 };
 
 /**
@@ -104,7 +104,7 @@ export default function RecordingList({
             'cursor-pointer',
             'shadow-lg hover:drop-shadow-2xl'
           )}
-          onClick={() => onOpen(record, 0)}
+          onClick={() => onOpen(record)}
           onMouseEnter={(event) => {
             event.stopPropagation();
             event.preventDefault();
@@ -143,7 +143,7 @@ export default function RecordingList({
                     'aria-pressed:text-grey-9 aria-expanded:text-grey-9',
                     'grow-0 m-1 bg-grey-0 hover:bg-blue-400',
                   )}
-                  onClick={(event) => {event.stopPropagation();}}
+                  onClick={(event) => event.stopPropagation()}
                 >
                   <span className="rotate-90 p-2">
                     <EllipsisIcon />

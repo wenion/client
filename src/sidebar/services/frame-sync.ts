@@ -651,24 +651,26 @@ export class FrameSyncService {
       () => this._store.isLoggedIn(),
       async (isLoggedIn, prevIsLoggedIn) => {
         if (isLoggedIn) {
+          await this._recordingService.loadRecordItems(this._store.mainFrame()?.uri ?? '');
+          await this._recordingService.loadMessages();
           // session cookies
-          const track = await this._recordingService.loadRecordItems(this._store.mainFrame()?.uri ?? '');
-          if (track.id) {
+          const {id, scrollToId} = await this._recordingService.readTracking();
+          if (id) {
             this._hostRPC.call('openSidebar');
             this._store.selectTab('recording');
-            this._recordingService.selectRecordTabView('view', track.id);
-            this._store.setStep(track.scrollTop?? 0);
+            await this._recordingService.selectRecordTabView('view', id);
+            this._store.setFocusedStepId(scrollToId);
           }
 
           this._hostRPC.call('isLoggedIn', true);
           this._hostRPC.call('webClipping', {savePage: false});
-          this._recordingService.loadMessages();
         }
         // if (isLoggedIn && isLoggedIn !== prevIsLoggedIn) {
         //   this._recordingService.fetchHighlight(this._store.mainFrame()?.uri)
         // }
         else {
           this._recordingService.unloadRecordItems();
+          this._store.clearRecordSteps();
           // this._store.clearMessages();
           this._hostRPC.call('isLoggedIn', false)
         }
