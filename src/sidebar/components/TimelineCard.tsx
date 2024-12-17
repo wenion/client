@@ -96,7 +96,7 @@ export default function TimelineCard({
           className='flex gap-x-1 cursor-pointer'
           onClick={() => {setCollapsed(!collapsed)}}
         >
-          <Link href={trace.url} target="_blank" underline="none">
+          <Link href={trace.url} target="_blank" rel="noopener noreferrer" underline="none">
             <strong>{capitalize(trace.title)}</strong>{' '}
             {trace.description}
           </Link>
