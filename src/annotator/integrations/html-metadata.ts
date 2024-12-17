@@ -259,7 +259,7 @@ export class HTMLMetadata {
    * exception if the URL cannot be parsed.
    */
   private _absoluteUrl(url: string): string {
-    return normalizeURI(url, this.document.baseURI);
+    return normalizeURI(url);
   }
 
   /**

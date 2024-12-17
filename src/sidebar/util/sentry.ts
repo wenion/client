@@ -104,7 +104,7 @@ export function init(config: SentryConfig) {
   });
 
   try {
-    Sentry.setExtra('host_config', parseConfigFragment(window.location.href));
+    Sentry.setExtra('host_config', {});
   } catch (e) {
     // Ignore errors parsing configuration.
   }

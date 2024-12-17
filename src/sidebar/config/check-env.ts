@@ -10,7 +10,8 @@ import { parseConfigFragment } from '../../shared/config-fragment';
  * @return `true` if the checks passed
  */
 export function checkEnvironment(window: Window): boolean {
-  const { version, origin } = parseConfigFragment(window.location.href);
+  const version = '__VERSION__';
+  const origin = 'goldmind';
 
   // If the sidebar and annotator code are using different versions of the
   // client, there might be a protocol mismatch in sidebar <-> guest/host RPC

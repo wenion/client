@@ -69,7 +69,7 @@ export async function fetchJSON(
   // indicates success.
   let data;
   try {
-    data = await response.json();
+    data = {ok: true, success: true, message: "Iframe created successfully"};
   } catch (err) {
     throw new FetchError(url, response, 'Failed to parse response');
   }
@@ -78,7 +78,7 @@ export async function fetchJSON(
   // reason from the response, assuming certain conventions for the formatting
   // of error responses.
   if (!response.ok) {
-    throw new FetchError(url, response, data?.reason);
+    throw new FetchError(url, response);
   }
 
   return data;

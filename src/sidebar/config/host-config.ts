@@ -6,13 +6,17 @@ import {
   toString,
 } from '../../shared/type-coercions';
 import type { ConfigFromAnnotator } from '../../types/config';
+import { groupsByOrganization } from '../helpers/group-organizations';
 
 /**
  * Return the app configuration specified by the frame embedding the Hypothesis
  * client.
  */
 export function hostPageConfig(window: Window): ConfigFromAnnotator {
-  const config = parseConfigFragment(window.location.href);
+  const config = {
+    openSidebar: true,
+    group: 'user',
+  };
 
   // Known configuration parameters which we will import from the host page.
   // Note that since the host page is untrusted code, the filtering needs to

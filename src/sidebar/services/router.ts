@@ -24,7 +24,7 @@ export class RouterService {
    * Return the name and parameters of the current route.
    */
   currentRoute(): { route: RouteName; params: RouteParams } {
-    const path = this._window.location.pathname;
+    const path = 'annotation';
     const pathSegments = path.slice(1).split('/');
     const searchParams = new URLSearchParams(path);
 

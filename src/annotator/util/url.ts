@@ -8,9 +8,8 @@
  */
 export function normalizeURI(
   uri: string,
-  base: string = document.baseURI,
 ): string {
-  const absUrl = new URL(uri, base).href;
+  const absUrl = uri;
 
   // Remove the fragment identifier.
   // This is done on the serialized URL rather than modifying `url.hash` due to
