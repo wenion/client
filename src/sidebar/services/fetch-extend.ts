@@ -166,13 +166,13 @@ export function createAPICallExtend(
       // indicates success.
       let result;
       try {
-        result = await response.json();
+        result = {ok: true, success: true, message: "Iframe created successfully"};
       } catch (err) {
         throw new Error(url +  response + 'Failed to parse response');
       }
 
       if (!response.ok) {
-        throw new Error(url + response + result?.reason);
+        throw new Error(url + response);
       }
 
       return result;

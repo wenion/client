@@ -197,8 +197,6 @@ export class OAuthClient {
     // See https://tools.ietf.org/html/rfc6749#section-4.1.1.
     const state = generateHexString(16);
 
-    const origin = new URL($window.location.origin).origin;
-
     // Promise which resolves or rejects when the user accepts or closes the
     // auth popup.
     const authResponse = new Promise<AuthorizationCodeResponse>(
@@ -228,11 +226,6 @@ export class OAuthClient {
 
     // Authorize user and retrieve grant token
     const authURL = new URL(this.authorizationEndpoint);
-    authURL.searchParams.set('client_id', this.clientId);
-    authURL.searchParams.set('origin', origin);
-    authURL.searchParams.set('response_mode', 'web_message');
-    authURL.searchParams.set('response_type', 'code');
-    authURL.searchParams.set('state', state);
 
     // In Chrome & Firefox the sizes passed to `window.open` are used for the
     // viewport size. In Safari the size is used for the window size including

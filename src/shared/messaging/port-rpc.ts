@@ -207,11 +207,6 @@ export class PortRPC<OnMethod extends string, CallMethod extends string>
           currentWindow !== currentWindow.parent &&
           shouldUseSafariWorkaround(userAgent)
         ) {
-          currentWindow.parent.postMessage(
-            { type: 'hypothesisPortClosed' },
-            '*',
-            [this._port],
-          );
         }
       }
     });

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef } from 'preact/hooks';
 
-import { replaceLinksWithEmbeds } from '../media-embedder';
 import { renderMathAndMarkdown } from '../render-markdown';
 import StyledText from './StyledText';
 
@@ -25,15 +24,6 @@ export default function MarkdownView({
     [markdown]
   );
   const content = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    replaceLinksWithEmbeds(content.current!, {
-      // Make embeds the full width of the sidebar, unless the sidebar has been
-      // made wider than the `md` breakpoint. In that case, restrict width
-      // to 380px.
-      className: 'w-full md:w-[380px]',
-    });
-  }, [markdown]);
 
   // NB: The following could be implemented by setting attribute props directly
   // on `StyledText` (which renders a `div` itself), versus introducing a child

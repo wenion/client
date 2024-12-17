@@ -6,7 +6,6 @@ import { useSidebarStore } from '../../store';
 import SidebarPanel from '../SidebarPanel';
 import TabHeader from '../tabs/TabHeader';
 import TabPanel from '../tabs/TabPanel';
-import ExportAnnotations from './ExportAnnotations';
 import ImportAnnotations from './ImportAnnotations';
 import ShareAnnotations from './ShareAnnotations';
 
@@ -39,7 +38,7 @@ export default function ShareDialog({ shareTab }: ShareDialogProps) {
       panelName="shareGroupAnnotations"
       variant="custom"
     >
-      <TabHeader>
+      <TabHeader closeTitle="Close share panel">
         {shareTab && (
           <Tab
             id="share-panel-tab"
@@ -81,14 +80,6 @@ export default function ShareDialog({ shareTab }: ShareDialogProps) {
           title={panelTitle}
         >
           <ShareAnnotations />
-        </TabPanel>
-        <TabPanel
-          id="export-panel"
-          active={selectedTab === 'export'}
-          aria-labelledby="export-panel-tab"
-          title={`Export from ${groupName}`}
-        >
-          <ExportAnnotations />
         </TabPanel>
         <TabPanel
           id="import-panel"

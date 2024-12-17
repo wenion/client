@@ -62,7 +62,7 @@ export default function ProfileModal({ eventBus, config }: ProfileModalProps) {
           title={'Hypothesis profile'}
           className="h-full w-full border-0"
           src={config.profileAppUrl}
-          sandbox="allow-scripts allow-same-origin allow-popups"
+          sandbox=""
         />
       </div>
     </div>

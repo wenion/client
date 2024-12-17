@@ -75,18 +75,7 @@ export class PortFinder implements Destroyable {
     const requestId = generateHexString(6);
 
     return new Promise((resolve, reject) => {
-      const postRequest = () => {
-        this._hostFrame.postMessage(
-          {
-            frame1: this._source,
-            frame2: target,
-            type: 'request',
-            requestId,
-            sourceId: this._sourceId,
-          },
-          '*',
-        );
-      };
+      const postRequest = () => {};
 
       // Because `guest` iframes load in parallel to the `host` frame, we can
       // not assume that the code in the `host` frame is executed before the

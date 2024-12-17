@@ -283,11 +283,7 @@ export class AnnotationsExporter {
                       )}
                       <tr>
                         <td>Comment:</td>
-                        <td
-                          dangerouslySetInnerHTML={{
-                            __html: comment,
-                          }}
-                        />
+                        <td>{{comment}}</td>
                       </tr>
                       {annotation.tags.length > 0 && (
                         <tr>

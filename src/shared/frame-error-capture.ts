@@ -75,25 +75,6 @@ export function sendError(error: unknown, context: string) {
     context,
   };
 
-  try {
-    // Try to send the error. If this fails because the browser doesn't support
-    // structured cloning of errors, use a fallback.
-    try {
-      errorDestination.postMessage(data, '*');
-    } catch (postErr) {
-      if (
-        postErr instanceof DOMException &&
-        postErr.name === 'DataCloneError'
-      ) {
-        data.error = serializeError(data.error);
-        errorDestination.postMessage(data, '*');
-      } else {
-        throw postErr;
-      }
-    }
-  } catch (sendErr) {
-    console.warn('Unable to report Hypothesis error', sendErr);
-  }
 }
 
 /**

@@ -257,7 +257,6 @@ export class PortProvider implements Destroyable {
       } else if (frame2 === 'host') {
         this._emitter.emit('frameConnected', frame1, messageChannel.port2);
       } else if (frame2 === 'extension') {
-        window.postMessage(message, '*', [messageChannel.port2]);
       }
     };
 

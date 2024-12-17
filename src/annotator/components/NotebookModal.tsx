@@ -42,7 +42,7 @@ function NotebookIframe({ config, groupId }: NotebookIframeProps) {
       // eslint-disable-next-line react/no-unknown-property
       allowFullScreen
       src={notebookAppSrc}
-      sandbox="allow-scripts allow-same-origin allow-popups"
+      sandbox=""
     />
   );
 }
