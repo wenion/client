@@ -106,6 +106,7 @@ export type HostToSidebarEvent =
   | 'traceData'
   | 'toggleRecording'
   | 'setVisuallyHidden'
+  | 'closeImageViewer'
   | 'postRating'
   | 'webPage'
   | 'selectDataComics'

@@ -68,9 +68,6 @@ function roundScrollPosition(pos: number) {
 }
 
 export type TimelineListProps = {
-  // onSelectImage: (id: string) => void;
-  // onDataComicsEvent: (step: RecordingStepData) => void;
-  // onDblClick: (id: string) => void;
   onNewPage: (sessionId: string, userid?: string) => void;
   onRefreshStep: (record: string | null, recordStep: string | null) => void;
   onClose: () => void;
@@ -82,7 +79,6 @@ export type TimelineListProps = {
  * Render a list of traces.
  */
 function TimelineList({
-  onNewPage,
   onRefreshStep,
   onClose,
   frameSync,
@@ -160,6 +156,10 @@ function TimelineList({
     previousTopThreadRef.current = topThread;
   };
 
+  const onDblClick = (id: string) => {
+    frameSync.notifyHost('openImageViewer', {id: id, timeLineList: recordSteps});
+  }
+
   // Effect to scroll a particular thread into view. This is mainly used to
   // scroll a newly created annotation into view.
   useEffect(() => {
@@ -190,6 +190,7 @@ function TimelineList({
       top: yOffset,
       behavior: 'smooth',
     });
+    store.setFocusedStepId(null);
   }, [scrollToId, topLevelThreads, threadHeights]);
 
   useEffect(() => {
@@ -303,7 +304,7 @@ function TimelineList({
                 className='message-grid'
                 id={child.id}
                 key={child.id}
-                onDblClick={() => {console.log(child.id);}}
+                onDblClick={() => onDblClick(child.id)}
               >
                 <TimelineCard
                   trace={child}

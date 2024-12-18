@@ -1034,6 +1034,11 @@ export class FrameSyncService {
       }
     });
 
+    this._hostRPC.on('closeImageViewer', (data: {id: string}) => {
+      this._hostRPC.call('openSidebar');
+      this._store.setFocusedStepId(data.id);
+    });
+
     // this._hostRPC.on('postRating', (data: PullingData) => {
     //   this._queryService.postRating(data);
     // });

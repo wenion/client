@@ -1,11 +1,9 @@
 import { IconButton, CancelIcon, CaretLeftIcon, CaretRightIcon } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
-import { useEffect, useRef, useState, useLayoutEffect } from 'preact/hooks';
-import debounce from 'lodash.debounce';
+import { useCallback, useEffect, useRef, useState, useLayoutEffect, useMemo } from 'preact/hooks';
 
-import { ListenerCollection } from '../../shared/listener-collection';
 import type { EventBus, Emitter } from '../util/emitter';
-import type { RecordingStepData } from '../../types/api';
+import type { RecordStep } from '../../types/api';
 
 export type ImageViewerModalProps = {
   eventBus: EventBus;
@@ -23,16 +21,16 @@ export default function ImageViewerModal({
   // https://github.com/hypothesis/client/issues/3182
   // const [iframeKey, setIframeKey] = useState(0);
   const [isHidden, setIsHidden] = useState(true);
-  const [src, setSrc] = useState<string | null>(null);
   const originalDocumentOverflowStyle = useRef('');
   const emitterRef = useRef<Emitter | null>(null);
+
+  const [timeLineList, setTimeLineList] = useState<RecordStep[] | null>(null);
+  const [id, setId] = useState<string | null>(null);
+
+  const [circleTop, setCircleTop] = useState(0);
+  const [circleLeft, setCircleLeft] = useState(0);
   const imageRef = useRef<HTMLImageElement | null>(null);
   const circleRef = useRef<HTMLDivElement | null>(null);
-
-  const [width, setWidth] = useState(0);
-  const [height, setHeight] = useState(0);
-  const [offsetX, setOffsetX] = useState(0);
-  const [offsetY, setOffsetY] = useState(0);
 
   // Stores the original overflow CSS property of document.body and reset it
   // when the component is destroyed
@@ -56,14 +54,11 @@ export default function ImageViewerModal({
 
   useEffect(() => {
     const emitter = eventBus.createEmitter();
-    emitter.subscribe('openImageViewer', (selectedStep: RecordingStepData) => {
+    emitter.subscribe('openImageViewer', (data: {id: string, timeLineList: RecordStep[]}) => {
       setIsHidden(false);
       // setIframeKey(iframeKey => iframeKey + 1);
-      setSrc(selectedStep.image ?? '');
-      setWidth(selectedStep.width ?? 0);
-      setHeight(selectedStep.height ?? 0);
-      setOffsetX(selectedStep.offsetX ?? -1);
-      setOffsetY(selectedStep.offsetY ?? -1);
+      setId(data.id);
+      setTimeLineList(data.timeLineList);
     });
     emitterRef.current = emitter;
 
@@ -74,75 +69,57 @@ export default function ImageViewerModal({
 
   const onClose = () => {
     setIsHidden(true);
-    emitterRef.current?.publish('closeImageViewer');
+    emitterRef.current!.publish('closeImageViewer', {id: id});
   };
 
-  useLayoutEffect(() => {
-    const listeners = new ListenerCollection();
-
-    const updateCirclePosition = debounce(
-      () => {
-        if (imageRef.current && circleRef.current) {
-          const widthToHeight = width / height;
-          const ratioHeight = imageRef.current.clientHeight/height;
-          const ratioWidth = widthToHeight * imageRef.current.clientHeight / width;
-
-          circleRef.current.style.top = (offsetY * ratioHeight - 22).toString() + "px";
-          circleRef.current.style.left = (offsetX * ratioWidth - 22).toString() + "px";
-
-          circleRef.current.classList.add('animate-blink');
-        }
-      },
-      10,
-      { maxWait: 1000 }
-    );
-
-    const onError = () => {
-      if (src) {
-        window.open(src, '_blank');
-      }
-      onClose();
+  const trace = useMemo(() => {
+    if (id && timeLineList) {
+      return timeLineList.find(t => t.id === id);
     }
+    return null;
+  }, [id, timeLineList])
 
-    listeners.add(window, 'resize', updateCirclePosition);
-    if (imageRef.current) {
-      imageRef.current.onload = updateCirclePosition;
-      imageRef.current.onerror = onError;
-    }
-
-    return () => {
-      listeners.removeAll();
-      updateCirclePosition.cancel();
-    };
-
-  }, [src])
-
-  const hoverContent = (visible: boolean) => {
-    if (visible && imageRef.current && circleRef.current) {
-      const widthToHeight = width / height;
-      const ratioHeight = imageRef.current.clientHeight/height;
-      const ratioWidth = widthToHeight * imageRef.current.clientHeight / width;
-
-      circleRef.current.style.width = "56px";
-      circleRef.current.style.height = "56px";
-
-      circleRef.current.style.top = (offsetY * ratioHeight - 28).toString() + "px";
-      circleRef.current.style.left = (offsetX * ratioWidth - 28).toString() + "px";
-    }
-    else if (!visible && imageRef.current && circleRef.current) {
-      const widthToHeight = width / height;
-      const ratioHeight = imageRef.current.clientHeight/height;
-      const ratioWidth = widthToHeight * imageRef.current.clientHeight / width;
-
-      circleRef.current.style.width = "44px";
-      circleRef.current.style.height = "44px";
-
-      circleRef.current.style.top = (offsetY * ratioHeight - 22).toString() + "px";
-      circleRef.current.style.left = (offsetX * ratioWidth - 22).toString() + "px";
-    }
+  const capitalize = (word: string | null) => {
+    if (word)
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    return '';
   }
 
-  if (src === null) {
+  const updateCirclePosition = () => {
+    if (!imageRef.current || !trace) return;
+    const imageHeight = imageRef.current.clientHeight;
+    const { width, height, clientX: offsetX, clientY: offsetY } = trace;
+
+    if (width > 0 && height > 0 && offsetX >= 0 && offsetY >= 0) {
+      const widthToHeight = width / height;
+      const ratioHeight = imageHeight/height;
+      const ratioWidth = widthToHeight * imageHeight / width;
+
+      setCircleTop(Math.round(offsetY * ratioHeight - 8));
+      setCircleLeft(Math.round(offsetX * ratioWidth - 8));
+    }
+  };
+
+  const onLoad = useCallback(() => {
+    updateCirclePosition();
+  }, [updateCirclePosition]);
+
+  useLayoutEffect(()=> {
+    updateCirclePosition();
+  }, [trace])
+
+  const find = useCallback((direction: string) => {
+    if (trace && timeLineList) {
+      const index = trace.index!;
+      if (direction === 'prev' && index > 0) {
+        setId(timeLineList[index - 1].id);
+      } else if (direction === 'next' && index < timeLineList.length - 1 ) {
+        setId(timeLineList[index + 1].id);
+      }
+    }
+  }, [trace, id, timeLineList])
+
+  if (id === null || timeLineList === null) {
     return null;
   }
 
@@ -151,12 +128,12 @@ export default function ImageViewerModal({
       className={classnames(
         'fixed z-max top-0 left-0 right-0 bottom-0 p-3 bg-black/95',
         { hidden: isHidden },
+        'flex',
       )}
       data-testid="notebook-outer"
     >
-      <div className="w-full" data-testid="notebook-inner">
-        <div className="flex m-3">
-          <div className='grow'></div>
+      <div className="w-full grid grid-cols-6 gap-2" data-testid="notebook-inner">
+        <div className="flex justify-center items-center col-start-6 col-span-1">
           <IconButton
             title="Close the Viewer"
             onClick={onClose}
@@ -172,35 +149,92 @@ export default function ImageViewerModal({
             <CancelIcon className="w-4 h-4" />
           </IconButton>
         </div>
-        <div className="flex justify-center items-center" onClick={onClose}>
-          {/* <div className="flex justify-center items-center w-40 h-40 bg-white/50 rounded-2xl m-4 cursor-pointer">
-            <CaretLeftIcon />
-          </div> */}
+        <div className="col-start-1 col-end-2 flex justify-center items-center">
           <div
             className={classnames(
-              "relative",
-              "cursor-pointer",
-              "md:h-[400px] lg:h-[700px] p-1"
+              'text-gray-400 hover:text-white',
+              'cursor-pointer',
             )}
-            onClick={(event)=>{event.stopPropagation()}}
+            onClick={() => find('prev')}
           >
-            <img
-              className={'max-h-full'}
-              ref={imageRef}
-              src={src}
-              onMouseEnter={() => hoverContent(true)}
-              onMouseLeave={() => hoverContent(false)}
-            />
-            {offsetX !== -1 && offsetY !== -1 && (
+            <div
+              className={classnames(
+                'flex justify-center items-center',
+                'border-gray-400 hover:border-white border-2 rounded-full',
+                'w-12 h-12',
+              )}
+            >
+              <CaretLeftIcon />
+            </div>
+            <div className="flex justify-center items-center">Previous</div>
+          </div>
+        </div>
+        <div className="col-start-2 col-span-4 flex justify-center items-center" onClick={onClose}>
+          {trace && trace.image && (
+            <div
+              className='relative p-1 cursor-pointer w-[90vh]'
+              onClick={(event)=>{event.stopPropagation()}}
+            >
+              <img
+                ref={imageRef}
+                className={classnames(
+                  'border border-gray-300 hover:border-2 hover:border-gray-500',
+                )}
+                id={'img' + trace.id}
+                alt={trace.title}
+                src={trace.image}
+                onLoad={onLoad}
+              />
               <div
                 ref={circleRef}
-                className='w-11 h-11 rounded-full absolute border-2 border-red-500 bg-red-100/35 transition-all'
+                className={classnames(
+                  'w-6 h-6 rounded-full',
+                  'absolute border-2 border-red-500 bg-red-100/35 transition-all',
+                )}
+                style={{ top: `${circleTop}px`, left: `${circleLeft}px` }}
               />
+            </div>
+          )}
+          {trace && !trace.image && (
+            <div
+              className={classnames(
+                'flex justify-center col-start-2 col-span-4',
+                'text-white min-h-4/5',
+              )}
+            >
+              <p>Step{' '}{trace.index}: { } {capitalize(trace.title)} {trace.description}</p>
+            </div>
+          )}
+        </div>
+        <div className="col-span-1 col-end-7 flex justify-center items-center">
+          <div
+            className={classnames(
+              'text-gray-400 hover:text-white',
+              'cursor-pointer',
             )}
+            onClick={() => find('next')}
+          >
+            <div
+              className={classnames(
+                'flex justify-center items-center',
+                'border-gray-400 hover:border-white border-2 rounded-full',
+                'w-12 h-12',
+              )}
+            >
+              <CaretRightIcon />
+            </div>
+            <div className="flex justify-center items-center">Next</div>
           </div>
-          {/* <div className="flex justify-center items-center w-40 h-40 bg-white/50 rounded-2xl m-4 cursor-pointer">
-            <CaretRightIcon />
-          </div> */}
+        </div>
+        <div
+          className={classnames(
+            'flex justify-center col-start-2 col-span-4',
+            'text-white',
+          )}
+        >
+          {trace && trace.image && (
+            <p>Step{' '}{trace.index}: { } {capitalize(trace.title)} {trace.description}</p>
+          )}
         </div>
       </div>
     </div>
