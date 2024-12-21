@@ -132,8 +132,8 @@ export default function ImageViewerModal({
       )}
       data-testid="notebook-outer"
     >
-      <div className="w-full grid grid-cols-6 gap-2" data-testid="notebook-inner">
-        <div className="flex justify-center items-center col-start-6 col-span-1">
+      <div className="w-full grid grid-cols-11 gap-2" data-testid="notebook-inner">
+        <div className="flex justify-center items-center col-start-10 col-span-2 max-h-12">
           <IconButton
             title="Close the Viewer"
             onClick={onClose}
@@ -169,15 +169,16 @@ export default function ImageViewerModal({
             <div className="flex justify-center items-center">Previous</div>
           </div>
         </div>
-        <div className="col-start-2 col-span-4 flex justify-center items-center" onClick={onClose}>
+        <div className="col-start-2 col-span-9 flex justify-self-center items-center" onClick={onClose}>
           {trace && trace.image && (
             <div
-              className='relative p-1 cursor-pointer w-[90vh]'
+              className='relative cursor-pointer'
               onClick={(event)=>{event.stopPropagation()}}
             >
               <img
                 ref={imageRef}
                 className={classnames(
+                  'max-h-[80vh]',
                   'border border-gray-300 hover:border-2 hover:border-gray-500',
                 )}
                 id={'img' + trace.id}
@@ -206,7 +207,7 @@ export default function ImageViewerModal({
             </div>
           )}
         </div>
-        <div className="col-span-1 col-end-7 flex justify-center items-center">
+        <div className="col-span-1 col-end-12 flex justify-center items-center">
           <div
             className={classnames(
               'text-gray-400 hover:text-white',
@@ -228,7 +229,7 @@ export default function ImageViewerModal({
         </div>
         <div
           className={classnames(
-            'flex justify-center col-start-2 col-span-4',
+            'flex justify-center col-start-2 col-span-9',
             'text-white',
           )}
         >
