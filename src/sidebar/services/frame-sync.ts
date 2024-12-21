@@ -487,7 +487,7 @@ export class FrameSyncService {
 
       if(
         trace.type === this._lastTrace.type &&
-        (trace.custom === 'click' || trace.custom === 'switch to') &&
+        trace.custom === 'click' &&
         trace.xpath === this._lastTrace.xpath &&
         trace.textContent === this._lastTrace.textContent
       ) {
@@ -966,6 +966,7 @@ export class FrameSyncService {
                   textContent: 'start',
                 }
               );
+              this._hostRPC.call('closeSidebar');
               break;
             } else {
               init = false;
