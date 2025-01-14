@@ -485,7 +485,7 @@ export class FrameSyncService {
         trace.label = trace.title === '' ? trace.url : trace.title;
       }
 
-      if(
+      if (
         trace.type === this._lastTrace.type &&
         trace.custom === 'click' &&
         trace.xpath === this._lastTrace.xpath &&
@@ -659,7 +659,7 @@ export class FrameSyncService {
             this._hostRPC.call('openSidebar');
             this._store.selectTab('recording');
             await this._recordingService.selectRecordTabView('view', id);
-            this._store.setFocusedStepId(scrollToId);
+            this._recordingService.scrollTo(scrollToId);
           }
 
           this._hostRPC.call('isLoggedIn', true);
@@ -1014,15 +1014,15 @@ export class FrameSyncService {
 
     this._hostRPC.on('webPage', (htmlContent: string, title: string, url: string, savePage: boolean = true) => {
       if (savePage) {
-        this._recordingService.saveFile(new Blob([htmlContent], { type: 'text/html' }), {
-          id: "",
-          name: title,
-          content: htmlContent,
-          path: "",
-          type: "html",
-          link: url,
-          depth: 0,
-          children: [],}
+        this._recordingService.saveFile(
+          title,
+          htmlContent.length,
+          'text/html',
+          'html',
+          new Blob([htmlContent], { type: 'text/html' }),
+          () => {
+            this._toastMessenger.success(title + "uploaded successfully!")
+          }
         )
       }
       else {
@@ -1037,7 +1037,7 @@ export class FrameSyncService {
 
     this._hostRPC.on('closeImageViewer', (data: {id: string}) => {
       this._hostRPC.call('openSidebar');
-      this._store.setFocusedStepId(data.id);
+      this._recordingService.scrollTo(data.id);
     });
 
     // this._hostRPC.on('postRating', (data: PullingData) => {

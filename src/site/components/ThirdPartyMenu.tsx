@@ -20,34 +20,23 @@ export function ThirdPartyMenu({fileTreeService, frameSync,}: ThirdPartyMenuProp
   const store = useSidebarStore();
   const sortKeysAvailable = ['import from Google drive', ];
 
-  const receiveMessage = (event) => {
+  const dir = store.getDir();
+
+  const receiveMessage = async (event: MessageEvent) => {
     if (event.data && event.data.data && event.data.data.action === 'picked') {
       window.removeEventListener('message', receiveMessage);
-      console.log("received event removed", event)
-      const metadata = {
-        id: "",
-        path: "",
-        type: "google",
-        depth: 0,
-        name: event.data.data.docs[0].name,
-        link: event.data.data.docs[0].embedUrl,
-        children: [],
-      }
-      console.log("meta", metadata)
-      fileTreeService.uploadFile(event.data.blob, metadata)
-      .then(response => {
-        console.log('then here')
-        if(response.succ) {
-          fileTreeService.addFileNode(response.succ, response.succ.id);
-          fileTreeService.changePath();
-          if (response.tab) {
-            alert("The file was uploaded. But the ingestion failed. Reason:\n" + response.tab)
-          }
-        }
-        if (response.error) {
-          alert("Sorry, something went wrong. Reason:\n" + response.error);
-        }
-      })
+      // console.log("received event removed", event)
+      // console.log("event.data.data.docs[0]", event.data.data.docs[0])
+      const name = event.data.data.docs[0].name;
+      const size = event.data.data.docs[0].sizeBytes;
+      const type = event.data.data.docs[0].mimeType;
+
+      await fileTreeService.uploadBlob(
+        name, size, type, dir, event.data.blob,
+        (loaded, total) => {},
+        () => {},
+        (abort) => {},
+      );
     }
   }
 
@@ -70,24 +59,6 @@ export function ThirdPartyMenu({fileTreeService, frameSync,}: ThirdPartyMenuProp
       }
     }
   }
-
-  // window.addEventListener('message', event=> {
-  //   if (event.data && event.data.data && event.data.data.action === 'picked') {
-  //     console.log("received event", event)
-  //     console.log('Received message from parent:', event.data, event.origin);
-  //     const metadata = {
-  //       id: "",
-  //       path: "",
-  //       type: "google",
-  //       depth: 0,
-  //       name: event.data.data.docs[0].name,
-  //       link: event.data.data.docs[0].embedUrl,
-  //       children: [],
-  //     }
-  //     console.log("meta", metadata)
-  //     fileTreeService.uploadFile(event.data.blob, metadata);
-  //   }
-  // });
 
   const menuItems = sortKeysAvailable.map(sortOption => {
     return (

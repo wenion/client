@@ -5,7 +5,7 @@ import type {
   RouteMetadata,
   Profile,
   QueryResponseObject,
-  FileNode,
+  FileMeta,
   RawMessageData,
   RecordStep,
   RecordItem,
@@ -17,7 +17,7 @@ import { fetchJSON } from '../util/fetch';
 import { replaceURLParams } from '../util/url';
 import type { APIRoutesService } from './api-routes';
 import type { AuthService } from './auth';
-import { createAPICallExtend, APICallExtend } from './fetch-extend';
+import { createAPIBlobXHRCall, APIBlobCall } from './fetch-extend';
 
 /**
  * Types of value that can be passed as a parameter to API calls.
@@ -249,7 +249,6 @@ export class APIService {
   };
 
   query: APICall<{ q: string }, void, QueryResponseObject>;
-  repository: APICall<Record<string, unknown>, void, FileNode>;
   delete: APICall<{ file: string }, void, string>;
   clentURL: APICall<Record<string, unknown>, void, {base_url: string; url_string: string;}>;
   bookmark: APICall<Record<string, unknown>, {id: string; query: string; is_bookmark: boolean}>;
@@ -258,7 +257,14 @@ export class APIService {
   push_recommendation: APICall<Record<string, unknown>, {id: string; url: string; type: string; title: string; query: string; context: string}>;
   pull_recommendation: APICall<{url: string}, void, {id: string; url: string; type: string; title: string; query: string; context: string}>;
   pull: APICall<Record<string, unknown>, void, RawMessageData[]>;
-  upload: APICallExtend<Record<string, any>, string|Blob, Record<string, any>, unknown>;
+  upload: APIBlobCall<Record<string, any>, Blob, FileMeta>;
+  file: {
+    delete: APICall<IDParam>;
+    get: APICall<IDParam, void, FileMeta>;
+  };
+  files: {
+    list: APICall<Record<string, string>, void, {files: FileMeta[], dir: string}>;
+  };
 
   recording: {
     create: APICall<Record<string, unknown>, Partial<RecordItemParams>, RecordItem>;
@@ -301,8 +307,8 @@ export class APIService {
         onRequestFinished: store.apiRequestFinished,
       });
 
-    const apiCallExtend = (route: string) =>
-      createAPICallExtend(links, route, {
+    const apiBlobCall = (route: string) =>
+      createAPIBlobXHRCall(links, route, {
         getAccessToken: () => auth.getAccessToken(),
         getClientId,
         onRequestStarted: store.apiRequestStarted,
@@ -381,7 +387,6 @@ export class APIService {
     };
 
     this.query = apiCall('query') as APICall<{ q: string }, void, QueryResponseObject>;
-    this.repository = apiCall('repository') as APICall<Record<string, unknown>, void, FileNode>;
     this.delete = apiCall('delete') as APICall<{ file: string }, void, string>;
     this.clentURL = apiCall('client') as APICall<Record<string, unknown>, void, {base_url: string; url_string: string;}>;
     this.bookmark = apiCall('bookmark') as APICall<Record<string, unknown>, {id: string; query: string; is_bookmark: boolean}>;
@@ -390,7 +395,15 @@ export class APIService {
     this.push_recommendation = apiCall('push_recommendation') as APICall<Record<string, unknown>, {id: string; url: string; type: string; title: string; query: string; context: string}>;
     this.pull_recommendation = apiCall('pull_recommendation') as APICall<{url: string}, void, {id: string; url: string; type: string; title: string; query: string; context: string}>;
     this.pull = apiCall('message') as APICall<Record<string, unknown>, void, RawMessageData[]>;
-    this.upload = apiCallExtend('upload') as APICallExtend<Record<string, any>, string|Blob, Record<string, any>, unknown>;
+    this.upload = apiBlobCall('upload') as APIBlobCall<Record<string, any>, Blob, FileMeta>;
+
+    this.file = {
+      delete: apiCall('file.delete') as APICall<IDParam>,
+      get: apiCall('file.read') as APICall<IDParam, void, FileMeta>,
+    };
+    this.files = {
+      list: apiCall('files.read') as APICall<Record<string, string>, void, {files: FileMeta[], dir: string}>
+    };
 
     this.recording = {
       create: apiCall('recording.create') as APICall<

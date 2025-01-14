@@ -102,3 +102,35 @@ body {
     margin-right: auto;
   }
 }
+
+.content-table {
+  border-collapse: collapse;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  min-width: 400px;
+  border-radius: 5px 5px 0 0;
+  overflow: hidden;
+}
+
+.content-table thead tr{
+  text-align: left;
+  font-weight: bold;
+  border-bottom: 1px solid #dddddd
+}
+
+.content-table th,
+.content-table td {
+  padding: 12px 45px;
+}
+
+.content-table tbody tr {
+  border-bottom: 1px solid #dddddd
+}
+
+.content-table tbody tr:last-of-type {
+  border-bottom: 2px solid #f3f3f3;
+}
+
+.content-table tbody tr:active-row {
+  font-weight: bold;
+}

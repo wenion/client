@@ -1,38 +1,180 @@
-import {Table, TableHead, TableBody, TableRow, Scroll, Input } from '@hypothesis/frontend-shared';
-import {FolderIcon, FilePdfIcon, FileGenericIcon, LinkIcon, Button, CancelIcon, SpinnerSpokesIcon} from '@hypothesis/frontend-shared';
+import { Scroll } from '@hypothesis/frontend-shared';
+import {FolderIcon, FilePdfIcon, FileGenericIcon, Button, CancelIcon, PlusIcon} from '@hypothesis/frontend-shared';
 import { useEffect, useMemo, useState, useRef, Ref} from 'preact/hooks';
 import classnames from 'classnames';
 
-import type { FileNode } from '../../types/api';
+import type { FileMeta } from '../../types/api';
 import type { SidebarSettings } from '../../types/config';
 import { withServices } from '../../sidebar/service-context';
-import type { FrameSyncService } from '../../sidebar/services/frame-sync';
+import { generateRandomString } from '../../shared/random';
 import type { FileTreeService } from '../../sidebar/services/file-tree';
 import type { SessionService } from '../../sidebar/services/session';
-import type { ToastMessengerService } from '../../sidebar/services/toast-messenger';
 import { useSidebarStore } from '../../sidebar/store';
 import TopBar from './TopBar';
 
-const MAX_CHARACTER_COUNT = 60;
-
-function Tooltip({elementRef}: {elementRef: Ref<HTMLDivElement>} ) {
-  return (
-  <div
-    className="absolute overflow-auto invisible align-middle bg-sky-300 border text-lg h-12 p-3.5 shadow-lg rounded-lg"
-    ref={elementRef}
-  >
-  </div>)
+function splitUserName(userid: string) {
+  const pattern = /acct:(.*?)@/;
+  const match = userid.match(pattern);
+  return match ? match[1]: userid;
 }
 
-// export type FileNode = {
-//   id : string;
-//   name : string;
-//   path: string;
-//   type: string;
-//   link?: string;
-//   depth: number;
-//   children: FileNode[];
-// };
+function convertToTime(timestamp: number| undefined) {
+  if (timestamp === undefined || timestamp < 10) return '';
+  const date = new Date(timestamp * 1000);
+  return date.toLocaleDateString('en-AU', {
+    day: '2-digit', month: '2-digit', year:'numeric', hour: '2-digit', minute:'2-digit', hour12: true});
+}
+
+class FileToUpdate {
+  private _id: string;
+  private _file: File;
+  private _progress: number;
+  private _abort: () => void;
+
+  constructor(
+    file: File,
+    progress: number = 0,
+  ) {
+    this._id = generateRandomString(10);
+    this._file = file;
+    this._progress = progress;
+    this._abort = () => {};
+  }
+
+  get id() {
+    return this._id;
+  }
+
+  set file(file: File) {
+    this._file = file;
+  }
+
+  get filename() {
+    return this._file.name;
+  }
+
+  get type() {
+    return this._file.type;
+  }
+
+  get size() {
+    return this._file.size;
+  }
+
+  get progress() {
+    return this._progress;
+  }
+
+  set progress(progress: number) {
+    this._progress = progress;
+  }
+
+  abort() {
+    this._abort();
+  }
+
+  set abortFunction(abort: () => void) {
+    this._abort = abort;
+  }
+}
+
+type FileItemProps = {
+  file: FileMeta;
+  onDblClick: (file: FileMeta) => void;
+  onDelete: (id: string) => void;
+};
+
+function FileItem({
+  file,
+  onDblClick,
+  onDelete,
+}: FileItemProps) {
+
+  return (
+    <tr
+      className="hover:bg-sky-100 cursor-pointer"
+      onDblClick={() => onDblClick(file)}
+    >
+      <td>
+        <div className="flex items-center">
+          <div className="mr-2">
+            {file.fileType === 'pdf' ? (
+              <FilePdfIcon />
+              ): (
+              <FileGenericIcon />
+            )}
+          </div>
+          <div>{file.filename}</div>
+        </div>
+      </td>
+      <td>
+        <div>{splitUserName(file.userid)}</div>
+      </td>
+      <td>
+        <div>{convertToTime(file.updateStamp)}</div>
+      </td>
+      <td>
+        <Button onClick={() => onDelete(file.id)}>
+          <CancelIcon/>
+        </Button>
+      </td>
+    </tr>
+  )
+}
+
+type ReadyFileItemProps = {
+  file: FileToUpdate;
+};
+
+function ReadyFileItem({
+  file,
+}: ReadyFileItemProps) {
+
+  const onCancel = () => {
+    file.abort();
+  };
+
+  return (
+    <tr className="hover:bg-sky-100">
+      <td>
+        <div className="flex items-center">
+          <div className="mr-2">
+            {file.type === 'pdf' ? (
+              <FilePdfIcon />
+              ): (
+              <FileGenericIcon />
+            )}
+          </div>
+          <div>{file.filename}</div>
+        </div>
+      </td>
+      <td>
+        <div
+          id="progress-bar"
+          className="border border-black w-20 opacity-10"
+        >
+          <div
+            className="bg-sky-500 border h-10"
+            style={{
+              width: `${file.progress* 80 / 100}px`,
+              transition: "width 0.3s ease", // Optional: smooth transition for the width change
+            }}
+          />
+        </div>
+      </td>
+      <td>
+        <div>{file.progress.toFixed(2)} % uploaded</div>
+      </td>
+      <td>
+        <Button
+          onClick={onCancel}
+        >
+          {"Cancel"}
+        </Button>
+      </td>
+    </tr>
+  )
+}
 
 type FileTreeViewProps = {
   /** Callback invoked when user clicks "Login" button */
@@ -45,7 +187,7 @@ type FileTreeViewProps = {
   onSignUp: () => void;
   fileTreeService: FileTreeService;
   session: SessionService;
-  settings: SidebarSettings;
+  // settings: SidebarSettings;
 };
 
 /**
@@ -60,64 +202,19 @@ function FileTreeView({
   onSignUp,
   fileTreeService,
   session,
-  settings }: FileTreeViewProps) {
+  // settings
+}: FileTreeViewProps) {
   const store = useSidebarStore();
   const isLoggedIn = store.isLoggedIn();
 
-  const currentPath = store.getCurrentPath();
-  const fileTree = store.getFileTree();
-  const tooltipRef = useRef<HTMLDivElement>(null);
+  const files = store.getFiles();
+  const dir = store.getDir();
 
-  const pathChanged = store.getPathChangedStatus();
+  const divRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const [dragging, setDragging] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [clickTimes, setClickTimes] = useState(0);
-
-  const currentTree = useMemo(() => {
-    const ret = find(fileTree, currentPath);
-    return ret;
-  }, [currentPath, fileTree, clickTimes, pathChanged]);
-
-  function joinPaths(...segments: string[]): string{
-    return segments.join('/').replace(/\/{2,}/g, '/');
-  }
-
-  const reduceCharacters = (title: string) => {
-    const limitLenght = MAX_CHARACTER_COUNT;
-    return title.length > limitLenght? title.slice(0, limitLenght) + '...' : title;
-  }
-
-  const convertToTime = (timestamp: number| undefined) => {
-    if (timestamp === undefined || timestamp < 10) return '';
-    const date = new Date(timestamp * 1000);
-    return date.toLocaleDateString('en-AU', {
-      day: '2-digit', month: '2-digit', year:'numeric', hour: '2-digit', minute:'2-digit', hour12: true});
-  }
-
-  const getUserName = (path: string | undefined) => {
-    if (path === undefined)
-      return 'anonymous';
-    const parts = path.split('/'); // Split the string by '/'
-    return parts[parts.length - 1];
-  }
-
-  function find(fileNode: FileNode| null, path: string): FileNode|null {
-    if (fileNode == null)
-      return null;
-
-    if (path == fileNode.path) {
-      return fileNode;
-    }
-
-    for (const child of fileNode.children) {
-      let newPath = joinPaths(fileNode.path , child.name)
-      if (path.startsWith(newPath)) {
-        return find(child, path);
-      }
-    }
-    return null;
-  };
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [filesToUpdated, setFilesToUpdated] = useState(() => new Map());
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -125,225 +222,223 @@ function FileTreeView({
     }
   }, [session, isLoggedIn]);
 
-  const onDrop = (e: Event) => {
+  const onDragEnter = (e: DragEvent) => {
     e.preventDefault();
+    setIsDraggingOver(true);
+  }
 
-    if (e instanceof DragEvent && e.dataTransfer?.items) {
-    {
-        Array.from(e.dataTransfer.items).forEach((item, i) => {
-        // If dropped items aren't files, reject them
-        if (item.kind === 'file') {
-          const file = item.getAsFile();
-          // const link: Link = {
-          //   href: '',
-          // }
-          if (file) {
-            setIsUploading(true);
-            fileTreeService.uploadFile(
-              file, {
-                id: currentPath,
-                depth: currentTree? currentTree.depth : 0,
-                name: file.name,
-                path: joinPaths(currentPath, file.name),
-                type:"file",
-                children:[],
-            }).then(
-              response => {
-                console.log(">>>> test >>>>>",file, response)
-                if (response.succ) {
-                  fileTreeService.addFileNode(response.succ, response.succ.id)
-                  if (response.tab) {
-                    alert("The file was uploaded. But the ingestion failed. Reason:\n" + response.tab)
-                  }
-                }
-                if (response.error) {
-                  alert("Result:\n" + response.error);
-                }
-              }
-            ).catch(
-              error => console.log("upload error", error)
-            ).finally(() =>
-              {setIsUploading(false);}
-            )
-          }
-        }
-      });
+  const onDragLeave = (event: DragEvent) => {
+    event.preventDefault();
+    const target = event.target as HTMLElement;
+    const relatedTarget = event.relatedTarget as HTMLElement;
+    const base = divRef.current!;
+
+    if (base.contains(target) && base.contains(relatedTarget)) {
+      return;
     }
-    } else if (e instanceof DragEvent && e.dataTransfer?.files) {
-      Array.from(e.dataTransfer.files).forEach((file, i) => {
-        console.log(`… file[${i}].name = ${file.name} start else branch...`);
-      });
+    if(base.contains(target) && !base.contains(relatedTarget)) {
+      setIsDraggingOver(false);
     }
-
-    setDragging(false);
   }
 
-  const onDragLeave = (e: Event) => {
+  const onDragOver = (e: DragEvent) => {
     e.preventDefault();
-    setClickTimes(previousState => {return previousState + 1});
-    setDragging(false);
+    setIsDraggingOver(true);
   }
 
-  const onDragOver = (e: Event) => {
+  const onDrop = (e: DragEvent) => {
     e.preventDefault();
-    setDragging(true);
+    if (e.dataTransfer) {
+      if (!e.dataTransfer.types.includes('Files')) {
+        return;
+      }
+      const files = e.dataTransfer.files;
+      inputRef.current!.files = files;
+      handleFile(files[0]);
+    }
+    setIsDraggingOver(false);
   }
 
-  const onDblClick = (id: string, type: string, link?: string) => {
-    if (type == 'dir') {
-      fileTreeService.changeCurrentPath(id)
+  const onDblClick = (file: FileMeta) => {
+    if (file.fileType == 'directory') {
     }
     else {
-      if (link) {
-        // window.parent.location = link;
-        window.open(link);
+      window.open(file.url);
+    }
+  }
+
+  const onDelete = (id: string) => {
+    const file = store.getFiles().find(item => item.id === id);
+    const result = window.confirm('Are you sure you want to delete "' + file!.filename +'"?')
+    if (result && file) {
+      fileTreeService.deleteFile(file);
+    }
+  }
+
+  const onChange = () => {
+    const files = inputRef.current!.files;
+    if (files && files.length > 0) {
+      handleFile(files[0]);
+    }
+  };
+
+  const onClick = () => {
+    inputRef.current!.click();
+  }
+
+  const addFileToUpdate = (file: File): FileToUpdate => {
+    const newFile = new FileToUpdate(file = file);
+    setFilesToUpdated(
+      (prev) => new Map(prev.set(newFile.id, newFile))
+    );
+    return newFile;
+  };
+
+  const updateFileProgress = (fileId: string, progress: number) => {
+    setFilesToUpdated((prev) => {
+      const updateMap = new Map(prev);
+      const fileToUpdate = updateMap.get(fileId);
+      if (fileToUpdate) {
+        fileToUpdate.progress = progress;
       }
-    }
-  }
+      return updateMap;
+    });
+  };
 
-  const onMouseEvent = (event: MouseEvent, name: string, out: boolean) => {
-    if (name.length <= MAX_CHARACTER_COUNT) return;
-    if(out) {
-      tooltipRef.current!.style.visibility = 'hidden';
-    }
-    else
-    {
-      tooltipRef.current!.style.visibility = 'visible';
-      tooltipRef.current!.style.top = (event.clientY - 5).toString() + 'px';
-      tooltipRef.current!.style.left = (event.clientX + 10).toString() + 'px';
+  const deleteFileFromUpload = (fileId: string) => {
+    setFilesToUpdated((prev) => {
+      const updatedMap = new Map(prev);
+      updatedMap.delete(fileId); // Delete the file with the given ID
+      return updatedMap;
+    })
+  };
 
-      tooltipRef.current!.innerText = name;
-    }
-  }
+  const handleFile = (file: File) => {
+    if (!validateFile(file)) {
+      return;
+    };
 
-  const onGoBack = () => {
-    const parentPath = currentPath.split("/").slice(0, -1).join("/");
-    fileTreeService.changeCurrentPath(parentPath)
-  }
+    const fileToUpdate = addFileToUpdate(file);
 
-  const onDeleteClick = (path: string, filename: string) => {
-    const result = window.confirm('Are you sure you want to delete "' + filename +'"?')
-    if (result) {
-      fileTreeService.delete(path).then(
-        response => {
-          console.log(">>>> test >>>>>",path, response)
-          if (response.succ) {
-            fileTreeService.removeFileNode(response.succ.filepath, response.succ.parent_filepath);
-            setClickTimes(previousState => {return previousState + 1});
-          }
-        }).catch(
-          error => console.log("error", error)
-        ).finally(
-        )
+    fileTreeService.uploadBlob(
+      file.name,
+      file.size,
+      file.type,
+      dir,
+      file,
+      (loaded, total) => {
+        const progress = loaded/total * 100;
+        updateFileProgress(fileToUpdate.id, progress);
+      },
+      () => {
+        deleteFileFromUpload(fileToUpdate.id);
+      },
+      (abort) => {fileToUpdate.abortFunction = abort},
+    );
+  };
+
+  const validateFile = (file: File): boolean => {
+    const allowedTypes = ['application/pdf', 'text/html', 'text/plain'];
+    const maxSizeInBytes = 20 * 1024 * 1024; // 5MB
+
+    if (!allowedTypes.includes(file.type)) {
+      alert('Invalid file type');
+      return false;
     }
-  }
+    if (file.size > maxSizeInBytes) {
+      alert('Invalid file size');
+      return false;
+    }
+
+    return true;
+  };
 
   return (
-    <>
+    <div className="w-full">
       <TopBar
         onLogin={onLogin}
         onSignUp={onSignUp}
         onLogout={onLogout}
         isSidebar={true}
       />
-      <div className="repository-container">
-        <h1>Repository</h1>
-        <Tooltip elementRef={tooltipRef}/>
-        <main>
+      <div>
+        <h1 className="mx-4 my-8">Repository</h1>
+        <div
+          className={classnames(
+            "flex flex-col items-center p-2 mb-10",
+          )}
+        >
           <div
-            onDrop={onDrop}
-            onDragLeave={onDragLeave}
-            onDragOver={onDragOver}
             className={classnames(
-              'w-full mt-8',
+              "relative rounded",
             )}
+            style={"height: 70svh;"}
+            ref={divRef}
+            onDrop={onDrop}
+            onDragEnter={onDragEnter}
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
           >
-            {dragging ? (
+            {isDraggingOver && (
               <div
                 className={classnames(
-                  'h-[32rem] flex justify-center',
-                  'bg-clip-padding bg-blue-400 border-4 border-violet-300 border-dashed'
+                  "absolute",
+                  "flex justify-center items-center",
+                  "w-full h-full",
+                  "bg-sky-300 opacity-80", 
+                  "rounded border-4 border-dashed border-sky-700"
                 )}
+                id="overlay"
               >
-                <h3 className={classnames('text-4xl text-zinc-500 self-center')}>Drop the file over here to upload</h3>
+                <p className="text-4xl text-slate-50">Drop it here!</p>
               </div>
-            ) : isUploading ? (
-              <div
-                className={classnames(
-                  'h-[32rem] flex justify-center',
-                  'bg-slate-300'
-                )}
-              >
-                <SpinnerSpokesIcon className={classnames('self-center')}/>
-                <h3 className={classnames('text-xl text-zinc-500 self-center')}>The file is currently being uploaded. Please wait...</h3>
-              </div>
-            ) : (
-              <Scroll>
-                <Table
-                  title="table test"
-                  interactive
-                >
-                  <TableHead>
-                    <Input aria-label="Input example" value={getUserName(currentTree?.path)} />
-                  </TableHead>
-                  <TableBody>
-                    {currentTree && currentTree.depth != 0 && (
-                      <TableRow
-                        onDblClick={() => onGoBack()}
-                        >
-                        <div className={classnames('flex justify-between', 'h-6 relative')}>
-                          <div className="text-lg items-center flex gap-x-2">
-                            <FolderIcon className="w-em h-em" />..
-                          </div>
-                        </div>
-                      </TableRow>
-                    )}
-                    {currentTree && currentTree.children.map(child => (
-                      <TableRow
-                        id={child.path}
-                        key={child.path}
-                        onDblClick={() => onDblClick(child.id, child.type, child.link)}
-                        >
-                        <div
-                          className="text-lg items-center flex gap-x-2"
-                          id={child.path}
-                          onMouseOver={(event)=>onMouseEvent(event, child.name, false)}
-                          onMouseOut={(event)=>onMouseEvent(event, child.name, true)}
-                        >
-                          <div className="flex-none">
-                            {child.type === 'dir' ? (
-                              <FolderIcon className="flex-none w-em h-em" />
-                            ) : (
-                              child.type === 'file' ? (
-                                child.name.endsWith(".pdf") ? (
-                                <FilePdfIcon className="flex-none w-em h-em" />
-                                ) : (
-                                <FileGenericIcon className="flex-none w-em h-em" />
-                                )
-                              ) : (
-                                <LinkIcon className="flex-none w-em h-em" />
-                              )
-                            )}
-                          </div>
-                          <div className="flex-none">{reduceCharacters(child.name)}</div>
-                          <div className="flex-1"/>
-                          <div className="flex-none text-gray-500">{convertToTime(child.creation_time)}</div>
-                          <Button
-                            classes={classnames('flex-none border bg-grey-0 hover:bg-red-400 m-1' )}
-                            onClick={() => onDeleteClick(child.path, child.name)}>
-                            <CancelIcon className="w-3 h-3"/>
-                          </Button>
-                        </div>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </Scroll>
             )}
+            <Scroll>
+              <table
+                className={classnames(
+                  "content-table",
+                  {"border-2 border-dashed" : isDraggingOver},
+                )}
+              >
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>User</th>
+                    <th>Modified Time</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from(filesToUpdated.values()).map(child => (
+                    <ReadyFileItem file={child} />
+                    )
+                  )}
+                  {files.map(child => (
+                    <FileItem
+                      file={child}
+                      onDblClick={onDblClick}
+                      onDelete={onDelete}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </Scroll>
+            <div
+              className="flex justify-center cursor-pointer items-center border rounded w-full h-12"
+              onClick={onClick}
+            >
+              <PlusIcon />
+              <input
+                ref={inputRef}
+                type="file"
+                onChange={onChange}
+                hidden
+              />
+            </div>
           </div>
-        </main>
+        </div>
       </div>
-    </>
+    </div>
   );
 }
 

@@ -374,20 +374,17 @@ export type QueryResponseObject = {
   status: string,
 };
 
-/**
- * Response to an `/api/repository` API call.
- *
- */
-export type FileNode = {
+export type FileMeta = {
   id : string;
-  name : string;
-  path: string;
-  type: string;
-  link?: string;
-  content?: string;
-  creation_time?: number;
-  depth: number;
-  children: FileNode[];
+  filename: string;
+  fileId: string;
+  createStamp: number;
+  updateStamp: number;
+  fileType: string;
+  filePath: string;
+  url: string;
+  userid: string;
+  permission: string;
 };
 
 /**

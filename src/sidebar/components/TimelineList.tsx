@@ -38,12 +38,22 @@ const THREAD_DIMENSION_DEFAULTS = {
   marginBelow: 800,
 };
 
+type DifferentThreads= {
+  unreachableThreads: RecordStep[];
+  topThread: RecordStep | null;
+  reverseTopThread: RecordStep | null;
+};
+
 function calculateFirstVisibleThread(
   threads: RecordStep[],
   threadHeights: Map<string, number>,
   scrollPos: number,
-  // windowHeight: number,
-): RecordStep | null {
+  windowHeight: number,
+): DifferentThreads {
+  let topThread = null;
+  let reverseTopThread = null;
+
+  let unreachableThreads = [];
   // Total height used up by the top-level thread cards
   let totalHeight = 0;
 
@@ -55,12 +65,32 @@ function calculateFirstVisibleThread(
     const threadTopIsInViewport = totalHeight >= scrollPos;
 
     if (threadBottomIsInViewport) {
-      return threads[i];
+      topThread = threads[i];
+      break;
     }
     totalHeight += threadHeight;
   };
 
-  return null;
+  let rearTotalHeight = 0;
+  for (let j = threads.length - 1; j >= 0; j--) {
+    const defaultHeight = THREAD_DIMENSION_DEFAULTS.defaultHeight;
+    const threadHeight = threadHeights.get(threads[j].id) || defaultHeight;
+    rearTotalHeight += threadHeight;
+
+    if (rearTotalHeight >= windowHeight) {
+      reverseTopThread = threads[j];
+      break;
+    }
+    else {
+      unreachableThreads.push(threads[j]);
+    }
+  }
+
+  return {
+    unreachableThreads,
+    topThread,
+    reverseTopThread,
+  };
 }
 
 function roundScrollPosition(pos: number) {
@@ -87,12 +117,17 @@ function TimelineList({
   const recordItem = store.getRecordItem();
   const recordSteps = store.recordSteps();
   const focusedStepId = store.getFocusedStepId();
+  const shouldScroll = store.getShouldScroll();
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const previousTopThreadRef = useRef<RecordStep | null>(null);
 
+  const [firstRender, setFirstRender] = useState(true);
+
+  const [imageThreads, setImageThreads] = useState(() => new Map());
+
   // Client height of the scroll container.
-  // const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
+  const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
 
   // Scroll offset of scroll container, rounded to a multiple of `SCROLL_PRECISION`
   // to avoid excessive re-renderings.
@@ -104,12 +139,12 @@ function TimelineList({
     const listeners = new ListenerCollection();
     const scrollContainer = scrollRef.current!;
 
-    // setScrollContainerHeight(scrollContainer.clientHeight);
+    setScrollContainerHeight(scrollContainer.clientHeight);
     setScrollPosition(scrollContainer.scrollTop);
 
     const updateScrollPosition = debounce(
       () => {
-        // setScrollContainerHeight(scrollContainer.clientHeight);
+        setScrollContainerHeight(scrollContainer.clientHeight);
         setScrollPosition(scrollContainer.scrollTop);
       },
       10,
@@ -139,14 +174,26 @@ function TimelineList({
 
   const topLevelThreads = recordSteps;
 
-  const topThread = useMemo(
+  const {unreachableThreads, topThread, reverseTopThread} = useMemo(
     () =>
       calculateFirstVisibleThread(
         topLevelThreads,
         threadHeights,
         scrollPosition,
+        scrollContainerHeight,
       ),
     [topLevelThreads, threadHeights, scrollPosition],
+  );
+
+  const allLoaded = useMemo(
+    () => {
+      let load = true;
+      imageThreads.forEach((value) => {
+        load = load && value; // Check if all values are truthy
+      });
+      return load;
+    },
+    [imageThreads]
   );
 
   const onMouseLeave = () => {
@@ -163,7 +210,7 @@ function TimelineList({
   // Effect to scroll a particular thread into view. This is mainly used to
   // scroll a newly created annotation into view.
   useEffect(() => {
-    if (!scrollToId || !scrollRef.current) {
+    if (!scrollToId) {
       return;
     }
 
@@ -184,25 +231,50 @@ function TimelineList({
       .slice(0, threadIndex)
       .reduce((total, thread) => total + getThreadHeight(thread), 0);
 
-    // const scrollContainer = getScrollContainer();
-    // scrollContainer.scrollTop = yOffset;
-    scrollRef.current.scrollTo({
+    scrollRef.current!.scrollTo({
       top: yOffset,
       behavior: 'smooth',
     });
-    store.setFocusedStepId(null);
-  }, [scrollToId, topLevelThreads, threadHeights]);
+  }, [scrollToId, threadHeights, topThread]);
 
   useEffect(() => {
-    if (focusedStepId === null) return;
+    if (focusedStepId === null) {
+      setScrollToId(null);
+      return;
+    }
 
     const topThreadId = topThread?.id || null;
-    if (topThreadId !== focusedStepId) {
-      setScrollToId(focusedStepId);
-    } else {
-      store.setFocusedStepId(null);
+    if (firstRender) {
+      if (topThreadId !== focusedStepId) {
+        if (!allLoaded) {
+          setScrollToId(focusedStepId);
+        }
+      } else {
+        if (allLoaded) {
+          setFirstRender(false);
+        }
+      }
+      return;
     }
-  }, [focusedStepId, threadHeights, topThread,])
+
+    if (topThreadId !== focusedStepId) {
+      if (unreachableThreads.some(r => r.id === focusedStepId)) {
+        if (reverseTopThread) {
+          store.setFocusedStepId(reverseTopThread.id);
+          setScrollToId(reverseTopThread.id);
+        } else {
+          store.setFocusedStepId(null);
+        }
+      }
+      else {
+        if (shouldScroll) {
+          setScrollToId(focusedStepId);
+        }
+      }
+    } else {
+      store.setShouldScroll(false);
+    }
+  }, [focusedStepId, threadHeights, topThread, shouldScroll, firstRender, allLoaded])
 
   const goToTop = () => {
     setScrollToId(recordSteps[0] ? recordSteps[0].id: null);
@@ -210,47 +282,58 @@ function TimelineList({
 
   // When the set of TimelineCard height changes, recalculate the real rendered
   // heights of thread cards and update `threadHeights` state if there are changes.
-  const onRendered = useCallback(
-    () => {
-      setThreadHeights(prevHeights => {
-        const changedHeights = new Map();
-        for (const { id } of recordSteps) {
-          const threadElement = document.getElementById(id)!;
-          const imageElement = document.getElementById('img' + id);
+  const onRendered = useCallback((id: string) => {
+    const imageId = 'img' + id;
+    const threadElement = document.getElementById(id)!;
+    const imageElement = document.getElementById(imageId);
 
-          if (!threadElement) {
-            // This could happen if the `ThreadList` DOM is not connected to the document.
-            //
-            // Errors earlier in the render can also potentially cause this (see
-            // https://github.com/hypothesis/client/pull/3665#issuecomment-895857072),
-            // although we don't in general try to make all effects robust to that
-            // as it is a problem that needs to be handled elsewhere.
-            console.warn(
-              'ThreadList could not measure thread. Element not found.',
-            );
-            return prevHeights;
-          }
+    setThreadHeights(prevHeights => {
+      const changedHeights = new Map();
 
-          let imageHeight = 0;
-          if (imageElement && imageElement.classList.contains('hidden')) {
-            imageHeight = getElementHeightWithMargins(imageElement);
-          }
+      if (!threadElement) {
+        // This could happen if the `ThreadList` DOM is not connected to the document.
+        //
+        // Errors earlier in the render can also potentially cause this (see
+        // https://github.com/hypothesis/client/pull/3665#issuecomment-895857072),
+        // although we don't in general try to make all effects robust to that
+        // as it is a problem that needs to be handled elsewhere.
+        console.warn(
+          'ThreadList could not measure thread. Element not found.',
+        );
+        return prevHeights;
+      }
 
-          const height = getElementHeightWithMargins(threadElement) - imageHeight;
-          if (height !== prevHeights.get(id)) {
-            changedHeights.set(id, height);
-          }
-        }
+      let imageHeight = 0;
+      if (imageElement && imageElement.classList.contains('hidden')) {
+        imageHeight = getElementHeightWithMargins(imageElement);
+      }
 
-        // Skip update if no heights changed from previous measured values
-        // (or defaults).
-        if (changedHeights.size === 0) {
-          return prevHeights;
-        }
+      const height = getElementHeightWithMargins(threadElement) - imageHeight;
+      if (height !== prevHeights.get(id)) {
+        changedHeights.set(id, height);
+      }
 
-        return new Map([...prevHeights, ...changedHeights]);
-      });
-    }, []);
+    // Skip update if no heights changed from previous measured values
+    // (or defaults).
+    if (changedHeights.size === 0) {
+      return prevHeights;
+    }
+
+    return new Map([...prevHeights, ...changedHeights]);
+  });
+
+  setImageThreads(prevThreads => {
+    const changedThreads = new Map();
+    if (imageElement) {
+      if (prevThreads.has(imageId)) {
+        changedThreads.set(imageId, true);
+      } else {
+        changedThreads.set(imageId, false);
+      }
+    }
+    return new Map([...prevThreads, ...changedThreads]);
+  });
+  }, []);
 
   return (
     <div>

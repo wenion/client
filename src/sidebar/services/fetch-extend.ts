@@ -2,7 +2,6 @@ import type {
   RouteMap,
   RouteMetadata,
 } from '../../types/api';
-import { stripInternalProperties } from '../helpers/strip-internal-properties';
 import { replaceURLParams } from '../util/url';
 
 /**
@@ -10,24 +9,46 @@ import { replaceURLParams } from '../util/url';
  */
 type Param = string | number | boolean;
 
-/**
- * Callbacks invoked at various points during an API call to get an access token etc.
- */
-type APIMethodCallbacks = {
-  /** Function which acquires a valid access token for making an API request */
-  getAccessToken: () => Promise<string | null>;
+type XHRCallback = {
+  /**
+   * Callback triggered during the progress of the file upload/download.
+   * It provides the loaded bytes and total bytes to track progress.
+   *
+   * @param loaded - The number of bytes that have been loaded so far.
+   * @param total - The total number of bytes that need to be loaded.
+   */
+  onProgress: (loaded: number, total: number) => void;
 
   /**
-   * Function that returns a per-session client ID to include with the request
-   * or `null`.
+   * Callback triggered when the XHR request is successfully completed.
+   * This is usually fired once the request finishes loading.
    */
-  getClientId: () => string | null;
+  onFinished: () => void;
 
-  /** Callback invoked when the API request starts */
-  onRequestStarted: () => void;
-  /** Callback invoked when the API request finishes */
-  onRequestFinished: () => void;
+  /**
+   * Callback to set the abort function for the XHR request.
+   * This function allows external code to abort the request.
+   *
+   * @param abort - The function to abort the XHR request.
+   */
+  onAbortReference: (abort: () => void) => void;
 };
+
+/**
+ * Function which makes an API request.
+ * @param params - A map of URL and query string parameters to include with the request.
+ * @param data - The body of the request.
+ * @param xhrCallback - These functions are triggered by the XHR's progress, load, and abort events.
+ */
+export type APIBlobCall<
+  Params = Record<string, Param | Param[]>,
+  Body = void,
+  Result = void,
+> = (
+  params: Params,
+  data: Body,
+  { onProgress, onFinished, onAbortReference }: XHRCallback,
+) => Promise<Result>;
 
 function isRouteMetadata(
   link: RouteMap | RouteMetadata,
@@ -62,37 +83,23 @@ function findRouteMetadata(
   return null;
 }
 
-/**
- * Function which makes an API request.
- *
- * @template {Record<string, Param>} [Params={}]
- * @template [Body=Blob]
- * @template [Filename=string]
- * @template [Result=void]
- * @callback APICallExtend
- * @param {Params} params - A map of URL and query string parameters to include with the request.
- * @param {string|Blob} data - The body of the request.
- * @param {Params} filename - The body of the request.
- * @return {Promise<Result>}
- */
-export type APICallExtend<
-  Params = Record<string, Param | Param[]>,
-  Body = string|Blob,
-  Filename = Record<string, unknown>,
-  Result=void,
-> = (params: Params, data: Body, filename: Filename) => Promise<Result>;
+type APIMethodXHRCallbacks = {
+  /** Function which acquires a valid access token for making an API request */
+  getAccessToken: () => Promise<string | null>;
 
-/**
- * Creates a function that will make an API call to a named route.
- *
- * @param {Promise<RouteMap>} links - API route data from API index endpoint (`/api/`)
- * @param {string} route - The dotted path of the named API route (eg. `annotation.create`)
- * @param {APIMethodCallbacks} callbacks
- * @return {APICallExtend<Record<string, any>, string|Blob, Record<string, any>, unknown>} - Function that makes
- *   an API call. The returned `APICall` has generic parameter, body and return types.
- *   This can be cast to an `APICall` with more specific types.
- */
-export function createAPICallExtend(
+  /**
+   * Function that returns a per-session client ID to include with the request
+   * or `null`.
+   */
+  getClientId: () => string | null;
+
+  /** Callback invoked when the API request starts */
+  onRequestStarted: () => void;
+  /** Callback invoked when the API request finishes */
+  onRequestFinished: () => void;
+};
+
+export function createAPIBlobXHRCall(
   links: Promise<RouteMap>,
   route: string,
   {
@@ -100,94 +107,98 @@ export function createAPICallExtend(
     getClientId,
     onRequestStarted,
     onRequestFinished,
-  }: APIMethodCallbacks,
-): APICallExtend<Record<string, any>, string|Blob, Record<string, unknown>, unknown> {
-  return async (params, data, filename) => {
-    onRequestStarted();
-    try {
-      const [linksMap, token] = await Promise.all([links, getAccessToken()]);
-      const descriptor = findRouteMetadata(linksMap, route);
-      if (!descriptor) {
-        throw new Error(`Missing API route: ${route}`);
-      }
-
-      const headers: Record<string, string> = {
-        // 'Content-Type': 'multipart/form-data',
-        'Hypothesis-Client-Version': '__VERSION__',
-      };
-
-      if (token) {
-        headers.Authorization = 'Bearer ' + token;
-      }
-
-      const clientId = getClientId();
-      if (clientId) {
-        headers['X-Client-Id'] = clientId;
-      }
-
-      const { url, unusedParams: queryParams } = replaceURLParams(
-        descriptor.url,
-        params
-      );
-
-      const apiURL = new URL(url);
-      for (let [key, value] of Object.entries(queryParams)) {
-        const values = Array.isArray(value) ? value : [value];
-        for (const item of values) {
-          // eslint-disable-next-line eqeqeq
-          if (item == null) {
-            // Skip all parameters with nullish values.
-            continue;
-          }
-          apiURL.searchParams.append(key, item.toString());
+  }: APIMethodXHRCallbacks,
+): APIBlobCall<
+  Record<string, any>,
+  Blob,
+  unknown
+> {
+  return async (params, data, {onProgress, onFinished, onAbortReference}) => {
+    const [linksMap, token] = await Promise.all([links, getAccessToken()]);
+    return new Promise((resolve, reject) => {
+      onRequestStarted();
+      try {
+        const descriptor = findRouteMetadata(linksMap, route);
+        if (!descriptor) {
+          throw new Error(`Missing API route: ${route}`);
         }
-      }
 
-      const formData = new FormData();
-      formData.append('file-upload', data);
-      formData.append('meta', JSON.stringify(stripInternalProperties(filename)))
+        const { url, unusedParams: extraParams } = replaceURLParams(
+          descriptor.url,
+          params,
+        );
+        const apiURL = new URL(url);
 
-      let response;
-      try {
-        response = await fetch(apiURL.toString(), {
-          body: formData,
-          headers,
-          method: descriptor.method,
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", apiURL.toString());
+        // xhr.setRequestHeader('Content-Type', 'multipart/form-data');
+        xhr.setRequestHeader('Hypothesis-Client-Version', '__VERSION__');
+
+        if (token) {
+          xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+        }
+
+        const clientId = getClientId();
+        if (clientId) {
+          xhr.setRequestHeader('X-Client-Id', clientId);
+        }
+        // Set response type to json so that XHR automatically parses the response
+        // xhr.responseType = "json";
+
+        const formData = new FormData();
+        formData.append('file', data);
+        for (const [key, value] of Object.entries(extraParams)) {
+          const values = Array.isArray(value) ? value : [value];
+          for (const item of values) {
+            // eslint-disable-next-line eqeqeq
+            if (item == null) {
+              // Skip all parameters with nullish values.
+              continue;
+            }
+            // apiURL.searchParams.append(key, item.toString());
+            formData.append(key, item.toString());
+          }
+        }
+
+        xhr.onload = function () {
+          if (xhr.status === 200) {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              resolve(data); // Resolve the Promise with the response text
+            } catch (err) {
+              throw new Error(`Failed to parse response: ${url}`);
+            }
+          } else {
+              reject(`Error: ${xhr.status} ${xhr.statusText}`); // Reject with error message
+          }
+        };
+
+        xhr.onerror = function () {
+          reject("Request failed");
+        };
+
+        xhr.onloadend = function () {
+          onFinished();
+        };
+
+        xhr.onabort = function () {
+          reject("Request abort");
+        };
+
+        onAbortReference(() => {
+          xhr.abort();
+          console.log("inside, abort")
         });
-      } catch (err) {
-        throw new Error(err.message);
+
+        xhr.upload.onprogress = function (e) {
+          onProgress(e.loaded, e.total);
+        };
+
+        xhr.send(formData);
+
+      } finally {
+        onRequestFinished();
       }
-
-      if (response.status === 204 /* No Content */) {
-        return null;
-      }
-
-      // Attempt to parse a JSON response. This may fail even if the status code
-      // indicates success.
-      let result;
-      try {
-        result = await response.json();
-      } catch (err) {
-        throw new Error(url +  response + 'Failed to parse response');
-      }
-
-      if (!response.ok) {
-        throw new Error(url + response + result?.reason);
-      }
-
-      return result;
-
-      // nb. Don't "simplify" the lines below to `return fetchJSON(...)` as this
-      // would cause `onRequestFinished` to be called before the API response
-      // is received.
-      // const result = await fetchJSON(apiURL.toString(), {
-      //   body: data ? data : null,
-      //   headers,
-      //   method: descriptor.method,
-      // });
-      // return result;
-    } finally {
-      onRequestFinished();
-    }
+    });
   };
 }

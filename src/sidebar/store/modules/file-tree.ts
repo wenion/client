@@ -1,154 +1,108 @@
 import { createStoreModule, makeAction } from '../create-store';
-import type { FileNode } from '../../../types/api';
+import type { FileMeta } from '../../../types/api';
+import { createSelector } from 'reselect';
 
 const initialState = {
-  pathChanged: false,
-  currentPath: "",
-  fileTree: null,
+  dir: "",
+  files: [],
 } as {
-  pathChanged: boolean;
-  currentPath: string;
-  fileTree: FileNode | null;
+  dir: string;
+  files: FileMeta[],
 };
 
 export type State = typeof initialState;
 
-function joinPaths(...segments: string[]): string{
-  return segments.join('/').replace(/\/{2,}/g, '/');
+function sortByFilename(a: FileMeta, b: FileMeta) {
+  return a.filename.localeCompare(b.filename);
 }
-
-function find(fileNode: FileNode| null, path: string): FileNode|null {
-  if (fileNode == null)
-    return null;
-
-  if (path == fileNode.path) {
-    return fileNode;
-  }
-
-  for (const child of fileNode.children) {
-    let newPath = joinPaths(fileNode.path , child.name)
-    if (path.startsWith(newPath)) {
-      return find(child, path);
-    }
-  }
-  return null;
-};
 
 const reducers = {
-  UPDATE_FILETREE(
-    state: State,
-    action: {
-      fileTree: FileNode;
+  SET_DIR(state: State, action: { dir: string }) {
+    return { dir: action.dir };
+  },
+
+  ADD_FILES(state: State, action: {files: FileMeta[]}): Partial<State> {
+    const added = [];
+    for (const record of action.files) {
+      let existing;
+      console.log("state.files",state.files)
+      existing = state.files.find(r => r.id === record.id);
+
+      if (!existing) {
+        added.push(record);
+      }
     }
-  ): Partial<State> {
+
     return {
-      currentPath: action.fileTree.path,
-      fileTree: action.fileTree,
+      files: state.files.concat(added).sort(sortByFilename),
     };
   },
 
-  UPDATE_NODE(
-    state: State,
-    action: {
-      newFileTree: FileNode;
-      parentPath: string;
-    }
-  ): Partial<State> {
-    const fileNode = find(state.fileTree, action.parentPath);
-    if (fileNode && fileNode.type === "dir") {
-      fileNode.children.push(action.newFileTree)
-    }
-    return {
-      fileTree: state.fileTree,
-    };
+  CLEAR_FILES(): Partial<State> {
+    return { files: [] };
   },
 
-  REMOVE_NODE(
-    state: State,
-    action: {
-      filePath: string;
-      parentPath: string;
-    }
-  ): Partial<State> {
-    const parentFileNode = find(state.fileTree, action.parentPath);
-    if (parentFileNode && parentFileNode.type === "dir") {
-      const filterFiles = parentFileNode.children.filter(item => item.path !== action.filePath);
-      parentFileNode.children = [];
-      filterFiles.map(item => {
-        parentFileNode.children.push(item);
-      })
-    }
+  REMOVE_FILES(state: State, action: {files: FileMeta[]}): Partial<State> {
+    const remain = state.files.filter(item => action.files.some(item2 => item.id !== item2.id));
     return {
-      fileTree: state.fileTree,
-    };
-  },
-
-  UPDATE_FILEPATH(
-    state: State,
-    action: {
-      currentPath: string;
+      files: remain,
     }
-  ): Partial<State> {
-    return {
-      currentPath: action.currentPath,
-    };
-  },
-
-  UPDATE_PATHSTATUS(
-    state: State,
-    action: {}
-  ):  Partial<State> {
-    return {
-      pathChanged: !state.pathChanged,
-    };
   },
 };
 
-function initFileTree(fileTree: FileNode) {
-  return makeAction(reducers, 'UPDATE_FILETREE', {fileTree});
+// Action creators
+
+function addFiles(files: FileMeta[]) {
+  return makeAction(reducers, 'ADD_FILES', {files: files});
 }
 
-function changeCurrentPath(currentPath: string){
-  return makeAction(reducers, 'UPDATE_FILEPATH', {currentPath});
+function removeFiles(files: FileMeta[]) {
+  return makeAction(reducers, 'REMOVE_FILES', {files: files});
 }
 
-function addFileNode(newFileTree: FileNode, parentPath: string){
-  return makeAction(reducers, 'UPDATE_NODE', {newFileTree, parentPath});
+function clearFiles() {
+  return makeAction(reducers, 'CLEAR_FILES', undefined);
 }
 
-function removeFileNode(filePath: string, parentPath: string){
-  return makeAction(reducers, 'REMOVE_NODE', {filePath, parentPath});
+function changeDir(dir: string) {
+  return makeAction(reducers, 'SET_DIR', {dir: dir});
 }
 
-function changePath(){
-  return makeAction(reducers, 'UPDATE_PATHSTATUS', {});
+// Selectors
+
+function getAllFiles(state: State) {
+  return state.files;
 }
 
-function getCurrentPath(state: State){
-  return state.currentPath;
-}
+const getFiles = createSelector(
+  (state: State) => state.files,
+  (files: FileMeta[]) =>
+    files.filter(item => item.fileType !== 'directory'),
+);
 
-function getPathChangedStatus(state: State) {
-  return state.pathChanged;
-}
+const getDirs = createSelector(
+  (state: State) => state.files,
+  (files: FileMeta[]) =>
+    files.filter(item => item.fileType === 'directory'),
+);
 
-function getFileTree(state: State){
-  return state.fileTree;
+function getDir(state: State) {
+  return state.dir;
 }
 
 export const fileTreeModule = createStoreModule(initialState, {
   namespace: 'fileTree',
   reducers,
   actionCreators: {
-    initFileTree,
-    changeCurrentPath,
-    addFileNode,
-    removeFileNode,
-    changePath,
+    addFiles,
+    removeFiles,
+    clearFiles,
+    changeDir,
   },
   selectors: {
-    getFileTree,
-    getCurrentPath,
-    getPathChangedStatus,
+    getAllFiles,
+    getFiles,
+    getDirs,
+    getDir,
   },
 });

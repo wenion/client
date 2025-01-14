@@ -1,5 +1,4 @@
 import { extractHostURL } from '../../shared/custom';
-import type { FileNode } from '../../types/api';
 import type { SidebarStore } from '../store';
 import type { APIService } from './api';
 import type { ToastMessengerService } from './toast-messenger';
@@ -91,7 +90,6 @@ export class RecordingService {
     description: string,
     backdate: number,
   ) {
-    // try {
     const result = await this._api.recording.create({}, {
       sessionId: sessionId,
       taskName: taskName,
@@ -101,9 +99,6 @@ export class RecordingService {
     });
     this._store.addRecordItems([result]);
     this.updateSyncRecording(true, result.id, result.taskName);
-    // } catch (err) {
-    //   this.updateSyncRecording(false);
-    // }
   }
 
   async stopRecord(id: string, options: Record<string, any>) {
@@ -153,6 +148,11 @@ export class RecordingService {
         return false;
       }
       return false;
+  }
+
+  scrollTo(scrollToId: string | null, activate: boolean = true) {
+    this._store.setFocusedStepId(scrollToId);
+    this._store.setShouldScroll(activate);
   }
 
   // fetchHighlight(url: string| undefined) {
@@ -206,19 +206,28 @@ export class RecordingService {
     return await this._api.tracking.read({});
   }
 
-  saveFile(blob: Blob, metadata: FileNode) {
-    this._api.upload({}, blob, metadata)
-      .then(
-        response => {
-          console.log('response', response)
-          if (response?.succ !== undefined)
-              this._toastMessenger.success('This page (' + response.succ.name + ') has been saved')
-            else if (response?.error !== undefined)
-              this._toastMessenger.error(response?.error)
-        }
-      )
-      .catch(error => {
-        console.error('response', error)
-      })
+  async saveFile(
+    name: string,
+    size: number,
+    type: string,
+    path: string,
+    data: Blob,
+    onFinished: () => void,
+  ) {
+    const xhrCallback = {
+      onProgress: () => {},
+      onFinished: onFinished,
+      onAbortReference: (()=>{}),
+    }
+    await this._api.upload(
+      {
+        'name': name,
+        'size': size,
+        'type': type,
+        'path': path,
+      },
+      data,
+      xhrCallback,
+    );
   }
 }

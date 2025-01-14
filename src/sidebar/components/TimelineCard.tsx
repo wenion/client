@@ -12,7 +12,7 @@ const capitalize = (word: string | null) => {
 
 type TimelineCardProps = {
   trace: RecordStep;
-  onElementSizeChanged: () => void,
+  onElementSizeChanged: (id: string) => void,
 };
 
 export default function TimelineCard({
@@ -52,7 +52,7 @@ export default function TimelineCard({
 
   useLayoutEffect(()=> {
     updateCirclePosition();
-    onElementSizeChanged();
+    onElementSizeChanged(trace.id);
   }, [collapsed, loaded])
 
   const title = useMemo(
@@ -98,7 +98,8 @@ export default function TimelineCard({
                   'border border-gray-300 hover:border-2 hover:border-gray-500',
                   {
                     'hidden': collapsed,
-                  }
+                  },
+                  'duration-300 ease-in-out',
                 )}
                 id={'img' + trace.id}
                 alt={trace.title}
@@ -111,6 +112,7 @@ export default function TimelineCard({
                   className={classnames(
                     'w-6 h-6 rounded-full',
                     'absolute border-2 border-red-500 bg-red-100/35 transition-all',
+                    'duration-300 ease-in-out',
                   )}
                   style={{ top: `${circleTop}px`, left: `${circleLeft}px` }}
                 />
