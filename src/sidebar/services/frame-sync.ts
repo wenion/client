@@ -38,6 +38,7 @@ import type {
 } from '../../types/site-port-rpc-events';
 import { isReply, isPublic } from '../helpers/annotation-metadata';
 import { annotationMatchesSegment } from '../helpers/annotation-segment';
+import { username } from '../helpers/account-id';
 import type { SidebarStore } from '../store';
 import type { Frame } from '../store/modules/frames';
 import { watch } from '../util/watch';
@@ -1018,7 +1019,7 @@ export class FrameSyncService {
           title,
           htmlContent.length,
           'text/html',
-          'html',
+          username(this._store.profile().userid),
           new Blob([htmlContent], { type: 'text/html' }),
           () => {
             this._toastMessenger.success(title + "uploaded successfully!")
