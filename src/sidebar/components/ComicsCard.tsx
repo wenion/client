@@ -220,17 +220,17 @@ function ComicItem({
   )
 }
 
-type DetailProps = {
+type ComicsCardProps = {
   onImageClick: (id: string) => void;
   onElementSizeChanged: (id: string) => void;
   step: RecordStep;
 };
 
-export default function Detail({
+export default function ComicsCard({
   onImageClick,
   onElementSizeChanged,
   step,
-}: DetailProps) {
+}: ComicsCardProps) {
   const onClick = (url: string) => {
     window.open(url, '_blank');
   }

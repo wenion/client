@@ -287,6 +287,22 @@ export class FrameSyncService {
     this._setupSyncChangeEffect();
   }
 
+  private _addressBackspace(text: string) {
+    const backspace = "`Backspace`";  // Define the backspace string
+    let index = text.indexOf(backspace);  // Find the first occurrence of backspace
+    let pre = "";
+    let remain = "";
+
+    while (index !== -1) {  // Continue as long as `Backspace` exists
+      pre = text.slice(0, index - 1);  // Get the part before backspace, excluding the char before it
+      remain = text.slice(index + backspace.length);  // Get the part after backspace
+      text = pre + remain;  // Reassemble the string
+
+      index = text.indexOf(backspace);  // Find the next backspace in the updated text
+    }
+    return text;
+  }
+
   private _addClientInformation(trace : Trace | ClickTrace | KeyTrace | ScrollTrace | ChangeTrace) {
     return {
       ...trace,
@@ -360,6 +376,8 @@ export class FrameSyncService {
       ) {
         const add = { ...this._lastTrace };
         add.custom = 'type';
+        add.label = this._addressBackspace(add.label);
+
         this._streamer.send(add);
         if (this._store.getSync('recording')) {
           const msg = {
@@ -390,6 +408,7 @@ export class FrameSyncService {
         if (trace.custom === 'type' && trace.type === 'keydown') {
           const add = { ...this._lastTrace};
           add.custom = 'type';
+          add.label = this._addressBackspace(add.label);
 
           this._streamer.send(add);
           if (this._store.getSync('recording')) {
@@ -410,6 +429,7 @@ export class FrameSyncService {
           // add onchange2
           const added = { ...this._lastTrace};
           added.custom = 'type';
+          added.label = this._addressBackspace(added.label);
 
           this._streamer.send(added);
           if (this._store.getSync('recording')) {

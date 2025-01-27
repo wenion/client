@@ -16,7 +16,7 @@ import { ListenerCollection } from '../../shared/listener-collection';
 import { useSidebarStore } from '../store';
 import type { kmProcess, RecordStep } from '../../types/api';
 import { getElementHeightWithMargins } from '../util/dom';
-import Detail from './DataComicsDetail';
+import ComicsCard from './ComicsCard';
 import ArrowIcon from '../../images/icons/dataComicsArrow';
 
 
@@ -223,7 +223,7 @@ export type ComicListProps = {
 /**
  * Create the iframe that will load the notebook application.
  */
-function ComicList({
+function ComicsList({
   onClose,
   onRefreshStep,
   frameSync,
@@ -516,7 +516,7 @@ function ComicList({
           <div>
             {/* <div style={{ height: offscreenUpperHeight }} /> */}
             {recordSteps.map(child => (
-              <Detail
+              <ComicsCard
                 onImageClick={(id) => onDblClick(id)}
                 onElementSizeChanged={onRendered}
                 step={child}
@@ -530,4 +530,4 @@ function ComicList({
   );
 }
 
-export default withServices(ComicList, ['frameSync']);
+export default withServices(ComicsList, ['frameSync']);
