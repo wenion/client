@@ -40,7 +40,7 @@ export class RecordingService {
         try {
           const traceSteps = await this._api.traces.list({ id: id });
           this._store.addRecordSteps(traceSteps);
-          this._store.selectTab('recording');
+          this._store.selectTab('shareflow');
           this._store.setRecordTabView(id);
         } catch (err) {
           this._store.setRecordTabView('list');
@@ -48,7 +48,7 @@ export class RecordingService {
         }
       }
       else {
-        this._store.selectTab('recording');
+        this._store.selectTab('shareflow');
         this._store.setRecordTabView(newView);
       }
     }

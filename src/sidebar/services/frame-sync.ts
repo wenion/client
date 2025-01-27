@@ -678,7 +678,7 @@ export class FrameSyncService {
           const {id, scrollToId} = await this._recordingService.readTracking();
           if (id) {
             this._hostRPC.call('openSidebar');
-            this._store.selectTab('recording');
+            this._store.selectTab('shareflow');
             await this._recordingService.selectRecordTabView('view', id);
             this._recordingService.scrollTo(scrollToId);
           }
@@ -929,7 +929,7 @@ export class FrameSyncService {
     });
 
     this._hostRPC.on('selectDataComics', (arg : {session_id: string, user_id: string})=> {
-      this._store.selectTab('recording');
+      this._store.selectTab('shareflow');
     })
 
     // When user toggles the highlight visibility control in the sidebar container,
@@ -952,7 +952,7 @@ export class FrameSyncService {
         if (status) {
           // recording prompt
           this._hostRPC.call('openSidebar');
-          this._store.selectTab('recording');
+          this._store.selectTab('shareflow');
 
           let taskName = '';
           let description = '';

@@ -75,9 +75,9 @@ function MessageCard({ message, recordingService }: MessageCardProps) {
                           )}
                           onClick={() => {
                             if (e.session_id && e.user_id) {
-                              store.selectTab('recording');
-                              store.changeRecordingStage('Idle');
-                              recordingService.getRecording(e.session_id, e.user_id)
+                              store.selectTab('shareflow');
+                              // store.changeRecordingStage('Idle');
+                              // recordingService.getRecording(e.session_id, e.user_id)
                             }
                           }}
                         >
