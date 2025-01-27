@@ -53,6 +53,7 @@
   --avatar-size: 1.5rem;
   --grid-gap: 1rem;
   --group-header-spacing: 1rem;
+  --dynamic-height: calc(100vh - 9rem);
 }
 
 .message-grid {
@@ -141,7 +142,7 @@
 }
 
 .data-comics-content {
-  margin-top: 2rem;
+  margin-top: 1rem;
 }
 
 .data-comics-node {

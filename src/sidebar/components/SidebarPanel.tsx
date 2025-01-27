@@ -71,7 +71,7 @@ export default function SidebarPanel({
           title={title}
           icon={icon}
           onClose={closePanel}
-          transitionComponent={Slider}
+          // transitionComponent={Slider}
           variant={variant}
           scrollable={false}
         >

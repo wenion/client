@@ -12,7 +12,7 @@ const capitalize = (word: string | null) => {
 
 type TimelineCardProps = {
   trace: RecordStep;
-  onElementSizeChanged: (id: string) => void,
+  onElementSizeChanged: (id: string) => void;
 };
 
 export default function TimelineCard({

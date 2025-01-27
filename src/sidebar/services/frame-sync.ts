@@ -1022,7 +1022,7 @@ export class FrameSyncService {
           username(this._store.profile().userid),
           new Blob([htmlContent], { type: 'text/html' }),
           () => {
-            this._toastMessenger.success(title + "uploaded successfully!")
+            this._toastMessenger.success(title + " uploaded successfully!")
           }
         )
       }

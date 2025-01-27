@@ -6,6 +6,7 @@ import { useSidebarStore } from '../store';
 import ActionList from './ActionList';
 import RecordingList from './RecordingList';
 import TimelineList from './TimelineList';
+import ComicList from './DataComics';
 import type { RecordItem, RecordStep } from '../../types/api';
 
 type RecordingTabProps = {
@@ -68,8 +69,7 @@ function RecordingTab({
         <RecordingList onOpen={onOpen}/>
       )}
       {recordView === 'view' && (
-        <TimelineList
-          onNewPage={onNewPage}
+        <ComicList
           onRefreshStep={onRefreshStep}
           onClose={onClose}
         />

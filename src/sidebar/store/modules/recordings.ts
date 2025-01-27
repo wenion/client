@@ -23,10 +23,6 @@ function initialState(): State {
   }
 }
 
-function sortByTaskName(a: RecordItem, b: RecordItem) {
-  return a.taskName.localeCompare(b.taskName);
-}
-
 /**
  * Merge client annotation data into the annotation object about to be added to
  * the store's collection of `annotations`.
@@ -61,7 +57,7 @@ const reducers = {
     }
 
     return {
-      recordItems: state.recordItems.concat(added).sort(sortByTaskName),
+      recordItems: state.recordItems.concat(added),
     };
   },
 
@@ -76,14 +72,14 @@ const reducers = {
     },
   ): Partial<State> {
     return {
-      recordItems: [...action.remainingRecordItems].sort(sortByTaskName),
+      recordItems: [...action.remainingRecordItems],
     };
   },
 
   UPDATE_RECORDITEM(state: State, action: { recordItem: RecordItem },): Partial<State> {
     const remain = state.recordItems.filter(r => r.id !== action.recordItem.id);
     return {
-      recordItems: remain.concat(action.recordItem).sort(sortByTaskName),
+      recordItems: remain.concat(action.recordItem),
     }
   },
 
