@@ -178,10 +178,10 @@ function SidebarTabs({
           <Tab
             count={recordItemsCount}
             isWaitingToAnchor={isWaitingToAnchorAnnotations}
-            isSelected={selectedTab === 'recording'}
+            isSelected={selectedTab === 'shareflow'}
             label="ShareFlows"
-            name="recording"
-            onSelect={() => selectTab('recording')}
+            name="shareflow"
+            onSelect={() => selectTab('shareflow')}
           >
             ShareFlows
           </Tab>
@@ -277,7 +277,7 @@ function SidebarTabs({
             </Card>
           )}
           {selectedTab === 'message' && <MessageTab />}
-          {selectedTab === 'recording' && <RecordingTab />}
+          {selectedTab === 'shareflow' && <RecordingTab />}
           {/* {selectedTab == 'video' && <VideoThreadList threads={rootVideoThread.children} />} */}
           {(selectedTab === 'annotation' || selectedTab === 'note' || selectedTab === 'orphan' ) && (
             <ThreadList threads={rootThread.children} />

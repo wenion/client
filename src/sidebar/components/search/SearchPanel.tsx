@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@hypothesis/frontend-shared';
-import { useRef } from 'preact/hooks';
+import { useMemo, useRef } from 'preact/hooks';
 
 import { useSidebarStore } from '../../store';
 import SidebarPanel from '../SidebarPanel';
@@ -9,12 +9,18 @@ import SearchField from './SearchField';
 export default function SearchPanel() {
   const store = useSidebarStore();
   const filterQuery = store.filterQuery();
+  const selectedTab = store.selectedTab();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const hasSelection = store.hasSelectedAnnotations();
 
   const clearSearch = () => {
-    store.closeSidebarPanel('searchAnnotations');
+    // store.closeSidebarPanel('searchAnnotations');
   };
+
+  const defaultPlaceholder = useMemo(
+    () => "Search " + selectedTab + "s…",
+    [selectedTab]
+  );
 
   return (
     <SidebarPanel
@@ -29,6 +35,7 @@ export default function SearchPanel() {
             <SearchField
               inputRef={inputRef}
               classes="grow"
+              defaultPlaceholder={defaultPlaceholder}
               // Disable the input when there is a selection, as the selection
               // replaces any other filters.
               disabled={hasSelection}

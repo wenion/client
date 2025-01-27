@@ -20,7 +20,7 @@ const TAB_SORTKEY_DEFAULT: Record<TabName, SortKey> = {
   orphan: 'Location',
   video: 'Location',
   message: 'Location',
-  recording: 'Newest',
+  shareflow: 'Newest',
 };
 
 function initialSelection(settings: SidebarSettings): BooleanMap {

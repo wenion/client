@@ -13,7 +13,6 @@ import { formatRelativeDate } from '../util/time';
 import { useSidebarStore } from '../store';
 import type { RecordItem } from '../../types/api';
 import RecordingMenu from './RecordingMenu';
-import { off } from 'hammerjs';
 
 const capitalize = (word: string) => {
   return word.charAt(0).toUpperCase() + word.slice(1);
@@ -160,7 +159,7 @@ export default function RecordingList({
         ref={headerElement}
         className='m-4 text-xl'
       >
-        Saved ShareFlow (Comic)
+        {(query && query !== "" && "Search results: " + query) || "Saved ShareFlow (Comic)"}
       </h1>
       <div
         ref={contentElement}

@@ -32,6 +32,8 @@ export type SearchFieldProps = {
 
   /** Classes to be added to the outermost element */
   classes?: string | string[];
+
+  defaultPlaceholder?: string;
 };
 
 /**
@@ -40,6 +42,7 @@ export type SearchFieldProps = {
  */
 export default function SearchField({
   classes,
+  defaultPlaceholder,
   disabled = false,
   inputRef,
   onClearSearch,
@@ -73,6 +76,13 @@ export default function SearchField({
       onSearch(input.current?.value ?? '');
     }
   };
+
+  const onClear = () => {
+    onSearch("");
+    setPendingQuery("");
+    onClearSearch();
+  };
+
   // When the active query changes outside of this component, update the input
   // field to match. This happens when clearing the current filter for example.
   if (query !== prevQuery) {
@@ -107,7 +117,7 @@ export default function SearchField({
           data-testid="search-input"
           dir="auto"
           name="query"
-          placeholder={(isLoading && 'Loading…') || 'Search annotations…'}
+          placeholder={(isLoading && 'Loading…') || defaultPlaceholder}
           disabled={disabled || isLoading}
           elementRef={input}
           value={pendingQuery || ''}
@@ -123,7 +133,7 @@ export default function SearchField({
             icon={CancelIcon}
             data-testid="clear-button"
             title="Clear search"
-            onClick={onClearSearch}
+            onClick={onClear}
             disabled={disabled}
           />
         )}
