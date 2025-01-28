@@ -102,12 +102,14 @@ function capitalizeFirstLetter(str: string): string {
 type ComicHeaderProps = {
   index: number;
   title: string;
+  description: string;
   url: string;
 };
 
 function ComicHeader({
   index,
   title,
+  description,
   url,
 }: ComicHeaderProps) {
   const onClick = (url: string) => {
@@ -118,19 +120,19 @@ function ComicHeader({
     <div
       className={classnames(
         "text-lg text-neutral-900 text-center",
-        "border border-black",
+        "border-4 bg-white",
         'hover:shadow-lg',
         'cursor-pointer',
         'p-2',
-        {"bg-green-200" : index % 4 === 0 },
-        {"bg-pink-200" : index % 4 === 1},
-        {"bg-sky-200" : index % 4 === 2},
-        {"bg-purple-200" : index % 4 === 3},
+        {"border-green-200" : index % 4 === 0 },
+        {"border-pink-200" : index % 4 === 1},
+        {"border-sky-200" : index % 4 === 2},
+        {"border-purple-200" : index % 4 === 3},
       )}
       title={url}
       onClick={() => onClick(url)}
     >
-      <b>Navigate to:</b>{" "}{title}
+      <b>{title}:</b>{" "} {description}
     </div>
   )
 }
@@ -252,7 +254,8 @@ export default function ComicsCard({
         {step.tagName === 'Navigate' || step.tagName === 'Switch' ? (
           <ComicHeader
             index={step.index!}
-            title={step.description??step.url}
+            title={step.title}
+            description={step.description??step.url}
             url={step.url}
           />
           ) : (
