@@ -294,9 +294,13 @@ export class FrameSyncService {
     let remain = "";
 
     while (index !== -1) {  // Continue as long as `Backspace` exists
-      pre = text.slice(0, index - 1);  // Get the part before backspace, excluding the char before it
-      remain = text.slice(index + backspace.length);  // Get the part after backspace
-      text = pre + remain;  // Reassemble the string
+      if (index === 0) {
+        text = text.slice(index + backspace.length);
+      } else {
+        pre = text.slice(0, index - 1);  // Get the part before backspace, excluding the char before it
+        remain = text.slice(index + backspace.length);  // Get the part after backspace
+        text = pre + remain;  // Reassemble the string
+      }
 
       index = text.indexOf(backspace);  // Find the next backspace in the updated text
     }
@@ -328,6 +332,10 @@ export class FrameSyncService {
       let skip = false;
       let discard = false;
       let trace = this._addClientInformation(_trace);
+
+      if (trace.tagName === "Navigate" || trace.tagName === "Switch") {
+        trace.label = this._store.mainFrame()?.metadata.title?? trace.url;
+      }
 
       if (trace.type === 'keydown' && trace.custom === 'type') {
         const customChangeTrace = trace as KeyTrace;
@@ -379,19 +387,6 @@ export class FrameSyncService {
         add.label = this._addressBackspace(add.label);
 
         this._streamer.send(add);
-        if (this._store.getSync('recording')) {
-          const msg = {
-            title: add.custom,
-            type: add.type,
-            description: add.label,
-            imgSrc: add.image === '' ? null : add.image,
-            width: add.width,
-            height: add.height,
-            clientX: null,
-            clientY: null,
-          };
-          this._store.addTrace(msg);
-        }
         this._lastTrace = add;
 
         const keyTrace = trace as KeyTrace;
@@ -411,19 +406,6 @@ export class FrameSyncService {
           add.label = this._addressBackspace(add.label);
 
           this._streamer.send(add);
-          if (this._store.getSync('recording')) {
-            const msg = {
-              title: add.custom,
-              type: add.type,
-              description: add.label,
-              imgSrc: add.image === '' ? null : add.image,
-              width: add.width,
-              height: add.height,
-              clientX: null,
-              clientY: null,
-            };
-            this._store.addTrace(msg);
-          }
           this._lastTrace = add;
         } else if (trace.type !== 'change') {
           // add onchange2
@@ -432,19 +414,6 @@ export class FrameSyncService {
           added.label = this._addressBackspace(added.label);
 
           this._streamer.send(added);
-          if (this._store.getSync('recording')) {
-            const msg = {
-              title: added.custom,
-              type: added.type,
-              description: added.label,
-              imgSrc: added.image === '' ? null : added.image,
-              width: added.width,
-              height: added.height,
-              clientX: null,
-              clientY: null,
-            };
-            this._store.addTrace(msg);
-          }
           this._lastTrace = added;
         }
       }
@@ -483,19 +452,6 @@ export class FrameSyncService {
           };
 
           this._streamer.send(add);
-          if (this._store.getSync('recording')) {
-            const msg = {
-              title: add.custom,
-              type: add.type,
-              description: add.label,
-              imgSrc: add.image === '' ? null : add.image,
-              width: add.width,
-              height: add.height,
-              clientX: null,
-              clientY: null,
-            };
-            this._store.addTrace(msg);
-          }
         }
       }
 
@@ -517,28 +473,28 @@ export class FrameSyncService {
         discard = false;
       }
 
+      // google excel
+      if (
+        trace.url.startsWith("https://docs.google.com/spreadsheets/") &&
+        this._lastTrace.url.startsWith("https://docs.google.com/spreadsheets/")
+      ) {
+        const currURL = new URL(trace.url);
+        const lastURL = new URL(this._lastTrace.url);
+        if (
+          currURL.pathname === lastURL.pathname &&
+          currURL.search !== lastURL.search
+        ) {
+          const added = { ...trace};
+          added.tagName = 'Switch',
+          added.custom = 'Tab switch';
+          added.image = '';
+          added.label = this._lastTrace.label;
+          this._streamer.send(added);
+        }
+      }
+
       if (!skip) {
         this._streamer.send(trace);
-        if (this._store.getSync('recording')) {
-          let clientX = null;
-          let clientY = null;
-          if (trace.custom === 'click') {
-            const clickTrace = trace as ClickTrace;
-            clientX = clickTrace.clientX;
-            clientY = clickTrace.clientY;
-          }
-          const msg = {
-            title: trace.custom,
-            type: trace.type,
-            description: trace.label,
-            imgSrc: trace.image === '' ? null : trace.image,
-            width: trace.width,
-            height: trace.height,
-            clientX: clientX,
-            clientY: clientY,
-          };
-          this._store.addTrace(msg);
-        }
       }
 
       if (!discard) {
