@@ -110,7 +110,7 @@ export default function ImageViewerModal({
 
   const find = useCallback((direction: string) => {
     if (trace && timeLineList) {
-      const index = trace.index!;
+      const index = timeLineList.findIndex(item => item.id === trace.id);
       if (direction === 'prev' && index > 0) {
         setId(timeLineList[index - 1].id);
       } else if (direction === 'next' && index < timeLineList.length - 1 ) {

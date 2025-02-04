@@ -141,8 +141,14 @@
   border-style: solid; /* Ensure border style is solid */
 }
 
-.data-comics-content {
+.data-comics-item {
   margin-top: 1rem;
+}
+
+.data-comics-content {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
 .data-comics-node {

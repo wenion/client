@@ -12,10 +12,13 @@ import SubmitIcon from '../../images/icons/action-submit';
 import ScrollDownIcon from '../../images/icons/action-scroll-down';
 import SearchIcon from '../../images/icons/action-search';
 import QuestionIcon from '../../images/icons/action-question';
+import CopyIcon from '../../images/icons/action-copy';
+import PasteIcon from '../../images/icons/action-paste';
+import AnnotationIcon from '../../images/icons/action-annotation';
 
 type ThumbnailProps = {
   trace: RecordStep;
-  onClickEvent: (id: string) => void,
+  onClickEvent: (id: string) => void;
   onElementSizeChanged: (id: string) => void;
 };
 
@@ -52,7 +55,7 @@ function Thumbnail({
   useLayoutEffect(()=> {
     updateCirclePosition();
     onElementSizeChanged(trace.id);
-  }, [loaded])
+  }, [loaded]);
 
   // const hover = (hoved: boolean) => {
   //   if (hoved && circleRef.current) {
@@ -64,7 +67,6 @@ function Thumbnail({
   // }
 
   return (
-    // <div className='relative p-1 cursor-pointer border hover:shadow-lg my-0.5'>
     <div
       className='relative p-1 cursor-pointer border hover:shadow-lg overflow-clip'
       onClick={() => onClickEvent(trace.id)}
@@ -100,18 +102,24 @@ function capitalizeFirstLetter(str: string): string {
 }
 
 type ComicHeaderProps = {
-  index: number;
+  id: string;
   title: string;
   description: string;
   url: string;
+  onElementSizeChanged: (id: string) => void;
 };
 
 function ComicHeader({
-  index,
+  id,
   title,
   description,
   url,
+  onElementSizeChanged,
 }: ComicHeaderProps) {
+  useLayoutEffect(()=> {
+    onElementSizeChanged(id);
+  }, []);
+
   const onClick = (url: string) => {
     window.open(url, '_blank');
   }
@@ -120,14 +128,11 @@ function ComicHeader({
     <div
       className={classnames(
         "text-lg text-neutral-900 text-center",
-        "border-4 bg-white",
+        "border-4",
         'hover:shadow-lg',
         'cursor-pointer',
         'p-2',
-        {"border-green-200" : index % 4 === 0 },
-        {"border-pink-200" : index % 4 === 1},
-        {"border-sky-200" : index % 4 === 2},
-        {"border-purple-200" : index % 4 === 3},
+        "border-pink-200",
       )}
       title={url}
       onClick={() => onClick(url)}
@@ -138,62 +143,63 @@ function ComicHeader({
 }
 
 type ComicItemProps = {
-  type: string;
-  content: string;
-  title: string;
+  trace: RecordStep;
   isAlign: boolean;
+  onElementSizeChanged: (id: string) => void;
 };
 
 function ComicItem({
-  type,
-  content,
-  title,
-  isAlign = false
+  trace,
+  isAlign = false,
+  onElementSizeChanged,
 }: ComicItemProps) {
-  const displayContent = content.length > 60 ? content.slice(0, 60) : content.length > 35 ? content.slice(0, 35) : content;
+  useLayoutEffect(()=> {
+    onElementSizeChanged(trace.id);
+  }, []);
 
   return (
     <div
       className={classnames(
-        'grid grid-rows-3 grid-flow-col gap-y-1',
+        'grid grid-rows-3 grid-flow-col',
         'justify-self-center content-center',
-        {
-          'gap-x-4': !isAlign,
-        },
-        {'data-comics-image gap-x-2': isAlign},
         'text-lg text-blue-chathams text-center',
         'border border-black my-0.5',
         'hover:shadow-lg',
         'cursor-pointer',
+        "h-20",
       )}
-      title={title}
+      title={trace.title}
       // onClick={e => onClick(step.url)}
     >
       <div
         className={classnames(
           "justify-self-center content-center row-span-3",
-          {"data-comics-icon": isAlign},
-          {
-            "min-w-20 max-w-24 p-4": !isAlign,
-          },
+          "text-black p-1",
+          "min-w-10 p-2",
         )}
       >
-        {type.toLowerCase() === "click" ? (
+        {trace.title === "click" ? (
           <ClickIcon />
-        ) : type.toLowerCase() === "type" || type.toLowerCase() === "keydown"  ? (
+        ) : trace.title === "type" && trace.tagName !== "SELECT" ? (
           <TypeIcon />
-        ) : type.toLowerCase() === "scroll" && content.toLowerCase() === "down" ? (
-          <ScrollDownIcon />
-        ) : type.toLowerCase() === "scroll" && content.toLowerCase() === "up" ? (
-          <ScrollUpIcon />
-        ) : type.toLowerCase() === "submit" ? (
-          <SubmitIcon />
-        ) : type.toLowerCase() === "search" ? (
-          <SearchIcon />
-        ) : type.toLowerCase() === "select" ? (
-          <SelectionIcon />
-        ) : type.toLowerCase() === "selectarea" ? (
+        ) : trace.title === "select" ? (
           <SelectAreaIcon />
+        ) : trace.title === "scroll" && trace.description === "down" ? (
+          <ScrollDownIcon />
+        ) : trace.title === "scroll" && trace.description === "up" ? (
+          <ScrollUpIcon />
+        ) : trace.title === "submit" ? (
+          <SubmitIcon />
+        ) : trace.title === "search" ? (
+          <SearchIcon />
+        ) : trace.title === "type" && trace.tagName === "SELECT" ? (
+          <SelectionIcon />
+        ) : trace.title === "copy" ? (
+          <CopyIcon />
+        ) : trace.title === "paste" ? (
+          <PasteIcon />
+        ) : trace.type === "annotation" ? (
+          <AnnotationIcon />
         ) : (
           <QuestionIcon />
         )}
@@ -201,22 +207,34 @@ function ComicItem({
       <span className={classnames(
         "col-span-2 border-b border-l border-black",
         "text-lg text-black font-bold content-center",
-        "px-4"
+        "px-4",
       )}>
-        {capitalizeFirstLetter(type)}
+        {capitalizeFirstLetter(trace.title)}
       </span>
       <div
         className={classnames(
-          "row-span-2 col-span-2",
-          "justify-self-center content-center",
+          "flex row-span-2 col-span-2",
+          "h-full",
+          // "p-1",
+          "pl-1",
+          "bg-transparent",
           {"italic": isAlign},
-          "overflow-hidden text-ellipsis",
-          {"text-sm": content.length >= 35 && content.length <60},
-          {"text-xs": content.length >= 60}
+          "cursor-pointer",
         )}
-        title={content}
       >
-        {displayContent}
+        <div
+          className={classnames(
+            "text-sm",
+            "overflow-hidden",
+            "text-ellipsis",
+            "content-center",
+            "break-words",
+            "data-comics-content"
+          )}
+          title={trace.description}
+        >
+          {trace.description}
+        </div>
       </div>
     </div>
   )
@@ -237,45 +255,36 @@ export default function ComicsCard({
     window.open(url, '_blank');
   }
 
-  const getFirstQuotationContent = (text: string) => {
-    const match = text.match(/"([^"]*)"/);
-    if (match) {
-      return(match[1]); // Output: 'the text'
-    }
-    return text
-  }
-
   return (
     <>
       <div
-        className={classnames({'data-comics-content': step.index})}
-        id={'ps_' + step.id}
+        className={classnames({'data-comics-item': step.index})}
+        id={step.id}
       >
         {step.tagName === 'Navigate' || step.tagName === 'Switch' ? (
           <ComicHeader
-            index={step.index!}
+            id={step.id}
             title={step.title}
             description={step.description??step.url}
             url={step.url}
+            onElementSizeChanged={onElementSizeChanged}
           />
-          ) : (
-            <div class="flex">
-              <ComicItem
-                type={step.title??''}
-                content={getFirstQuotationContent(step.description??'')}
-                title={step.title??''}
-                isAlign={step.image ? true: false}
+        ) : (
+          <div class="flex">
+            <ComicItem
+              trace={step}
+              isAlign={step.image ? true: false}
+              onElementSizeChanged={onElementSizeChanged}
+            />
+            {step.image && (
+              <Thumbnail
+                trace={step}
+                onClickEvent={onImageClick}
+                onElementSizeChanged={onElementSizeChanged}
               />
-              {step.image && (
-                <Thumbnail
-                  trace={step}
-                  onClickEvent={onImageClick}
-                  onElementSizeChanged={onElementSizeChanged}
-                />
-              )}
-            </div>
-          )
-        }
+            )}
+          </div>
+        )}
       </div>
     </>
   )

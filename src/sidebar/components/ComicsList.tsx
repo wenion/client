@@ -365,10 +365,10 @@ function ComicsList({
 
     const topThreadId = topThread?.id || null;
     if (firstRender) {
-      if (topThreadId !== focusedStepId) {
-        if (!allLoaded) {
+      if (topThreadId !== focusedStepId && !allLoaded) {
+        // if (!allLoaded) {
           setScrollToId(focusedStepId);
-        }
+        // }
       } else {
         if (allLoaded) {
           setFirstRender(false);
@@ -420,9 +420,9 @@ function ComicsList({
       }
 
       let imageHeight = 0;
-      if (imageElement && imageElement.classList.contains('hidden')) {
-        imageHeight = getElementHeightWithMargins(imageElement);
-      }
+      // if (imageElement && imageElement.classList.contains('hidden')) {
+      //   imageHeight = getElementHeightWithMargins(imageElement);
+      // }
 
       const height = getElementHeightWithMargins(threadElement) - imageHeight;
       if (height !== prevHeights.get(id)) {
@@ -509,11 +509,13 @@ function ComicsList({
         style={contentStyle}
       >
         <div
-          className={'h-full overflow-auto'}
+          className={'h-full overflow-auto bg-white'}
           ref={scrollRef}
           onMouseLeave={onMouseLeave}
         >
-          <div>
+          <div
+            className={"mx-2"}
+          >
             {/* <div style={{ height: offscreenUpperHeight }} /> */}
             {recordSteps.map(child => (
               <ComicsCard
