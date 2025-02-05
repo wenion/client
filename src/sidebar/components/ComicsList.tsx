@@ -366,9 +366,9 @@ function ComicsList({
     const topThreadId = topThread?.id || null;
     if (firstRender) {
       if (topThreadId !== focusedStepId && !allLoaded) {
-        // if (!allLoaded) {
+        if (!allLoaded) {
           setScrollToId(focusedStepId);
-        // }
+        }
       } else {
         if (allLoaded) {
           setFirstRender(false);

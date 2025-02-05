@@ -1,6 +1,8 @@
-import { useState, useRef, useLayoutEffect } from 'preact/hooks';
 import classnames from 'classnames';
+import debounce from 'lodash.debounce';
+import { useState, useRef, useLayoutEffect } from 'preact/hooks';
 
+import { ListenerCollection } from '../../shared/listener-collection';
 import type { RecordStep } from '../../types/api';
 
 import ClickIcon from '../../images/icons/action-click';
@@ -52,10 +54,29 @@ function Thumbnail({
     setLoaded(true);
   };
 
-  useLayoutEffect(()=> {
+  useLayoutEffect(() => {
     updateCirclePosition();
     onElementSizeChanged(trace.id);
   }, [loaded]);
+
+  useLayoutEffect(() => {
+    const listeners = new ListenerCollection();
+
+    const updatePosition = debounce(
+      () => {
+        updateCirclePosition();
+      },
+      10,
+      { maxWait: 100 },
+    );
+
+    listeners.add(window, 'resize', updatePosition);
+
+    return () => {
+      listeners.removeAll();
+      updatePosition.cancel();
+    };
+  }, []);
 
   // const hover = (hoved: boolean) => {
   //   if (hoved && circleRef.current) {
@@ -68,7 +89,12 @@ function Thumbnail({
 
   return (
     <div
-      className='relative p-1 cursor-pointer border hover:shadow-lg overflow-clip'
+      className={classnames(
+        "relative",
+        "p-1 cursor-pointer border",
+        "hover:shadow-lg",
+        "overflow-clip",
+      )}
       onClick={() => onClickEvent(trace.id)}
     >
       <img
@@ -174,7 +200,7 @@ function ComicItem({
       <div
         className={classnames(
           "justify-self-center content-center row-span-3",
-          "text-black p-1",
+          "text-black",
           "min-w-10 p-2",
         )}
       >
@@ -270,12 +296,16 @@ export default function ComicsCard({
             onElementSizeChanged={onElementSizeChanged}
           />
         ) : (
-          <div class="flex">
-            <ComicItem
-              trace={step}
-              isAlign={step.image ? true: false}
-              onElementSizeChanged={onElementSizeChanged}
-            />
+          <div className={"flex"}>
+            <div
+              className={"flex-1"}
+            >
+              <ComicItem
+                trace={step}
+                isAlign={step.image ? true: false}
+                onElementSizeChanged={onElementSizeChanged}
+              />
+            </div>
             {step.image && (
               <Thumbnail
                 trace={step}
