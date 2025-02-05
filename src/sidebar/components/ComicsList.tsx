@@ -16,7 +16,7 @@ import { ListenerCollection } from '../../shared/listener-collection';
 import { useSidebarStore } from '../store';
 import type { kmProcess, RecordStep } from '../../types/api';
 import { getElementHeightWithMargins } from '../util/dom';
-import ComicsCard from './ComicsCard';
+import { ComicHeader, ComicItem, ImageComicsCard, TextComicsCard} from './ComicsCard';
 import ArrowIcon from '../../images/icons/dataComicsArrow';
 
 
@@ -357,44 +357,44 @@ function ComicsList({
     });
   }, [scrollToId, threadHeights, topThread]);
 
-  useEffect(() => {
-    if (focusedStepId === null) {
-      setScrollToId(null);
-      return;
-    }
+  // useEffect(() => {
+  //   if (focusedStepId === null) {
+  //     setScrollToId(null);
+  //     return;
+  //   }
 
-    const topThreadId = topThread?.id || null;
-    if (firstRender) {
-      if (topThreadId !== focusedStepId && !allLoaded) {
-        if (!allLoaded) {
-          setScrollToId(focusedStepId);
-        }
-      } else {
-        if (allLoaded) {
-          setFirstRender(false);
-        }
-      }
-      return;
-    }
+  //   const topThreadId = topThread?.id || null;
+  //   if (firstRender) {
+  //     if (topThreadId !== focusedStepId && !allLoaded) {
+  //       if (!allLoaded) {
+  //         setScrollToId(focusedStepId);
+  //       }
+  //     } else {
+  //       if (allLoaded) {
+  //         setFirstRender(false);
+  //       }
+  //     }
+  //     return;
+  //   }
 
-    if (topThreadId !== focusedStepId) {
-      if (unreachableThreads.some(r => r.id === focusedStepId)) {
-        if (reverseTopThread) {
-          store.setFocusedStepId(reverseTopThread.id);
-          setScrollToId(reverseTopThread.id);
-        } else {
-          store.setFocusedStepId(null);
-        }
-      }
-      else {
-        if (shouldScroll) {
-          setScrollToId(focusedStepId);
-        }
-      }
-    } else {
-      store.setShouldScroll(false);
-    }
-  }, [focusedStepId, threadHeights, topThread, shouldScroll, firstRender, allLoaded])
+  //   if (topThreadId !== focusedStepId) {
+  //     if (unreachableThreads.some(r => r.id === focusedStepId)) {
+  //       if (reverseTopThread) {
+  //         store.setFocusedStepId(reverseTopThread.id);
+  //         setScrollToId(reverseTopThread.id);
+  //       } else {
+  //         store.setFocusedStepId(null);
+  //       }
+  //     }
+  //     else {
+  //       if (shouldScroll) {
+  //         setScrollToId(focusedStepId);
+  //       }
+  //     }
+  //   } else {
+  //     store.setShouldScroll(false);
+  //   }
+  // }, [focusedStepId, threadHeights, topThread, shouldScroll, firstRender, allLoaded])
 
   // When the set of TimelineCard height changes, recalculate the real rendered
   // heights of thread cards and update `threadHeights` state if there are changes.
@@ -466,6 +466,9 @@ function ComicsList({
     setContentHeight(window.innerHeight - sidebarPanelHeight - headerHeight - offset);
   }, [activePanelName]);
 
+  // The index of steps should be addressed
+  let n = 0;
+
   return (
     <>
       <header
@@ -517,13 +520,85 @@ function ComicsList({
             className={"mx-2"}
           >
             {/* <div style={{ height: offscreenUpperHeight }} /> */}
-            {recordSteps.map(child => (
-              <ComicsCard
-                onImageClick={(id) => onDblClick(id)}
-                onElementSizeChanged={onRendered}
-                step={child}
-              />
-            ))}
+            {
+              recordSteps.map((step, index) =>{
+                if (index !== n) {
+                  return;
+                } else {
+                  if (step.tagName === "Navigate" || step.tagName === "Switch") {
+                    n++;
+                    return (
+                      <ComicHeader
+                        trace={step}
+                        onElementSizeChanged={onRendered}
+                      />
+                    )
+                  } else if (step.image) {
+                    let accumulated = 0;
+                    let i = index + 1;
+                    let current = recordSteps[i];
+                    while (
+                      current &&
+                      current.image === null &&
+                      current.tagName !== "Navigate" &&
+                      current.tagName !== "Switch" &&
+                      accumulated < 2 // TODO decide by media screen size
+                    ) {
+                      // calculate the number of the following step which is without the image
+                      accumulated++;
+                      i = i + 1;
+                      current = recordSteps[i];
+                    }
+                    n = n + accumulated + 1;
+                    return (
+                      <ImageComicsCard
+                        onImageClick={(id) => onDblClick(id)}
+                        onElementSizeChanged={onRendered}
+                        step={step}
+                      >
+                        {recordSteps.slice(index, index + accumulated + 1).map(s =>
+                          <ComicItem
+                            trace={s}
+                            isAlign={s.image ? true: false}
+                            onElementSizeChanged={onRendered}
+                          />
+                        )}
+                      </ImageComicsCard>
+                    )
+                  } else {
+                    let accumulated = 0;
+                    let i = index + 1;
+                    let current = recordSteps[i];
+                    while (
+                      current &&
+                      current.image === null &&
+                      current.tagName !== "Navigate" &&
+                      current.tagName !== "Switch" &&
+                      accumulated < 1
+                    ) {
+                      accumulated++;
+                      i = i + 1;
+                      current = recordSteps[i];
+                    }
+                    n = n + accumulated + 1;
+                    return (
+                      <TextComicsCard
+                        step={step}
+                      >
+                        {recordSteps.slice(index, index + accumulated + 1).map(s =>
+                          <ComicItem
+                            trace={s}
+                            isAlign={s.image ? true: false}
+                            onElementSizeChanged={onRendered}
+                            classes='mr-0.5'
+                          />
+                        )}
+                      </TextComicsCard>
+                    )
+                  }
+                }
+              })
+            }
             {/* <div style={{ height: offscreenLowerHeight }} /> */}
           </div>
         </div>

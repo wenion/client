@@ -1,5 +1,6 @@
 import classnames from 'classnames';
 import debounce from 'lodash.debounce';
+import type { ComponentChildren, JSX } from 'preact';
 import { useState, useRef, useLayoutEffect } from 'preact/hooks';
 
 import { ListenerCollection } from '../../shared/listener-collection';
@@ -91,7 +92,8 @@ function Thumbnail({
     <div
       className={classnames(
         "relative",
-        "p-1 cursor-pointer border",
+        "ml-0.5",
+        "cursor-pointer border",
         "hover:shadow-lg",
         "overflow-clip",
       )}
@@ -128,22 +130,16 @@ function capitalizeFirstLetter(str: string): string {
 }
 
 type ComicHeaderProps = {
-  id: string;
-  title: string;
-  description: string;
-  url: string;
+  trace: RecordStep;
   onElementSizeChanged: (id: string) => void;
 };
 
-function ComicHeader({
-  id,
-  title,
-  description,
-  url,
+export function ComicHeader({
+  trace,
   onElementSizeChanged,
 }: ComicHeaderProps) {
   useLayoutEffect(()=> {
-    onElementSizeChanged(id);
+    onElementSizeChanged(trace.id);
   }, []);
 
   const onClick = (url: string) => {
@@ -152,18 +148,23 @@ function ComicHeader({
 
   return (
     <div
-      className={classnames(
-        "text-lg text-neutral-900 text-center",
-        "border-4",
-        'hover:shadow-lg',
-        'cursor-pointer',
-        'p-2',
-        "border-pink-200",
-      )}
-      title={url}
-      onClick={() => onClick(url)}
+      className={classnames({'data-comics-item': trace.index})}
+      id={trace.id}
     >
-      <b>{title}:</b>{" "} {description}
+      <div
+        className={classnames(
+          "text-lg text-neutral-900 text-center",
+          "border-4",
+          'hover:shadow-lg',
+          'cursor-pointer',
+          'p-2',
+          "border-pink-200",
+        )}
+        title={trace.url}
+        onClick={() => onClick(trace.url)}
+      >
+        <b>{trace.title}:</b>{" "} {trace.description??trace.url}
+      </div>
     </div>
   )
 }
@@ -172,12 +173,14 @@ type ComicItemProps = {
   trace: RecordStep;
   isAlign: boolean;
   onElementSizeChanged: (id: string) => void;
+  classes?: string;
 };
 
-function ComicItem({
+export function ComicItem({
   trace,
   isAlign = false,
   onElementSizeChanged,
+  classes,
 }: ComicItemProps) {
   useLayoutEffect(()=> {
     onElementSizeChanged(trace.id);
@@ -186,13 +189,14 @@ function ComicItem({
   return (
     <div
       className={classnames(
+        "w-full",
         'grid grid-rows-3 grid-flow-col',
         'justify-self-center content-center',
         'text-lg text-blue-chathams text-center',
-        'border border-black my-0.5',
+        'border border-black mb-0.5',
         'hover:shadow-lg',
         'cursor-pointer',
-        "h-20",
+        classes,
       )}
       title={trace.title}
       // onClick={e => onClick(step.url)}
@@ -230,18 +234,17 @@ function ComicItem({
           <QuestionIcon />
         )}
       </div>
-      <span className={classnames(
+      <div className={classnames(
         "col-span-2 border-b border-l border-black",
         "text-lg text-black font-bold content-center",
         "px-4",
       )}>
         {capitalizeFirstLetter(trace.title)}
-      </span>
+      </div>
       <div
         className={classnames(
           "flex row-span-2 col-span-2",
           "h-full",
-          // "p-1",
           "pl-1",
           "bg-transparent",
           {"italic": isAlign},
@@ -266,56 +269,67 @@ function ComicItem({
   )
 }
 
-type ComicsCardProps = {
+type ImageComicsCardProps = {
+  children: ComponentChildren;
   onImageClick: (id: string) => void;
   onElementSizeChanged: (id: string) => void;
   step: RecordStep;
 };
 
-export default function ComicsCard({
+export function ImageComicsCard({
+  children,
   onImageClick,
   onElementSizeChanged,
   step,
-}: ComicsCardProps) {
+}: ImageComicsCardProps) {
   const onClick = (url: string) => {
     window.open(url, '_blank');
   }
 
   return (
-    <>
-      <div
-        className={classnames({'data-comics-item': step.index})}
-        id={step.id}
-      >
-        {step.tagName === 'Navigate' || step.tagName === 'Switch' ? (
-          <ComicHeader
-            id={step.id}
-            title={step.title}
-            description={step.description??step.url}
-            url={step.url}
-            onElementSizeChanged={onElementSizeChanged}
-          />
-        ) : (
-          <div className={"flex"}>
-            <div
-              className={"flex-1"}
-            >
-              <ComicItem
-                trace={step}
-                isAlign={step.image ? true: false}
-                onElementSizeChanged={onElementSizeChanged}
-              />
-            </div>
-            {step.image && (
-              <Thumbnail
-                trace={step}
-                onClickEvent={onImageClick}
-                onElementSizeChanged={onElementSizeChanged}
-              />
-            )}
-          </div>
-        )}
+    <div
+      className={classnames({'data-comics-item': step.index})}
+      id={step.id}
+    >
+      <div className={"flex"}>
+        <div
+          className={"flex-1"}
+        >
+          {children}
+        </div>
+        <Thumbnail
+          trace={step}
+          onClickEvent={onImageClick}
+          onElementSizeChanged={onElementSizeChanged}
+        />
       </div>
-    </>
+    </div>
+  )
+}
+
+type TextComicsCardProps = {
+  step: RecordStep;
+  children: ComponentChildren;
+  classes?: string;
+};
+
+export function TextComicsCard({
+  step,
+  children,
+  classes,
+}: TextComicsCardProps) {
+  const onClick = (url: string) => {
+    window.open(url, '_blank');
+  }
+
+  return (
+    <div
+      className={classnames({'data-comics-item': step.index}, classes)}
+      id={step.id}
+    >
+      <div className={"flex"}>
+        {children}
+      </div>
+    </div>
   )
 }
