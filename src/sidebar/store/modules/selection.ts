@@ -9,7 +9,7 @@ import { countIf, trueKeys, toTrueMap } from '../../util/collections';
 import { createStoreModule, makeAction } from '../create-store';
 
 type BooleanMap = Record<string, boolean>;
-type SortKey = 'Location' | 'Newest' | 'Oldest';
+type SortKey = 'Location' | 'Newest' | 'Oldest' | 'User';
 
 /**
  * Default sort keys for each tab.
@@ -371,9 +371,12 @@ const sortKeys = createSelector(
   (state: State) => state.selectedTab,
   selectedTab => {
     const sortKeysForTab: SortKey[] = ['Newest', 'Oldest'];
-    if (selectedTab !== 'note') {
+    if (selectedTab !== 'note' && selectedTab !== 'shareflow') {
       // Location is inapplicable to Notes tab
       sortKeysForTab.push('Location');
+    }
+    if (selectedTab === 'shareflow') {
+      sortKeysForTab.push('User');
     }
     return sortKeysForTab;
   },

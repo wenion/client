@@ -114,6 +114,10 @@ export default function RecordingList({
       return dateA - dateB;
     },
 
+    User: (a: RecordItem, b: RecordItem) => {
+      return a.userid.localeCompare(b.userid);
+    },
+
     Location: (a: RecordItem, b: RecordItem) => {
       return a.userid.localeCompare(b.userid);
     },
