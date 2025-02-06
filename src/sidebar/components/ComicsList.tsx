@@ -14,49 +14,43 @@ import { withServices } from '../service-context';
 import type { FrameSyncService } from '../services/frame-sync';
 import { ListenerCollection } from '../../shared/listener-collection';
 import { useSidebarStore } from '../store';
-import type { kmProcess, RecordStep } from '../../types/api';
-import { getElementHeightWithMargins } from '../util/dom';
+import type { RecordStep } from '../../types/api';
+import {
+  getElementHeightWithMargins,
+  getElementWidthWithMargins,
+} from '../util/dom';
 import { ComicHeader, ComicItem, ImageComicsCard, TextComicsCard} from './ComicsCard';
 import ArrowIcon from '../../images/icons/dataComicsArrow';
 
+type NavComicsProps = {
+  steps: RecordStep[];
+  onClick: (step: RecordStep) => void;
+};
 
-function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[], onSelectImage: (id: number) => void;}) {
-  const imageRef = useRef<HTMLImageElement | null>(null);
+function NavComics({
+  steps,
+  onClick,
+}: NavComicsProps) {
   const scollRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    if (imageRef.current) {
-      imageRef.current.style.width = '80px';
-      imageRef.current.style.height = '80px';
-    }
-  }, [])
+  const navs = steps.filter(step => step.tagName === "Navigate" || step.tagName === "Switch");
 
-  const onImageClick = (id: number) => {
-    onSelectImage(id);
-  }
-
-  const truncateStringAtWhitespace = (str:string, charLimit:number) => {
-    if (str.length <= charLimit) {
-      return str;
+  const onNavClick = (step: RecordStep) => {
+    onClick(step);
+    const threadIndex = navs.findIndex(t => t.id === step.id);
+    if (threadIndex === -1) {
+      return;
     }
 
-    // Slice the string to get the first `charLimit` characters
-    let truncatedStr = str.slice(0, charLimit);
+    const xOffset = navs
+      .slice(0, threadIndex)
+      .reduce((total, thread) => total + getElementWidthWithMargins(document.getElementById("nav"+ thread.id)!), 0)
 
-    // Find the position of the last whitespace character within the truncated string
-    let lastWhitespaceIndex = truncatedStr.lastIndexOf(' ');
-
-    // If there is a whitespace character, trim the string at that position
-    if (lastWhitespaceIndex !== -1) {
-      truncatedStr = truncatedStr.slice(0, lastWhitespaceIndex);
-    }
-
-    if (!/[a-zA-Z0-9]$/.test(truncatedStr)) {
-      truncatedStr = truncatedStr.slice(0, -1);
-    }
-
-    return truncatedStr + '...';
-  }
+    scollRef.current!.scrollTo({
+      left: xOffset,
+      behavior: 'smooth',
+    })
+  };
 
   const onWheelEvent = (e: WheelEvent) => {
     e.preventDefault();
@@ -72,73 +66,76 @@ function SiteMap({id, process, onSelectImage}: {id: string; process: kmProcess[]
 
       scollRef.current.scrollLeft += e.deltaX;
     }
-  }
+  };
 
   const onArrowClick = (index: number) => {
-    let totallength = 0;
-    for (let i = 0; i < index; i++) {
-      const nodeElement = document.getElementById(`${id}` + '_' + `${i}`);
-      if (nodeElement) {
-        totallength += nodeElement.clientWidth + 30;
-      }
-      const arrowElement = document.getElementById(`${id}` + '_' + `${i}` + '_arrow');
-      if (arrowElement) {
-        totallength += arrowElement.clientWidth;
-      }
-    }
+    // let totallength = 0;
+    // for (let i = 0; i < index; i++) {
+    //   const nodeElement = document.getElementById(`${id}` + '_' + `${i}`);
+    //   if (nodeElement) {
+    //     totallength += nodeElement.clientWidth + 30;
+    //   }
+    //   const arrowElement = document.getElementById(`${id}` + '_' + `${i}` + '_arrow');
+    //   if (arrowElement) {
+    //     totallength += arrowElement.clientWidth;
+    //   }
+    // }
 
-    if (scollRef.current) {
-      scollRef.current.scrollTo({left: totallength, behavior: 'smooth'});
-      onSelectImage(index);
-    }
+    // if (scollRef.current) {
+    //   scollRef.current.scrollTo({left: totallength, behavior: 'smooth'});
+    //   // onSelectImage(index);
+    // }
+  }
+
+  if (navs.length === 1) {
+    return (
+    <>
+    </>
+    );
   }
 
   return (
-    <>
-      <div className="text-xl font-bold text-blue-chathams m-2" >Process Overview</div>
+    <div className="w-full h-24 comics-nav">
       <div
-        className='flex h-fit m-2 overflow-y-auto'
-        id={id}
+        className="flex w-full h-full overflow-x-auto bg-white"
         ref={scollRef}
         onWheel={(event) => onWheelEvent(event)}
       >
-        <div className='flex min-w-max justify-center'>
-        {process.map((p, index) => (
-          <>
-            {index !== 0 &&
+        {
+          navs.map((step, index) => (
+            <>
               <div
-                className='max-w-16 mx-1 cursor-pointer'
-                id={id + '_' + index + '_arrow'}
-                onClick={() => onArrowClick(index)}
-              >
-                <ArrowIcon />
-              </div>
-            }
-            <div className='grid grid-cols-1'>
-              <div
+                id={"nav" + step.id}
                 className={classnames(
-                  'place-self-center border border-gray-300 hover:border-2 hover:border-gray-500',
-                  'flex justify-center items-center text-nowrap',
-                  'text-blue-chathams relative cursor-pointer max-w-32',
-                  {
-                    'p-4': p.name.toLowerCase() !== 'match',
-                    'px-0': p.name.toLowerCase() === 'match',
-                    'py-4': p.name.toLowerCase() === 'match',
-                  }
+                  "border-4",
+                  "hover:shadow-lg",
+                  "cursor-pointer",
+                  "border-pink-200",
+                  "justify-center content-center",
+                  "min-w-32",
+                  "overflow-hidden",
+                  "px-4",     // Add padding for better spacing
                 )}
-                id={id + '_' + index}
-                onClick={() => onImageClick(index)}
+                title={step.description ?? step.url}
+                onClick={() => onNavClick(step)}
               >
-                {p.name.toLowerCase() === 'match' ? (<b>&nbsp;</b>) : (<b>{p.name}</b>)}
+                <b>Navigate to: </b>{step.description ?? step.url}
               </div>
-              <div className='flex text-xs text-center max-w-32 pt-2'>{truncateStringAtWhitespace(p.title, 40)}</div>
-            </div>
-          </>
-          )
-        )}
-        </div>
+              {index !== navs.length - 1 && (
+                <div
+                  className={classnames(
+                    "flex justify-center items-center px-2",
+                    "cursor-pointer",
+                  )}
+                >
+                  <ArrowIcon />
+                </div>
+              )}
+            </>
+          ))
+        }
       </div>
-    </>
+    </div>
   )
 }
 
@@ -240,6 +237,7 @@ function ComicsList({
   const [contentHeight, setContentHeight] = useState(0);
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const navRef = useRef<HTMLDivElement | null>(null);
   const previousTopThreadRef = useRef<RecordStep | null>(null);
 
   const [firstRender, setFirstRender] = useState(true);
@@ -327,6 +325,10 @@ function ComicsList({
     frameSync.notifyHost('openImageViewer', {id: id, timeLineList: recordSteps});
   }
 
+  const onNavClick = (step: RecordStep) => {
+    setScrollToId(step.id);
+  }
+
   // Effect to scroll a particular thread into view. This is mainly used to
   // scroll a newly created annotation into view.
   useEffect(() => {
@@ -344,8 +346,7 @@ function ComicsList({
     // Clear `scrollToId` so we don't scroll again after the next render.
     setScrollToId(null);
 
-    const getThreadHeight = (thread: RecordStep) =>
-      threadHeights.get(thread.id) || THREAD_DIMENSION_DEFAULTS.defaultHeight;
+    const getThreadHeight = (thread: RecordStep) => threadHeights.get(thread.id) ?? 0;
 
     const yOffset = topLevelThreads
       .slice(0, threadIndex)
@@ -455,7 +456,7 @@ function ComicsList({
   contentStyle['height'] = contentHeight;
 
   useLayoutEffect(() => {
-    const offset = 110;
+    let offset = 110;
     const headerHeight = getElementHeightWithMargins(headerElement.current!);
 
     let sidebarPanelHeight = 0;
@@ -463,8 +464,13 @@ function ComicsList({
     if (sidebarPanel) {
       sidebarPanelHeight = getElementHeightWithMargins(sidebarPanel);
     }
+
+    const navComics = document.querySelector('.comics-nav');
+    if (navComics) {
+      offset = offset + getElementHeightWithMargins(navComics);
+    }
     setContentHeight(window.innerHeight - sidebarPanelHeight - headerHeight - offset);
-  }, [activePanelName]);
+  }, [activePanelName, navRef.current]);
 
   // The index of steps should be addressed
   let n = 0;
@@ -507,6 +513,10 @@ function ComicsList({
           </div>
         </div>
       </header>
+      <NavComics
+        steps={recordSteps}
+        onClick={onNavClick}
+      />
       <div
         ref={contentElement}
         style={contentStyle}
@@ -521,7 +531,7 @@ function ComicsList({
           >
             {/* <div style={{ height: offscreenUpperHeight }} /> */}
             {
-              recordSteps.map((step, index) =>{
+              recordSteps.map((step, index) => {
                 if (index !== n) {
                   return;
                 } else {
