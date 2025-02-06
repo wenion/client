@@ -4,7 +4,6 @@ import { useLayoutEffect, useState } from 'preact/hooks';
 
 import { ListenerCollection } from '../../shared/listener-collection';
 import type { Thread as IThread } from '../helpers/build-thread';
-import { useSidebarStore } from '../../sidebar/store';
 import Thread from './Thread';
 
 // The precision of the `scrollPosition` value in pixels; values will be rounded
