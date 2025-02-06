@@ -217,7 +217,7 @@ function calculateFirstVisibleThread(
 }
 
 export type ComicListProps = {
-  onClose: () => void;
+  onClose: (id: string) => void;
   onRefreshStep: (record: string | null, recordStep: string | null) => void;
 
   frameSync: FrameSyncService;
@@ -513,7 +513,7 @@ function ComicsList({
             </Button>
             <Button
               classes={classnames('flex-none')}
-              onClick={onClose}
+              onClick={() => onClose(recordItem!.id)}
             >
               <LeaveIcon />
             </Button>

@@ -81,6 +81,7 @@ function RecordingSlider({
 
 export type RecordingListProps = {
   onOpen: (record: RecordItem) => void;
+  id: string | null;
 };
 
 /**
@@ -88,6 +89,7 @@ export type RecordingListProps = {
  */
 export default function RecordingList({
   onOpen,
+  id,
 }: RecordingListProps) {
   const store = useSidebarStore();
   const recordItems = store.recordItems();
@@ -99,6 +101,7 @@ export default function RecordingList({
 
   const headerElement = useRef<HTMLDivElement | null>(null);
   const contentElement = useRef<HTMLDivElement | null>(null);
+  const scollRef = useRef<HTMLDivElement | null>(null);
   const [contentHeight, setContentHeight] = useState(0);
 
   const sorters = {
@@ -157,6 +160,27 @@ export default function RecordingList({
     setContentHeight(window.innerHeight - sidebarPanelHeight - headerHeight - offset);
   }, [activePanelName]);
 
+  useLayoutEffect(() => {
+    if (!id) {
+      return;
+    }
+
+    const threadIndex = sortedRecordItems.findIndex(t => t.id === id);
+    if (threadIndex === -1) {
+      return;
+    }
+    const yOffset = sortedRecordItems
+      .slice(0, threadIndex)
+      .reduce((total, thread) => total + getElementHeightWithMargins(document.getElementById("list"+ thread.id)!), 0)
+
+    scollRef.current!.scrollTo({
+      top: yOffset,
+    })
+
+    setExpandedRecording(sortedRecordItems[threadIndex]);
+    setIsExpanded(true);
+  }, [])
+
   return (
     <div >
       <h1
@@ -170,10 +194,12 @@ export default function RecordingList({
         style={contentStyle}
       >
         <div
-          className={'h-full overflow-auto'}
+          className={'h-full overflow-y-auto'}
+          ref={scollRef}
         >
         {sortedRecordItems.map(record => (
           <div
+            id={'list' + record.id}
             className={classnames(
               'cursor-pointer',
               'shadow-lg hover:drop-shadow-2xl'

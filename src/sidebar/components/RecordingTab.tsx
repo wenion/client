@@ -1,4 +1,4 @@
-import { useMemo } from 'preact/hooks';
+import { useMemo, useState } from 'preact/hooks';
 
 import { withServices } from '../service-context';
 import type { RecordingService } from '../services/recording';
@@ -20,6 +20,7 @@ function RecordingTab({
   const allTraces = store.allTraces();
 
   const recordView = recordingService.getRecordTabView();
+  const [lastId, setLastId] = useState<string | null>(null);
 
   const onRefreshStep = (id: string | null, scrollToId: string | null) => {
     if (id && scrollToId) {
@@ -58,7 +59,8 @@ function RecordingTab({
     recordingService.updateTracking(record.id);
   };
 
-  const onClose = () => {
+  const onClose = (id: string) => {
+    setLastId(id);
     recordingService.selectRecordTabView('list');
     recordingService.updateTracking();
   };
@@ -66,7 +68,7 @@ function RecordingTab({
   return (
     <>
       {recordView === 'list' && (
-        <RecordingList onOpen={onOpen}/>
+        <RecordingList onOpen={onOpen} id={lastId}/>
       )}
       {recordView === 'view' && (
         <ComicList
