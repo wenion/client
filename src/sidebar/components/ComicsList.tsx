@@ -22,6 +22,11 @@ import {
 import { ComicHeader, ComicItem, ImageComicsCard, TextComicsCard} from './ComicsCard';
 import ArrowIcon from '../../images/icons/dataComicsArrow';
 
+function capitalizeFirstLetter(str: string): string {
+  if (str.length === 0) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 type NavComicsProps = {
   steps: RecordStep[];
   onClick: (step: RecordStep) => void;
@@ -107,19 +112,20 @@ function NavComics({
               <div
                 id={"nav" + step.id}
                 className={classnames(
-                  "border-4",
+                  "border-2 border-gray-400",
                   "hover:shadow-lg",
                   "cursor-pointer",
-                  "border-pink-200",
+                  "text-blue-chathams",
+                  "text-ellipsis",
                   "justify-center content-center",
                   "min-w-32",
                   "overflow-hidden",
-                  "px-4",     // Add padding for better spacing
+                  "px-4 m-2",     // Add padding for better spacing
                 )}
                 title={step.description ?? step.url}
                 onClick={() => onNavClick(step)}
               >
-                <b>Navigate to: </b>{step.description ?? step.url}
+                <b>{capitalizeFirstLetter(step.title)}:</b>{" "}{step.description ?? step.url}
               </div>
               {index !== navs.length - 1 && (
                 <div
@@ -474,6 +480,7 @@ function ComicsList({
 
   // The index of steps should be addressed
   let n = 0;
+  let navId = 0;
 
   return (
     <>
@@ -537,11 +544,22 @@ function ComicsList({
                 } else {
                   if (step.tagName === "Navigate" || step.tagName === "Switch") {
                     n++;
+                    navId++;
                     return (
-                      <ComicHeader
-                        trace={step}
-                        onElementSizeChanged={onRendered}
-                      />
+                      <>
+                        {navId !== 1 && (
+                          <div
+                            className="w-full h-2 bg-transparent"
+                          >
+                          </div>
+                        )}
+                        <ComicHeader
+                          id ={navId}
+                          trace={step}
+                          onElementSizeChanged={onRendered}
+                          classes={classnames({ "data-comics-nav": navId !== 1 })}
+                        />
+                      </>
                     )
                   } else if (step.image) {
                     let accumulated = 0;

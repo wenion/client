@@ -130,13 +130,17 @@ function capitalizeFirstLetter(str: string): string {
 }
 
 type ComicHeaderProps = {
+  id: number;
   trace: RecordStep;
   onElementSizeChanged: (id: string) => void;
+  classes?: string;
 };
 
 export function ComicHeader({
+  id,
   trace,
   onElementSizeChanged,
+  classes,
 }: ComicHeaderProps) {
   useLayoutEffect(()=> {
     onElementSizeChanged(trace.id);
@@ -148,22 +152,40 @@ export function ComicHeader({
 
   return (
     <div
-      className={classnames({'data-comics-item': trace.index})}
+      className={classnames(
+        "data-comics-item",
+        classes,
+      )}
       id={trace.id}
     >
       <div
         className={classnames(
-          "text-lg text-neutral-900 text-center",
-          "border-4",
+          "flex",
+          "text-lg text-blue-chathams text-center",
+          "border-2 border-gray-400",
           'hover:shadow-lg',
           'cursor-pointer',
+          "justify-center items-center",
           'p-2',
-          "border-pink-200",
         )}
         title={trace.url}
         onClick={() => onClick(trace.url)}
       >
-        <b>{trace.title}:</b>{" "} {trace.description??trace.url}
+        <div
+          className={classnames(
+            "flex m-1",
+            "rounded-full",
+            "bg-zinc-300 text-gray-600",
+            "border border-gray-600",
+            "w-8 h-8",
+            "justify-center items-center",
+          )}
+        >
+          {id}
+        </div>
+        <div className="flex-1">
+          <b>{capitalizeFirstLetter(trace.title)}:</b>{" "} {trace.description??trace.url}
+        </div>
       </div>
     </div>
   )
@@ -257,8 +279,9 @@ export function ComicItem({
             "overflow-hidden",
             "text-ellipsis",
             "content-center",
-            "break-words",
-            "data-comics-content"
+            "data-comics-content",
+            "word-break-word",
+            "hyphens-auto",
           )}
           title={trace.description}
         >

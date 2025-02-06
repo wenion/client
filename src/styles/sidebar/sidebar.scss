@@ -6,4 +6,7 @@
     .-rotate-90-scale-20 {
         @apply -rotate-90 scale-20;
       }
+    .word-break-word {
+        word-break: break-word;
+    }
   }

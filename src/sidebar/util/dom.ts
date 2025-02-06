@@ -22,3 +22,17 @@ export function getElementHeightWithMargins(element: Element): number {
 
   return elementHeight + marginHeight;
 }
+
+export function getElementWidthWithMargins(element: Element): number {
+  const style = window.getComputedStyle(element);
+  // Get the height of the element inside the border-box, excluding
+  // top and bottom margins.
+  const elementWidth = element.getBoundingClientRect().width;
+
+  // Get the bottom margin of the element. style.margin{Side} will return
+  // values of the form 'Npx', from which we extract 'N'.
+  const marginWidth =
+    parseFloat(style.marginLeft) + parseFloat(style.marginRight);
+
+  return elementWidth + marginWidth;
+}
