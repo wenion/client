@@ -184,17 +184,17 @@ function startApp(settings: SidebarSettings, appEl: HTMLElement) {
   container.run(setupFrameSync);
 
   // sidebar event
-  window.addEventListener('pointerdown', (event) => {
-    const _event = event as PointerEvent;
-    const _target = _event.target as HTMLElement;
-    const frameSync = container.get("frameSync") as FrameSyncService;
-    frameSync.sendTraceData(
-      'click',
-      'SIDERBAR',
-      _target.role === 'tab'? 'TAB': _target.id === 'shareflow'? 'SHAREFLOW' : _target.tagName,
-      _target.textContent?? _target.innerText,
-      _target.innerText)
-  })
+  // window.addEventListener('pointerdown', (event) => {
+  //   const _event = event as PointerEvent;
+  //   const _target = _event.target as HTMLElement;
+  //   const frameSync = container.get("frameSync") as FrameSyncService;
+  //   frameSync.sendTraceData(
+  //     'click',
+  //     'SIDERBAR',
+  //     _target.role === 'tab'? 'TAB': _target.id === 'shareflow'? 'SHAREFLOW' : _target.tagName,
+  //     _target.textContent?? _target.innerText,
+  //     _target.innerText)
+  // })
 
   // Render the UI.
   render(

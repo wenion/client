@@ -62,7 +62,7 @@ function NotebookView({ loadAnnotationsService, queryService, streamer }: Notebo
   // Establish websocket connection
   useEffect(() => {
     if (hasFetchedProfile) {
-      streamer.connect({ applyUpdatesImmediately: false });
+      // streamer.connect({ applyUpdatesImmediately: false });
     }
   }, [hasFetchedProfile, streamer]);
 

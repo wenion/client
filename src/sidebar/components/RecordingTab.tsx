@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'preact/hooks';
 
 import { withServices } from '../service-context';
+import type { FrameSyncService } from '../services/frame-sync';
 import type { RecordingService } from '../services/recording';
 import { useSidebarStore } from '../store';
 import ActionList from './ActionList';
@@ -10,10 +11,12 @@ import ComicList from './ComicsList';
 import type { RecordItem, RecordStep } from '../../types/api';
 
 type RecordingTabProps = {
+  frameSync: FrameSyncService;
   recordingService: RecordingService;
 };
 
 function RecordingTab({
+  frameSync,
   recordingService,
 }: RecordingTabProps) {
   const store = useSidebarStore();
@@ -44,10 +47,8 @@ function RecordingTab({
   //   // }
   // }
 
-  const onNewPage = (sessionId: string, userid?: string) => {
-    // if (userid) {
-    //   frameSync.notifyHost('openNewPage', {sessionId: sessionId, userid: userid});
-    // }
+  const onPageOpen = (recordItem: RecordItem, recordSteps: RecordStep[], topThread: RecordStep) => {
+    frameSync.notifyHost('openNewPage', {recordItem: recordItem, recordSteps: recordSteps, topThread: topThread});
   }
 
   const onOpen = (record: RecordItem) => {
@@ -72,8 +73,9 @@ function RecordingTab({
       )}
       {recordView === 'view' && (
         <ComicList
-          onRefreshStep={onRefreshStep}
+          onOpen={onPageOpen}
           onClose={onClose}
+          onRefreshStep={onRefreshStep}
         />
       )}
       {recordView === 'ongoing' && (
@@ -83,4 +85,4 @@ function RecordingTab({
   )
 }
 
-export default withServices(RecordingTab, ['recordingService',]);
+export default withServices(RecordingTab, ['recordingService', 'frameSync']);

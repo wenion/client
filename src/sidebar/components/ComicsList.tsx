@@ -14,7 +14,7 @@ import { withServices } from '../service-context';
 import type { FrameSyncService } from '../services/frame-sync';
 import { ListenerCollection } from '../../shared/listener-collection';
 import { useSidebarStore } from '../store';
-import type { RecordStep } from '../../types/api';
+import type { RecordItem, RecordStep } from '../../types/api';
 import {
   getElementHeightWithMargins,
   getElementWidthWithMargins,
@@ -51,10 +51,16 @@ function NavComics({
       .slice(0, threadIndex)
       .reduce((total, thread) => total + getElementWidthWithMargins(document.getElementById("nav"+ thread.id)!), 0)
 
-    scollRef.current!.scrollTo({
-      left: xOffset,
-      behavior: 'smooth',
-    })
+    const scrollLength = getElementWidthWithMargins(scollRef.current!);
+    const scrollLeft = scollRef.current!.scrollLeft;
+    const xRightOffset = xOffset + getElementWidthWithMargins(document.getElementById("nav"+ step.id)!);
+
+    if (xRightOffset - scrollLeft > scrollLength || xOffset - scrollLeft < 0) {
+      scollRef.current!.scrollTo({
+        left: xOffset,
+        behavior: 'smooth',
+      });
+    }
   };
 
   const onWheelEvent = (e: WheelEvent) => {
@@ -93,10 +99,7 @@ function NavComics({
   }
 
   if (navs.length === 1) {
-    return (
-    <>
-    </>
-    );
+    return (<></>);
   }
 
   return (
@@ -144,7 +147,6 @@ function NavComics({
     </div>
   )
 }
-
 
 // The precision of the `scrollPosition` value in pixels; values will be rounded
 // down to the nearest multiple of this scale value
@@ -217,6 +219,7 @@ function calculateFirstVisibleThread(
 }
 
 export type ComicListProps = {
+  onOpen: (recordItem: RecordItem, recordSteps: RecordStep[], top: RecordStep) => void;
   onClose: (id: string) => void;
   onRefreshStep: (record: string | null, recordStep: string | null) => void;
 
@@ -227,6 +230,7 @@ export type ComicListProps = {
  * Create the iframe that will load the notebook application.
  */
 function ComicsList({
+  onOpen,
   onClose,
   onRefreshStep,
   frameSync,
@@ -507,7 +511,7 @@ function ComicsList({
             </Button>
             <Button
               classes={classnames('flex-none', 'border-black')}
-              // onClick={() => onFullPage(recordItem!.id, recordItem!.userid)}
+              onClick={() => onOpen(recordItem!, recordSteps, topThread!)}
             >
               <ExpandIcon />
             </Button>

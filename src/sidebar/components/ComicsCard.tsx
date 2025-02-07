@@ -66,6 +66,7 @@ function Thumbnail({
     const updatePosition = debounce(
       () => {
         updateCirclePosition();
+        onElementSizeChanged(trace.id);
       },
       10,
       { maxWait: 100 },
