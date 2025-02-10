@@ -221,8 +221,6 @@ export function ComicItem({
         'cursor-pointer',
         classes,
       )}
-      title={trace.title}
-      // onClick={e => onClick(step.url)}
     >
       <div
         className={classnames(
