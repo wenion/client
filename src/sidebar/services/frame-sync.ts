@@ -504,6 +504,7 @@ export class FrameSyncService {
       }
 
       if (!skip) {
+        console.log("stream>>", trace)
         this._streamer.send(trace);
       }
 
@@ -896,6 +897,8 @@ export class FrameSyncService {
 
     this._hostRPC.on('selectDataComics', (arg : {session_id: string, user_id: string})=> {
       this._store.selectTab('shareflow');
+      console.log("arg", arg)
+      this._recordingService.selectRecordTabView('view', arg.session_id);
     })
 
     // When user toggles the highlight visibility control in the sidebar container,
