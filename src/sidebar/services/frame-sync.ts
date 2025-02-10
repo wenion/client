@@ -493,6 +493,16 @@ export class FrameSyncService {
         }
       }
 
+      if (
+        trace.type === this._lastTrace.type &&
+        trace.type === "getfocus" &&
+        trace.textContent === "onFocused" &&
+        trace.url === this._lastTrace.url &&
+        trace.tabId === this._lastTrace.tabId
+      ) {
+        skip = true;
+      }
+
       if (!skip) {
         this._streamer.send(trace);
       }
