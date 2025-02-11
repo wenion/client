@@ -311,7 +311,7 @@ export class FrameSyncService {
     return {
       ...trace,
       userid: this._store.profile().userid ?? trace.tabId + '_' + trace.windowId,
-      title: this._store.mainFrame()?.metadata.title?? '',
+      title: this._store.mainFrame()?.metadata.title || document.title,
       region: '',
       sessionId: this._store.getSync('recordingSessionId') as string | null,
       taskName: this._store.getSync('recordingTaskName') as string | null,
