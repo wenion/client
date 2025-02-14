@@ -184,7 +184,7 @@ function calculateFirstVisibleThread(
 
   for (let i = 0; i < threads.length; i++) {
     const defaultHeight = THREAD_DIMENSION_DEFAULTS.defaultHeight;
-    const threadHeight = threadHeights.get(threads[i].id) || defaultHeight;
+    const threadHeight = threadHeights.get(threads[i].id) || 0;
 
     const threadBottomIsInViewport = totalHeight + threadHeight > scrollPos + 5;
     const threadTopIsInViewport = totalHeight >= scrollPos;
@@ -199,7 +199,7 @@ function calculateFirstVisibleThread(
   let rearTotalHeight = 0;
   for (let j = threads.length - 1; j >= 0; j--) {
     const defaultHeight = THREAD_DIMENSION_DEFAULTS.defaultHeight;
-    const threadHeight = threadHeights.get(threads[j].id) || defaultHeight;
+    const threadHeight = threadHeights.get(threads[j].id) || 0;
     rearTotalHeight += threadHeight;
 
     if (rearTotalHeight >= windowHeight) {
@@ -368,44 +368,44 @@ function ComicsList({
     });
   }, [scrollToId, threadHeights, topThread]);
 
-  // useEffect(() => {
-  //   if (focusedStepId === null) {
-  //     setScrollToId(null);
-  //     return;
-  //   }
+  useEffect(() => {
+    if (focusedStepId === null) {
+      setScrollToId(null);
+      return;
+    }
 
-  //   const topThreadId = topThread?.id || null;
-  //   if (firstRender) {
-  //     if (topThreadId !== focusedStepId && !allLoaded) {
-  //       if (!allLoaded) {
-  //         setScrollToId(focusedStepId);
-  //       }
-  //     } else {
-  //       if (allLoaded) {
-  //         setFirstRender(false);
-  //       }
-  //     }
-  //     return;
-  //   }
+    const topThreadId = topThread?.id || null;
+    if (firstRender) {
+      // if (topThreadId !== focusedStepId) {
+      //   if (!allLoaded) {
+      //     setScrollToId(focusedStepId);
+      //   }
+      // } else {
+        if (allLoaded) {
+          setFirstRender(false);
+        }
+      // }
+      return;
+    }
 
-  //   if (topThreadId !== focusedStepId) {
-  //     if (unreachableThreads.some(r => r.id === focusedStepId)) {
-  //       if (reverseTopThread) {
-  //         store.setFocusedStepId(reverseTopThread.id);
-  //         setScrollToId(reverseTopThread.id);
-  //       } else {
-  //         store.setFocusedStepId(null);
-  //       }
-  //     }
-  //     else {
-  //       if (shouldScroll) {
-  //         setScrollToId(focusedStepId);
-  //       }
-  //     }
-  //   } else {
-  //     store.setShouldScroll(false);
-  //   }
-  // }, [focusedStepId, threadHeights, topThread, shouldScroll, firstRender, allLoaded])
+    if (topThreadId !== focusedStepId) {
+      if (unreachableThreads.some(r => r.id === focusedStepId)) {
+        if (reverseTopThread) {
+          store.setFocusedStepId(reverseTopThread.id);
+          setScrollToId(reverseTopThread.id);
+        } else {
+          store.setFocusedStepId(null);
+        }
+      }
+      else {
+        if (shouldScroll) {
+          setScrollToId(focusedStepId);
+        }
+      }
+    } else {
+      store.setShouldScroll(false);
+    }
+  }, [focusedStepId, threadHeights, topThread, shouldScroll, firstRender, allLoaded])
 
   // When the set of TimelineCard height changes, recalculate the real rendered
   // heights of thread cards and update `threadHeights` state if there are changes.
@@ -427,6 +427,10 @@ function ComicsList({
         console.warn(
           'ThreadList could not measure thread. Element not found.',
         );
+        return prevHeights;
+      }
+
+      if (threadElement && !threadElement.hasAttribute('data-id')) {
         return prevHeights;
       }
 
@@ -485,6 +489,7 @@ function ComicsList({
   // The index of steps should be addressed
   let n = 0;
   let navId = 0;
+  let dataId = 0;
 
   return (
     <>
@@ -549,16 +554,18 @@ function ComicsList({
                   if (step.tagName === "Navigate" || step.tagName === "Switch") {
                     n++;
                     navId++;
+                    dataId++;
                     return (
                       <>
-                        {navId !== 1 && (
+                        {/* {navId !== 1 && (
                           <div
                             className="w-full h-2 bg-transparent"
                           >
                           </div>
-                        )}
+                        )} */}
                         <ComicHeader
                           id ={navId}
+                          dataId={dataId}
                           trace={step}
                           onElementSizeChanged={onRendered}
                           classes={classnames({ "data-comics-nav": navId !== 1 })}
@@ -582,11 +589,13 @@ function ComicsList({
                       current = recordSteps[i];
                     }
                     n = n + accumulated + 1;
+                    dataId++;
                     return (
                       <ImageComicsCard
                         onImageClick={(id) => onDblClick(id)}
                         onElementSizeChanged={onRendered}
                         step={step}
+                        dataId={dataId}
                       >
                         {recordSteps.slice(index, index + accumulated + 1).map(s =>
                           <ComicItem
@@ -613,9 +622,11 @@ function ComicsList({
                       current = recordSteps[i];
                     }
                     n = n + accumulated + 1;
+                    dataId++;
                     return (
                       <TextComicsCard
                         step={step}
+                        dataId={dataId}
                       >
                         {recordSteps.slice(index, index + accumulated + 1).map(s =>
                           <ComicItem

@@ -152,7 +152,7 @@ export default function RecordingList({
     const headerHeight = getElementHeightWithMargins(headerElement.current!);
 
     let sidebarPanelHeight = 0;
-    const sidebarPanel = document.querySelector('[data-component="Dialog"][tabindex="-1"]');
+    const sidebarPanel = document.querySelector('[data-component="Dialog"][tabindex="-1"][variant="custom"]');
     if (sidebarPanel) {
       sidebarPanelHeight = getElementHeightWithMargins(sidebarPanel);
     }

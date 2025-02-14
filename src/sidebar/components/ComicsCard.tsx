@@ -132,6 +132,7 @@ function capitalizeFirstLetter(str: string): string {
 
 type ComicHeaderProps = {
   id: number;
+  dataId: number,
   trace: RecordStep;
   onElementSizeChanged: (id: string) => void;
   classes?: string;
@@ -139,6 +140,7 @@ type ComicHeaderProps = {
 
 export function ComicHeader({
   id,
+  dataId,
   trace,
   onElementSizeChanged,
   classes,
@@ -158,6 +160,7 @@ export function ComicHeader({
         classes,
       )}
       id={trace.id}
+      data-id={dataId}
     >
       <div
         className={classnames(
@@ -296,6 +299,7 @@ type ImageComicsCardProps = {
   onImageClick: (id: string) => void;
   onElementSizeChanged: (id: string) => void;
   step: RecordStep;
+  dataId: number;
 };
 
 export function ImageComicsCard({
@@ -303,6 +307,7 @@ export function ImageComicsCard({
   onImageClick,
   onElementSizeChanged,
   step,
+  dataId,
 }: ImageComicsCardProps) {
   const onClick = (url: string) => {
     window.open(url, '_blank');
@@ -312,6 +317,7 @@ export function ImageComicsCard({
     <div
       className={classnames({'data-comics-item': step.index})}
       id={step.id}
+      data-id={dataId}
     >
       <div className={"flex"}>
         <div
@@ -330,12 +336,14 @@ export function ImageComicsCard({
 }
 
 type TextComicsCardProps = {
+  dataId: number;
   step: RecordStep;
   children: ComponentChildren;
   classes?: string;
 };
 
 export function TextComicsCard({
+  dataId,
   step,
   children,
   classes,
@@ -348,6 +356,7 @@ export function TextComicsCard({
     <div
       className={classnames({'data-comics-item': step.index}, classes)}
       id={step.id}
+      data-id={dataId}
     >
       <div className={"flex"}>
         {children}
