@@ -957,6 +957,8 @@ export class FrameSyncService {
                 }
               );
               this._hostRPC.call('closeSidebar');
+              // turn off notification when recording starts
+              this._store.setSync("muted", true);
               break;
             } else {
               init = false;
