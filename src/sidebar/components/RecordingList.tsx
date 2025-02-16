@@ -62,7 +62,10 @@ function RecordingSlider({
     <Slider direction={isSubmenuVisible ? 'in' : 'out'}>
       <Card>
         <CardContent>
-          Description: {recordItem.description}
+          Description:
+          <div title={recordItem.description}>
+            <h5 className="word-break-word hyphens-auto">{recordItem.description}</h5>
+          </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
               Created by:&nbsp;
@@ -221,8 +224,8 @@ export default function RecordingList({
             <div
               className={classnames('flex items-center mx-2 gap-x-2')}
             >
-              <PreviewIcon />
-              <div data-component="title" className="text-lg">
+              <div><PreviewIcon /></div>
+              <div data-component="title" className="w-0.7 text-lg truncate">
                 <span>{record.taskName}</span>
               </div>
               <div className="flex items-center justify-end grow">
