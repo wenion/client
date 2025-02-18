@@ -261,6 +261,7 @@ export class APIService {
   file: {
     delete: APICall<IDParam>;
     get: APICall<IDParam, void, FileMeta>;
+    update: APICall<IDParam, { access_permissions: string }, FileMeta>;
   };
   files: {
     list: APICall<Record<string, string>, void, {files: FileMeta[], dir: string}>;
@@ -400,6 +401,7 @@ export class APIService {
     this.file = {
       delete: apiCall('file.delete') as APICall<IDParam>,
       get: apiCall('file.read') as APICall<IDParam, void, FileMeta>,
+      update: apiCall('file.update_permission') as APICall<IDParam, { access_permissions: string }, FileMeta>,
     };
     this.files = {
       list: apiCall('files.read') as APICall<Record<string, string>, void, {files: FileMeta[], dir: string}>

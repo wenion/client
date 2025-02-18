@@ -52,6 +52,10 @@ export class FileTreeService {
     this._store.addFiles([item,]);
   }
 
+  async uploadFile(file: FileMeta, permission: string) {
+    file.permission=permission
+    const updatedFile = await this._api.file.update({id: file.id}, {access_permissions: permission});
+  }
   async deleteFile(file: FileMeta) {
     await this._api.file.delete({id: file.id});
     this._store.removeFiles([file, ]);

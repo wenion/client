@@ -82,14 +82,22 @@ type FileItemProps = {
   file: FileMeta;
   onDblClick: (file: FileMeta) => void;
   onDelete: (id: string) => void;
+  onUpdate: (id: string, permission: string) => void;
 };
 
 function FileItem({
   file,
   onDblClick,
   onDelete,
+  onUpdate,
 }: FileItemProps) {
 
+  const [permission, setPermission] = useState(file.permission);
+
+  const handlePermissionChange  = (e: Event) => {
+    const option = e.target as HTMLSelectElement;
+    onUpdate(file.id,option.value)
+  }
   return (
     <tr
       className="hover:bg-sky-100 cursor-pointer"
@@ -109,6 +117,12 @@ function FileItem({
       </td>
       <td>
         <div>{splitUserName(file.userid)}</div>
+      </td>
+      <td>
+      <select id={file.id} value={file.permission} onChange={(event) => handlePermissionChange(event)}>
+        <option value="private">Private</option>
+        <option value="public">Public</option>
+      </select>
       </td>
       <td>
         <div>{convertToTime(file.updateStamp)}</div>
@@ -267,6 +281,13 @@ function FileTreeView({
     }
   }
 
+  const onUpdate = (id: string, permission: string) => {
+    const file = store.getFiles().find(item => item.id === id);
+    if (file) {
+      fileTreeService.uploadFile(file,permission);
+    }
+  }
+
   const onDelete = (id: string) => {
     const file = store.getFiles().find(item => item.id === id);
     const result = window.confirm('Are you sure you want to delete "' + file!.filename +'"?')
@@ -404,6 +425,7 @@ function FileTreeView({
                   <tr>
                     <th>Name</th>
                     <th>User</th>
+                    <th>Private Level</th>
                     <th>Modified Time</th>
                     <th></th>
                   </tr>
@@ -418,6 +440,7 @@ function FileTreeView({
                       file={child}
                       onDblClick={onDblClick}
                       onDelete={onDelete}
+                      onUpdate={onUpdate}
                     />
                   ))}
                 </tbody>

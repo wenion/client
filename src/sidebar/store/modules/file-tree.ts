@@ -16,6 +16,10 @@ function sortByFilename(a: FileMeta, b: FileMeta) {
   return a.filename.localeCompare(b.filename);
 }
 
+function sortByTimestamp(a: FileMeta, b: FileMeta) {
+  return  b.updateStamp - a.updateStamp; 
+}
+
 const reducers = {
   SET_DIR(state: State, action: { dir: string }) {
     return { dir: action.dir };
@@ -25,16 +29,15 @@ const reducers = {
     const added = [];
     for (const record of action.files) {
       let existing;
-      console.log("state.files",state.files)
-      existing = state.files.find(r => r.id === record.id);
 
+      existing = (state.files || []).find(r => r.id === record.id);
       if (!existing) {
         added.push(record);
       }
     }
 
     return {
-      files: state.files.concat(added).sort(sortByFilename),
+      files: [...state.files, ...added].sort(sortByTimestamp),
     };
   },
 
@@ -48,6 +51,15 @@ const reducers = {
       files: remain,
     }
   },
+
+  UPDATE_FILE_PERMISSION(state: State, action: { id: string; permission: string }): Partial<State> {
+    const updatedFiles = state.files.map(file =>
+      file.id === action.id ? { ...file, permission: action.permission } : file
+    );
+    return {
+      files: updatedFiles,
+    };
+  },
 };
 
 // Action creators
@@ -58,6 +70,10 @@ function addFiles(files: FileMeta[]) {
 
 function removeFiles(files: FileMeta[]) {
   return makeAction(reducers, 'REMOVE_FILES', {files: files});
+}
+
+function updateFilePermission(id: string, permission: string) {
+  return makeAction(reducers, 'UPDATE_FILE_PERMISSION', { id, permission });
 }
 
 function clearFiles() {
@@ -98,6 +114,7 @@ export const fileTreeModule = createStoreModule(initialState, {
     removeFiles,
     clearFiles,
     changeDir,
+    updateFilePermission,
   },
   selectors: {
     getAllFiles,
