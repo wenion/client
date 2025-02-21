@@ -84,6 +84,7 @@ function RecordingSlider({
 
 export type RecordingListProps = {
   onOpen: (record: RecordItem) => void;
+  onDelete: (record: RecordItem) => void;
   id: string | null;
 };
 
@@ -92,6 +93,7 @@ export type RecordingListProps = {
  */
 export default function RecordingList({
   onOpen,
+  onDelete,
   id,
 }: RecordingListProps) {
   const store = useSidebarStore();
@@ -236,7 +238,7 @@ export default function RecordingList({
                   />
                 )}
                 {userid === record.userid ? (
-                  <RecordingMenu recordItem={record}/>
+                  <RecordingMenu recordItem={record} onDelete={onDelete}/>
                 ) : (
                   <div
                     className={classnames(

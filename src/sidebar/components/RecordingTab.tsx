@@ -3,6 +3,7 @@ import { useMemo, useState } from 'preact/hooks';
 import { withServices } from '../service-context';
 import type { FrameSyncService } from '../services/frame-sync';
 import type { RecordingService } from '../services/recording';
+import { confirm } from '../../shared/prompts';
 import { useSidebarStore } from '../store';
 import ActionList from './ActionList';
 import RecordingList from './RecordingList';
@@ -66,10 +67,33 @@ function RecordingTab({
     recordingService.updateTracking();
   };
 
+  const onDelete = async (recordItem: RecordItem) => {
+    if (
+      await confirm({
+        title: `Delete ${recordItem.taskName.toLowerCase()}?`,
+        message: `Are you sure you want to delete ${recordItem.taskName.toLowerCase()}?`,
+        confirmAction: 'Delete',
+      })
+    ) {
+      try {
+        recordingService.deleteRecord(recordItem.id);
+        console.log('framsync send delete')
+        frameSync.sendTraceData(
+          "record",
+          "RECORD",
+          "delete",
+        )
+      } catch (err) {
+        // toastMessenger.error(err.message);
+        console.error(err);
+      }
+    }
+  };
+
   return (
     <>
       {recordView === 'list' && (
-        <RecordingList onOpen={onOpen} id={lastId}/>
+        <RecordingList onOpen={onOpen} onDelete={onDelete} id={lastId}/>
       )}
       {recordView === 'view' && (
         <ComicList

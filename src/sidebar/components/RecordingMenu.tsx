@@ -2,7 +2,6 @@ import { TrashIcon, EllipsisIcon } from '@hypothesis/frontend-shared';
 import { useState } from 'preact/hooks';
 import classnames from 'classnames';
 
-import { confirm } from '../../shared/prompts';
 import { withServices } from '../service-context';
 import ShareIcon from '../../images/icons/shared';
 import UnshareIcon from '../../images/icons/unshared';
@@ -17,30 +16,15 @@ import MenuSection from './MenuSection';
 export type RecordingMenuProps = {
   recordingService: RecordingService;
   recordItem: RecordItem;
+  onDelete: (recordItem: RecordItem) => void;
 };
 
 function RecordingMenu({
   recordingService,
   recordItem,
+  onDelete,
 }: RecordingMenuProps) {
   const [isOpen, setOpen] = useState(false);
-
-  const onDelete = async (recordItem: RecordItem) => {
-    if (
-      await confirm({
-        title: `Delete ${recordItem.taskName.toLowerCase()}?`,
-        message: `Are you sure you want to delete ${recordItem.taskName.toLowerCase()}?`,
-        confirmAction: 'Delete',
-      })
-    ) {
-      try {
-        recordingService.deleteRecord(recordItem.id);
-      } catch (err) {
-        // toastMessenger.error(err.message);
-        console.error(err);
-      }
-    }
-  };
 
   const onUpdate = (recordItem: RecordItem, share: boolean) => {
     recordingService.updateRecord(

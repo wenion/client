@@ -109,6 +109,7 @@ export type TimelineListProps = {
  * Render a list of traces.
  */
 function TimelineList({
+  onNewPage,
   onRefreshStep,
   onClose,
   frameSync,
@@ -118,6 +119,11 @@ function TimelineList({
   const recordSteps = store.recordSteps();
   const focusedStepId = store.getFocusedStepId();
   const shouldScroll = store.getShouldScroll();
+  const activePanelName = store.activePanelName();
+
+  const headerElement = useRef<HTMLDivElement | null>(null);
+  const contentElement = useRef<HTMLDivElement | null>(null);
+  const [contentHeight, setContentHeight] = useState(0);
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const previousTopThreadRef = useRef<RecordStep | null>(null);
@@ -205,6 +211,12 @@ function TimelineList({
 
   const onDblClick = (id: string) => {
     frameSync.notifyHost('openImageViewer', {id: id, timeLineList: recordSteps});
+  }
+
+  const onFullPage = (sessionId: string, userid?: string) => {
+    // if (userid) {
+    //   frameSync.notifyHost('openNewPage', {sessionId: sessionId, userid: userid});
+    // }
   }
 
   // Effect to scroll a particular thread into view. This is mainly used to
@@ -335,9 +347,26 @@ function TimelineList({
   });
   }, []);
 
+  const contentStyle: Record<string, number> = {};
+  contentStyle['height'] = contentHeight;
+
+  useLayoutEffect(() => {
+    const offset = 110;
+    const headerHeight = getElementHeightWithMargins(headerElement.current!);
+
+    let sidebarPanelHeight = 0;
+    const sidebarPanel = document.querySelector('[data-component="Dialog"][tabindex="-1"]');
+    if (sidebarPanel) {
+      sidebarPanelHeight = getElementHeightWithMargins(sidebarPanel);
+    }
+    setContentHeight(window.innerHeight - sidebarPanelHeight - headerHeight - offset);
+  }, [activePanelName]);
+
   return (
-    <div>
-      <header>
+    <>
+      <header
+        ref={headerElement}
+      >
         <div className='flex items-center mb-1'>
           <div className='flex-none size-3 bg-blue-700 rounded-full'/>
           {recordItem && (
@@ -361,7 +390,7 @@ function TimelineList({
             </Button>
             <Button
               classes={classnames('flex-none', 'border-black')}
-              // onClick={() => onNewPage(recording.sessionId, recording.userid)}
+              onClick={() => onFullPage(recordItem!.id, recordItem!.userid)}
             >
               <ExpandIcon />
             </Button>
@@ -374,9 +403,12 @@ function TimelineList({
           </div>
         </div>
       </header>
-      <div className="data-comics-height">
+      <div
+        ref={contentElement}
+        style={contentStyle}
+      >
         <div
-          className={'h-full min-h-full overflow-auto'}
+          className={'h-full overflow-auto'}
           ref={scrollRef}
           onMouseLeave={onMouseLeave}
         >
@@ -400,7 +432,7 @@ function TimelineList({
           </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }
 

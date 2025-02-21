@@ -323,7 +323,7 @@ export class FrameSyncService {
     this._extensionRPC.on('close', ()=> {
       console.log("extension close")
     })
-    this._extensionRPC.on('connect', ()=> {
+    this._extensionRPC.on('connect', () => {
       console.log("extension connect")
     })
     this._extensionRPC.on(
@@ -504,7 +504,6 @@ export class FrameSyncService {
       }
 
       if (!skip) {
-        console.log("stream>>", trace)
         this._streamer.send(trace);
       }
 
@@ -516,10 +515,8 @@ export class FrameSyncService {
 
   sendTraceData(
     eventType: string,
-    eventSource: string,
     tagName: string,
     textContent: string,
-    interactionContext: string
   ) {
     this._extensionRPC.call(
       'customEvent',
@@ -919,7 +916,7 @@ export class FrameSyncService {
 
       if (status !== isRecroding) {
         if (status) {
-          // recording prompt
+          // Start recording
           this._hostRPC.call('openSidebar');
           this._store.selectTab('shareflow');
 
@@ -971,6 +968,7 @@ export class FrameSyncService {
             }
           }
         } else {
+          // stop recording
           if (isRecroding && sessionId) {
             this._extensionRPC.call(
               'customEvent',
@@ -998,10 +996,9 @@ export class FrameSyncService {
       }) => {
       this.sendTraceData(
         message.eventType,
-        message.eventSource,
         message.tagName,
         message.textContent,
-        message.interactionContext);
+      );
     });
 
     this._hostRPC.on('webPage', (htmlContent: string, title: string, url: string, savePage: boolean = true) => {
