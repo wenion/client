@@ -49,7 +49,10 @@ function RecordingTab({
   // }
 
   const onPageOpen = (recordItem: RecordItem, recordSteps: RecordStep[], topThread: RecordStep) => {
-    frameSync.notifyHost('openNewPage', {recordItem: recordItem, recordSteps: recordSteps, topThread: topThread});
+    // frameSync.notifyHost('openNewPage', {recordItem: recordItem, recordSteps: recordSteps, topThread: topThread});
+    const url = store.getLink('home');
+    const pathname = "/shareflow/" + recordItem.id;
+    window.open(url + pathname, "_blank");
   }
 
   const onOpen = (record: RecordItem) => {
