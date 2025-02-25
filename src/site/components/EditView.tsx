@@ -131,7 +131,7 @@ export function ComicItem({
       className={classnames(
         "relative",
         'grid grid-rows-3 grid-flow-col',
-        'justify-self-center content-center',
+        'content-center',
         'text-lg text-blue-chathams text-center',
         'border border-black mb-0.5',
         'hover:shadow-lg',
