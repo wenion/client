@@ -1,9 +1,11 @@
 import {
   FolderIcon,
+  EditIcon,
   IconButton,
   LinkButton,
 } from '@hypothesis/frontend-shared';
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect, useMemo, useRef } from 'preact/hooks';
+import { route } from 'preact-router';
 
 import type { SidebarSettings } from '../../types/config';
 import { applyTheme } from '../../sidebar/helpers/theme';
@@ -60,6 +62,31 @@ function TopBar({
 
   const toggleFileTreeView = () => {
     window.location.href = '/files';
+  };
+
+  const showEdit = useMemo(() => {
+    const [first, shareflow, id] = window.location.pathname.split("/");
+    const isShareflow = shareflow === "shareflow";
+    if (isLoggedIn && isShareflow && id) {
+      return true;
+    }
+    return false;
+  }, [isLoggedIn]);
+
+  const displayMode = useMemo(() => {
+    if (showEdit && window.location.pathname.endsWith("/edit")) {
+      return "Save";
+    }
+    return "Edit";
+  }, [showEdit]);
+
+  const toggleEditMode = () => {
+    const pathname = window.location.pathname;
+    if (pathname.endsWith('/edit')) {
+      route(pathname.slice(0, -5));
+    } else {
+      route(pathname + "/edit");
+    }
   };
 
   const param = window.location.search.match(/[\?&]q=([^&]+)/);
@@ -125,6 +152,20 @@ function TopBar({
               </div>
             )}
           </nav>
+          {showEdit && (
+            <div
+              className="flex m-auto border border-black rounded-sm cursor-pointer"
+            >
+              <IconButton
+                icon={EditIcon}
+                onClick={toggleEditMode}
+                size="lg"
+                title="Edit Shareflow"
+              >
+                {displayMode}
+              </IconButton>
+            </div>
+          )}
         </div>
       </header>
     </div>

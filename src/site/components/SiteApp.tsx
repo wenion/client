@@ -19,7 +19,9 @@ import type { ToastMessengerService } from '../../sidebar/services/toast-messeng
 import { useSidebarStore } from '../../sidebar/store';
 import QueryView from './QueryView';
 import VideoView from './VideoView';
+import EditView from './EditView';
 import FileTreeView from './FileTreeView';
+import ComicsView from './ComicsView';
 import HomeView from './HomeView';
 
 import type {
@@ -260,6 +262,14 @@ function SiteApp({
           onReady={handlePlayerReady}
           sidebarRPC={_sidebarRPC} />
         <FileTreeView path="/files"
+          onLogin={login}
+          onSignUp={signUp}
+          onLogout={logout} />
+        <ComicsView path="/shareflow/:id"
+          onLogin={login}
+          onSignUp={signUp}
+          onLogout={logout} />
+        <EditView path="/shareflow/:id/edit"
           onLogin={login}
           onSignUp={signUp}
           onLogout={logout} />

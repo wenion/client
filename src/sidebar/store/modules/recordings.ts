@@ -83,10 +83,17 @@ const reducers = {
     }
   },
 
-  ADD_RECORDSTEPS(state: State, action: {recordSteps: RecordStep[] }): Partial<State> {
+  ADD_RECORDSTEPS(state: State, action: {recordSteps: RecordStep[]}): Partial<State> {
     return {
       recordSteps: action.recordSteps,
     };
+  },
+
+  UPDATE_RECORDSTEP(state: State, action: { recordStep: RecordStep },): Partial<State> {
+    const remain = state.recordSteps.filter(r => r.id !== action.recordStep.id);
+    return {
+      recordSteps: remain.concat(action.recordStep).sort((a, b) => a.timestamp - b.timestamp),
+    }
   },
 
   CLEAR_RECORDSTEPS(): Partial<State> {
@@ -152,6 +159,20 @@ function addRecordSteps(recordSteps: RecordStep[]) {
         })
       );
     }
+}
+
+function removeRecordSteps(ids: string[]) {
+  return (dispatch: Dispatch, getState: () => { recordings: State }) => {
+    const remaining =
+      getState().recordings.recordSteps.filter(
+        r => !ids.includes(r.id)
+      );
+    dispatch(makeAction(reducers, 'ADD_RECORDSTEPS', {recordSteps: remaining}));
+  }
+}
+
+function updateRecordStep(recordStep: RecordStep) {
+  return makeAction(reducers, 'UPDATE_RECORDSTEP', { recordStep });
 }
 
 function clearRecordSteps() {
@@ -229,6 +250,8 @@ export const recordingsModule = createStoreModule(initialState, {
     clearRecordItems,
     removeRecordItem,
     addRecordSteps,
+    removeRecordSteps,
+    updateRecordStep,
     clearRecordSteps,
     setShouldScroll,
   },
