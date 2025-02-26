@@ -60,9 +60,16 @@ function TopBar({
   const hasFetchedProfile = store.hasFetchedProfile();
   const inputRef = useRef<HTMLInputElement | null>(null);
 
+  const recordItem = store.getRecordItem();
+  const profile = store.profile();
+
   const toggleFileTreeView = () => {
     window.location.href = '/files';
   };
+
+  const own = useMemo(()=> {
+    return profile.userid === recordItem?.userid;
+  }, [profile, recordItem])
 
   const showEdit = useMemo(() => {
     const [first, shareflow, id] = window.location.pathname.split("/");
@@ -106,9 +113,9 @@ function TopBar({
           <a href="https://colam.kmass.cloud.edu.au/" title="GoldMind homepage" class="nav-bar__logo-container mx-12">
             <LogoIcon />
           </a>
-          <Search inputRef={inputRef} />
+          {!showEdit && (<Search inputRef={inputRef} />)}
           <nav className="nav-bar-links mx-14">
-            {isLoggedIn ? (
+            {isLoggedIn && !showEdit ? (
               <>
                 <ThirdPartyMenu />
                 <a class='p-1' href={store.getLink('download')}>
@@ -152,7 +159,7 @@ function TopBar({
               </div>
             )}
           </nav>
-          {showEdit && (
+          {showEdit && own && (
             <div
               className="flex m-auto border border-black rounded-sm cursor-pointer"
             >
