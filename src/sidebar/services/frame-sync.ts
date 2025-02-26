@@ -333,6 +333,12 @@ export class FrameSyncService {
       let discard = false;
       let trace = this._addClientInformation(_trace);
 
+      if (trace.custom === "record" && trace.textContent === "delete") {
+        const info = JSON.parse(trace.interactionContext);
+        trace.sessionId = info.sessionId;
+        trace.taskName = info.taskName;
+      }
+
       if (trace.tagName === "Navigate" || trace.tagName === "Switch") {
         trace.label = this._store.mainFrame()?.metadata.title?? trace.url;
       }
@@ -517,6 +523,7 @@ export class FrameSyncService {
     eventType: string,
     tagName: string,
     textContent: string,
+    interactionContext: string,
   ) {
     this._extensionRPC.call(
       'customEvent',
@@ -525,6 +532,7 @@ export class FrameSyncService {
         custom: eventType,
         tagName: tagName,
         textContent: textContent,
+        interactionContext: interactionContext,
       }
     );
   }
@@ -998,6 +1006,7 @@ export class FrameSyncService {
         message.eventType,
         message.tagName,
         message.textContent,
+        message.interactionContext,
       );
     });
 

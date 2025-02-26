@@ -85,6 +85,7 @@ function RecordingTab({
           "record",
           "RECORD",
           "delete",
+          JSON.stringify({sessionId: recordItem.id, taskName: recordItem.taskName}),
         )
       } catch (err) {
         // toastMessenger.error(err.message);
