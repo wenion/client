@@ -1,4 +1,4 @@
-import { IconButton, TrashIcon, EditIcon, Checkbox } from '@hypothesis/frontend-shared';
+import { IconButton, TrashIcon, EditIcon, CancelIcon, Checkbox } from '@hypothesis/frontend-shared';
 import type { ComponentChildren, JSX } from 'preact';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState, useRef, Ref} from 'preact/hooks';
 import classnames from 'classnames';
@@ -395,6 +395,10 @@ function EditView({
     }
   }
 
+  const onDeselect = () => {
+    setSelectedList([]);
+  }
+
   const onDelete = () => {
     if (selectedList.length) {
       store.removeRecordSteps(selectedList);
@@ -443,14 +447,14 @@ function EditView({
         {
           showTool && (
             <div
-              className={"fixed flex -ml-20 border border-black rounded-md"}
+              className={"fixed flex -ml-40 border border-black rounded-md"}
             >
               <IconButton
                 icon={TrashIcon}
                 onClick={onDelete}
                 size="lg"
                 title="Delete Shareflows"
-                classes="text-red-500"
+                classes="text-red-500 cursor-pointer"
               />
               <IconButton
                 icon={EditIcon}
@@ -458,8 +462,15 @@ function EditView({
                 size="lg"
                 title="Edit Shareflow"
                 disabled={selectedList.length !== 1}
-                classes="text-blue-500"
+                classes="text-blue-500 cursor-pointer"
               />
+              {selectedList.length !== 0 && (<IconButton
+                icon={CancelIcon}
+                onClick={onDeselect}
+                size="lg"
+                title="Deselect All"
+                classes="text-blue-500 cursor-pointer"
+              />)}
             </div>
           )
         }
