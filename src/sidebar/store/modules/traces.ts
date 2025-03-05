@@ -73,8 +73,7 @@ function updateLastTrace(trace: RawTraceData) {
     const length = getState().traces.traces.length;
     if (length > 0) {
       dispatch(
-        makeAction(reducers, 'UPDATE_TRACE', { trace: trace, index: length - 1,
-        })
+        makeAction(reducers, 'UPDATE_TRACE', { trace: trace, index: length - 1 })
       );
     }
   };

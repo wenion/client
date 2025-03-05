@@ -38,7 +38,7 @@ export class RecordingService {
     if (newView !== currentView) {
       if (newView === 'view' && id) {
         try {
-          const traceSteps = await this._api.traces.list({ id: id });
+          const traceSteps = await this._api.traces.list({ id: id, "response_mode": "metadata" });
           this._store.addRecordSteps(traceSteps);
           this._store.selectTab('shareflow');
           this._store.setRecordTabView(id);
