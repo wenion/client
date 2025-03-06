@@ -217,7 +217,7 @@ export function ComicItem({
       className={classnames(
         "w-full",
         'grid grid-rows-3 grid-flow-col',
-        'justify-self-center content-center',
+        'content-center',
         'text-lg text-blue-chathams text-center',
         'border border-black mb-0.5',
         'hover:shadow-lg',
@@ -229,7 +229,7 @@ export function ComicItem({
         className={classnames(
           "justify-self-center content-center row-span-3",
           "text-black",
-          "min-w-10 p-2",
+          "w-16 p-2",
         )}
       >
         {trace.title === "click" ? (
@@ -261,7 +261,7 @@ export function ComicItem({
       <div className={classnames(
         "col-span-2 border-b border-l border-black",
         "text-lg text-black font-bold content-center",
-        "px-4",
+        "p-4",
       )}>
         {capitalizeFirstLetter(trace.title)}
       </div>
@@ -284,6 +284,7 @@ export function ComicItem({
             "data-comics-content",
             "word-break-word",
             "hyphens-auto",
+            "p-2",
           )}
           title={trace.description}
         >
@@ -315,7 +316,7 @@ export function ImageComicsCard({
 
   return (
     <div
-      className={classnames({'data-comics-item': step.index})}
+      className={classnames('data-comics-item')}
       id={step.id}
       data-id={dataId}
     >
@@ -354,7 +355,7 @@ export function TextComicsCard({
 
   return (
     <div
-      className={classnames({'data-comics-item': step.index}, classes)}
+      className={classnames('data-comics-item', classes)}
       id={step.id}
       data-id={dataId}
     >

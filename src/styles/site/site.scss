@@ -151,6 +151,12 @@ body {
   overflow: hidden;
 }
 
+.data-comics-content {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
 .word-break-word {
   word-break: break-word;
 }

@@ -1,4 +1,4 @@
-import { IconButton, TrashIcon, EditIcon, CancelIcon, Checkbox } from '@hypothesis/frontend-shared';
+import { ArrowUpIcon, IconButton, TrashIcon, EditIcon, CancelIcon, Checkbox } from '@hypothesis/frontend-shared';
 import type { ComponentChildren, JSX } from 'preact';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState, useRef, Ref} from 'preact/hooks';
 import classnames from 'classnames';
@@ -240,7 +240,7 @@ export function ImageComicsCard({
 }: ImageComicsCardProps) {
   return (
     <div
-      className={classnames({'data-comics-item': step.index})}
+      className={classnames('data-comics-item')}
       id={step.id}
       data-id={dataId}
     >
@@ -299,16 +299,19 @@ function EditView({
   id,
 }: EditViewProps) {
   const store = useSidebarStore();
-  useEffect(() => {
-    recordingService.selectRecordTabView('view', id);
-  }, [id, ])
   const recordSteps = store.recordSteps();
+  const links = store.getLink("index");
+
+  useEffect(() => {
+    recordingService.getTracesById(id!);
+  }, [id, links]);
+
   const [selectedList, setSelectedList] = useState<string[]>([]);
 
   const [imageThreads, setImageThreads] = useState(() => new Map());
   const [threadHeights, setThreadHeights] = useState(() => new Map());
 
-  const showTool = useMemo(()=> {
+  const exist = useMemo(()=> {
     if (selectedList.length) {
       return true;
     }
@@ -428,7 +431,10 @@ function EditView({
     }
   }
 
-  let n = 0;
+  const onToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   let navId = 0;
   let dataId = 0;
 
@@ -444,46 +450,52 @@ function EditView({
         className={"mx-auto max-w-2xl"}
       >
         {/* <div style={{ height: offscreenUpperHeight }} /> */}
-        {
-          showTool && (
-            <div
-              className={"fixed flex -ml-40 border border-black rounded-md"}
-            >
-              <IconButton
-                icon={TrashIcon}
-                onClick={onDelete}
-                size="lg"
-                title="Delete Shareflows"
-                classes="text-red-500 cursor-pointer"
-              />
-              <IconButton
-                icon={EditIcon}
-                onClick={onEdit}
-                size="lg"
-                title="Edit Shareflow"
-                disabled={selectedList.length !== 1}
-                classes="text-blue-500 cursor-pointer"
-              />
-              {selectedList.length !== 0 && (<IconButton
-                icon={CancelIcon}
-                onClick={onDeselect}
-                size="lg"
-                title="Deselect All"
-                classes="text-blue-500 cursor-pointer"
-              />)}
-            </div>
-          )
-        }
+        <div
+          className={"fixed flex -ml-40 border border-black rounded-md"}
+        >
+          <IconButton
+            icon={ArrowUpIcon}
+            onClick={onToTop}
+            size="lg"
+            title="To Top"
+            classes="text-blue-500 cursor-pointer"
+          />
+          {exist && (
+            <IconButton
+              icon={TrashIcon}
+              onClick={onDelete}
+              size="lg"
+              title="Delete Shareflows"
+              classes="text-red-500 cursor-pointer"
+            />
+          )}
+          {exist && (
+            <IconButton
+              icon={EditIcon}
+              onClick={onEdit}
+              size="lg"
+              title="Edit Shareflow"
+              disabled={selectedList.length !== 1}
+              classes="text-blue-500 cursor-pointer"
+            />
+          )}
+          {exist && (<IconButton
+            icon={CancelIcon}
+            onClick={onDeselect}
+            size="lg"
+            title="Deselect All"
+            classes="text-blue-500 cursor-pointer"
+          />)}
+        </div>
         {
           recordSteps.map((step, index) => {
             if (step.tagName === "Navigate" || step.tagName === "Switch") {
-              n++;
               navId++;
               dataId++;
               return (
                 <ComicHeader
                   id ={navId}
-                  dataId={dataId}
+                  dataId={index}
                   trace={step}
                   selected={selectedList.some(item => item === step.id)}
                   onElementSizeChanged={onRendered}
@@ -492,12 +504,13 @@ function EditView({
                 />
               )
             } else {
+              dataId++;
               return (
                 <ImageComicsCard
                   onImageClick={(id) => {}}
                   onElementSizeChanged={onRendered}
                   step={step}
-                  dataId={dataId}
+                  dataId={index}
                 >
                   <ComicItem
                     trace={step}

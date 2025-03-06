@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState} from 'preact/hooks';
+import { useCallback, useEffect, useState} from 'preact/hooks';
 import classnames from 'classnames';
 
 import {
@@ -43,10 +43,12 @@ function ComicsView({
   id,
 }: ComicsViewProps) {
   const store = useSidebarStore();
-  const recordItem = useMemo(()=> {
-    recordingService.selectRecordTabView('view', id);
-  }, [id,]);  
   const recordSteps = store.recordSteps();
+  const links = store.getLink("index");
+
+  useEffect(() => {
+    recordingService.getTracesById(id!);
+  }, [id, links]);
 
   const [imageThreads, setImageThreads] = useState(() => new Map());
   const [threadHeights, setThreadHeights] = useState(() => new Map());
@@ -137,12 +139,6 @@ function ComicsView({
                 dataId++;
                 return (
                   <>
-                    {/* {navId !== 1 && (
-                      <div
-                        className="w-full h-2 bg-transparent"
-                      >
-                      </div>
-                    )} */}
                     <ComicHeader
                       id ={navId}
                       dataId={dataId}

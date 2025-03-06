@@ -1,6 +1,8 @@
 import {
-  FolderIcon,
+  CancelIcon,
   EditIcon,
+  FolderIcon,
+  NoteFilledIcon,
   IconButton,
   LinkButton,
 } from '@hypothesis/frontend-shared';
@@ -10,9 +12,8 @@ import { route } from 'preact-router';
 import type { SidebarSettings } from '../../types/config';
 import { applyTheme } from '../../sidebar/helpers/theme';
 import { withServices } from '../../sidebar/service-context';
-import type { FileTreeService } from '../../sidebar/services/file-tree';
-import type { FrameSyncService } from '../../sidebar/services/frame-sync';
 import type { QueryService } from '../../sidebar/services/query';
+import type { RecordingService } from '../../sidebar/services/recording';
 import { useSidebarStore } from '../../sidebar/store';
 import ThirdPartyMenu from './ThirdPartyMenu';
 import Search from './Search';
@@ -34,9 +35,8 @@ export type TopBarProps = {
   onSignUp: () => void;
 
   // injected
-  fileTreeService: FileTreeService;
-  frameSync: FrameSyncService;
   queryService: QueryService;
+  recordingService: RecordingService;
   settings: SidebarSettings;
 };
 
@@ -49,8 +49,8 @@ function TopBar({
   onLogin,
   onLogout,
   onSignUp,
-  frameSync,
   queryService,
+  recordingService,
   settings,
 }: TopBarProps) {
   const loginLinkStyle = applyTheme(['accentColor'], settings);
@@ -60,7 +60,11 @@ function TopBar({
   const hasFetchedProfile = store.hasFetchedProfile();
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const recordItem = store.getRecordItem();
+  const recordItems = store.recordItems();
+  const recordSteps = store.recordSteps();
+  const [first, shareflow, id] = window.location.pathname.split("/");
+
+  const recordItem = store.getRecordItemById(id);
   const profile = store.profile();
 
   const toggleFileTreeView = () => {
@@ -69,7 +73,7 @@ function TopBar({
 
   const own = useMemo(()=> {
     return profile.userid === recordItem?.userid;
-  }, [profile, recordItem])
+  }, [profile, recordItem, recordItems])
 
   const showEdit = useMemo(() => {
     const [first, shareflow, id] = window.location.pathname.split("/");
@@ -96,6 +100,11 @@ function TopBar({
     }
   };
 
+  const onSave = () => {
+    recordingService.saveTraces(id);
+    toggleEditMode();
+  };
+
   const param = window.location.search.match(/[\?&]q=([^&]+)/);
   useEffect(() => {
     if (param) {
@@ -114,6 +123,13 @@ function TopBar({
             <LogoIcon />
           </a>
           {!showEdit && (<Search inputRef={inputRef} />)}
+          {showEdit && recordItem && (
+            <div
+              className="m-auto self-center text-xl"
+            >
+              {recordItem.taskName}
+              </div>
+          )}
           <nav className="nav-bar-links mx-14">
             {isLoggedIn && !showEdit ? (
               <>
@@ -161,16 +177,42 @@ function TopBar({
           </nav>
           {showEdit && own && (
             <div
-              className="flex m-auto border border-black rounded-sm cursor-pointer"
+              className="flex m-auto"
             >
-              <IconButton
-                icon={EditIcon}
-                onClick={toggleEditMode}
-                size="lg"
-                title="Edit Shareflow"
-              >
-                {displayMode}
-              </IconButton>
+              {displayMode === "Edit" && (
+                <IconButton
+                  icon={EditIcon}
+                  onClick={toggleEditMode}
+                  size="lg"
+                  title="Edit Shareflow"
+                  classes="border border-black rounded-sm cursor-pointer"
+                >
+                  Edit
+                </IconButton>
+              )}
+              {displayMode === "Save" && (
+                <>
+                  <IconButton
+                    icon={NoteFilledIcon}
+                    onClick={onSave}
+                    size="lg"
+                    title="Save changes"
+                    classes="border border-black rounded-sm cursor-pointer"
+                  >
+                    Save
+                  </IconButton>
+                  <div className="w-4"></div>
+                  <IconButton
+                    icon={CancelIcon}
+                    onClick={toggleEditMode}
+                    size="lg"
+                    title="Exit"
+                    classes="border border-black rounded-sm cursor-pointer"
+                  >
+                    Exit
+                  </IconButton>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -179,4 +221,8 @@ function TopBar({
   );
 }
 
-export default withServices(TopBar, ['fileTreeService', 'frameSync', 'settings', 'queryService']);
+export default withServices(TopBar, [
+  'queryService',
+  'recordingService',
+  'settings',
+]);
