@@ -32,6 +32,21 @@ export class RecordingService {
     this._store.clearRecordItems();
   }
 
+  async saveTraces(id: string) {
+    const updates = this._store.recordSteps();
+    updates.map(step => {
+      step.id = step.id.replace(/^tr/, "");
+    });
+    const results = await this._api.traces.update({id: id}, updates);
+    this._store.addRecordSteps(results);
+  }
+
+  async getTracesById(id: string) {
+    this._store.clearRecordSteps();
+    const traceSteps = await this._api.traces.list({ id: id, "response_mode": "metadata" });
+    this._store.addRecordSteps(traceSteps);
+  }
+
   async selectRecordTabView(newView: 'list' | 'view' | 'ongoing', id?: string, scrollTop: number = 0) {
     const currentView = this._store.getRecordTabView();
 
@@ -108,7 +123,10 @@ export class RecordingService {
         options
       );
       this._store.updateRecordItem(recordItem);
-      this.selectRecordTabView('view', recordItem.id);
+      // for backend
+      setTimeout(() => {
+        this.selectRecordTabView('view', recordItem.id);
+      }, 1000);
     } catch (err) {
       if (err.response.status === 404) {
         this._toastMessenger.error('Error: '+ err.response.status);

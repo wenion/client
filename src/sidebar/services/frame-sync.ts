@@ -988,6 +988,7 @@ export class FrameSyncService {
               }
             )
             await this._recordingService.stopRecord(sessionId, { endstamp: Date.now() });
+            this._hostRPC.call('openSidebar');
           }
           this._store.clearTraces();
         }

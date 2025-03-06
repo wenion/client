@@ -283,6 +283,7 @@ export class APIService {
   };
   traces: {
     list: APICall<Record<string, unknown>, void, RecordStep[]>;
+    update: APICall<Record<string, unknown>, RecordStep[], RecordStep[]>;
   };
   tracking: {
     read: APICall<Record<string, unknown>, void, Track>;
@@ -442,6 +443,7 @@ export class APIService {
     };
     this.traces = {
       list: apiCall('traces.read') as APICall<Record<string, unknown>, void, RecordStep[]>,
+      update: apiCall('traces.update') as APICall<Record<string, unknown>, RecordStep[], RecordStep[]>,
     };
     this.tracking = {
       read: apiCall('tracking.read') as APICall<Record<string, unknown>, void, Track>,

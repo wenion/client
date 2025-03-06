@@ -216,7 +216,7 @@ function recordItems(state: State) {
 }
 
 function recordSteps(state: State) {
-  return state.recordSteps;
+  return state.recordSteps.sort((a, b) => a.timestamp - b.timestamp);
 }
 
 function getShouldScroll(state: State) {
