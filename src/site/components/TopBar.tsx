@@ -102,6 +102,7 @@ function TopBar({
 
   const onSave = () => {
     recordingService.saveTraces(id);
+    window.alert("Changes have been saved!");
     toggleEditMode();
   };
 
