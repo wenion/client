@@ -408,6 +408,7 @@ export type ExtraDataComics = {
   session_id: string;
   task_name: string;
   user_id: string;
+  current_step?: string[];
 };
 
 export type MessageType = 'addition' | 'shareflow' | 'organization';
