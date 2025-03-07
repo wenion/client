@@ -1,8 +1,10 @@
 import {
+  Button,
   Card,
   CardContent,
   EllipsisIcon,
   PreviewIcon,
+  RadioCheckedIcon,
   Slider,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
@@ -263,6 +265,19 @@ export default function RecordingList({
             />
           </div>
         ))}
+        {sortedRecordItems.length === 0 && (
+          <p className={"flex"}>
+            Click the Record button
+            <Button
+              classes={classnames("mx-2")}
+              title="Record button"
+              unstyled
+            >
+              <RadioCheckedIcon />
+            </Button>
+          to start recording the shareflow.
+          </p>
+        )}
         </div>
       </div>
     </div>
