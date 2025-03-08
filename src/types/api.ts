@@ -492,6 +492,8 @@ export type RecordItem = {
    */
   id: string;
 
+  pk?: string;
+
   sessionId: string;
   taskName: string;
   description: string;
@@ -504,6 +506,7 @@ export type RecordItem = {
 
 export type RecordStep = {
   index?: number;
+  pk?: string;
   id: string;
   type: string;
   title: string;

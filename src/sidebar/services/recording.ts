@@ -47,6 +47,20 @@ export class RecordingService {
     this._store.addRecordSteps(traceSteps);
   }
 
+  async selectRecordTabViewByPk(pk: string) {
+    const recordItem = this._store.getRecordItemByPk(pk);
+    if (recordItem) {
+      const id = recordItem.id;
+      const traceSteps = await this._api.traces.list({ id: id, "response_mode": "metadata" });
+      this._store.addRecordSteps(traceSteps);
+      this._store.selectTab('shareflow');
+      this._store.setRecordTabView(id);
+    }
+    else {
+      console.error("can't find the shareflow with pk " + pk)
+    }
+  }
+
   async selectRecordTabView(newView: 'list' | 'view' | 'ongoing', id?: string, scrollTop: number = 0) {
     const currentView = this._store.getRecordTabView();
 

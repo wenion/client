@@ -198,6 +198,11 @@ function getRecordItemById(state: State, id: string) {
   return recordItem?? null;
 }
 
+function getRecordItemByPk(state: State, pk: string) {
+  const recordItem = state.recordItems.find(r => r.pk === pk);
+  return recordItem?? null;
+}
+
 const getRecordItem = createSelector(
   (state: State) => state.recordItems,
   (state: State) => state.tabView,
@@ -260,6 +265,7 @@ export const recordingsModule = createStoreModule(initialState, {
     getRecordTabView,
     getRecordItem,
     getRecordItemById,
+    getRecordItemByPk,
     recordItems,
     recordItemsCount,
     recordSteps,
