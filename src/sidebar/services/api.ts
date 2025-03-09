@@ -258,11 +258,12 @@ export class APIService {
   pull_recommendation: APICall<{url: string}, void, {id: string; url: string; type: string; title: string; query: string; context: string}>;
   pull: APICall<Record<string, unknown>, void, RawMessageData[]>;
   upload: APIBlobCall<Record<string, any>, Blob, FileMeta>;
-  file: {
+  tree: {
     delete: APICall<IDParam>;
     get: APICall<IDParam, void, FileMeta>;
+    update: APICall<IDParam, Partial<FileMeta>, FileMeta>;
   };
-  files: {
+  trees: {
     list: APICall<Record<string, string>, void, {files: FileMeta[], dir: string}>;
   };
 
@@ -398,12 +399,17 @@ export class APIService {
     this.pull = apiCall('message') as APICall<Record<string, unknown>, void, RawMessageData[]>;
     this.upload = apiBlobCall('upload') as APIBlobCall<Record<string, any>, Blob, FileMeta>;
 
-    this.file = {
-      delete: apiCall('file.delete') as APICall<IDParam>,
-      get: apiCall('file.read') as APICall<IDParam, void, FileMeta>,
+    this.tree = {
+      delete: apiCall('tree.delete') as APICall<IDParam>,
+      get: apiCall('tree.read') as APICall<IDParam, void, FileMeta>,
+      update: apiCall('tree.update') as APICall<
+        IDParam,
+        Partial<FileMeta>,
+        FileMeta
+      >,
     };
-    this.files = {
-      list: apiCall('files.read') as APICall<Record<string, string>, void, {files: FileMeta[], dir: string}>
+    this.trees = {
+      list: apiCall('trees.read') as APICall<Record<string, string>, void, {files: FileMeta[], dir: string}>
     };
 
     this.recording = {

@@ -38,6 +38,13 @@ const reducers = {
     };
   },
 
+  UPDATE_FILE(state: State, action: { file: FileMeta },): Partial<State> {
+    const remain = state.files.filter(r => r.id !== action.file.id);
+    return {
+      files: remain.concat(action.file).sort(sortByFilename),
+    }
+  },
+
   CLEAR_FILES(): Partial<State> {
     return { files: [] };
   },
@@ -54,6 +61,10 @@ const reducers = {
 
 function addFiles(files: FileMeta[]) {
   return makeAction(reducers, 'ADD_FILES', {files: files});
+}
+
+function updateFile(file: FileMeta) {
+  return makeAction(reducers, 'UPDATE_FILE', { file: file });
 }
 
 function removeFiles(files: FileMeta[]) {
@@ -95,6 +106,7 @@ export const fileTreeModule = createStoreModule(initialState, {
   reducers,
   actionCreators: {
     addFiles,
+    updateFile,
     removeFiles,
     clearFiles,
     changeDir,

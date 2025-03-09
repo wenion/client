@@ -19,7 +19,7 @@ export class FileTreeService {
   }
 
   async initFileTree() {
-    const init = await this._api.files.list({});
+    const init = await this._api.trees.list({});
     this._store.changeDir(init.dir);
     this._store.addFiles(init.files);
   }
@@ -52,8 +52,13 @@ export class FileTreeService {
     this._store.addFiles([item,]);
   }
 
+  async updateFile(id: string, file: FileMeta) {
+    const item = await this._api.tree.update({id: id}, file);
+    this._store.updateFile(item);
+  }
+
   async deleteFile(file: FileMeta) {
-    await this._api.file.delete({id: file.id});
+    await this._api.tree.delete({id: file.id});
     this._store.removeFiles([file, ]);
   }
 }

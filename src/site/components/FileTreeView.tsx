@@ -1,4 +1,4 @@
-import { Scroll } from '@hypothesis/frontend-shared';
+import { Scroll, Select } from '@hypothesis/frontend-shared';
 import {FolderIcon, FilePdfIcon, FileGenericIcon, Button, CancelIcon, PlusIcon} from '@hypothesis/frontend-shared';
 import { useEffect, useMemo, useState, useRef, Ref} from 'preact/hooks';
 import classnames from 'classnames';
@@ -81,14 +81,26 @@ class FileToUpdate {
 type FileItemProps = {
   file: FileMeta;
   onDblClick: (file: FileMeta) => void;
+  onUpdate: (file: FileMeta, updated: string) => void;
   onDelete: (id: string) => void;
 };
 
 function FileItem({
   file,
   onDblClick,
+  onUpdate,
   onDelete,
 }: FileItemProps) {
+  const [selectedPermission, setSelectedPermission] = useState(file.permission);
+
+  const selections = [
+    { id: '1', name: 'Private', value: 'private' },
+    { id: '2', name: 'Public', value: 'public' },
+  ];
+
+  useEffect(() => {
+    onUpdate(file, selectedPermission);
+  }, [selectedPermission])
 
   return (
     <tr
@@ -109,6 +121,21 @@ function FileItem({
       </td>
       <td>
         <div>{splitUserName(file.userid)}</div>
+      </td>
+      <td>
+        <Select
+          value={selectedPermission}
+          onChange={setSelectedPermission}
+          buttonContent={
+            selectedPermission
+          }
+        >
+          {selections.map(select => (
+            <Select.Option key={select.id} value={select.value}>
+              {select.name}
+            </Select.Option>
+          ))}
+        </Select>
       </td>
       <td>
         <div>{convertToTime(file.updateStamp)}</div>
@@ -267,6 +294,11 @@ function FileTreeView({
     }
   }
 
+  const onUpdate = (file: FileMeta, updated: string) => {
+    const updateItem = {...file, "permission": updated};
+    fileTreeService.updateFile(file.id, updateItem);
+  }
+
   const onDelete = (id: string) => {
     const file = store.getFiles().find(item => item.id === id);
     const result = window.confirm('Are you sure you want to delete "' + file!.filename +'"?')
@@ -404,6 +436,7 @@ function FileTreeView({
                   <tr>
                     <th>Name</th>
                     <th>User</th>
+                    <th>Permission</th>
                     <th>Modified Time</th>
                     <th></th>
                   </tr>
@@ -417,6 +450,7 @@ function FileTreeView({
                     <FileItem
                       file={child}
                       onDblClick={onDblClick}
+                      onUpdate={onUpdate}
                       onDelete={onDelete}
                     />
                   ))}
