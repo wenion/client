@@ -900,11 +900,16 @@ export class FrameSyncService {
       this._sidebarIsOpen = false;
     });
 
-    this._hostRPC.on('selectDataComics', (arg : {session_id: string, user_id: string})=> {
+    this._hostRPC.on('selectDataComics', (
+      extra : {
+        session_id: string,
+        user_id: string,
+        current_step: string[],
+      }
+    )=> {
       this._store.selectTab('shareflow');
-      console.log("arg", arg)
-      // this._recordingService.selectRecordTabView('view', arg.session_id);
-      this._recordingService.selectRecordTabViewByPk(arg.session_id);
+      console.log("click current_step ", extra.current_step)
+      this._recordingService.selectRecordTabViewByPk(extra.session_id, extra.current_step);
     })
 
     // When user toggles the highlight visibility control in the sidebar container,

@@ -75,7 +75,7 @@ function MessageCard({ message, recordingService }: MessageCardProps) {
                           )}
                           onClick={() => {
                             if (e.session_id && e.user_id) {
-                              recordingService.selectRecordTabViewByPk(e.session_id);
+                              recordingService.selectRecordTabViewByPk(e.session_id, e.current_step ?? []);
                             }
                           }}
                         >

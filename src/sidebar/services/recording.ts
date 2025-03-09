@@ -47,7 +47,7 @@ export class RecordingService {
     this._store.addRecordSteps(traceSteps);
   }
 
-  async selectRecordTabViewByPk(pk: string) {
+  async selectRecordTabViewByPk(pk: string, current_step: string[]) {
     const recordItem = this._store.getRecordItemByPk(pk);
     if (recordItem) {
       const id = recordItem.id;
@@ -55,6 +55,44 @@ export class RecordingService {
       this._store.addRecordSteps(traceSteps);
       this._store.selectTab('shareflow');
       this._store.setRecordTabView(id);
+
+      let target = null;
+      for (let i = 0; i < current_step.length; i++) {
+        const temp = this._store.getRecordStepByPk(current_step[i]);
+        if (temp) {
+          target = temp
+          break;
+        }
+      }
+
+      if (target && target.id) {
+        // if target is not in document.getElementById
+        setTimeout(() => {
+          const threadElement = document.getElementById(target.id);
+          if (threadElement) {
+            console.log("target found >>", target)
+            this.scrollTo(target.id);
+          } else {
+            const arr = this._store.recordSteps();
+
+            const targetIndex = arr.findIndex(item => item.id === target.id);
+            if (targetIndex === -1) {
+              return;
+            }
+
+            for (let i = targetIndex - 1; i >= 0; i--) {
+              const targetElement = document.getElementById(arr[i].id);
+              if (targetElement) {
+                console.log("new target found >>", arr[i])
+                this.scrollTo(arr[i].id);
+                break;
+              }
+            }
+          }
+        }, 1000);
+      } else {
+        console.error("can't find the shareflow step id ", pk, target)
+      }
     }
     else {
       console.error("can't find the shareflow with pk " + pk)

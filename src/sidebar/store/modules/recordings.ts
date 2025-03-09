@@ -224,6 +224,11 @@ function recordSteps(state: State) {
   return state.recordSteps.sort((a, b) => a.timestamp - b.timestamp);
 }
 
+function getRecordStepByPk(state: State, pk: string) {
+  const step = state.recordSteps.find(r => r.pk === pk);
+  return step?? null;
+}
+
 function getShouldScroll(state: State) {
   return state.shouldScroll;
 }
@@ -269,6 +274,7 @@ export const recordingsModule = createStoreModule(initialState, {
     recordItems,
     recordItemsCount,
     recordSteps,
+    getRecordStepByPk,
     getShouldScroll,
   },
   // rootSelectors: {

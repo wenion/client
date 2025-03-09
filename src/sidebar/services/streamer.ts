@@ -197,6 +197,7 @@ export class StreamerService {
         this._toastMessenger.message([notification, ]);
       }
     } else if (message.type === 'instant_message'){
+      console.log("receive from TAD ", message)
       this._toastMessenger.message([message,]);
     } else {
       warnOnce('Received unsupported notification', message.type);
