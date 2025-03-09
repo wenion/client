@@ -315,7 +315,7 @@ export function ImageComicsCard({
 
   return (
     <div
-      className={classnames({'data-comics-item': step.index})}
+      className={classnames('data-comics-item')}
       id={step.id}
       data-id={dataId}
     >
@@ -354,7 +354,7 @@ export function TextComicsCard({
 
   return (
     <div
-      className={classnames({'data-comics-item': step.index}, classes)}
+      className={classnames('data-comics-item', classes)}
       id={step.id}
       data-id={dataId}
     >
