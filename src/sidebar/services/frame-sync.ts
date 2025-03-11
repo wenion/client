@@ -287,6 +287,10 @@ export class FrameSyncService {
     this._setupSyncChangeEffect();
   }
 
+  private _stripHTML(input: string) {
+    return input.replace(/<[^>]*>/g, '');
+}
+
   private _addressBackspace(text: string) {
     const backspace = "`Backspace`";  // Define the backspace string
     let index = text.indexOf(backspace);  // Find the first occurrence of backspace
@@ -391,6 +395,7 @@ export class FrameSyncService {
         const add = { ...this._lastTrace };
         add.custom = 'type';
         add.label = this._addressBackspace(add.label);
+        add.label = this._stripHTML(add.label);
 
         this._streamer.send(add);
         this._lastTrace = add;
@@ -410,18 +415,32 @@ export class FrameSyncService {
           const add = { ...this._lastTrace};
           add.custom = 'type';
           add.label = this._addressBackspace(add.label);
+          add.label = this._stripHTML(add.label);
 
           this._streamer.send(add);
           this._lastTrace = add;
+        } else if (trace.custom === 'type' && trace.type === 'change') {
+          // make the previous keydown event to type-change event and then remove the repetition
+          this._lastTrace.custom = 'type';
+          this._lastTrace.type = 'change';
         } else if (trace.type !== 'change') {
           // add onchange2
           const added = { ...this._lastTrace};
           added.custom = 'type';
           added.label = this._addressBackspace(added.label);
+          added.label = this._stripHTML(added.label);
 
           this._streamer.send(added);
           this._lastTrace = added;
         }
+      }
+
+      if (trace.custom === 'type' && trace.type === 'change') {
+        trace.label = this._stripHTML(trace.label);
+        // if (trace.label === "") {
+        //   skip = true;
+        //   discard = true;
+        // }
       }
 
       if (trace.type === 'scroll' && this._lastTrace.type !== 'scroll') {
@@ -466,6 +485,18 @@ export class FrameSyncService {
         trace.custom === 'switch to'
       ) {
         trace.label = trace.title === '' ? trace.url : trace.title;
+      }
+
+      if(
+        trace.type === this._lastTrace.type &&
+        trace.custom === this._lastTrace.custom &&
+        trace.type === 'change' &&
+        trace.custom === 'type' &&
+        trace.xpath === this._lastTrace.xpath
+      ) {
+        // remove repeat change-type trace
+        skip = true;
+        discard = false;
       }
 
       if (
