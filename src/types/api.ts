@@ -384,7 +384,7 @@ export type FileMeta = {
   filePath: string;
   url: string;
   userid: string;
-  permission: string;
+  access: string;
 };
 
 /**

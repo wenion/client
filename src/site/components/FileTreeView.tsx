@@ -4,9 +4,9 @@ import { useEffect, useMemo, useState, useRef, Ref} from 'preact/hooks';
 import classnames from 'classnames';
 
 import type { FileMeta } from '../../types/api';
-import type { SidebarSettings } from '../../types/config';
 import { withServices } from '../../sidebar/service-context';
 import { generateRandomString } from '../../shared/random';
+import { webClippingPrompt } from '../../shared/webclipping-prompt';
 import type { FileTreeService } from '../../sidebar/services/file-tree';
 import type { SessionService } from '../../sidebar/services/session';
 import { useSidebarStore } from '../../sidebar/store';
@@ -91,7 +91,7 @@ function FileItem({
   onUpdate,
   onDelete,
 }: FileItemProps) {
-  const [selectedPermission, setSelectedPermission] = useState(file.permission);
+  const [selectedPermission, setSelectedPermission] = useState(file.access);
 
   const selections = [
     { id: '1', name: 'Private', value: 'private' },
@@ -273,7 +273,7 @@ function FileTreeView({
     setIsDraggingOver(true);
   }
 
-  const onDrop = (e: DragEvent) => {
+  const onDrop = async (e: DragEvent) => {
     e.preventDefault();
     if (e.dataTransfer) {
       if (!e.dataTransfer.types.includes('Files')) {
@@ -281,7 +281,7 @@ function FileTreeView({
       }
       const files = e.dataTransfer.files;
       inputRef.current!.files = files;
-      handleFile(files[0]);
+      await handleFile(files[0]);
     }
     setIsDraggingOver(false);
   }
@@ -295,7 +295,7 @@ function FileTreeView({
   }
 
   const onUpdate = (file: FileMeta, updated: string) => {
-    const updateItem = {...file, "permission": updated};
+    const updateItem = {...file, "access": updated};
     fileTreeService.updateFile(file.id, updateItem);
   }
 
@@ -307,10 +307,10 @@ function FileTreeView({
     }
   }
 
-  const onChange = () => {
+  const onChange = async () => {
     const files = inputRef.current!.files;
     if (files && files.length > 0) {
-      handleFile(files[0]);
+      await handleFile(files[0]);
     }
   };
 
@@ -345,28 +345,36 @@ function FileTreeView({
     })
   };
 
-  const handleFile = (file: File) => {
+  const handleFile = async (file: File) => {
     if (!validateFile(file)) {
       return;
     };
+    let info = await webClippingPrompt({
+      title: "Upload file",
+      message: {name: file.name, access: "private"},
+      confirmAction: "Done",
+      rowOfTextArea: 5
+    });
+    if (info.result) {
+      const fileToUpdate = addFileToUpdate(file);
 
-    const fileToUpdate = addFileToUpdate(file);
-
-    fileTreeService.uploadBlob(
-      file.name,
-      file.size,
-      file.type,
-      dir,
-      file,
-      (loaded, total) => {
-        const progress = loaded/total * 100;
-        updateFileProgress(fileToUpdate.id, progress);
-      },
-      () => {
-        deleteFileFromUpload(fileToUpdate.id);
-      },
-      (abort) => {fileToUpdate.abortFunction = abort},
-    );
+      fileTreeService.uploadBlob(
+        info.name,
+        file.size,
+        file.type,
+        dir,
+        file,
+        info.access,
+        (loaded, total) => {
+          const progress = loaded/total * 100;
+          updateFileProgress(fileToUpdate.id, progress);
+        },
+        () => {
+          deleteFileFromUpload(fileToUpdate.id);
+        },
+        (abort) => {fileToUpdate.abortFunction = abort},
+      );
+    }
   };
 
   const validateFile = (file: File): boolean => {

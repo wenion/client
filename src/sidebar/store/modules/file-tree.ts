@@ -25,7 +25,6 @@ const reducers = {
     const added = [];
     for (const record of action.files) {
       let existing;
-      console.log("state.files",state.files)
       existing = state.files.find(r => r.id === record.id);
 
       if (!existing) {

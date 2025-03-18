@@ -281,6 +281,7 @@ export class RecordingService {
     size: number,
     type: string,
     path: string,
+    access: string,
     data: Blob,
     onFinished: () => void,
   ) {
@@ -295,6 +296,7 @@ export class RecordingService {
         'size': size,
         'type': type,
         'path': path,
+        'access': access,
       },
       data,
       xhrCallback,

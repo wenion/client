@@ -5,6 +5,7 @@ import shallowEqual from 'shallowequal';
 
 import { ListenerCollection } from '../../shared/listener-collection';
 import { recordingPrompt } from '../../shared/recording-prompt';
+import { webClippingPrompt } from '../../shared/webclipping-prompt';
 import {
   PortFinder,
   PortRPC,
@@ -1048,18 +1049,26 @@ export class FrameSyncService {
       );
     });
 
-    this._hostRPC.on('webPage', (htmlContent: string, title: string, url: string, savePage: boolean = true) => {
+    this._hostRPC.on('webPage', async (htmlContent: string, title: string, url: string, savePage: boolean = true) => {
       if (savePage) {
-        this._recordingService.saveFile(
-          title,
-          htmlContent.length,
-          'text/html',
-          username(this._store.profile().userid),
-          new Blob([htmlContent], { type: 'text/html' }),
-          () => {
-            this._toastMessenger.success(title + " uploaded successfully!")
-          }
-        )
+        let info = await webClippingPrompt({
+          title: "Web clipping",
+          message: {name: title, access: "private"},
+          confirmAction: "Done",
+        });
+        if (info.result) {
+          this._recordingService.saveFile(
+            info.name,
+            htmlContent.length,
+            'text/html',
+            username(this._store.profile().userid),
+            info.access,
+            new Blob([htmlContent], { type: 'text/html' }),
+            () => {
+              this._toastMessenger.success(title + " uploaded successfully!")
+            }
+          )
+        }
       }
       else {
         this._streamer.send({

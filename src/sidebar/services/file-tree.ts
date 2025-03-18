@@ -30,6 +30,7 @@ export class FileTreeService {
     type: string,
     path: string,
     data: Blob,
+    access: string,
     onProgress: (loaded: number, total: number) => void,
     onFinished: () => void,
     onAbortReference: (abort: () => void) => void,
@@ -40,6 +41,7 @@ export class FileTreeService {
         'size': size,
         'type': type,
         'path': path,
+        'access': access,
       },
       data,
       {
