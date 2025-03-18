@@ -312,6 +312,7 @@ function FileTreeView({
     if (files && files.length > 0) {
       await handleFile(files[0]);
     }
+    inputRef.current!.value = "";
   };
 
   const onClick = () => {
