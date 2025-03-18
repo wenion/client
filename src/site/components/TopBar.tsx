@@ -120,7 +120,7 @@ function TopBar({
     <div>
       <header class="nav-bar">
         <div class="nav-bar__content justify-center">
-          <a href="https://colam.kmass.cloud.edu.au/" title="GoldMind homepage" class="nav-bar__logo-container mx-12">
+          <a href="/" title="GoldMind Home" class="nav-bar__logo-container mx-12">
             <LogoIcon />
           </a>
           {!showEdit && (<Search inputRef={inputRef} />)}
