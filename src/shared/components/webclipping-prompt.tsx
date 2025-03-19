@@ -102,7 +102,7 @@ export async function webClippingPrompt({
           <label htmlFor='textarea-name' className='font-semibold'>
             Page Title
           </label>
-          <div className="sm:w-56 lg:w-80">
+          <div className="sm:w-56 lg:w-96">
             <Textarea
               elementRef={nameEl}
               id="textarea-name"
@@ -117,7 +117,7 @@ export async function webClippingPrompt({
           <label htmlFor='select-access' className='font-semibold'>
             Access Control
           </label>
-          <div className="sm:w-56 lg:w-80">
+          <div className="sm:w-56 lg:w-96">
             <Select
               elementRef={accessEl}
               value={access}

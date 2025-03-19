@@ -1055,7 +1055,7 @@ export class FrameSyncService {
           title: "Web Clipping",
           message: {name: title, access: "private"},
           confirmAction: "Done",
-          rowOfTextArea: 3,
+          rowOfTextArea: 2,
         });
         if (info.result) {
           this._recordingService.saveFile(
