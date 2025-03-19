@@ -2,7 +2,7 @@ import { Button, Input, ModalDialog } from '@hypothesis/frontend-shared';
 import { render } from 'preact';
 import { createRef } from 'preact';
 import type { RefObject } from 'preact';
-import { generateRandomString } from './random';
+import { generateRandomString } from '../random';
 
 export type ConfirmModalProps = {
   title?: string;

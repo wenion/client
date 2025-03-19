@@ -6,7 +6,7 @@ import classnames from 'classnames';
 import type { FileMeta } from '../../types/api';
 import { withServices } from '../../sidebar/service-context';
 import { generateRandomString } from '../../shared/random';
-import { webClippingPrompt } from '../../shared/webclipping-prompt';
+import { webClippingPrompt } from '../../shared/components/webclipping-prompt';
 import type { FileTreeService } from '../../sidebar/services/file-tree';
 import type { SessionService } from '../../sidebar/services/session';
 import { useSidebarStore } from '../../sidebar/store';
@@ -351,7 +351,7 @@ function FileTreeView({
       return;
     };
     let info = await webClippingPrompt({
-      title: "Upload file",
+      title: "Upload File",
       message: {name: file.name, access: "private"},
       confirmAction: "Done",
       rowOfTextArea: 5

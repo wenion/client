@@ -4,8 +4,8 @@ import type { DebouncedFunction } from 'lodash.debounce';
 import shallowEqual from 'shallowequal';
 
 import { ListenerCollection } from '../../shared/listener-collection';
-import { recordingPrompt } from '../../shared/recording-prompt';
-import { webClippingPrompt } from '../../shared/webclipping-prompt';
+import { recordingPrompt } from '../../shared/components/recording-prompt';
+import { webClippingPrompt } from '../../shared/components/webclipping-prompt';
 import {
   PortFinder,
   PortRPC,
@@ -1052,9 +1052,10 @@ export class FrameSyncService {
     this._hostRPC.on('webPage', async (htmlContent: string, title: string, url: string, savePage: boolean = true) => {
       if (savePage) {
         let info = await webClippingPrompt({
-          title: "Web clipping",
+          title: "Web Clipping",
           message: {name: title, access: "private"},
           confirmAction: "Done",
+          rowOfTextArea: 3,
         });
         if (info.result) {
           this._recordingService.saveFile(

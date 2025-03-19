@@ -100,9 +100,9 @@ export async function webClippingPrompt({
       >
         <div className='flex justify-between items-center px-1'>
           <label htmlFor='textarea-name' className='font-semibold'>
-            Page title
+            Page Title
           </label>
-          <div className="w-64">
+          <div className="sm:w-56 lg:w-80">
             <Textarea
               elementRef={nameEl}
               id="textarea-name"
@@ -117,7 +117,7 @@ export async function webClippingPrompt({
           <label htmlFor='select-access' className='font-semibold'>
             Access Control
           </label>
-          <div className="w-auto">
+          <div className="sm:w-56 lg:w-80">
             <Select
               elementRef={accessEl}
               value={access}
