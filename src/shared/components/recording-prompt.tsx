@@ -110,9 +110,9 @@ export async function recordingPrompt({
       >
         <div className='flex justify-between items-center px-1'>
           <label htmlFor='input-with-label' className='min-w-28 font-semibold'>
-            Task name
+            Task Name
           </label>
-          <div className="min-w-64">
+          <div className="sm:w-56">
             <Input
               elementRef={nameEl}
               aria-label="Enter the task name"
@@ -125,7 +125,7 @@ export async function recordingPrompt({
           <label htmlFor='input-with-label' className='min-w-28 font-semibold'>
             Description
           </label>
-          <div className="min-w-64">
+          <div className="sm:w-56">
             <Input
               elementRef={descriptionEl}
               aria-label="Enter the description"
@@ -135,10 +135,10 @@ export async function recordingPrompt({
           </div>
         </div>
         <div className='flex justify-between items-center px-1'>
-          <label htmlFor='input-with-label' className='min-w-28 font-semibold'>
-            Backdate time (secs)
+          <label htmlFor='input-with-label' className='w-28 font-semibold'>
+            Backdate Time (secs)
           </label>
-          <div className="min-w-64">
+          <div className="sm:w-56">
             <Input
               elementRef={timeEl}
               aria-label="Enter the start time in seconds"
