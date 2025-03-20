@@ -9,6 +9,7 @@ import type { LoadAnnotationsService } from '../../sidebar/services/load-annotat
 import type { QueryService } from '../../sidebar/services/query';
 import type { StreamerService } from '../../sidebar/services/streamer';
 import { useSidebarStore } from '../../sidebar/store';
+import IntroductionPanel from './IntroductionPanel';
 import PaginatedThreadList from './PaginatedThreadList';
 
 export type NotebookViewProps = {
@@ -119,6 +120,7 @@ function NotebookView({ loadAnnotationsService, queryService, streamer }: Notebo
 
   return (
     <div class="mb-8" data-testid="notebook-container">
+      <IntroductionPanel />
       <header className="leading-none lg:col-span-2" ref={threadListScrollTop}>
         <h1 className="text-4xl font-robo my-12" data-testid="notebook-group-name">
           Search results for: {queryService.getQueryWord()}

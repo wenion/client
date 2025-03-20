@@ -86,10 +86,10 @@ export class SessionService {
    * Store the preference server-side that the user dismissed the sidebar
    * tutorial and then update the local profile data.
    */
-  async dismissSidebarTutorial() {
+  async dismissSidebarTutorial(active: boolean = false) {
     const updatedProfile = await this._api.profile.update(
       {},
-      { preferences: { show_sidebar_tutorial: false } },
+      { preferences: { show_sidebar_tutorial: active } },
     );
     this.update(updatedProfile);
   }

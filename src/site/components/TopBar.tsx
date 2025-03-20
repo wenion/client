@@ -2,11 +2,12 @@ import {
   CancelIcon,
   EditIcon,
   FolderIcon,
-  NoteFilledIcon,
+  FileGenericIcon,
   IconButton,
   LinkButton,
+  NoteFilledIcon,
 } from '@hypothesis/frontend-shared';
-import { useEffect, useMemo, useRef } from 'preact/hooks';
+import { useCallback, useEffect, useMemo, useRef } from 'preact/hooks';
 import { route } from 'preact-router';
 
 import type { SidebarSettings } from '../../types/config';
@@ -14,6 +15,7 @@ import { applyTheme } from '../../sidebar/helpers/theme';
 import { withServices } from '../../sidebar/service-context';
 import type { QueryService } from '../../sidebar/services/query';
 import type { RecordingService } from '../../sidebar/services/recording';
+import type { SessionService } from '../../sidebar/services/session';
 import { useSidebarStore } from '../../sidebar/store';
 import ThirdPartyMenu from './ThirdPartyMenu';
 import Search from './Search';
@@ -38,6 +40,7 @@ export type TopBarProps = {
   queryService: QueryService;
   recordingService: RecordingService;
   settings: SidebarSettings;
+  session: SessionService;
 };
 
 /**
@@ -52,6 +55,7 @@ function TopBar({
   queryService,
   recordingService,
   settings,
+  session,
 }: TopBarProps) {
   const loginLinkStyle = applyTheme(['accentColor'], settings);
 
@@ -66,6 +70,13 @@ function TopBar({
 
   const recordItem = store.getRecordItemById(id);
   const profile = store.profile();
+
+  // Should this panel be auto-opened at app launch? Note that the actual
+  // auto-open triggering of this panel is owned by the `HypothesisApp` component.
+  // This reference is such that we know whether we should "dismiss" the tutorial
+  // (permanently for this user) when it is closed.
+  const hasAutoDisplayPreference =
+    !!store.profile().preferences.show_sidebar_tutorial;
 
   const toggleFileTreeView = () => {
     window.location.href = '/files';
@@ -99,6 +110,18 @@ function TopBar({
       route(pathname + "/edit");
     }
   };
+
+  const onActiveChanged = useCallback(
+    () => {
+      if (!hasAutoDisplayPreference) {
+        // If the tutorial is currently being auto-displayed, update the user
+        // preference to disable the auto-display from happening on subsequent
+        // app launches
+        session.dismissSidebarTutorial(true);
+      }
+    },
+    [session, hasAutoDisplayPreference],
+  );
 
   const onSave = () => {
     recordingService.saveTraces(id);
@@ -146,6 +169,16 @@ function TopBar({
                     title="Browser cloud repository"
                   />
                 </span>
+                {!hasAutoDisplayPreference && (
+                  <span class='p-1'>
+                    <IconButton
+                      icon={FileGenericIcon}
+                      onClick={onActiveChanged}
+                      size="xs"
+                      title="How to get started"
+                    />
+                  </span>
+                )}
                 <UserMenu onLogout={onLogout} />
               </>
             ) : (
@@ -226,4 +259,5 @@ export default withServices(TopBar, [
   'queryService',
   'recordingService',
   'settings',
+  'session',
 ]);

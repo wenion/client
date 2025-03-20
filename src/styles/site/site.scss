@@ -58,6 +58,20 @@ body {
   margin-bottom: 40px;
 }
 
+.search-result-container {
+  h2 {
+    font-size: 1.991em;
+    font-weight: bold;
+    margin-block-start: 0.83em;
+    margin-block-end: 0.83em;
+  }
+
+  a {
+    display: inline;
+  }
+
+}
+
 @font-face {
   font-family: 'Hubot Sans';
 
