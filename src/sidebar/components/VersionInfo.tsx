@@ -5,6 +5,7 @@ import type { ComponentChildren } from 'preact';
 import type { VersionData } from '../helpers/version-data';
 import { withServices } from '../service-context';
 import type { ToastMessengerService } from '../services/toast-messenger';
+import type { StreamerService } from '../services/streamer';
 import { copyPlainText } from '../util/copy-to-clipboard';
 
 type VersionInfoItemProps = {
@@ -34,9 +35,10 @@ export type VersionInfoProps = {
 
   // injected
   toastMessenger: ToastMessengerService;
+  streamer: StreamerService;
 };
 
-function VersionInfo({ toastMessenger, versionData }: VersionInfoProps) {
+function VersionInfo({ toastMessenger, streamer, versionData }: VersionInfoProps) {
   const copyVersionData = () => {
     try {
       copyPlainText(versionData.asFormattedString());
@@ -77,6 +79,7 @@ function VersionInfo({ toastMessenger, versionData }: VersionInfoProps) {
         )}
         <VersionInfoItem label="Account">{versionData.account}</VersionInfoItem>
         <VersionInfoItem label="Date">{versionData.timestamp}</VersionInfoItem>
+        <VersionInfoItem label="Client ID">{streamer.clientId}</VersionInfoItem>
       </dl>
       <div className="flex items-center justify-center">
         <Button onClick={copyVersionData} icon={CopyIcon}>
@@ -87,4 +90,4 @@ function VersionInfo({ toastMessenger, versionData }: VersionInfoProps) {
   );
 }
 
-export default withServices(VersionInfo, ['toastMessenger']);
+export default withServices(VersionInfo, ['toastMessenger', 'streamer']);
