@@ -224,7 +224,14 @@ function recordItems(state: State) {
 }
 
 function recordSteps(state: State) {
-  return state.recordSteps;
+  return state.recordSteps.sort((a, b) => {
+    if (a.index !== undefined && b.index !== undefined) {
+      // Sort by index if both have index values
+      return a.index - b.index;
+    }
+    // If index is undefined, sort by timestamp
+    return a.timestamp - b.timestamp;
+  });
 }
 
 function getRecordStepByPk(state: State, pk: string) {

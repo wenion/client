@@ -531,6 +531,45 @@ function EditView({
         isSidebar={true}
       />
       <div
+        className={"fixed flex ml-32 mt-4 border border-black rounded-md"}
+      >
+        <IconButton
+          icon={ArrowUpIcon}
+          onClick={onToTop}
+          size="lg"
+          title="To Top"
+          classes="text-blue-500 cursor-pointer"
+        />
+        {exist && (
+          <IconButton
+            icon={TrashIcon}
+            onClick={onDelete}
+            size="lg"
+            title="Delete Shareflows"
+            classes="text-red-500 cursor-pointer"
+          />
+        )}
+        {exist && (
+          <IconButton
+            icon={EditIcon}
+            onClick={onEdit}
+            size="lg"
+            title="Edit Shareflow"
+            disabled={selectedList.length !== 1}
+            classes="text-blue-500 cursor-pointer"
+          />
+        )}
+        {exist && (
+          <IconButton
+            icon={CancelIcon}
+            onClick={onDeselect}
+            size="lg"
+            title="Deselect All"
+            classes="text-blue-500 cursor-pointer"
+          />
+        )}
+      </div>
+      <div
         ref={parentRef}
         className={"mx-auto max-w-2xl"}
         onDragStart={onDragStart}
@@ -539,43 +578,6 @@ function EditView({
         onDragEnd={onDragEnd}
       >
         {/* <div style={{ height: offscreenUpperHeight }} /> */}
-        <div
-          className={"fixed flex -ml-40 border border-black rounded-md"}
-        >
-          <IconButton
-            icon={ArrowUpIcon}
-            onClick={onToTop}
-            size="lg"
-            title="To Top"
-            classes="text-blue-500 cursor-pointer"
-          />
-          {exist && (
-            <IconButton
-              icon={TrashIcon}
-              onClick={onDelete}
-              size="lg"
-              title="Delete Shareflows"
-              classes="text-red-500 cursor-pointer"
-            />
-          )}
-          {exist && (
-            <IconButton
-              icon={EditIcon}
-              onClick={onEdit}
-              size="lg"
-              title="Edit Shareflow"
-              disabled={selectedList.length !== 1}
-              classes="text-blue-500 cursor-pointer"
-            />
-          )}
-          {exist && (<IconButton
-            icon={CancelIcon}
-            onClick={onDeselect}
-            size="lg"
-            title="Deselect All"
-            classes="text-blue-500 cursor-pointer"
-          />)}
-        </div>
         {
           recordSteps.map((step, index) => {
             if (step.tagName === "Navigate" || step.tagName === "Switch") {
