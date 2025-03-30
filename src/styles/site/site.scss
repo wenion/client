@@ -153,6 +153,13 @@ body {
   margin-top: 1rem;
 }
 
+.data-comics-item.moving {
+  background: transparent;
+  color: transparent;
+  border: 2px dashed #ccc;
+  border-radius: 10px;
+}
+
 .data-comics-nav::before {
   content: " ";
   display: inline-block;

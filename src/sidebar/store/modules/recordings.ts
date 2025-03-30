@@ -143,7 +143,7 @@ function addRecordSteps(recordSteps: RecordStep[]) {
     }) => {
       const linksState = getState().links;
       const link = linksState? linksState['index'] : null;
-      recordSteps.map(step => {
+      recordSteps.map((step, index) => {
         step.id = 'tr' + step.id;
         if (step.image && link) {
           step.image = link + 'api/image/' + step.image + '.jpg';
@@ -152,7 +152,10 @@ function addRecordSteps(recordSteps: RecordStep[]) {
         if (!step.title) {
           step.title = step.type;
         }
-      })
+        if (!step.index) {
+          step.index = index;
+        }
+      });
       dispatch(
         makeAction(reducers, 'ADD_RECORDSTEPS', {
           recordSteps: recordSteps
@@ -221,7 +224,7 @@ function recordItems(state: State) {
 }
 
 function recordSteps(state: State) {
-  return state.recordSteps.sort((a, b) => a.timestamp - b.timestamp);
+  return state.recordSteps;
 }
 
 function getRecordStepByPk(state: State, pk: string) {

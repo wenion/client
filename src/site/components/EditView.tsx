@@ -58,8 +58,11 @@ export function ComicHeader({
 
   return (
     <div
+      draggable
       className={classnames(
         "data-comics-item",
+        "p-4",
+        "border-2 border-transparent",
         classes,
       )}
       id={trace.id}
@@ -240,7 +243,12 @@ export function ImageComicsCard({
 }: ImageComicsCardProps) {
   return (
     <div
-      className={classnames('data-comics-item')}
+      draggable
+      className={classnames(
+        'data-comics-item',
+        "p-4",
+        "border-2 border-transparent",
+      )}
       id={step.id}
       data-id={dataId}
     >
@@ -301,6 +309,12 @@ function EditView({
   const store = useSidebarStore();
   const recordSteps = store.recordSteps();
   const links = store.getLink("index");
+
+  const parentRef = useRef<HTMLDivElement | null>(null);
+
+  const [sourceNode, setSourceNode] = useState<HTMLDivElement | null>(null);
+  const [dragState, setDragState] = useState<string>("End"); // Start Trigger End
+  const [startTop, setStartTop] = useState(0);
 
   useEffect(() => {
     recordingService.getTracesById(id!);
@@ -435,6 +449,75 @@ function EditView({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  const onDragStart = (e: DragEvent) => {
+    const target = e.target;
+    if (target instanceof HTMLDivElement) {
+      setTimeout(() => {
+        target.classList.add("moving");
+        Array.from(target.children).forEach((child) => {
+          (child as HTMLElement).style.visibility = 'hidden';
+        });
+      }, 0);
+      e.dataTransfer!.effectAllowed = "move";
+      setSourceNode(target);
+      setDragState("Start");
+      setStartTop(target.getBoundingClientRect().top);
+    }
+  };
+
+  const onDragOver = (e: Event) => {
+    e.preventDefault();
+  };
+
+  const onDragEnter = (e: Event) => {
+    e.preventDefault();
+    const target = e.target;
+    if (target === parentRef.current) {
+      setDragState("Start");
+      return;
+    }
+    if (target === sourceNode) {
+      setDragState("Start");
+      return;
+    }
+    if (target instanceof HTMLDivElement && target.classList.contains('data-comics-item') && sourceNode && dragState === "Start") {
+      const children = [...parentRef.current!.children];
+      const sourceIndex = children.indexOf(sourceNode);
+      const targetIndex = children.indexOf(target);
+      if (sourceIndex <= targetIndex) {
+        parentRef.current!.insertBefore(sourceNode, target.nextElementSibling);
+      } else {
+        parentRef.current!.insertBefore(sourceNode, target);
+      }
+      setDragState("Trigger");
+    }
+  };
+
+  const onDragEnd = (e: DragEvent) => {
+    const target = e.target;
+    if (target instanceof HTMLDivElement) {
+      target.classList.remove("moving");
+      Array.from(target.children).forEach((child) => {
+        (child as HTMLElement).style.visibility = "visible";
+      });
+    }
+    setDragState("End");
+  };
+
+  const onSave = (id: string) => {
+    const children = [...parentRef.current!.children];
+    children.map((child, newIndex) => {
+      const selectIndex = child.getAttribute("data-id");
+      const step = recordSteps.find(item => item.index === Number(selectIndex));
+      if (step) {
+        step.index = newIndex;
+        store.updateRecordStep(step);
+      }
+    })
+    recordingService.saveTraces(id);
+    window.alert("Changes have been saved!");
+  }
+
   let navId = 0;
   let dataId = 0;
 
@@ -444,10 +527,16 @@ function EditView({
         onLogin={onLogin}
         onSignUp={onSignUp}
         onLogout={onLogout}
+        onSave={onSave}
         isSidebar={true}
       />
       <div
+        ref={parentRef}
         className={"mx-auto max-w-2xl"}
+        onDragStart={onDragStart}
+        onDragEnter={onDragEnter}
+        onDragOver={onDragOver}
+        onDragEnd={onDragEnd}
       >
         {/* <div style={{ height: offscreenUpperHeight }} /> */}
         <div

@@ -36,6 +36,8 @@ export type TopBarProps = {
   /** Callback invoked when user clicks "Sign up" button */
   onSignUp: () => void;
 
+  onSave?: (id: string) => void;
+
   // injected
   queryService: QueryService;
   recordingService: RecordingService;
@@ -52,6 +54,7 @@ function TopBar({
   onLogin,
   onLogout,
   onSignUp,
+  onSave,
   queryService,
   recordingService,
   settings,
@@ -122,12 +125,6 @@ function TopBar({
     },
     [session, hasAutoDisplayPreference],
   );
-
-  const onSave = () => {
-    recordingService.saveTraces(id);
-    window.alert("Changes have been saved!");
-    toggleEditMode();
-  };
 
   const param = window.location.search.match(/[\?&]q=([^&]+)/);
   useEffect(() => {
@@ -228,7 +225,13 @@ function TopBar({
                 <>
                   <IconButton
                     icon={NoteFilledIcon}
-                    onClick={onSave}
+                    onClick={
+                      () => {
+                        if (onSave) {
+                          onSave(id);
+                        }
+                      }
+                    }
                     size="lg"
                     title="Save changes"
                     classes="border border-black rounded-sm cursor-pointer"
