@@ -20,6 +20,7 @@ export async function EditPrompt({
   title: string,
   description: string,
   url: string,
+  type: string,
 }> {
   const cancelButton = createRef<HTMLElement | undefined>();
   const container = document.createElement('div');
@@ -37,14 +38,17 @@ export async function EditPrompt({
   const urlEl = createRef<HTMLInputElement>();
 
   const items = [
-    { id: '1', name: 'Click', value: 'click' },
-    { id: '2', name: 'Select', value: 'select' },
-    { id: '3', name: 'Type', value: 'type' },
-    { id: '4', name: 'Scroll', value: 'scroll' },
-    { id: '5', name: 'Navigate to', value: 'Navigate to' },
-    { id: '6', name: 'Switch to', value: 'Switch to' },
-    { id: '7', name: 'Create highlight', value: 'create highlight' },
-    { id: '8', name: 'Delete highlight', value: 'delete highlight' },
+    { id: '1', name: 'Click', value: 'click', type: 'pointerdown' },
+    { id: '2', name: 'Copy', value: 'copy', type: 'copy' },
+    { id: '3', name: 'Create highlight', value: 'create highlight', type: 'annotation' },
+    { id: '4', name: 'Delete highlight', value: 'delete highlight', type: 'annotation' },
+    { id: '5', name: 'Navigate to', value: 'Navigate to', type: '' },
+    { id: '6', name: 'Paste', value: 'paste', type: 'paste' },
+    { id: '7', name: 'Scroll', value: 'scroll', type: 'scroll' },
+    { id: '8', name: 'Select', value: 'select', type: 'mouseup' },
+    { id: '9', name: 'Submit', value: 'submit', type: 'submit' },
+    { id: '10', name: 'Switch to', value: 'Switch to', type: 'getfocus' },
+    { id: '11', name: 'Type', value: 'type', type: 'change' },
   ];
 
   return new Promise(resolve => {
@@ -54,11 +58,14 @@ export async function EditPrompt({
 
       render(null, container);
       container.remove();
+      const type = items.find(item => item.value === title)?.type?? ''
+
       resolve({
         result: result,
         title: title,
         description: description,
         url: url,
+        type: type,
       });
     };
 
@@ -104,16 +111,21 @@ export async function EditPrompt({
           </div> */}
           <Select
             elementRef={titleEl}
-            value={title}
-            onChange={(newValue) => {
-              titleEl.current!.value = newValue;
-              renderModal(newValue, descriptionEl.current!.value, urlEl.current!.value);
+            // value={title}
+            value={items.find(item => item.value === title)!}
+            // onChange={(newValue) => {
+            //   titleEl.current!.value = newValue;
+            //   renderModal(newValue, descriptionEl.current!.value, urlEl.current!.value);
+            // }}
+            onChange={(item: { id: string, name: string, value: string, type: string }) => {
+              titleEl.current!.value = item.value;
+              renderModal(item.value, descriptionEl.current!.value, urlEl.current!.value);
             }}
             buttonId="select-title"
             buttonContent={items.find(item => item.value === title)?.name || 'Select an action'}
           >
             {items.map(item => (
-              <Select.Option key={item.id} value={item.value}>
+              <Select.Option key={item.id} value={item}>
                 {item.name}
               </Select.Option>
             ))}
