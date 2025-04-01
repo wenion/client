@@ -185,7 +185,7 @@ export class StreamerService {
           })
         })
         const notification: RawMessageData = {
-          type: 'additional_knoledge',
+          type: 'additional_knowledge',
           id: generateHexString(7),
           title: 'Additional knowledge available',
           message: content,
