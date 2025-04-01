@@ -2,7 +2,7 @@ import {
   CancelIcon,
   EditIcon,
   FolderIcon,
-  FileGenericIcon,
+  HelpIcon,
   IconButton,
   LinkButton,
   NoteFilledIcon,
@@ -169,7 +169,7 @@ function TopBar({
                 {!hasAutoDisplayPreference && (
                   <span class='p-1'>
                     <IconButton
-                      icon={FileGenericIcon}
+                      icon={HelpIcon}
                       onClick={onActiveChanged}
                       size="xs"
                       title="How to get started"
