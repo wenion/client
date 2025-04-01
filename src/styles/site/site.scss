@@ -176,6 +176,9 @@ body {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
+  min-width: 120px;
+  padding: 15px;
+  text-align: left;
 }
 
 .word-break-word {

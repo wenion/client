@@ -165,6 +165,7 @@ export function ComicHeader({
       <div
         className={classnames(
           "flex",
+          "bg-gray-100 rounded-xl text-center",
           "text-lg text-blue-chathams text-center",
           "border-2 border-gray-400",
           'hover:shadow-lg',
@@ -215,11 +216,11 @@ export function ComicItem({
   return (
     <div
       className={classnames(
-        "w-full",
+        "w-full min-w-28",
         'grid grid-rows-3 grid-flow-col',
         'content-center',
         'text-lg text-blue-chathams text-center',
-        'border border-black mb-0.5',
+        'rounded-md border mb-0.5',
         'hover:shadow-lg',
         'cursor-pointer',
         classes,
@@ -259,7 +260,7 @@ export function ComicItem({
         )}
       </div>
       <div className={classnames(
-        "col-span-2 border-b border-l border-black",
+        "col-span-2 border-b border-l rounded-md",
         "text-lg text-black font-bold content-center",
         "p-4",
       )}>
