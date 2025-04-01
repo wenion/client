@@ -109,10 +109,10 @@ function hasMessage(state: State, messageId: string) {
 /**
  * Count the number of orphans currently in the collection
  */
-const addtionMessages = createSelector(
+const additionMessages = createSelector(
   (state: State) => state.messages,
   messages =>
-    messages.filter(msg => msg.type === "additional_knoledge"),
+    messages.filter(msg => msg.type === "additional_knowledge"),
 );
 
 const shareFlowMessages = createSelector(
@@ -140,7 +140,7 @@ export const messagesModule = createStoreModule(initialState, {
     allMessageCount,
     isMessagePanelExpanded,
     hasMessage,
-    addtionMessages,
+    additionMessages,
     shareFlowMessages,
     organizationMessages,
   },

@@ -8,13 +8,13 @@ export type MessageTabProps = {
 
 export default function MessageTab() {
   const store = useSidebarStore();
-  const addtionMessages = store.addtionMessages();
+  const additionMessages = store.additionMessages();
   const shareFlowMessages = store.shareFlowMessages();
   const organizationMessages = store.organizationMessages();
 
   return (
     <>
-      <MessageList id='addition' title='Additional Knowledge' threads={addtionMessages} />
+      <MessageList id='addition' title='Additional Knowledge' threads={additionMessages} />
       <MessageList id='shareflow' title='ShareFlow Recommendation' threads={shareFlowMessages} />
       <MessageList id='organization' title='Organisation Event' threads={organizationMessages} />
     </>
