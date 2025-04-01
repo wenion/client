@@ -25,7 +25,6 @@ import {
 import { Notebook } from './notebook';
 import { Profile } from './profile';
 import { ImageViewer } from './image-viewer';
-import { ComicsViewer } from './comics-viewer';
 import { Sidebar } from './sidebar';
 import type { SidebarConfig } from './sidebar';
 import { EventBus } from './util/emitter';
@@ -123,10 +122,6 @@ function init() {
       document.body,
       eventBus,
     );
-    const comicsViewer = new ComicsViewer(
-      document.body,
-      eventBus,
-    )
 
     portProvider.on('frameConnected', (source, port) =>
       sidebar.onFrameConnected(source, port),
@@ -137,7 +132,6 @@ function init() {
       notebook,
       profile,
       imageViewer,
-      comicsViewer
     );
   }
 

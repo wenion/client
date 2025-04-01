@@ -531,14 +531,6 @@ export class Sidebar implements Destroyable {
       this.show();
     });
 
-    this._sidebarRPC.on('openNewPage', (data) => {
-      this.hide();
-      this._emitter.publish('openNewPage', data);
-    });
-    this._emitter.subscribe('closeNewPage', () => {
-      this.show();
-    });
-
     this._sidebarRPC.on('expandSidebar', (option: {action: string}) => {
       if (this.iframeContainer) {
         if (option.action === 'open') {
