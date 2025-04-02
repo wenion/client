@@ -63,6 +63,11 @@ function MessageCard({ message, recordingService }: MessageCardProps) {
                   </StyledText>
                 </Excerpt>
               </div>
+              {message.linkName && (
+                <div>
+                  <b>{message.linkName}</b>
+                </div>
+              )}
               <div className="flex flex-col space-y-2">
                 {message.extra && message.extra.map(e => {
                   return (
@@ -74,8 +79,10 @@ function MessageCard({ message, recordingService }: MessageCardProps) {
                             "text-blue-curious hover:text-blue-chathams underline underline-offset-1",
                           )}
                           onClick={() => {
-                            if (e.session_id && e.user_id) {
+                            if (e.session_id && e.user_id && !e.url) {
                               recordingService.selectRecordTabViewByPk(e.session_id, e.current_step ?? []);
+                            } else if (e.url) {
+                              window.open(e.url);
                             }
                           }}
                         >

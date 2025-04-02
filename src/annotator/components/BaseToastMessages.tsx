@@ -15,6 +15,7 @@ export type ToastMessage = {
   type: 'error' | 'success' | 'notice' | 'message';
   title: string;
   message: ComponentChildren;
+  linkName?: string;
   date: number;
   /**
    * Visually hidden messages are announced to screen readers but not visible.
@@ -61,17 +62,38 @@ function ToastMessageContext({
             style={textStyle}
           />
         </StyledText>
-        {message.extra && message.extra.map(e => (
-          <div
-            className={classnames(
-              "cursor-pointer",
-              "text-blue-curious hover:text-blue-chathams underline underline-offset-1",
-            )}
-            onClick={() => callBack(e)}
-          >
-            <b>{e.task_name}</b>
+        {message.linkName && (
+          <div>
+            <b>{message.linkName}</b>
           </div>
-        ))}
+        )}
+        {message.extra && message.extra.map(e => {
+          if (e.url) {
+            return (
+              <a
+                className={classnames(
+                  "cursor-pointer",
+                  "text-blue-curious hover:text-blue-chathams underline underline-offset-1",
+                )}
+                href={e.url}
+              >
+                <b>{e.task_name}</b>
+              </a>
+            )
+          } else {
+            return (
+              <div
+                className={classnames(
+                  "cursor-pointer",
+                  "text-blue-curious hover:text-blue-chathams underline underline-offset-1",
+                )}
+                onClick={() => callBack(e)}
+              >
+                <b>{e.task_name}</b>
+              </div>
+            )
+          }
+        })}
         <div className='flex flex-row justify-end'>
           {formatSortableDateTime(time)}
         </div>

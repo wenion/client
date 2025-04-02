@@ -8,7 +8,7 @@ import type { AuthService } from './auth';
 import type { GroupsService } from './groups';
 import type { SessionService } from './session';
 
-import type { RawMessageData } from '../../types/api';
+import type { RawMessageData, ExtraDataComics } from '../../types/api';
 import type { ToastMessengerService } from './toast-messenger';
 
 /**
@@ -166,8 +166,9 @@ export class StreamerService {
       }
     } else if (message.type === 'knowledge-push') {
       if (message.payload) {
-        let content = message.payload.summary + '\n\n**Here are some additional resources:**\n';
+        let content = message.payload.summary;
 
+        const extra: ExtraDataComics[] = [];
         message.payload.context.forEach((innerArray: [{
           id: number,
           page_content: string,
@@ -181,15 +182,25 @@ export class StreamerService {
           }
         }]) => {
           innerArray.forEach((item) => {
-              content += '- [' + item.metadata.title + '](' + item.metadata.url + ')\n'
+            const title = item.metadata.title.length < 40 ?
+              item.metadata.title : item.metadata.title.slice(0, 40) + "...";
+            extra.push({
+              pk: "knowledge-push-" + item.id.toString(),
+              session_id: "",
+              task_name: title,
+              user_id: "",
+              url: item.metadata.url,
+            })
           })
-        })
+        });
         const notification: RawMessageData = {
           type: 'additional_knowledge',
           id: generateHexString(7),
           title: 'Additional knowledge available',
           message: content,
           date: Date.now()*1000,
+          linkName: "Here are some additional resources:",
+          extra: extra,
           show_flag: true,
           unread_flag: true,
           need_save_flag: true,

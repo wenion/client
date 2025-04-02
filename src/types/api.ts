@@ -409,6 +409,7 @@ export type ExtraDataComics = {
   task_name: string;
   user_id: string;
   current_step?: string[];
+  url?: string;
 };
 
 export type MessageType = 'addition' | 'shareflow' | 'organization';
@@ -418,6 +419,7 @@ export type RawMessageData = {
   id: string;
   title?: string;
   message: string;
+  linkName?: string;
   date: number;
   show_flag?: boolean;
   unread_flag?: boolean;
