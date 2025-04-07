@@ -115,7 +115,7 @@ function NavComics({
               <div
                 id={"nav" + step.id}
                 className={classnames(
-                  "border-2 border-gray-400",
+                  "rounded-xl border border-gray-400",
                   "hover:shadow-lg",
                   "cursor-pointer",
                   "text-blue-chathams",
