@@ -341,7 +341,7 @@ export class Sidebar implements Destroyable {
       final: null,
     };
     this._setupGestures();
-    this.close();
+    // this.close();
 
     // Publisher-provided callback functions
     const [serviceConfig] = config.services || [];
@@ -531,28 +531,28 @@ export class Sidebar implements Destroyable {
       this.show();
     });
 
-    this._sidebarRPC.on('expandSidebar', (option: {action: string}) => {
-      if (this.iframeContainer) {
-        if (option.action === 'open') {
-          // this.open();
-          const suggestedWidth = Math.round(window.innerWidth * 0.3);
-          const stringWidth = suggestedWidth.toString() + 'px';
-          const stringMarginLeft = (-suggestedWidth).toString() + 'px';
+    // this._sidebarRPC.on('expandSidebar', (option: {action: string}) => {
+    //   if (this.iframeContainer) {
+    //     if (option.action === 'open') {
+    //       // this.open();
+    //       const suggestedWidth = Math.round(window.innerWidth * 0.3);
+    //       const stringWidth = suggestedWidth.toString() + 'px';
+    //       const stringMarginLeft = (-suggestedWidth).toString() + 'px';
 
-          this.iframeContainer.style.marginLeft= stringMarginLeft;
-          this.iframeContainer.style.width = stringWidth;
-        }
-        else {
-          this.iframeContainer.style.marginLeft= '-428px';
-          this.iframeContainer.style.width = '';
-          this.iframeContainer.removeAttribute('width');
-          // close();
-        }
-      }
-      else {
-        close();
-      }
-    })
+    //       this.iframeContainer.style.marginLeft= stringMarginLeft;
+    //       this.iframeContainer.style.width = stringWidth;
+    //     }
+    //     else {
+    //       this.iframeContainer.style.marginLeft= '-428px';
+    //       this.iframeContainer.style.width = '';
+    //       this.iframeContainer.removeAttribute('width');
+    //       // close();
+    //     }
+    //   }
+    //   else {
+    //     close();
+    //   }
+    // })
 
     this._sidebarRPC.on('webClipping', (option: {savePage: boolean}) => {
       const bodyContent = document.body.innerHTML;

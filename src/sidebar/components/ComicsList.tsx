@@ -30,11 +30,13 @@ function capitalizeFirstLetter(str: string): string {
 type NavComicsProps = {
   steps: RecordStep[];
   onClick: (step: RecordStep) => void;
+  onMouseLeave: () => void;
 };
 
 function NavComics({
   steps,
   onClick,
+  onMouseLeave,
 }: NavComicsProps) {
   const scollRef = useRef<HTMLDivElement | null>(null);
 
@@ -108,6 +110,7 @@ function NavComics({
         className="flex w-full h-full overflow-x-auto bg-white"
         ref={scollRef}
         onWheel={(event) => onWheelEvent(event)}
+        onMouseLeave={onMouseLeave}
       >
         {
           navs.map((step, index) => (
@@ -532,6 +535,7 @@ function ComicsList({
       <NavComics
         steps={recordSteps}
         onClick={onNavClick}
+        onMouseLeave={onMouseLeave}
       />
       <div
         ref={contentElement}

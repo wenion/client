@@ -6,6 +6,7 @@ import { watch } from '../util/watch';
 import type { LocalStorageService } from './local-storage';
 
 const SYNC_MUTED_KEY = 'goldmind.sync.muted';
+const SYNC_LAST_OPEN_KEY= 'goldmind.sync.lastOpen';
 const SYNC_HIGHLIGHTS_KEY = 'goldmind.sync.highlights';
 const SYNC_RECORDING_KEY = 'goldmind.sync.recording';
 const SYNC_RECORDING_TASK_NAME_KEY = 'goldmind.sync.recording.taskName';
@@ -13,6 +14,7 @@ const SYNC_RECORDING_SESSION_ID_KEY = 'goldmind.sync.recording.sessionId';
 
 const SYNC_KEYS: Record<SyncKey, string> = {
   muted: SYNC_MUTED_KEY,
+  lastOpen: SYNC_LAST_OPEN_KEY,
   highlightsVisible: SYNC_HIGHLIGHTS_KEY,
   recording: SYNC_RECORDING_KEY,
   recordingTaskName: SYNC_RECORDING_TASK_NAME_KEY,

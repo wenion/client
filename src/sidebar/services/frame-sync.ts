@@ -279,6 +279,8 @@ export class FrameSyncService {
       scrollY: 0,
     };
 
+    this._store.getSync("lastOpen") ? this._hostRPC.call('openSidebar') : this._hostRPC.call('closeSidebar');
+
     this._setupSyncToGuests();
     this._setupHostEvents();
     this._setupSiteEvents();
@@ -681,7 +683,6 @@ export class FrameSyncService {
           // session cookies
           const {id, scrollToId} = await this._recordingService.readTracking();
           if (id) {
-            this._hostRPC.call('openSidebar');
             this._store.selectTab('shareflow');
             await this._recordingService.selectRecordTabView('view', id);
             this._recordingService.scrollTo(scrollToId);
@@ -927,9 +928,11 @@ export class FrameSyncService {
     this._hostRPC.on('sidebarOpened', () => {
       this._sidebarIsOpen = true;
       this._store.setSidebarOpened(true);
+      this._store.setSync("lastOpen", true);
     });
     this._hostRPC.on('sidebarClosed', () => {
       this._sidebarIsOpen = false;
+      this._store.setSync("lastOpen", false);
     });
 
     this._hostRPC.on('selectDataComics', (

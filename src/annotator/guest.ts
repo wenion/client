@@ -395,6 +395,11 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
         return;
       }
 
+      // If sidebar is closed, don't close again
+      if (!this._sidebarLayout?.expanded) {
+        return;
+      }
+
       this._sidebarRPC.call('closeSidebar');
     };
 

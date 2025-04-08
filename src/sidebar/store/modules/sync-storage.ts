@@ -16,6 +16,7 @@ import { createStoreModule, makeAction } from '../create-store';
 
 export type State = {
   muted: boolean | null;
+  lastOpen: boolean | null;
   highlightsVisible: boolean | null;
   recording: boolean | null;
   recordingTaskName: string | null;
@@ -26,6 +27,7 @@ export type Key = keyof State;
 
 const initialState: State = {
   muted: null,
+  lastOpen: null,
   highlightsVisible: null,
   recording: null,
   recordingTaskName: null,

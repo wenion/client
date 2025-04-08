@@ -170,9 +170,7 @@ export type SidebarToGuestEvent =
  */
 export type SidebarToHostEvent =
   | 'syncStorageChanged'
-  |'statusUpdated'
-  |'updateRecoringStatusFromSidebar'
-  |'pullRecommendation'
+  | 'pullRecommendation'
   | 'websocketConnected'
   | 'isLoggedIn'
   /**
@@ -212,7 +210,7 @@ export type SidebarToHostEvent =
    */
   | 'openNotebook'
   | 'openImageViewer'
-  | 'expandSidebar'
+  // | 'expandSidebar'
   | 'webClipping'
 
   /**
