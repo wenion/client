@@ -35,6 +35,9 @@ import { createShadowRoot } from './util/shadow-root';
 // Minimum width to which the iframeContainer can be resized.
 export const MIN_RESIZE = 280;
 
+// The delay in milliseconds before hiding the sidebar
+export const SIDEBAR_HIDE_DELAY = 3000;
+
 /**
  * Client configuration used to launch the sidebar application.
  *
@@ -130,6 +133,8 @@ export class Sidebar implements Destroyable {
   /** Channels for host-guest communication. */
   private _guestRPC: PortRPC<GuestToHostEvent, HostToGuestEvent>[];
 
+  private _timeoutEffectId: ReturnType<typeof setTimeout> | null;
+
   bucketBar: BucketBar | null;
   features: FeatureFlags;
   externalFrame: Element | undefined;
@@ -163,6 +168,7 @@ export class Sidebar implements Destroyable {
     this._config = config;
     this.bucketBar = null;
     this.features = new FeatureFlags();
+    this._timeoutEffectId = null;
 
     if (config.externalContainerSelector) {
       this.externalFrame =
@@ -211,9 +217,39 @@ export class Sidebar implements Destroyable {
 
           // Allow pointer events to go through this container to page elements
           // (eg. scroll bar thumbs) which are behind it.
-          'pointer-events-none',
+          // 'pointer-events-none',
         );
         this.iframeContainer.append(sidebarEdge);
+
+        this.iframeContainer.addEventListener('mouseover', event => {
+          if (this._timeoutEffectId) {
+            clearTimeout(this._timeoutEffectId);
+            this._timeoutEffectId = null;
+          }
+          if (this.iframeContainer && this.iframeContainer.classList.contains('sidebar-hide')) {
+            this.iframeContainer.classList.remove('sidebar-hide');
+            this.toolbar.classes = 'visible';
+          }
+        });
+
+        this.iframeContainer.addEventListener('mouseout', event => {
+          if (
+            this.iframeContainer &&
+            this.iframeContainer.classList.contains('sidebar-collapsed') &&
+            !this.iframeContainer.classList.contains('sidebar-hide') &&
+            !this._timeoutEffectId
+          ) {
+            this._timeoutEffectId = setTimeout(
+              () => {
+                if (this.iframeContainer && this.iframeContainer.classList.contains('sidebar-collapsed')) {
+                  this.iframeContainer.classList.add('sidebar-hide');
+                  this.toolbar.classes = 'invisible';
+                }
+                this._timeoutEffectId = null;
+              }, SIDEBAR_HIDE_DELAY
+            );
+          }
+        });
 
         if (!bucketBarContainer) {
           bucketBarContainer = sidebarEdge;
@@ -782,6 +818,7 @@ export class Sidebar implements Destroyable {
       const width = this.iframeContainer.getBoundingClientRect().width;
       this.iframeContainer.style.marginLeft = `${-1 * width}px`;
       this.iframeContainer.classList.remove('sidebar-collapsed');
+      this.iframeContainer.classList.remove('sidebar-hide');
     }
 
     this.toolbar.sidebarOpen = true;
@@ -808,6 +845,16 @@ export class Sidebar implements Destroyable {
     }
 
     this._updateLayoutState(false);
+
+    this._timeoutEffectId = setTimeout(
+      () => {
+        if (this.iframeContainer && this.iframeContainer.classList.contains('sidebar-collapsed')) {
+          this.iframeContainer.classList.add('sidebar-hide');
+          this.toolbar.classes = 'invisible';
+        }
+        this._timeoutEffectId = null;
+      }, SIDEBAR_HIDE_DELAY
+    );
   }
 
   /**

@@ -30,6 +30,7 @@ export class ToolbarController {
   private _sidebarOpen: boolean;
   private _isConnected: boolean;
   private _isLoggedIn: boolean;
+  private _classes?: string | string[];
   private _closeSidebar: () => void;
   private _toggleSidebar: () => void;
   private _toggleSilentMode: () => void;
@@ -185,6 +186,15 @@ export class ToolbarController {
     return this._isLoggedIn;
   }
 
+  set classes(value) {
+    this._classes = value;
+    this.render();
+  }
+
+  get classes() {
+    return this._classes;
+  }
+
   /**
    * Return the DOM element that toggles the sidebar's visibility.
    */
@@ -195,6 +205,7 @@ export class ToolbarController {
   render() {
     render(
       <Toolbar
+        classes={this._classes}
         closeSidebar={this._closeSidebar}
         createAnnotation={this._createAnnotation}
         newAnnotationType={this._newAnnotationType}
