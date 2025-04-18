@@ -67,6 +67,8 @@ export type MenuItemProps = {
    */
   href?: string;
 
+  title?: string;
+
   /**
    * Icon to render for this item. This will show to the left of the item label
    * unless this is a submenu item, in which case it goes on the right. Ignored
@@ -141,6 +143,7 @@ export type MenuItemProps = {
  */
 export default function MenuItem({
   href,
+  title,
   icon: Icon,
   isDisabled,
   isExpanded,
@@ -293,6 +296,7 @@ export default function MenuItem({
       <div
         ref={menuItemRef as Ref<HTMLDivElement>}
         className={wrapperClasses}
+        title={title}
         data-testid="menu-item"
         tabIndex={-1}
         onKeyDown={onKeyDown}

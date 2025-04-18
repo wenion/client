@@ -1,4 +1,10 @@
-import { ProfileIcon } from '@hypothesis/frontend-shared';
+import {
+  HelpIcon,
+  ProfileFilledIcon,
+  ProfileIcon,
+  SettingsIcon,
+  ShareIcon,
+} from '@hypothesis/frontend-shared';
 import { useState } from 'preact/hooks';
 
 import type { Service, SidebarSettings } from '../../types/config';
@@ -14,6 +20,8 @@ import { useSidebarStore } from '../store';
 import Menu from './Menu';
 import MenuItem from './MenuItem';
 import MenuSection from './MenuSection';
+import HomeIcon from '../../images/icons/home';
+import NuggetIcon from '../../images/icons/nugget';
 
 export type UserMenuProps = {
   onLogout: () => void;
@@ -59,11 +67,14 @@ function UserMenu({ frameSync, onLogout, settings }: UserMenuProps) {
   };
   const onSelectProfile = () => frameSync.notifyHost('openProfile');
 
-  const selectTab = (tabId: TabName) => {
-    store.clearSelection();
-    store.selectTab(tabId);
+  const requestHelp = () => {
+    const service = serviceConfig(settings);
+    if (service && service.onHelpRequestProvided) {
+      frameSync.notifyHost('helpRequested');
+    } else {
+      store.toggleSidebarPanel('help');
+    }
   };
-  const onSelectNotification = () => selectTab('message');
 
   // Access to the Notebook:
   // type the key 'n' when user menu is focused/open
@@ -102,22 +113,42 @@ function UserMenu({ frameSync, onLogout, settings }: UserMenuProps) {
       >
         <MenuSection>
           <MenuItem
+            icon={ ProfileFilledIcon }
             label={displayName}
             isDisabled={!isSelectableProfile}
             href={profileHref}
             onClick={isSelectableProfile ? onProfileSelected : undefined}
           />
-          <MenuItem label={allMessageCount?('Notifications['+ allMessageCount + ']'): 'Notifications'} onClick={() => onSelectNotification()} />
-          {!isThirdParty && (
+          {/* {!isThirdParty && (
             <MenuItem
               label="Account settings"
               href={store.getLink('account.settings')}
             />
-          )}
+          )} */}
           {isProfileEnabled && (
             <MenuItem label="Your profile" onClick={() => onSelectProfile()} />
           )}
-          <MenuItem label="Knowledge Nuggets  &#8599;" onClick={() => onSelectNotebook()} />
+          <MenuItem
+            icon={ NuggetIcon }
+            label="Knowledge Nuggets"
+            onClick={() => onSelectNotebook()}
+          />
+          <MenuItem
+            icon={ ShareIcon }
+            label="Share"
+            title="Share annotations on this page"
+            onClick={() => store.toggleSidebarPanel('shareGroupAnnotations')}
+          />
+          <MenuItem
+            icon={ HomeIcon }
+            label="Home"
+            href={store.getLink('home')}
+          />
+          <MenuItem
+            icon={ HelpIcon }
+            label="Help"
+            onClick={requestHelp}
+          />
         </MenuSection>
         {logoutAvailable && (
           <MenuSection>

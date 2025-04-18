@@ -229,7 +229,7 @@ export default function Toolbar({
           {isConnected && isLoggedIn && (
             <>
               <ToolbarButton
-                title={recordingStatus ? 'Currently Recording' : 'Not Recording'}
+                title={recordingStatus ? 'Currently Recording' : 'Press To Start Record ShareFlows'}
                 icon={recordingStatus ? RecordingIcon : RecordingOffIcon}
                 onClick={toggleRecording}
               />

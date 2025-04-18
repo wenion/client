@@ -16,6 +16,7 @@ import StreamSearchInput from './search/StreamSearchInput';
 
 import ReconnectStreamButton from './ReconnectStreamButton';
 import HomeIcon from '../../images/icons/home';
+import NuggetIcon from '../../images/icons/nugget';
 import CloudUploadIcon from '../../images/icons/cloudUpload';
 
 export type TopBarProps = {
@@ -115,30 +116,30 @@ function TopBar({
               <ReconnectStreamButton />
               <SearchIconButton />
               <SortMenu />
-              <TopBarToggleButton
+              {!isLoggedIn && (<TopBarToggleButton
                 icon={ShareIcon}
                 expanded={isAnnotationsPanelOpen}
                 pressed={isAnnotationsPanelOpen}
                 onClick={toggleSharePanel}
                 title="Share annotations on this page"
                 data-testid="share-icon-button"
-              />
+              />)}
             </>
           )}
-          <TopBarToggleButton
+          {!isLoggedIn && (<TopBarToggleButton
             icon={HomeIcon}
             onClick={requestQuery}
             size='custom'
             title="Go to the home page"
-          />
-          <TopBarToggleButton
+          />)}
+          {!isLoggedIn && (<TopBarToggleButton
             icon={HelpIcon}
             expanded={isHelpPanelOpen}
             pressed={isHelpPanelOpen}
             onClick={requestHelp}
             title="Help"
             data-testid="help-icon-button"
-          />
+          />)}
           {isLoggedIn ? (
             <UserMenu onLogout={onLogout} />
           ) : (
