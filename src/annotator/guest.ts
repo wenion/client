@@ -24,6 +24,7 @@ import type {
   SidebarToGuestEvent,
 } from '../types/port-rpc-events';
 import { Adder } from './adder';
+import { ControlPanel } from './control-panel';
 import { Tag } from './tag';
 import { TextRange } from './anchoring/text-range';
 import { BucketBarClient } from './bucket-bar-client';
@@ -206,6 +207,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
   private _contentReady?: Promise<void>;
 
   private _adder: Adder;
+  private _controlPanel: ControlPanel;
   private _tag: Tag;
   private _clusterToolbar?: HighlightClusterController;
   private _hostFrame: Window;
@@ -287,6 +289,11 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
         this.selectAnnotations(tags, { focusInSidebar: true }),
     });
 
+    this._controlPanel = new ControlPanel(this.element, {
+      onToggleHide: (value: string) => this.setSidebarVisible(value),
+      onHome: () => {},
+    });
+
     this._tag = new Tag(this.element);
 
     this._selectionObserver = new SelectionObserver(range => {
@@ -347,6 +354,11 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     // Setup event handlers on the root element
     this._listeners = new ListenerCollection();
     this._setupElementEvents();
+
+    this._controlPanel.show(
+      window.innerWidth - 510,
+      window.innerHeight * 0.9,
+    );
 
     this._hoveredAnnotations = new Set();
   }
@@ -584,6 +596,10 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       this.setHighlightsVisible(showHighlights, false /* notifyHost */);
     });
 
+    this._sidebarRPC.on('setSidebarVisible', (value: 'on' | 'off' | null) => {
+      this._controlPanel.visible = value;
+    });
+
     this._sidebarRPC.on('deleteAnnotation', (tag: string) => this.detach(tag));
 
     this._sidebarRPC.on(
@@ -629,6 +645,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
 
     this._selectionObserver.disconnect();
     this._adder.destroy();
+    this._controlPanel.destroy();
     this._tag.destroy();
     this._bucketBarClient.destroy();
     this._clusterToolbar?.destroy();
@@ -815,6 +832,10 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     removeTextSelection();
 
     return annotation;
+  }
+
+  setSidebarVisible(value: string) {
+    this._sidebarRPC.call('setSidebarVisible', value);
   }
 
   /**

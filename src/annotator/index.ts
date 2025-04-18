@@ -52,7 +52,7 @@ const sidebarLinkElement = document.querySelector(
  */
 function removeExistingHypothesisAppElements(): boolean {
   const appElements = document.querySelectorAll(
-    ['hypothesis-sidebar', 'hypothesis-notebook', 'hypothesis-profile', 'hypothesis-image-viewer'].join(
+    ['hypothesis-sidebar', 'hypothesis-notebook', 'hypothesis-profile', 'hypothesis-image-viewer', 'hypothesis-control-panel'].join(
       ',',
     ),
   );

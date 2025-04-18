@@ -459,6 +459,17 @@ export class Sidebar implements Destroyable {
       this.toolbar.recordingStatus = change.recording;
     })
 
+    this._sidebarRPC.on('setSidebarVisible', (value: 'on' | 'off' | null)=> {
+      if (value === 'on') {
+        this.iframeContainer?.classList.remove('sidebar-hide');
+        this.toolbar.classes = 'visible';
+      } else {
+        this.close();
+        this.iframeContainer?.classList.add('sidebar-hide');
+        this.toolbar.classes = 'invisible';
+      }
+    })
+
     this._sidebarRPC.on('websocketConnected', (value) => {
       this.toolbar.isConnected = value;
     })
@@ -562,6 +573,7 @@ export class Sidebar implements Destroyable {
         'hypothesis-profile',
         'hypothesis-image-viewer',
         'hypothesis-adder',
+        'hypothesis-control-panel',
         'hypothesis-tooltip',
         'hypothesis-highlight-cluster-toolbar',
       ];

@@ -50,6 +50,10 @@
     &.sidebar-collapsed {
       @apply ml-0;
     }
+
+    &.sidebar-hide {
+      @apply ml-4;
+    }
   }
 
   .sidebar-message {

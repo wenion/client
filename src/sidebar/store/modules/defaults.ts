@@ -17,6 +17,7 @@ import { createStoreModule, makeAction } from '../create-store';
 export type State = {
   annotationPrivacy: 'private' | 'shared' | null;
   focusedGroup: string | null;
+  lastOpen: 'on' | 'off' | null;
 };
 
 export type Key = keyof State;
@@ -24,6 +25,7 @@ export type Key = keyof State;
 const initialState: State = {
   annotationPrivacy: null,
   focusedGroup: null,
+  lastOpen: null,
 };
 
 const reducers = {

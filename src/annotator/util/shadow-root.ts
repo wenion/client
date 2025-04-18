@@ -36,7 +36,7 @@ export function createShadowRoot(container: HTMLElement): ShadowRoot {
     applyFocusVisible(shadowRoot);
   }
 
-  stopEventPropagation(shadowRoot);
+  // stopEventPropagation(shadowRoot);
   return shadowRoot;
 }
 

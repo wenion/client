@@ -98,6 +98,7 @@ export type ToolbarProps = {
   recordingStatus: boolean;
   toggleRecording: () => void;
   toggleChatting: () => void;
+  classes?: string | string[];
 
   /** Callback for the show/hide highlights button */
   toggleHighlights: () => void;
@@ -135,6 +136,7 @@ export type ToolbarProps = {
  * properly scale with user/browser zooming.
  */
 export default function Toolbar({
+  classes,
   closeSidebar,
   createAnnotation,
   isSidebarOpen,
@@ -159,6 +161,7 @@ export default function Toolbar({
       className={classnames(
         'absolute left-[-33px] w-[33px] z-2',
         'text-px-base leading-none', // non-scaling sizing
+        classes,
       )}
     >
       {/* In the clean theme (`useMinimalControls` is `true`),

@@ -22,6 +22,7 @@ const SYNC_KEYS: Record<SyncKey, string> = {
 const DEFAULT_KEYS: Record<Key, string> = {
   annotationPrivacy: 'hypothesis.privacy',
   focusedGroup: 'hypothesis.groups.focus',
+  lastOpen: 'goldmind.last.open',
 };
 
 /**

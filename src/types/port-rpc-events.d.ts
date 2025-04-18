@@ -66,7 +66,9 @@ export type GuestToSidebarEvent =
   /**
    * The guest is asking the sidebar to toggle some annotations.
    */
-  | 'toggleAnnotationSelection';
+  | 'toggleAnnotationSelection'
+
+  | 'setSidebarVisible';
 
 /**
  * Events that the host sends to the guest
@@ -130,6 +132,7 @@ export type HostToSidebarEvent =
  */
 export type SidebarToGuestEvent =
   | 'showAnnotationTags'
+  | 'setSidebarVisible'
   /**
    * The sidebar is asking the guest(s) to delete an annotation.
    */
@@ -170,6 +173,7 @@ export type SidebarToGuestEvent =
  */
 export type SidebarToHostEvent =
   | 'syncStorageChanged'
+  | 'setSidebarVisible'
   |'statusUpdated'
   |'updateRecoringStatusFromSidebar'
   |'pullRecommendation'
@@ -214,6 +218,7 @@ export type SidebarToHostEvent =
   | 'openImageViewer'
   | 'expandSidebar'
   | 'webClipping'
+  | 'toggleHide?'
 
   /**
    * The sidebar is asking the host to open the user profile.

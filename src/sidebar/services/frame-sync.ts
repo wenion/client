@@ -714,7 +714,16 @@ export class FrameSyncService {
         //   )
         // );
       }
-    )
+    );
+
+    watch(
+      this._store.subscribe,
+      () => this._store.getDefault('lastOpen'),
+      (lastOpen, prevLastOpen) => {
+        this._hostRPC.call('setSidebarVisible', lastOpen);
+        this._guestRPC.forEach(rpc => rpc.call('setSidebarVisible', lastOpen));
+      }
+    );
 
     watch(
       this._store.subscribe,
@@ -774,6 +783,11 @@ export class FrameSyncService {
         persistent: info.persistent,
       });
     });
+
+    guestRPC.on('connect', () => {
+      const lastOpen= this._store.getDefault("lastOpen");
+      this._guestRPC.forEach(rpc => rpc.call('setSidebarVisible', lastOpen));
+    })
 
     // TODO - Close connection if we don't receive a "connect" message within
     // a certain time frame.
@@ -899,6 +913,10 @@ export class FrameSyncService {
       this._hostRPC.call('closeSidebar');
     });
 
+    guestRPC.on('setSidebarVisible', (visible) => {
+      this._store.setDefault('lastOpen', visible);
+    });
+
     guestRPC.connect(port);
 
     // Synchronize highlight visibility in this guest with the sidebar's controls.
@@ -923,6 +941,7 @@ export class FrameSyncService {
   private _setupHostEvents() {
     this._hostRPC.on('connect', () => {
       this._applySyncSideEffects(this._store.getAllSync());
+      this._hostRPC.call('setSidebarVisible', this._store.getDefault('lastOpen'));
     })
     this._hostRPC.on('sidebarOpened', () => {
       this._sidebarIsOpen = true;
