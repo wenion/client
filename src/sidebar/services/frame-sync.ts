@@ -675,6 +675,8 @@ export class FrameSyncService {
       this._store.subscribe,
       () => this._store.isLoggedIn(),
       async (isLoggedIn, prevIsLoggedIn) => {
+        this._hostRPC.call('isLoggedIn', isLoggedIn);
+
         if (isLoggedIn) {
           await this._recordingService.loadRecordItems(this._store.mainFrame()?.uri ?? '');
           await this._recordingService.loadMessages();
@@ -687,17 +689,12 @@ export class FrameSyncService {
             this._recordingService.scrollTo(scrollToId);
           }
 
-          this._hostRPC.call('isLoggedIn', true);
           this._hostRPC.call('webClipping', {savePage: false});
         }
-        // if (isLoggedIn && isLoggedIn !== prevIsLoggedIn) {
-        //   this._recordingService.fetchHighlight(this._store.mainFrame()?.uri)
-        // }
         else {
           this._recordingService.unloadRecordItems();
           this._store.clearRecordSteps();
           // this._store.clearMessages();
-          this._hostRPC.call('isLoggedIn', false)
         }
       }
     );
