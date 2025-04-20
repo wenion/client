@@ -1,4 +1,11 @@
-import { CaretUpIcon, ExpandIcon, LeaveIcon, Button } from '@hypothesis/frontend-shared';
+import {
+  Button,
+  CaretUpIcon,
+  ExpandIcon,
+  LeaveIcon,
+  PinFilledIcon,
+  PinIcon
+} from '@hypothesis/frontend-shared';
 import {
   useCallback,
   useEffect,
@@ -241,6 +248,17 @@ function ComicsList({
   const focusedStepId = store.getFocusedStepId();
   const shouldScroll = store.getShouldScroll();
   const activePanelName = store.activePanelName();
+
+  const focusedShareflowInfo = store.getDefault('focusedShareflow');
+  const isPin = !(focusedShareflowInfo === 'null' || !focusedShareflowInfo);
+
+  const pinOn = (value: Record<string, string | null>) => {
+    store.setDefault('focusedShareflow', JSON.stringify(value));
+  }
+
+  const pinOff = () => {
+    store.setDefault('focusedShareflow', null);
+  }
 
   const headerElement = useRef<HTMLDivElement | null>(null);
   const contentElement = useRef<HTMLDivElement | null>(null);
@@ -510,9 +528,11 @@ function ComicsList({
           <div className='flex flex-none'>
             <Button
               classes={classnames('flex-none', 'border-black')}
-              // onClick={goToTop}
+              onClick={() => {
+                isPin? pinOff(): pinOn({id: recordItem?.id?? null, scrollToId: focusedStepId})
+              }}
             >
-              <CaretUpIcon />
+              {isPin? (<PinFilledIcon />): (<PinIcon />)}
             </Button>
             <Button
               classes={classnames('flex-none', 'border-black')}

@@ -23,6 +23,7 @@ const DEFAULT_KEYS: Record<Key, string> = {
   annotationPrivacy: 'hypothesis.privacy',
   focusedGroup: 'hypothesis.groups.focus',
   lastOpen: 'goldmind.last.open',
+  focusedShareflow: 'goldmind.shareflow.focus',
 };
 
 /**

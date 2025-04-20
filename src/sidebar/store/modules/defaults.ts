@@ -18,6 +18,7 @@ export type State = {
   annotationPrivacy: 'private' | 'shared' | null;
   focusedGroup: string | null;
   lastOpen: 'on' | 'off' | null;
+  focusedShareflow: string | null;
 };
 
 export type Key = keyof State;
@@ -26,6 +27,7 @@ const initialState: State = {
   annotationPrivacy: null,
   focusedGroup: null,
   lastOpen: null,
+  focusedShareflow: null,
 };
 
 const reducers = {

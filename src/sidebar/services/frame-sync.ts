@@ -677,12 +677,17 @@ export class FrameSyncService {
       async (isLoggedIn, prevIsLoggedIn) => {
         this._hostRPC.call('isLoggedIn', isLoggedIn);
 
+        const focusedShareflowInfo = this._store.getDefault('focusedShareflow');
+        const isPin = !(focusedShareflowInfo === 'null' || !focusedShareflowInfo);
+
+        const isOpen = this._store.getDefault('lastOpen') === 'on';
+
         if (isLoggedIn) {
           await this._recordingService.loadRecordItems(this._store.mainFrame()?.uri ?? '');
           await this._recordingService.loadMessages();
           // session cookies
           const {id, scrollToId} = await this._recordingService.readTracking();
-          if (id) {
+          if (id && isPin && isOpen) {
             this._hostRPC.call('openSidebar');
             this._store.selectTab('shareflow');
             await this._recordingService.selectRecordTabView('view', id);
