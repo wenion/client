@@ -39,7 +39,7 @@ export default function ControlBar({
           'rounded-full',
           {'grayscale' : !isVisible},
         )}
-        title={isVisible? 'Hide sidebar': 'Show sidebar'}
+        title={isVisible? 'Hide Goldmind': 'Show Goldmind'}
         onClick={() => onToggleHide(isVisible ? 'off' : 'on')}
       >
         <PowerIcon/>

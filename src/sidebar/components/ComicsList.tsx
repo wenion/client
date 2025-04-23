@@ -532,7 +532,7 @@ function ComicsList({
                 isPin? pinOff(): pinOn({id: recordItem?.id?? null, scrollToId: focusedStepId})
               }}
             >
-              {isPin? (<PinFilledIcon />): (<PinIcon />)}
+              {isPin? (<PinFilledIcon className={classnames("text-brand")} />): (<PinIcon />)}
             </Button>
             <Button
               classes={classnames('flex-none', 'border-black')}
