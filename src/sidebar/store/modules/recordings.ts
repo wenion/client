@@ -143,9 +143,13 @@ function addRecordSteps(recordSteps: RecordStep[]) {
     }) => {
       const linksState = getState().links;
       const link = linksState? linksState['index'] : null;
+
+      if (!link) {
+        recordSteps = [];
+      }
+
       recordSteps.map((step, index) => {
-        step.id = 'tr' + step.id;
-        if (step.image && link) {
+        if (step.image) {
           step.image = link + 'api/image/' + step.image + '.jpg';
         }
         /* backwards compatibility */
