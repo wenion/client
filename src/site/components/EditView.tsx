@@ -382,26 +382,26 @@ function EditView({
         changedHeights.set(id, height);
       }
 
-    // Skip update if no heights changed from previous measured values
-    // (or defaults).
-    if (changedHeights.size === 0) {
-      return prevHeights;
-    }
-
-    return new Map([...prevHeights, ...changedHeights]);
-  });
-
-  setImageThreads(prevThreads => {
-    const changedThreads = new Map();
-    if (imageElement) {
-      if (prevThreads.has(imageId)) {
-        changedThreads.set(imageId, true);
-      } else {
-        changedThreads.set(imageId, false);
+      // Skip update if no heights changed from previous measured values
+      // (or defaults).
+      if (changedHeights.size === 0) {
+        return prevHeights;
       }
-    }
-    return new Map([...prevThreads, ...changedThreads]);
-  });
+
+      return new Map([...prevHeights, ...changedHeights]);
+    });
+
+    setImageThreads(prevThreads => {
+      const changedThreads = new Map();
+      if (imageElement) {
+        if (prevThreads.has(imageId)) {
+          changedThreads.set(imageId, true);
+        } else {
+          changedThreads.set(imageId, false);
+        }
+      }
+      return new Map([...prevThreads, ...changedThreads]);
+    });
   }, []);
 
   const onSelect = (id: string, selected: boolean) => {
