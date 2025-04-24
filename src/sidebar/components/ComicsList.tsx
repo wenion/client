@@ -279,6 +279,28 @@ function ComicsList({
   // to avoid excessive re-renderings.
   const [scrollPosition, setScrollPosition] = useState(0);
 
+  const updateContentSize = () => {
+    let offset = 110;
+    const headerHeight = getElementHeightWithMargins(headerElement.current!);
+
+    let sidebarPanelHeight = 0;
+    const sidebarPanel = document.querySelector('[data-component="Dialog"][tabindex="-1"]');
+    if (sidebarPanel) {
+      sidebarPanelHeight = getElementHeightWithMargins(sidebarPanel);
+    }
+
+    const navComics = document.querySelector('.comics-nav');
+    if (navComics) {
+      offset = offset + getElementHeightWithMargins(navComics);
+    }
+
+    setContentHeight(window.innerHeight - sidebarPanelHeight - headerHeight - offset);
+  };
+
+  useLayoutEffect(() => {
+    updateContentSize();
+  }, [activePanelName, navRef.current, scrollContainerHeight]);
+
   // Measure the initial size and offset of the scroll container once rendering
   // is complete and attach listeners to observe future size or scroll offset changes.
   useLayoutEffect(() => {
@@ -462,47 +484,32 @@ function ComicsList({
         changedHeights.set(id, height);
       }
 
-    // Skip update if no heights changed from previous measured values
-    // (or defaults).
-    if (changedHeights.size === 0) {
-      return prevHeights;
-    }
-
-    return new Map([...prevHeights, ...changedHeights]);
-  });
-
-  setImageThreads(prevThreads => {
-    const changedThreads = new Map();
-    if (imageElement) {
-      if (prevThreads.has(imageId)) {
-        changedThreads.set(imageId, true);
-      } else {
-        changedThreads.set(imageId, false);
+      // Skip update if no heights changed from previous measured values
+      // (or defaults).
+      if (changedHeights.size === 0) {
+        return prevHeights;
       }
-    }
-    return new Map([...prevThreads, ...changedThreads]);
-  });
+
+      return new Map([...prevHeights, ...changedHeights]);
+    });
+
+    setImageThreads(prevThreads => {
+      const changedThreads = new Map();
+      if (imageElement) {
+        if (prevThreads.has(imageId)) {
+          changedThreads.set(imageId, true);
+        } else {
+          changedThreads.set(imageId, false);
+        }
+      }
+      return new Map([...prevThreads, ...changedThreads]);
+    });
+
+    updateContentSize();
   }, []);
 
   const contentStyle: Record<string, number> = {};
   contentStyle['height'] = contentHeight;
-
-  useLayoutEffect(() => {
-    let offset = 110;
-    const headerHeight = getElementHeightWithMargins(headerElement.current!);
-
-    let sidebarPanelHeight = 0;
-    const sidebarPanel = document.querySelector('[data-component="Dialog"][tabindex="-1"]');
-    if (sidebarPanel) {
-      sidebarPanelHeight = getElementHeightWithMargins(sidebarPanel);
-    }
-
-    const navComics = document.querySelector('.comics-nav');
-    if (navComics) {
-      offset = offset + getElementHeightWithMargins(navComics);
-    }
-    setContentHeight(window.innerHeight - sidebarPanelHeight - headerHeight - offset);
-  }, [activePanelName, navRef.current]);
 
   // The index of steps should be addressed
   let n = 0;
