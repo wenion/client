@@ -15,8 +15,7 @@ import SearchIconButton from './search/SearchIconButton';
 import StreamSearchInput from './search/StreamSearchInput';
 
 import ReconnectStreamButton from './ReconnectStreamButton';
-import HomeIcon from '../../images/icons/home';
-import NuggetIcon from '../../images/icons/nugget';
+// import HomeIcon from '../../images/icons/home';
 import CloudUploadIcon from '../../images/icons/cloudUpload';
 
 export type TopBarProps = {
@@ -126,12 +125,12 @@ function TopBar({
               />)}
             </>
           )}
-          {!isLoggedIn && (<TopBarToggleButton
+          {/* {!isLoggedIn && (<TopBarToggleButton
             icon={HomeIcon}
             onClick={requestQuery}
             size='custom'
             title="Go to the home page"
-          />)}
+          />)} */}
           {!isLoggedIn && (<TopBarToggleButton
             icon={HelpIcon}
             expanded={isHelpPanelOpen}

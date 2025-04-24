@@ -20,7 +20,7 @@ import { useSidebarStore } from '../store';
 import Menu from './Menu';
 import MenuItem from './MenuItem';
 import MenuSection from './MenuSection';
-import HomeIcon from '../../images/icons/home';
+// import HomeIcon from '../../images/icons/home';
 import NuggetIcon from '../../images/icons/nugget';
 
 export type UserMenuProps = {
@@ -139,11 +139,11 @@ function UserMenu({ frameSync, onLogout, settings }: UserMenuProps) {
             title="Share annotations on this page"
             onClick={() => store.toggleSidebarPanel('shareGroupAnnotations')}
           />
-          <MenuItem
+          {/* <MenuItem
             icon={ HomeIcon }
             label="Home"
             href={store.getLink('home')}
-          />
+          /> */}
           <MenuItem
             icon={ HelpIcon }
             label="Help"
