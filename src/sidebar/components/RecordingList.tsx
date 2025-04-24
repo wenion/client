@@ -5,15 +5,17 @@ import {
   EllipsisIcon,
   PreviewIcon,
   RadioCheckedIcon,
-  Slider,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
-import { useMemo, useLayoutEffect, useRef, useState } from 'preact/hooks';
+import debounce from 'lodash.debounce';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 
-import { getElementHeightWithMargins } from '../util/dom';
-import { formatRelativeDate } from '../util/time';
+import { ListenerCollection } from '../../shared/listener-collection';
 import { useSidebarStore } from '../store';
 import type { RecordItem } from '../../types/api';
+import { getElementHeightWithMargins } from '../util/dom';
+import { formatRelativeDate } from '../util/time';
+import Slider from './Slider'
 import RecordingMenu from './RecordingMenu';
 
 const capitalize = (word: string) => {
@@ -87,7 +89,6 @@ function RecordingSlider({
 export type RecordingListProps = {
   onOpen: (record: RecordItem) => void;
   onDelete: (record: RecordItem) => void;
-  id: string | null;
 };
 
 /**
@@ -96,21 +97,21 @@ export type RecordingListProps = {
 export default function RecordingList({
   onOpen,
   onDelete,
-  id,
 }: RecordingListProps) {
   const store = useSidebarStore();
   const recordItems = store.recordItems();
+  const focusedRecordItemId = store.focusedRecordItemId();
   const userid = store.profile().userid;
   const query = store.filterQuery();
   const filters = store.getFilterValues();
   const sortKey = store.sortKey();
   const activePanelName = store.activePanelName();
 
-  const headerElement = useRef<HTMLDivElement | null>(null);
   const contentElement = useRef<HTMLDivElement | null>(null);
   const scollRef = useRef<HTMLDivElement | null>(null);
   const [contentHeight, setContentHeight] = useState(0);
 
+  let hoverTimer: number | undefined;
   const sorters = {
     Newest: (a: RecordItem, b: RecordItem) => {
       const dateA = a.timestamp;
@@ -154,27 +155,57 @@ export default function RecordingList({
   const contentStyle: Record<string, number> = {};
   contentStyle['height'] = contentHeight;
 
-  useLayoutEffect(() => {
+  const onMouseEnter = (event: Event, record: RecordItem) => {
+    event.stopPropagation();
+    event.preventDefault();
+
+    // The focus won't work without delaying rendering.
+    hoverTimer = setTimeout(() => {
+      setExpandedRecording(record);
+      setIsExpanded(true);
+    }, 600);
+  };
+
+  const onMouseLeave = (event: Event) => {
+    event.stopPropagation();
+    event.preventDefault();
+    clearTimeout(hoverTimer);
+    setExpandedRecording(null);
+    setIsExpanded(false);
+  };
+
+  const updateContentSize = () => {
     const offset = 100;
-    const headerHeight = getElementHeightWithMargins(headerElement.current!);
 
     let sidebarPanelHeight = 0;
-    const sidebarPanel = document.querySelector('[data-component="Dialog"][tabindex="-1"][variant="custom"]');
-    if (sidebarPanel) {
-      sidebarPanelHeight = getElementHeightWithMargins(sidebarPanel);
+    const elements = document.querySelectorAll('[data-component="Dialog"][tabindex="-1"][variant="custom"]');
+    for (const el of elements) {
+      sidebarPanelHeight += getElementHeightWithMargins(el);
     }
-
-    setContentHeight(window.innerHeight - sidebarPanelHeight - headerHeight - offset);
-  }, [activePanelName]);
+    setContentHeight(window.innerHeight - sidebarPanelHeight - offset);
+  };
 
   useLayoutEffect(() => {
-    if (!id) {
-      return;
-    }
+    updateContentSize();
+  }, [activePanelName, ]);
 
-    const threadIndex = sortedRecordItems.findIndex(t => t.id === id);
+  useEffect(() => {
+    return () => {
+      // unmount
+      clearTimeout(hoverTimer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useLayoutEffect(() => {
+    const listeners = new ListenerCollection();
+
+    let threadIndex = sortedRecordItems.findIndex(t => t.id === focusedRecordItemId);
     if (threadIndex === -1) {
-      return;
+      threadIndex = 0;
+    } else {
+      setExpandedRecording(sortedRecordItems[threadIndex]);
+      setIsExpanded(true);
     }
     const yOffset = sortedRecordItems
       .slice(0, threadIndex)
@@ -186,99 +217,93 @@ export default function RecordingList({
 
     setExpandedRecording(sortedRecordItems[threadIndex]);
     setIsExpanded(true);
-  }, [])
+
+    const updateSize = debounce(
+      updateContentSize,
+      10,
+      { maxWait: 100 },
+    );
+
+    listeners.add(window, 'resize', updateSize);
+    return () => {
+      listeners.removeAll();
+      updateSize.cancel();
+    };
+  }, []);
 
   return (
-    <div >
-      <h1
-        ref={headerElement}
-        className='m-4 text-xl'
-      >
-        {(query && query !== "" && "Search results: " + query) || "Saved ShareFlow (Comic)"}
-      </h1>
+    <div
+      ref={contentElement}
+      style={contentStyle}
+    >
       <div
-        ref={contentElement}
-        style={contentStyle}
+        className={'h-full overflow-y-auto'}
+        ref={scollRef}
       >
+      {sortedRecordItems.map(record => (
         <div
-          className={'h-full overflow-y-auto'}
-          ref={scollRef}
+          id={'list' + record.id}
+          className={classnames(
+            'cursor-pointer',
+            'shadow-lg hover:drop-shadow-2xl'
+          )}
+          onClick={() => onOpen(record)}
+          onMouseEnter={(event) => onMouseEnter(event, record)}
+          onMouseLeave={onMouseLeave}
         >
-        {sortedRecordItems.map(record => (
           <div
-            id={'list' + record.id}
-            className={classnames(
-              'cursor-pointer',
-              'shadow-lg hover:drop-shadow-2xl'
-            )}
-            onClick={() => onOpen(record)}
-            onMouseEnter={(event) => {
-              event.stopPropagation();
-              event.preventDefault();
-              setExpandedRecording(record);
-              setIsExpanded(true);
-            }}
-            onMouseLeave={(event) => {
-              event.stopPropagation();
-              event.preventDefault();
-              setExpandedRecording(null);
-              setIsExpanded(false);
-            }}
+            className={classnames('flex items-center mx-2 gap-x-2')}
           >
-            <div
-              className={classnames('flex items-center mx-2 gap-x-2')}
-            >
-              <div><PreviewIcon /></div>
-              <div data-component="title" className="w-0.7 text-lg truncate">
-                <span>{record.taskName}</span>
-              </div>
-              <div className="flex items-center justify-end grow">
-                {!!record.shared && (
-                  <Tag
-                    sharedby={userid !== record.userid}
-                    tag={userid === record.userid? "shared" : getUserName(record.userid!)}
-                  />
-                )}
-                {userid === record.userid ? (
-                  <RecordingMenu recordItem={record} onDelete={onDelete}/>
-                ) : (
-                  <div
-                    className={classnames(
-                      'flex items-center font-semibold rounded',
-                      'text-grey-7 bg-grey-1',
-                      'enabled:hover:text-grey-9 enabled:hover:bg-grey-2',
-                      'aria-pressed:text-grey-9 aria-expanded:text-grey-9',
-                      'grow-0 m-1 bg-grey-0 hover:bg-blue-400',
-                    )}
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <span className="rotate-90 p-2">
-                      <EllipsisIcon />
-                    </span>
-                  </div>
-                )}
-              </div>
+            <div><PreviewIcon /></div>
+            <div data-component="title" className="w-0.7 text-lg truncate">
+              <span>{record.taskName}</span>
             </div>
-            <RecordingSlider
-              recordItem={record}
-              isSubmenuVisible={expandedRecording == record && isExpanded}
-            />
+            <div className="flex items-center justify-end grow">
+              {!!record.shared && (
+                <Tag
+                  sharedby={userid !== record.userid}
+                  tag={userid === record.userid? "shared" : getUserName(record.userid!)}
+                />
+              )}
+              {userid === record.userid ? (
+                <RecordingMenu recordItem={record} onDelete={onDelete}/>
+              ) : (
+                <div
+                  className={classnames(
+                    'flex items-center font-semibold rounded',
+                    'text-grey-7 bg-grey-1',
+                    'enabled:hover:text-grey-9 enabled:hover:bg-grey-2',
+                    'aria-pressed:text-grey-9 aria-expanded:text-grey-9',
+                    'grow-0 m-1 bg-grey-0 hover:bg-blue-400',
+                  )}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <span className="rotate-90 p-2">
+                    <EllipsisIcon />
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
-        ))}
-        {sortedRecordItems.length === 0 && (
-          <p className={"flex"}>
-            Click the Record button
-            <Button
-              classes={classnames("mx-2")}
-              title="Record button"
-              unstyled
-            >
-              <RadioCheckedIcon />
-            </Button>
-          to start recording the shareflow.
-          </p>
-        )}
+          <RecordingSlider
+            recordItem={record}
+            isSubmenuVisible={expandedRecording == record && isExpanded}
+          />
         </div>
+      ))}
+      {sortedRecordItems.length === 0 && (
+        <p className={"flex"}>
+          Click the Record button
+          <Button
+            classes={classnames("mx-2")}
+            title="Record button"
+            unstyled
+          >
+            <RadioCheckedIcon />
+          </Button>
+        to start recording the shareflow.
+        </p>
+      )}
       </div>
     </div>
   );

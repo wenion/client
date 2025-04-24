@@ -7,6 +7,7 @@ import type { State as LinksState } from './links';
 
 export type State = {
   tabView: 'list' | 'ongoing' | string;
+  focusedRecordItemId: string | null;
   focusedStepId: string | null;
   recordItems: RecordItem[];
   recordSteps: RecordStep[];
@@ -16,6 +17,7 @@ export type State = {
 function initialState(): State {
   return {
     tabView: 'list',
+    focusedRecordItemId: null,
     focusedStepId: null,
     recordItems: [],
     recordSteps: [],
@@ -102,6 +104,10 @@ const reducers = {
 
   SET_SHOULD_SCROLL(state: State, action: { shouldScroll: boolean }) {
     return { shouldScroll: action.shouldScroll };
+  },
+
+  SET_FOCUSED_RECORD_ITEM_ID(state: State, action: { id: string | null }) {
+    return { focusedRecordItemId: action.id };
   },
 };
 
@@ -190,6 +196,11 @@ function setShouldScroll(shouldScroll: boolean) {
   return makeAction(reducers, 'SET_SHOULD_SCROLL', {shouldScroll: shouldScroll});
 }
 
+
+function setFocusedRecordItemId(id: string | null) {
+  return makeAction(reducers, 'SET_FOCUSED_RECORD_ITEM_ID', {id: id});
+}
+
 // Selectors
 
 function getRecordTabView(state: State) {
@@ -247,6 +258,10 @@ function getShouldScroll(state: State) {
   return state.shouldScroll;
 }
 
+function focusedRecordItemId(state: State) {
+  return state.focusedRecordItemId;
+}
+
 // type RootState = {
 //   recordings: State;
 //   defaults: DefaultsState;
@@ -278,6 +293,7 @@ export const recordingsModule = createStoreModule(initialState, {
     updateRecordStep,
     clearRecordSteps,
     setShouldScroll,
+    setFocusedRecordItemId,
   },
   selectors: {
     getFocusedStepId,
@@ -285,6 +301,7 @@ export const recordingsModule = createStoreModule(initialState, {
     getRecordItem,
     getRecordItemById,
     getRecordItemByPk,
+    focusedRecordItemId,
     recordItems,
     recordItemsCount,
     recordSteps,

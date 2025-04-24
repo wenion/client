@@ -96,7 +96,10 @@ function RecordingTab({
   return (
     <>
       {recordView === 'list' && (
-        <RecordingList onOpen={onOpen} onDelete={onDelete} id={lastId}/>
+        <RecordingList
+          onOpen={onOpen}
+          onDelete={onDelete}
+        />
       )}
       {recordView === 'view' && (
         <ComicList

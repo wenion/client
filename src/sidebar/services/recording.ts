@@ -109,6 +109,7 @@ export class RecordingService {
           this._store.addRecordSteps(traceSteps);
           this._store.selectTab('shareflow');
           this._store.setRecordTabView(id);
+          this._store.setFocusedRecordItemId(id);
         } catch (err) {
           this._store.setRecordTabView('list');
           this._toastMessenger.error('This shareflow is not accessible. Error: ' + err.message);
