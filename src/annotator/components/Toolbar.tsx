@@ -243,7 +243,7 @@ export default function Toolbar({
                 pressed={showHighlights}
                 onClick={toggleHighlights}
               />
-              <ToolbarButton
+              {/* <ToolbarButton
                 title={
                   newAnnotationType === 'note'
                     ? 'New page note'
@@ -251,7 +251,7 @@ export default function Toolbar({
                 }
                 icon={newAnnotationType === 'note' ? NoteIcon : AnnotateIcon}
                 onClick={createAnnotation}
-              />
+              /> */}
             </>
           )}
           </div>
