@@ -21,6 +21,7 @@ const TAB_SORTKEY_DEFAULT: Record<TabName, SortKey> = {
   video: 'Location',
   message: 'Location',
   shareflow: 'Newest',
+  query: 'Newest',
 };
 
 function initialSelection(settings: SidebarSettings): BooleanMap {

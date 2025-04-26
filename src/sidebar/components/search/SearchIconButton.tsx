@@ -1,5 +1,5 @@
 import { SearchIcon, Spinner } from '@hypothesis/frontend-shared';
-import { useCallback, useRef } from 'preact/hooks';
+import { useCallback, useRef, useState } from 'preact/hooks';
 
 import { useShortcut } from '../../../shared/shortcut';
 import { isMacOS } from '../../../shared/user-agent';
@@ -49,11 +49,17 @@ function useSearchKeyboardShortcuts(store: SidebarStore) {
 export default function SearchIconButton() {
   const store = useSidebarStore();
   const isLoading = store.isLoading();
-  const isSearchPanelOpen = store.isSidebarPanelOpen('searchAnnotations');
+  const selectedTab = store.selectedTab();
 
-  const toggleSearchPanel = useCallback(() => {
-    store.toggleSidebarPanel('searchAnnotations');
-  }, [store]);
+  const [prevTab, setPrevTab] = useState(selectedTab);
+
+  const toggleSearchPanel = () => {
+    if (selectedTab !== 'query') {
+      store.selectTab('query');
+    } else {
+      store.selectTab(prevTab);
+    }
+  };
 
   useSearchKeyboardShortcuts(store);
 
@@ -63,8 +69,8 @@ export default function SearchIconButton() {
       {!isLoading && (
         <TopBarToggleButton
           icon={SearchIcon}
-          expanded={isSearchPanelOpen}
-          pressed={isSearchPanelOpen}
+          expanded={selectedTab === 'query'}
+          pressed={selectedTab === 'query'}
           onClick={toggleSearchPanel}
           title="Search annotations"
         />

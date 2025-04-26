@@ -114,7 +114,6 @@ function TopBar({
             <>
               <ReconnectStreamButton />
               <SearchIconButton />
-              <SortMenu />
               {!isLoggedIn && (<TopBarToggleButton
                 icon={ShareIcon}
                 expanded={isAnnotationsPanelOpen}

@@ -22,6 +22,7 @@ import VideoThreadList from './VideoThreadList';
 import { useRootThread } from './hooks/use-root-thread';
 import { useRootVideoThread } from './hooks/use-root-video-thread';
 import MessageTab from './MessageTab';
+import QueryTab from './QueryTab';
 import RecordingTab from './RecordingTab';
 import SearchBar from './search/SearchBar';
 
@@ -170,36 +171,40 @@ function SidebarTabs({
         )}
       >
         <div className="flex gap-x-6 theme-clean:ml-[15px] mt-1" role="tablist">
-          <Tab
-            count={annotationCount}
-            isWaitingToAnchor={isWaitingToAnchorAnnotations}
-            isSelected={selectedTab === 'annotation'}
-            label="Annotations"
-            name="annotation"
-            onSelect={() => selectTab('annotation')}
-          >
-            Annotations
-          </Tab>
-          <Tab
-            count={recordItemsCount}
-            isWaitingToAnchor={isWaitingToAnchorAnnotations}
-            isSelected={selectedTab === 'shareflow'}
-            label="ShareFlows"
-            name="shareflow"
-            onSelect={() => selectTab('shareflow')}
-          >
-            ShareFlows
-          </Tab>
-          <Tab
-            count={allMessageCount}
-            isWaitingToAnchor={isWaitingToAnchorAnnotations}
-            isSelected={selectedTab === 'message'}
-            label="Notifications"
-            name="message"
-            onSelect={() => selectTab('message')}
-          >
-            Notifications
-          </Tab>
+          {selectedTab !== 'query' && (
+            <>
+              <Tab
+                count={annotationCount}
+                isWaitingToAnchor={isWaitingToAnchorAnnotations}
+                isSelected={selectedTab === 'annotation'}
+                label="Annotations"
+                name="annotation"
+                onSelect={() => selectTab('annotation')}
+              >
+                Annotations
+              </Tab>
+              <Tab
+                count={recordItemsCount}
+                isWaitingToAnchor={isWaitingToAnchorAnnotations}
+                isSelected={selectedTab === 'shareflow'}
+                label="ShareFlows"
+                name="shareflow"
+                onSelect={() => selectTab('shareflow')}
+              >
+                ShareFlows
+              </Tab>
+              <Tab
+                count={allMessageCount}
+                isWaitingToAnchor={isWaitingToAnchorAnnotations}
+                isSelected={selectedTab === 'message'}
+                label="Notifications"
+                name="message"
+                onSelect={() => selectTab('message')}
+              >
+                Notifications
+              </Tab>
+            </>
+          )}
           {noteCount > 0 && (
             <Tab
               count={noteCount}
@@ -235,7 +240,7 @@ function SidebarTabs({
             Video annotations
           </Tab> */}
         </div>
-        {recordView !== "view" && (<SearchBar />)}
+        {!((selectedTab === 'shareflow' && recordView === "view") || selectedTab === 'query') && (<SearchBar />)}
         <div
           className="space-y-3"
           role="tabpanel"
@@ -284,6 +289,7 @@ function SidebarTabs({
           )}
           {selectedTab === 'message' && <MessageTab />}
           {selectedTab === 'shareflow' && <RecordingTab />}
+          {selectedTab === 'query' && <QueryTab />}
           {/* {selectedTab == 'video' && <VideoThreadList threads={rootVideoThread.children} />} */}
           {(selectedTab === 'annotation' || selectedTab === 'note' || selectedTab === 'orphan' ) && (
             <ThreadList threads={rootThread.children} />
