@@ -1,4 +1,4 @@
-import { Button, Input, ModalDialog } from '@hypothesis/frontend-shared';
+import { Button, Input, ModalDialog, Textarea } from '@hypothesis/frontend-shared';
 import { render } from 'preact';
 import { createRef } from 'preact';
 import type { RefObject } from 'preact';
@@ -13,6 +13,7 @@ export type ConfirmModalProps = {
     startTime: number;
   };
   confirmAction?: string;
+  rowOfTextArea?: number;
 };
 
 function generateSessionId() {
@@ -35,6 +36,7 @@ export async function recordingPrompt({
   title = 'New ShareFlow',
   message,
   confirmAction = 'Create',
+  rowOfTextArea = 3,
 }: ConfirmModalProps): Promise<{
   result: boolean,
   taskName: string,
@@ -126,11 +128,12 @@ export async function recordingPrompt({
             Description
           </label>
           <div className="sm:w-56">
-            <Input
+            <Textarea
               elementRef={descriptionEl}
               aria-label="Enter the description"
               feedback={errorDescription ? "error": undefined}
               defaultValue={message.description}
+              rows={rowOfTextArea}
             />
           </div>
         </div>
