@@ -697,6 +697,7 @@ export class FrameSyncService {
           this._hostRPC.call('webClipping', {savePage: false});
         }
         else {
+          this._recordingService.selectRecordTabView('list');
           this._recordingService.unloadRecordItems();
           this._store.clearRecordSteps();
           // this._store.clearMessages();
