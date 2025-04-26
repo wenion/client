@@ -165,7 +165,6 @@ function HypothesisApp({
       <div className="container">
         <ToastMessages />
         <HelpPanel />
-        <SearchPanel />
         <ShareDialog shareTab={!isThirdParty} />
 
         {route && (

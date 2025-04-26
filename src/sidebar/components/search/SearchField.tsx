@@ -96,21 +96,11 @@ export default function SearchField({
       onSubmit={onSubmit}
       className={classnames('space-y-3', classes)}
     >
-      <div className="relative">
-        <IconButton
-          // Vertically center icon on left side of input. Increase the text
-          // size to make the icon the same size as the top bar icons.
-          classes="absolute left-0 text-[16px] top-[50%] translate-y-[-50%]"
-          icon={SearchIcon}
-          size="lg"
-          title="Search"
-          type="submit"
-          disabled={disabled}
-        />
+      <div className="flex">
         <Input
           aria-label="Search annotations"
           classes={classnames(
-            'pl-8 pr-8', // Add padding so input does not overlap search/clear buttons.
+            'pr-8', // Add padding so input does not overlap search/clear buttons.
             'disabled:text-grey-6', // Dim text when input is disabled
             'text-base touch:text-touch-base', // Larger font on touch devices
           )}
@@ -128,7 +118,7 @@ export default function SearchField({
         />
         {pendingQuery && (
           <IconButton
-            classes="absolute right-0 text-[16px] top-[50%] translate-y-[-50%]"
+            // classes="absolute right-0 text-[16px] top-[50%] translate-y-[-50%]"
             size="lg"
             icon={CancelIcon}
             data-testid="clear-button"
@@ -137,6 +127,16 @@ export default function SearchField({
             disabled={disabled}
           />
         )}
+        <IconButton
+          // Vertically center icon on left side of input. Increase the text
+          // size to make the icon the same size as the top bar icons.
+          // classes="absolute left-0 text-[16px] top-[50%] translate-y-[-50%]"
+          icon={SearchIcon}
+          size="lg"
+          title="Search"
+          type="submit"
+          disabled={disabled}
+        />
       </div>
     </form>
   );

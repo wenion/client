@@ -86,6 +86,38 @@ function RecordingSlider({
   )
 }
 
+export type LabelProps = {
+  query: boolean;
+};
+
+function Label({
+  query,
+}: LabelProps) {
+  return (
+    <>
+      <p className={"flex"}>
+        {query ? (
+          <>
+            No results found.
+          </>
+        ) : (
+          <>
+            Click the Record button
+            <Button
+              classes={classnames("mx-2")}
+              title="Record button"
+              unstyled
+            >
+              <RadioCheckedIcon />
+            </Button>
+            to start recording the shareflow.
+          </>
+        )}
+      </p>
+    </>
+  )
+}
+
 export type RecordingListProps = {
   onOpen: (record: RecordItem) => void;
   onDelete: (record: RecordItem) => void;
@@ -292,17 +324,7 @@ export default function RecordingList({
         </div>
       ))}
       {sortedRecordItems.length === 0 && (
-        <p className={"flex"}>
-          Click the Record button
-          <Button
-            classes={classnames("mx-2")}
-            title="Record button"
-            unstyled
-          >
-            <RadioCheckedIcon />
-          </Button>
-        to start recording the shareflow.
-        </p>
+        <Label query={query !== "" && query !== null}/>
       )}
       </div>
     </div>

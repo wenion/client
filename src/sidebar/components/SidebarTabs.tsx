@@ -15,6 +15,7 @@ import type { TabName } from '../../types/sidebar';
 import { applyTheme } from '../helpers/theme';
 import { withServices } from '../service-context';
 import type { AnnotationsService } from '../services/annotations';
+import type { RecordingService } from '../services/recording';
 import { useSidebarStore } from '../store';
 import ThreadList from './ThreadList';
 import VideoThreadList from './VideoThreadList';
@@ -22,6 +23,7 @@ import { useRootThread } from './hooks/use-root-thread';
 import { useRootVideoThread } from './hooks/use-root-video-thread';
 import MessageTab from './MessageTab';
 import RecordingTab from './RecordingTab';
+import SearchBar from './search/SearchBar';
 
 const idForTab = (name: TabName) => `${name}-tab`;
 const idForPanel = (name: TabName) => `${name}-panel`;
@@ -103,6 +105,7 @@ export type SidebarTabsProps = {
   // injected
   settings: SidebarSettings;
   annotationsService: AnnotationsService;
+  recordingService: RecordingService;
 };
 
 /**
@@ -110,6 +113,7 @@ export type SidebarTabsProps = {
  */
 function SidebarTabs({
   annotationsService,
+  recordingService,
   isLoading,
   settings,
 }: SidebarTabsProps) {
@@ -122,6 +126,7 @@ function SidebarTabs({
   const allMessageCount = store.allMessageCount();
   const recordItemsCount = store.recordItemsCount();
   const videoAnnotationCount = store.videoAnnotationCount();
+  const recordView = recordingService.getRecordTabView();
 
   const annotationCount = tabCounts.annotation;
   const orphanCount = tabCounts.orphan;
@@ -230,6 +235,7 @@ function SidebarTabs({
             Video annotations
           </Tab> */}
         </div>
+        {recordView !== "view" && (<SearchBar />)}
         <div
           className="space-y-3"
           role="tabpanel"
@@ -288,4 +294,4 @@ function SidebarTabs({
   );
 }
 
-export default withServices(SidebarTabs, ['annotationsService', 'settings']);
+export default withServices(SidebarTabs, ['annotationsService', 'recordingService', 'settings']);

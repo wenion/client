@@ -143,7 +143,6 @@ function SidebarView({
       >
         <PendingUpdatesNotification />
       </div>
-      {showFilterControls && <FilterControls withCardContainer />}
       <LoginPromptPanel onLogin={onLogin} onSignUp={onSignUp} />
       {hasDirectLinkedAnnotationError && (
         <SidebarContentError
