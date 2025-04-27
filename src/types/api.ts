@@ -387,13 +387,9 @@ export type FileMeta = {
   access: string;
 };
 
-/**
- * Response to an `/api/query` API call.
- *
- */
-export type suggestResult = {
-  id : string;
+export type QuerySuggestions = {
   text: string;
+  value: number;
 };
 
 export type VideoAnnotation = Annotation;

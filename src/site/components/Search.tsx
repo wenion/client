@@ -68,7 +68,7 @@ function Search({
   queryService,
 }: SearchProps) {
   const store = useSidebarStore();
-  const suggestResults = store.getSuggestResults();
+  const suggestResults = store.querySuggestions();
 
   let [isOpen, setOpen]: [boolean, (open: boolean) => void] =
     useState(defaultOpen);
@@ -175,7 +175,7 @@ function Search({
 
   const onSearchBarInput = (event: Event) => {
     const text = (event.target as HTMLInputElement).value;
-    queryService.getSuggestion(text)
+    queryService.getQuerySuggestions(text);
   }
 
   const onItemSelect = (element : HTMLElement, index : number) => {

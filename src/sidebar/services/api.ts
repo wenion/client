@@ -10,6 +10,7 @@ import type {
   RecordStep,
   RecordItem,
   RecordItemParams,
+  QuerySuggestions
 } from '../../types/api';
 import { stripInternalProperties } from '../helpers/strip-internal-properties';
 import type { SidebarStore } from '../store';
@@ -33,7 +34,7 @@ type APICall<
   Params = Record<string, Param | Param[]>,
   Body = void,
   Result = void,
-> = (params: Params, data?: Body) => Promise<Result>;
+> = (params: Params, data?: Body, init?: RequestInit) => Promise<Result>;
 
 /**
  * Callbacks invoked at various points during an API call to get an access token etc.
@@ -106,7 +107,7 @@ function createAPICall(
     onRequestFinished,
   }: APIMethodCallbacks,
 ): APICall<Record<string, any>, Record<string, any> | void, unknown> {
-  return async (params, data) => {
+  return async (params, data, init?: RequestInit) => {
     onRequestStarted();
     try {
       const [linksMap, token] = await Promise.all([links, getAccessToken()]);
@@ -154,6 +155,7 @@ function createAPICall(
         body: data ? JSON.stringify(stripInternalProperties(data)) : null,
         headers,
         method: descriptor.method,
+        ...init,
       });
       return result;
     } finally {
@@ -253,7 +255,7 @@ export class APIService {
   clentURL: APICall<Record<string, unknown>, void, {base_url: string; url_string: string;}>;
   bookmark: APICall<Record<string, unknown>, {id: string; query: string; is_bookmark: boolean}>;
   rating: APICall<Record<string, unknown>, {timestamp: number, base_url: string; relevance: string; timeliness: string}>;
-  typing: APICall<{ q: string }, void, {id: string, text: string;}[]>;
+  typing: APICall<{ q: string }, void, QuerySuggestions[]>;
   push_recommendation: APICall<Record<string, unknown>, {id: string; url: string; type: string; title: string; query: string; context: string}>;
   pull_recommendation: APICall<{url: string}, void, {id: string; url: string; type: string; title: string; query: string; context: string}>;
   pull: APICall<Record<string, unknown>, void, RawMessageData[]>;
@@ -393,7 +395,7 @@ export class APIService {
     this.clentURL = apiCall('client') as APICall<Record<string, unknown>, void, {base_url: string; url_string: string;}>;
     this.bookmark = apiCall('bookmark') as APICall<Record<string, unknown>, {id: string; query: string; is_bookmark: boolean}>;
     this.rating = apiCall('rating') as APICall<Record<string, unknown>, {timestamp: number, base_url: string; relevance: string; timeliness: string}>;
-    this.typing = apiCall('typing') as APICall<{ q: string }, void, {id: string, text: string;}[]>;
+    this.typing = apiCall('typing') as APICall<{ q: string }, void, QuerySuggestions[]>;
     this.push_recommendation = apiCall('push_recommendation') as APICall<Record<string, unknown>, {id: string; url: string; type: string; title: string; query: string; context: string}>;
     this.pull_recommendation = apiCall('pull_recommendation') as APICall<{url: string}, void, {id: string; url: string; type: string; title: string; query: string; context: string}>;
     this.pull = apiCall('message') as APICall<Record<string, unknown>, void, RawMessageData[]>;

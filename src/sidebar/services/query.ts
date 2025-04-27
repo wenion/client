@@ -2,8 +2,6 @@ import type { SidebarSettings } from '../../types/config';
 import type { APIService } from './api';
 import type { SidebarStore } from '../store';
 
-import type { RawMessageData } from '../../types/api';
-
 /**
  * Send messages to configured ancestor frame on annotation activity
  */
@@ -11,6 +9,7 @@ import type { RawMessageData } from '../../types/api';
 export class QueryService {
   private _api: APIService;
   private _store: SidebarStore;
+  private _controller: AbortController | null;
 
   constructor(
     settings: SidebarSettings,
@@ -20,6 +19,7 @@ export class QueryService {
     // this._rpc = settings.rpc;
     this._api = api;
     this._store = store;
+    this._controller = null;
   }
 
   async getRecommendation(url: string): Promise<{id: string; url: string; type: string; title: string; query: string; context: string}>{
@@ -37,22 +37,8 @@ export class QueryService {
     }
   }
 
-  getSuggestResult() {
-    return this._store.getSuggestResults();
-  }
-
-  getSuggestIndex() {
-    return this._store.getSuggestIndex();
-  }
-
-  clearSuggestIndex() {
-    this._store.clearIndex();
-  }
-
   /* submit query*/
-  async queryActivity(query: string | null) {
-    if (!query)
-      return;
+  async queryActivity(query: string) {
     let result = await this._api.query({q: query});
     if (result) {
       this._store.addResponse(query, result);
@@ -73,9 +59,12 @@ export class QueryService {
     }
   }
 
-  async getSuggestion(query: string) {
-    let result = await this._api.typing({q: query});
-    this._store.addSuggestResults(result);
+  async getQuerySuggestions(query: string) {
+    this._controller && this._controller.abort();
+    this._controller = new AbortController();
+    // let result = await this._api.typing({q: query});
+    let result = await this._api.typing({q: query}, undefined, {signal: this._controller.signal});
+    this._store.addQuerySuggestions(result);
   }
 
   async pushRecommendation(data: {id:string, title:string, context:string, type:string, url:string, query:string}) {

@@ -1,81 +1,61 @@
 import { createStoreModule, makeAction } from '../create-store';
-import type { suggestResult } from '../../../types/api';
+import type { QuerySuggestions } from '../../../types/api';
 
-const initialState = {
-    /**
-     * @type {suggestResult[]}
-     */
-    suggestList: [],
-
-    /**
-     * The selectedSuggestIndex that should be given keyboard focus.
-     *
-     * @type {number|null}
-     */
-    selectedSuggestIndex: null,
-  } as {
-    suggestList: suggestResult[];
-    selectedSuggestIndex: number | null;
+export type State = {
+  query: string | null;
+  querySuggestions: QuerySuggestions[];
 };
 
-export type State = typeof initialState;
+function initialState(): State {
+  return {
+    query: null,
+    querySuggestions: [],
+  }
+}
 
 const reducers = {
-  ADD_SUGGEST_RESULTS(
+  ADD_QUERY_SUGGESTIONS(
     state: State,
     action: {
-      suggestList: suggestResult[];
-      // selectedSuggestIndex: number | null;
+      querySuggestions: QuerySuggestions[];
     }
   ): Partial<State> {
-    // const added = []
-    // for (const ret of action.suggestList) {
-    //   added.push(
-    //     ret
-    //   );
-    // }
-
     return {
-      suggestList: action.suggestList,
+      querySuggestions: action.querySuggestions,
     };
   },
 
-  CLEAR_INDEX() {
-    return { selectedSuggestIndex: null };
+  CLEAR_QUERY_SUGGESTIONS(): Partial<State> {
+    return { querySuggestions: [] };
   },
 
-  CLEAR_SUGGEST_RESULTS() {
-    return { suggestList: [], selectedSuggestIndex: null };
-  },
-
-  SET_INDEX(state: State, action: {index: number}): Partial<State> {
-    return { selectedSuggestIndex: action.index };
+  SET_QUERY(state: State, action: { query: string | null }) {
+    return { query: action.query };
   },
 };
 
-/**
- * Retrieve the current sort option key.
- *
- * @param {State} state
- */
-function addSuggestResults(suggestList: suggestResult[],  ) {
-  return makeAction(reducers, 'ADD_SUGGEST_RESULTS', {suggestList});
+// Action creators
+
+function setQuery(query: string | null) {
+  return makeAction(reducers, 'SET_QUERY', { query });
 }
 
-function clearIndex() {
-  return makeAction(reducers, 'CLEAR_INDEX', undefined);
+function addQuerySuggestions(querySuggestions: QuerySuggestions[],  ) {
+  return makeAction(reducers, 'ADD_QUERY_SUGGESTIONS', {querySuggestions: querySuggestions});
 }
 
-function clearSuggestResults() {
-  return makeAction(reducers, 'CLEAR_SUGGEST_RESULTS', undefined);
+function clearQuerySuggestions() {
+  return makeAction(reducers, 'CLEAR_QUERY_SUGGESTIONS', undefined);
 }
 
-function getSuggestIndex(state: State) {
-  return state.selectedSuggestIndex;
+// Selectors
+
+function query(state: State) {
+  return state.query;
 }
 
-function getSuggestResults(state: State) {
-  return state.suggestList;
+function querySuggestions(state: State) {
+  return state.querySuggestions.sort((a, b) => {return b.value - a.value});
 }
 
 export const queryModule = createStoreModule(initialState, {
@@ -83,13 +63,13 @@ export const queryModule = createStoreModule(initialState, {
   reducers,
 
   actionCreators: {
-    addSuggestResults,
-    clearIndex,
-    clearSuggestResults,
+    addQuerySuggestions,
+    clearQuerySuggestions,
+    setQuery,
   },
 
   selectors: {
-    getSuggestIndex,
-    getSuggestResults,
+    querySuggestions,
+    query,
   },
 });
