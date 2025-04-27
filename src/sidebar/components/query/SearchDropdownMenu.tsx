@@ -5,7 +5,7 @@ function isElementVisible(element: HTMLElement) {
   return element.offsetParent !== null;
 }
 
-export type SearchKeyboardNavigationProps = {
+export type SearchDropdownMenuProps = {
   className?: string;
 
   /** Callback invoked when the menu is closed via a keyboard command. */
@@ -26,13 +26,13 @@ export type SearchKeyboardNavigationProps = {
  * Note that `ArrowRight` shall be handled by the parent <MenuItem> directly and
  * all other focus() related navigation is handled here.
  */
-export default function SearchKeyboardNavigation({
+export default function SearchDropdownMenu({
   className,
   closeMenu,
   children,
   inputRef,
   onItemSelect,
-}: SearchKeyboardNavigationProps) {
+}: SearchDropdownMenuProps) {
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const onKeyDown = (event: KeyboardEvent) => {

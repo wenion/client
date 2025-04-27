@@ -13,7 +13,7 @@ import { useEffect, useCallback, useState, useRef } from 'preact/hooks';
 import { useShortcut } from '../../../shared/shortcut';
 import { useSidebarStore } from '../../store';
 import SearchDropdownItem from './SearchDropdownItem';
-import SearchDropdownKeyboardNavigation from './SearchDropdownKeyboardNavigation';
+import SearchDropdownMenu from './SearchDropdownMenu';
 
 
 /**
@@ -325,13 +325,13 @@ export default function SearchField({
               onKeyDown={handleMenuKeyDown}
             >
               {isOpen && (
-                <SearchDropdownKeyboardNavigation
+                <SearchDropdownMenu
                   className={classnames('absolute w-full')}
                   inputRef={inputRef}
                   onItemSelect={onItemSelect}
                 >
                   {menuItems}
-                </SearchDropdownKeyboardNavigation>
+                </SearchDropdownMenu>
               )}
             </div>
           )}
