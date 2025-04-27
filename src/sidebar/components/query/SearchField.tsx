@@ -245,13 +245,22 @@ export default function SearchField({
     input.current!.value = text;
     // input.current!.focus();
     setPendingQuery(text);
-  }
+  };
+
+  const onSuggestItemClick = (text : string) => {
+    input.current!.value = text;
+    setPendingQuery(text);
+    setTimeout(() => {
+      closeMenu();
+      onSearch(text);
+    });
+  };
 
   const menuItems = querySuggestions.map((option, index) => (
     <SearchDropdownItem
       key={option.text}
       label={option.text}
-      // onClick={() => onSuggestItemClick(option.text)}
+      onClick={() => onSuggestItemClick(option.text)}
       // isSelected={selectedIndex === index}
     />
   ));
