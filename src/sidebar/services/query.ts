@@ -1,6 +1,7 @@
 import type { SidebarSettings } from '../../types/config';
 import type { APIService } from './api';
 import type { SidebarStore } from '../store';
+import type { QueryResults } from '../../types/api';
 
 /**
  * Send messages to configured ancestor frame on annotation activity
@@ -43,6 +44,71 @@ export class QueryService {
     if (result) {
       this._store.addResponse(query, result);
     }
+  }
+
+  private _getDataType(url: string | undefined, title: string) {
+    if (!url || url === undefined)
+      return ''
+    if (url.endsWith('.mp4') || url.includes('youtube.com') || title.endsWith('.mp4')) {
+      return 'video';
+    }
+    else if (url.endsWith('pdf')) {
+      return 'pdf'
+    }
+    else {
+      return ''
+    }
+  }
+
+  private _getFirst100Words(str: string) {
+    const words = str.split(' ');
+    const first1000Words = words.slice(0, 100);
+    return first1000Words.join(' ') + '...';
+  }
+
+  private _processHighlight(context: string) {
+    if (context && context.includes("\n")) {
+      context = "* "+ context.replace(/\n/g, "\n* ");
+    }
+    return context;
+  }
+
+  async query(text: string) {
+    let result = await this._api.query({q: text});
+    this._store.setQueryStatus(result.status);
+    if (result.status === '200') {
+      const children: QueryResults[] = [];
+      result.context.forEach((innerArray) => {
+        innerArray.forEach((item) => {
+          children.push({
+            id: item.id,
+            visible: true,
+            dataType: this._getDataType(item.metadata.url, item.metadata.title),
+            isBookmark: item.is_bookmark ? item.is_bookmark : false,
+            pageContent: item.page_content,
+            score: Number(item.metadata.score),
+            query: text,
+
+            title: item.metadata.title ? item.metadata.title : (item.metadata['video name'] ? item.metadata['video name'] : 'untitled'),
+            url: item.metadata.url ? item.metadata.url : item.metadata['video url'],
+
+            summary: item.metadata.summary ? item.metadata.summary : this._getFirst100Words(item.page_content),
+            highlights: this._processHighlight(item.metadata.highlights),
+            repository: item.metadata.repository ? item.metadata.repository : "",
+          })
+        });
+      });
+      this._store.addQueryResults(children);
+    } else {
+      this._store.clearQueryResults();
+    }
+  }
+
+  clearQuery(){
+    this._store.setQuery(null);
+    this._store.clearQueryResults();
+    this._store.setQueryStatus(null);
+    this._store.clearQuerySuggestions();
   }
 
   async setBookmark(id: string, isBookmark: boolean) {

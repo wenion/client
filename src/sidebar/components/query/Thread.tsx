@@ -11,17 +11,17 @@ import {
 import classnames from 'classnames';
 import { useEffect, useLayoutEffect, useMemo, useState, useRef } from 'preact/hooks';
 
-import type { Thread as IThread } from '../../../site/helpers/build-thread';
 import { withServices } from '../../service-context';
 import type { QueryService } from '../../services/query';
-import type { ThreadsService } from '../../services/threads';
 import MarkdownView from '../MarkdownView';
+import type { QueryResults } from '../../../types/api';
+
 
 export type ThreadProps = {
-  thread: IThread;
+  // thread: IThread;
+  thread: QueryResults;
 
   // injected
-  threadsService: ThreadsService;
   queryService: QueryService;
 };
 
@@ -30,11 +30,11 @@ export type ThreadProps = {
  * recursively-rendered children (i.e. replies).
  *
  */
-function Thread({ thread, threadsService, queryService}: ThreadProps) {
+function Thread({ thread, queryService}: ThreadProps) {
   const content = useRef<HTMLDivElement | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const onClickResult = (thread: IThread) => {
+  const onClickResult = (thread: QueryResults) => {
     if (isExpanded) {
       if (thread.url) {
         queryService.pushRecommendation({
@@ -123,4 +123,4 @@ function Thread({ thread, threadsService, queryService}: ThreadProps) {
   );
 }
 
-export default withServices(Thread, ['threadsService', 'queryService']);
+export default withServices(Thread, ['queryService']);

@@ -1,11 +1,10 @@
 import classnames from 'classnames';
 
-// import { ListenerCollection } from '../../shared/listener-collection';
-import type { Thread as IThread } from '../../../site/helpers/build-thread';
 import Thread from './Thread';
 
+import type { QueryResults } from '../../../types/api';
 export type ThreadListProps = {
-  threads: IThread[];
+  threads: QueryResults[];
 };
 
 /**
@@ -28,8 +27,6 @@ export default function ThreadList({ threads }: ThreadListProps) {
             'mb-4 border bg-white'
           )}
           data-testid="thread-card-container"
-          id={child.id}
-          key={child.id}
         >
           <Thread thread={child} />
         </div>

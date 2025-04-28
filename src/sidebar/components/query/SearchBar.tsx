@@ -1,5 +1,5 @@
 import { Card, CardContent, Dialog } from '@hypothesis/frontend-shared';
-import { useEffect, useMemo, useRef } from 'preact/hooks';
+import { useRef } from 'preact/hooks';
 
 import { withServices } from '../../service-context';
 import type { QueryService } from '../../services/query';
@@ -20,13 +20,12 @@ function SearchBar({
   const querySuggestions = store.querySuggestions();
 
   const onSearch = (value: string) => {
-    queryService.queryActivity(value);
+    queryService.query(value);
     store.setQuery(value);
   };
 
   const onClearSearch = () => {
-    store.setQuery(null);
-    store.clearQuerySuggestions();
+    queryService.clearQuery();
   };
 
   const onQueryType = (text: string) => {

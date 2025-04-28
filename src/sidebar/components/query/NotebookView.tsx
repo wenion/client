@@ -1,109 +1,63 @@
-import { Link, Panel } from '@hypothesis/frontend-shared';
-import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
-import scrollIntoView from 'scroll-into-view';
+import { Pagination } from '@hypothesis/frontend-shared';
+import { useEffect, useMemo, useState } from 'preact/hooks';
 
-import { convertResponseToThread } from '../../../site/helpers/build-thread';
-import { withServices } from '../../service-context';
-import type { QueryService } from '../../services/query';
 import { useSidebarStore } from '../../store';
-import PaginatedThreadList from './PaginatedThreadList';
+import ThreadList from './ThreadList';
 
-export type NotebookViewProps = {
-  // injected
-  queryService: QueryService;
-  // streamer: StreamerService;
-};
+
 /**
  * The main content of the "notebook" route (chrome-extension://extension_id/query.html)
  *
  * @param {NotebookViewProps} props
  */
-function NotebookView({ queryService }: NotebookViewProps) {
+export default function NotebookView() {
+  const pageSize = 7;
   const store = useSidebarStore();
+  const query = store.query();
+  const queryResults = store.queryResults();
+  const queryStatus = store.queryStatus();
 
-  const filters = store.getFilterValues();
-  const focusedGroup = store.focusedGroup();
-  const isLoading = store.isLoading();
-  const resultCount = store.annotationResultCount();
-
-  const responseData = convertResponseToThread();
-
-  const lastPaginationPage = useRef(1);
   const [paginationPage, setPaginationPage] = useState(1);
-
-  const [hasTooManyAnnotationsError, setHasTooManyAnnotationsError] =
-    useState(false);
-
-  // Load all annotations in the group, unless there are more than 5000
-  // of them: this is a performance safety valve.
-  const maxResults = 5000;
+  const [totalPages, setTotalPages] = useState(1);
 
   const onChangePage = (newPage: number) => {
     setPaginationPage(newPage);
   };
 
-  // When filter values or focused group are changed, reset pagination to page 1
-  useEffect(() => {
-    onChangePage(1);
-  }, [filters, focusedGroup]);
+  const visibleResults = useMemo(()=> {
+    const start = (paginationPage - 1) * pageSize;
+    const end = start + pageSize;
+    return queryResults.slice(start, end);
+  }, [paginationPage, queryResults])
 
-  // Scroll back to here when pagination page changes
-  const threadListScrollTop = useRef<HTMLElement | null>(null);
-  useLayoutEffect(() => {
-    // TODO: Transition and effects here should be improved
-    if (paginationPage !== lastPaginationPage.current) {
-      if (threadListScrollTop.current) {
-        scrollIntoView(threadListScrollTop.current);
-      }
-      lastPaginationPage.current = paginationPage;
-    }
-  }, [paginationPage]);
+  useEffect(()=> {
+    setTotalPages(Math.ceil(queryResults.length / pageSize));
+    setPaginationPage(1);
+  }, [queryResults]);
 
   return (
     <div>
-      <div className="text-xl my-4 break-all" data-testid="notebook-group-name">
-        Search results for: {queryService.getQueryWord()}
-      </div>
-      <p className="text-xl">
-        {
-          responseData.isErrorOccurred ? 'Sorry, error occurred! Error message: ' + responseData.status :
-            responseData.children.length == 0 ? '' : responseData.children.length + ' results found'
-        }
-      </p>
+      {query && (
+        <div className="text-md my-4 break-all" data-testid="notebook-group-name">
+          Search results for: <b>{query}</b>
+        </div>
+      )}
+      {queryStatus && queryStatus !== '200' && (
+        <p className="text-xl">
+          'Sorry, error occurred! Error message: {queryStatus}'
+        </p>
+      )}
       <hr class="mx-auto bg-black my-2" />
       <div>
-        {hasTooManyAnnotationsError && (
-          <div className="py-4" data-testid="notebook-messages">
-            <Panel title="Too many results to show">
-              <p>
-                This preview of the Notebook can show{' '}
-                <strong>up to {maxResults} results</strong> at a time (there are{' '}
-                {resultCount} to show here).
-              </p>
-              <p>
-                <Link
-                  href="mailto:goldmindtools@gmail.com?subject=Hypothesis%20Notebook&body=Please%20notify%20me%20when%20the%20Hypothesis%20Notebook%20is%20updated%20to%20support%20more%20than%205000%20annotations"
-                  underline="always"
-                >
-                  Contact us
-                </Link>{' '}
-                if you would like to be notified when support for more
-                annotations is available.
-              </p>
-            </Panel>
-          </div>
+        <ThreadList threads={visibleResults} />
+        {query && (
+          <Pagination
+            currentPage={paginationPage}
+            onChangePage={onChangePage}
+            totalPages={totalPages}
+          />
         )}
-        <PaginatedThreadList
-          currentPage={paginationPage}
-          isLoading={isLoading}
-          onChangePage={onChangePage}
-          threads={responseData.children}
-        />
       </div>
     </div>
   );
 }
-
-export default withServices(NotebookView, [
-  'queryService',
-]);

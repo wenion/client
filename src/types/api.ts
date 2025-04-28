@@ -392,6 +392,24 @@ export type QuerySuggestions = {
   value: number;
 };
 
+export type QueryResults = {
+  id: string;
+  title: string;
+  url?: string;
+  summary: string;
+  highlights: string;
+  deleted?: boolean;
+  expired?: boolean;
+  repository: string;
+  query: string | null;
+
+  visible: boolean;
+  dataType: string;
+  score: number;
+  pageContent: string;
+  isBookmark: boolean;
+};
+
 export type VideoAnnotation = Annotation;
 
 /**
