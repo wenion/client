@@ -13,12 +13,11 @@ import { useEffect, useLayoutEffect, useMemo, useState, useRef } from 'preact/ho
 
 import { withServices } from '../../service-context';
 import type { QueryService } from '../../services/query';
-import MarkdownView from '../MarkdownView';
 import type { QueryResults } from '../../../types/api';
+import MarkdownView from '../MarkdownView';
 
 
 export type ThreadProps = {
-  // thread: IThread;
   thread: QueryResults;
 
   // injected

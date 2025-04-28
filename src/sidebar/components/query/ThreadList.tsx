@@ -1,8 +1,9 @@
 import classnames from 'classnames';
 
+import type { QueryResults } from '../../../types/api';
 import Thread from './Thread';
 
-import type { QueryResults } from '../../../types/api';
+
 export type ThreadListProps = {
   threads: QueryResults[];
 };

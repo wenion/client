@@ -28,7 +28,7 @@ export default function NotebookView() {
     const start = (paginationPage - 1) * pageSize;
     const end = start + pageSize;
     return queryResults.slice(start, end);
-  }, [paginationPage, queryResults])
+  }, [paginationPage, queryResults]);
 
   useEffect(()=> {
     setTotalPages(Math.ceil(queryResults.length / pageSize));
