@@ -72,7 +72,7 @@ export default function SearchIconButton() {
           expanded={selectedTab === 'query'}
           pressed={selectedTab === 'query'}
           onClick={toggleSearchPanel}
-          title="Search annotations"
+          title="Query"
         />
       )}
     </>
