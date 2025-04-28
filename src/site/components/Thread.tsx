@@ -11,17 +11,15 @@ import {
 import classnames from 'classnames';
 import { useEffect, useLayoutEffect, useMemo, useState, useRef } from 'preact/hooks';
 
-import type { Thread as IThread } from '../helpers/build-thread';
 import { withServices } from '../../sidebar/service-context';
 import type { QueryService } from '../../sidebar/services/query';
-import type { ThreadsService } from '../../sidebar/services/threads';
+import type { QueryResults } from '../../types/api';
 import MarkdownView from './MarkdownView';
 
 export type ThreadProps = {
-  thread: IThread;
+  thread: QueryResults;
 
   // injected
-  threadsService: ThreadsService;
   queryService: QueryService;
 };
 
@@ -30,12 +28,14 @@ export type ThreadProps = {
  * recursively-rendered children (i.e. replies).
  *
  */
-function Thread({ thread, threadsService, queryService}: ThreadProps) {
+function Thread({ thread, queryService}: ThreadProps) {
   const content = useRef<HTMLDivElement | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const onClickResult = (thread: IThread) => {
+  const onClickResult = (thread: QueryResults) => {
+    window.open(thread.url);
     if (isExpanded) {
+      console.log("url", thread.url)
       if (thread.url) {
         queryService.pushRecommendation({
           id: thread.id,
@@ -45,11 +45,10 @@ function Thread({ thread, threadsService, queryService}: ThreadProps) {
           query: thread.query ? thread.query: '',
           url: thread.url,
         })
-        window.open(thread.url);
       }
     }
-    else if (!isExpanded && content.current) {
-      setIsExpanded(true)
+    else {
+      setIsExpanded(true);
     }
   }
 
@@ -70,7 +69,8 @@ function Thread({ thread, threadsService, queryService}: ThreadProps) {
     <>
       <header class="flex">
         <h1
-          class="grow self-center text-left ml-10 text-xl font-robo"
+          class="grow self-center text-left ml-10 text-xl font-robo cursor-pointer"
+          onClick={e => {onClickExpand()}}
         >
           {thread.title}
         </h1>
@@ -122,4 +122,4 @@ function Thread({ thread, threadsService, queryService}: ThreadProps) {
   );
 }
 
-export default withServices(Thread, ['threadsService', 'queryService']);
+export default withServices(Thread, ['queryService']);

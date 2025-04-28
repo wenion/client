@@ -18,7 +18,7 @@ import type { RecordingService } from '../../sidebar/services/recording';
 import type { SessionService } from '../../sidebar/services/session';
 import { useSidebarStore } from '../../sidebar/store';
 import ThirdPartyMenu from './ThirdPartyMenu';
-import Search from './Search';
+import SearchBar from './query/SearchBar';
 import UserMenu from './UserMenu';
 import LogoIcon from '../static/logo';
 import ExtensionIcon from '../static/extension';
@@ -65,7 +65,7 @@ function TopBar({
   const store = useSidebarStore();
   const isLoggedIn = store.isLoggedIn();
   const hasFetchedProfile = store.hasFetchedProfile();
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  // const inputRef = useRef<HTMLInputElement | null>(null);
 
   const recordItems = store.recordItems();
   const recordSteps = store.recordSteps();
@@ -126,16 +126,6 @@ function TopBar({
     [session, hasAutoDisplayPreference],
   );
 
-  const param = window.location.search.match(/[\?&]q=([^&]+)/);
-  useEffect(() => {
-    if (param) {
-      const el = inputRef.current!;
-      const queryWord = param[1]!.replace(/\+/g, ' ');
-      el.value = decodeURIComponent(queryWord);
-      queryService.queryActivity(queryWord);
-    }
-  }, []);
-
   return (
     <div>
       <header class="nav-bar">
@@ -143,7 +133,9 @@ function TopBar({
           <a href="/" title="GoldMind Home" class="nav-bar__logo-container mx-12">
             <LogoIcon />
           </a>
-          {!showEdit && (<Search inputRef={inputRef} />)}
+          {!showEdit && (
+            <SearchBar />
+          )}
           {showEdit && recordItem && (
             <div
               className="m-auto self-center text-xl"
