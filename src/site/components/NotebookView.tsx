@@ -36,10 +36,10 @@ export default function NotebookView() {
     <div class="mb-8" data-testid="notebook-container">
       <IntroductionPanel />
       <div>
-        {query && (
-          <div className="text-md my-4 break-all" data-testid="notebook-group-name">
+        {queryResults.length > 0 && (
+          <h1 className="text-4xl font-robo my-12" data-testid="notebook-group-name">
             Search results for: <b>{query}</b>
-          </div>
+          </h1>
         )}
         {queryStatus && queryStatus !== '200' && (
           <p className="text-xl">
