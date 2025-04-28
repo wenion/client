@@ -1,4 +1,4 @@
-import { SearchIcon, Spinner } from '@hypothesis/frontend-shared';
+import { Spinner } from '@hypothesis/frontend-shared';
 import { useCallback, useRef, useState } from 'preact/hooks';
 
 import { useShortcut } from '../../../shared/shortcut';
@@ -6,6 +6,7 @@ import { isMacOS } from '../../../shared/user-agent';
 import type { SidebarStore } from '../../store';
 import { useSidebarStore } from '../../store';
 import TopBarToggleButton from '../TopBarToggleButton';
+import GlobalSearchIcon from '../../../images/icons/globalSearch';
 
 /**
  * Respond to keydown events on the document (shortcut keys):
@@ -68,7 +69,7 @@ export default function SearchIconButton() {
       {isLoading && <Spinner />}
       {!isLoading && (
         <TopBarToggleButton
-          icon={SearchIcon}
+          icon={GlobalSearchIcon}
           expanded={selectedTab === 'query'}
           pressed={selectedTab === 'query'}
           onClick={toggleSearchPanel}
