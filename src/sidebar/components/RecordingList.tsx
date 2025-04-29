@@ -70,10 +70,14 @@ function RecordingSlider({
           <div title={recordItem.description}>
             <h5 className="word-break-word hyphens-auto">{recordItem.description}</h5>
           </div>
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-3 gap-4">
             <div>
               Created by:&nbsp;
               <div class="text-blue-700">{getUserName(recordItem.userid!)}</div>
+            </div>
+            <div>
+              Teaching Role:&nbsp;
+              <div class="text-blue-700">{recordItem.role}</div>
             </div>
             <div>
               Date Created:&nbsp;
