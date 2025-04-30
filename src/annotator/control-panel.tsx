@@ -51,6 +51,7 @@ export class ControlPanel implements Destroyable {
    */
   constructor(element: HTMLElement, options: Options) {
     this._outerContainer = document.createElement('hypothesis-control-panel');
+    this._outerContainer.style.zIndex = '2147483648';
     element.appendChild(this._outerContainer);
     this._shadowRoot = createShadowRoot(this._outerContainer);
 

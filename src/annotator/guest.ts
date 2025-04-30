@@ -356,7 +356,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
     this._setupElementEvents();
 
     this._controlPanel.show(
-      window.innerWidth - 510,
+      window.innerWidth * 0.9,
       window.innerHeight * 0.9,
     );
 
