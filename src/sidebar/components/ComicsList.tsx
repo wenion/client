@@ -555,6 +555,11 @@ function ComicsList({
             </Button>
           </div>
         </div>
+        <div
+          className={'text-sm pl-2'}
+        >
+          {recordItem?.description}
+        </div>
       </header>
       <NavComics
         steps={recordSteps}
