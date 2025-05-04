@@ -79,10 +79,21 @@ const reducers = {
   },
 
   UPDATE_RECORDITEM(state: State, action: { recordItem: RecordItem },): Partial<State> {
-    const remain = state.recordItems.filter(r => r.id !== action.recordItem.id);
-    return {
-      recordItems: remain.concat(action.recordItem),
+    const index = state.recordItems.findIndex(r => r.id === action.recordItem.id);
+
+    if (index === -1) {
+      return {
+        recordItems: state.recordItems,
+      };
     }
+
+    return {
+      recordItems: [
+        ...state.recordItems.slice(0, index),
+        action.recordItem,
+        ...state.recordItems.slice(index + 1),
+      ]
+    };
   },
 
   ADD_RECORDSTEPS(state: State, action: {recordSteps: RecordStep[]}): Partial<State> {
