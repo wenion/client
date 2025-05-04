@@ -21,7 +21,6 @@ function SearchBar({
 
   const onSearch = (value: string) => {
     queryService.query(value);
-    store.setQuery(value);
   };
 
   const onClearSearch = () => {

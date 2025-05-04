@@ -25,7 +25,7 @@ export default function ThreadList({ threads }: ThreadListProps) {
       {threads.map(child => (
         <div
           className={classnames(
-            'mb-4 border bg-white'
+            'mb-4 border bg-white rounded-lg'
           )}
           data-testid="thread-card-container"
         >

@@ -99,6 +99,7 @@ export class QueryService {
         });
       });
       this._store.addQueryResults(children);
+      this._store.setQuery(text);
     } else {
       this._store.clearQueryResults();
     }

@@ -58,64 +58,70 @@ function Thread({ thread, queryService}: ThreadProps) {
 
   useEffect(() => {
     if (content.current && isExpanded) {
-      content.current.className = "block hover:text-gray-300"
+      content.current.className = "block"
     }
     else if (content.current && !isExpanded) {
-      content.current.className = "hidden hover:text-gray-300"
+      content.current.className = "hidden"
     }
   }, [isExpanded])
 
   return (
     <>
       <header class="flex">
+        <div
+          className="grow-0 p-4 cursor-pointer"
+        >
+          {(() => {
+            switch (thread.dataType) {
+              case "pdf":
+                return <FilePdfIcon />;
+              case "image":
+                return <ImageIcon />;
+              case "video":
+                return <PreviewIcon />;
+              default:
+                return <FileGenericIcon />;
+            }
+          })()}
+        </div>
         <h1
-          class="grow self-center text-left ml-10 text-xl font-robo break-all cursor-pointer"
+          className={classnames(
+            "grow self-center ",
+            "text-left ml-2 text-base font-robo",
+            "break-all cursor-pointer truncate",
+          )}
+          title={thread.title}
           onClick={e => {onClickExpand()}}
         >
           {thread.title}
         </h1>
-        <div className="grow-0 p-4 cursor-pointer" onClick={ e => { queryService.setBookmark(thread.id, !thread.isBookmark) }}>
+        <div
+          className="grow-0 p-4 cursor-pointer"
+          onClick={ e => { queryService.setBookmark(thread.id, !thread.isBookmark) }}
+        >
           { thread.isBookmark ? <BookmarkFilledIcon /> : <BookmarkIcon />}
         </div>
         <div className="grow-0 p-4 cursor-pointer" onClick={ e => { onClickExpand() }}>
           { isExpanded ? <MenuCollapseIcon /> : <MenuExpandIcon />}
         </div>
       </header>
-      <div class="cursor-pointer hover:text-blue-400" ref={content} onClick={() => onClickResult(thread)}>
-        <div class="grid grid-cols-6 gap-4 cursor-pointer">
-          <div class="flex self-center justify-center">
-            {thread.dataType === "pdf" ? (
-              <FilePdfIcon className="w-8 h-8"
-              />
-            ) : (thread.dataType === "image" ? (
-              <ImageIcon className="w-8 h-8"
-                />
-            ) : (thread.dataType === "video" ? (
-              <PreviewIcon className="w-8 h-8"
-              />
-            ) : (
-              <FileGenericIcon className="w-8 h-8"
-              />
-            )
-            ))}
-          </div>
-          <div
-            className={classnames(
-              // Set a max-width to ensure that annotation content does not exceed
-              // the width of the container
-              'col-span-5'
-            )}
-            data-testid="thread-content"
-          >
-            <MarkdownView
-              markdown={thread.summary}
-              classes="cursor-pointer text-lg leading-relaxed font-sans"
-              // style={textStyle}
-            />
-          </div>
+      <div
+        class="cursor-pointer hover:text-blue-400"
+        ref={content}
+        onClick={() => onClickResult(thread)}
+      >
+        <div
+          class="my-4 mx-12 cursor-pointer"
+          data-testid="thread-content"
+        >
+          <MarkdownView
+            markdown={thread.summary}
+            classes="cursor-pointer text-base leading-relaxed font-sans"
+            // style={textStyle}
+          />
         </div>
         <footer className="my-8">
-          <p className="ml-16 font-bold"><em>source</em>: {thread.repository}</p>
+          <p className="ml-4 font-bold"><em>source</em>: {thread.repository}</p>
         </footer>
       </div>
     </>
