@@ -97,16 +97,56 @@ const reducers = {
   },
 
   ADD_RECORDSTEPS(state: State, action: {recordSteps: RecordStep[]}): Partial<State> {
+    const newRecordSteps = [...state.recordSteps];
+    action.recordSteps.map(step => {
+      const index = step.index!;
+      newRecordSteps.splice(index, 0, step);
+    });
+    newRecordSteps.map((step, index) => {
+      step.index = index;
+    });
     return {
-      recordSteps: action.recordSteps,
+      recordSteps: newRecordSteps,
+    };
+  },
+
+  REMOVE_RECORDSTEPS(
+    state: State,
+    action: {
+      toRemove: RecordStep[]
+    },
+  ): Partial<State> {
+    const newRecordSteps = [...state.recordSteps];
+    action.toRemove.map(step => {
+      const index = step.index!;
+      newRecordSteps.splice(index, 1);
+    })
+
+    // reorder
+    newRecordSteps.map((step, index) => {
+      step.index = index;
+    });
+
+    return {
+      recordSteps: newRecordSteps,
     };
   },
 
   UPDATE_RECORDSTEP(state: State, action: { recordStep: RecordStep },): Partial<State> {
-    const remain = state.recordSteps.filter(r => r.id !== action.recordStep.id);
-    return {
-      recordSteps: remain.concat(action.recordStep).sort((a, b) => a.timestamp - b.timestamp),
+    const index = state.recordSteps.findIndex(r => r.id === action.recordStep.id);
+    if (index === -1) {
+      return {
+        recordSteps: state.recordSteps,
+      };
     }
+
+    return {
+      recordSteps: [
+        ...state.recordSteps.slice(0, index),
+        action.recordStep,
+        ...state.recordSteps.slice(index + 1),
+      ]
+    };
   },
 
   CLEAR_RECORDSTEPS(): Partial<State> {
@@ -165,7 +205,13 @@ function addRecordSteps(recordSteps: RecordStep[]) {
         recordSteps = [];
       }
 
-      recordSteps.map((step, index) => {
+      recordSteps = recordSteps.filter((step, index) => {
+        const existsInState =
+          getState().recordings.recordSteps.find(rs => rs.id === step.id);
+        if (existsInState) {
+          return false;
+        }
+
         if (step.image) {
           step.image = link + 'api/image/' + step.image + '.jpg';
         }
@@ -176,6 +222,7 @@ function addRecordSteps(recordSteps: RecordStep[]) {
         if (!step.index) {
           step.index = index;
         }
+        return true;
       });
       dispatch(
         makeAction(reducers, 'ADD_RECORDSTEPS', {
@@ -187,11 +234,11 @@ function addRecordSteps(recordSteps: RecordStep[]) {
 
 function removeRecordSteps(ids: string[]) {
   return (dispatch: Dispatch, getState: () => { recordings: State }) => {
-    const remaining =
+    const toRemove =
       getState().recordings.recordSteps.filter(
-        r => !ids.includes(r.id)
+        r => ids.includes(r.id)
       );
-    dispatch(makeAction(reducers, 'ADD_RECORDSTEPS', {recordSteps: remaining}));
+    dispatch(makeAction(reducers, 'REMOVE_RECORDSTEPS', {toRemove: toRemove}));
   }
 }
 

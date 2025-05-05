@@ -37,6 +37,7 @@ export class RecordingService {
     updates.map(step => {
       step.id = step.id.replace(/^tr/, "");
     });
+    this._store.clearRecordSteps();
     const results = await this._api.traces.update({id: id}, updates);
     this._store.addRecordSteps(results);
   }
@@ -51,6 +52,7 @@ export class RecordingService {
     const recordItem = this._store.getRecordItemByPk(pk);
     if (recordItem) {
       const id = recordItem.id;
+      this._store.clearRecordSteps();
       const traceSteps = await this._api.traces.list({ id: id, "response_mode": "metadata" });
       this._store.addRecordSteps(traceSteps);
       this._store.selectTab('shareflow');
@@ -105,6 +107,7 @@ export class RecordingService {
     if (newView !== currentView) {
       if (newView === 'view' && id) {
         try {
+          this._store.clearRecordSteps();
           const traceSteps = await this._api.traces.list({ id: id, "response_mode": "metadata" });
           this._store.addRecordSteps(traceSteps);
           this._store.selectTab('shareflow');

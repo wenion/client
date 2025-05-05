@@ -1,4 +1,4 @@
-import { ArrowUpIcon, IconButton, TrashIcon, EditIcon, CancelIcon, Checkbox } from '@hypothesis/frontend-shared';
+import { ArrowUpIcon, IconButton, TrashIcon, EditIcon, CancelIcon, PlusIcon, Checkbox } from '@hypothesis/frontend-shared';
 import type { ComponentChildren, JSX } from 'preact';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState, useRef, Ref} from 'preact/hooks';
 import classnames from 'classnames';
@@ -27,86 +27,13 @@ import QuestionIcon from '../../images/icons/action-question';
 import CopyIcon from '../../images/icons/action-copy';
 import PasteIcon from '../../images/icons/action-paste';
 import AnnotationIcon from '../../images/icons/action-annotation';
+import { generateHexString } from '../../shared/random';
 
 function capitalizeFirstLetter(str: string): string {
   if (str.length === 0) return str;
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-type ComicHeaderProps = {
-  id: number;
-  dataId: number,
-  trace: RecordStep;
-  selected: boolean;
-  onElementSizeChanged: (id: string) => void;
-  onSelect: (id: string, selected: boolean) => void;
-  classes?: string;
-};
-
-export function ComicHeader({
-  id,
-  dataId,
-  trace,
-  selected,
-  onElementSizeChanged,
-  onSelect,
-  classes,
-}: ComicHeaderProps) {
-  useLayoutEffect(()=> {
-    onElementSizeChanged(trace.id);
-  }, []);
-
-  return (
-    <div
-      draggable
-      className={classnames(
-        "data-comics-item",
-        "p-4",
-        "border-2 border-transparent",
-        classes,
-      )}
-      id={trace.id}
-      data-id={dataId}
-    >
-      <div
-        className={classnames(
-          "flex",
-          "text-lg text-blue-chathams text-center",
-          "border-2 border-gray-400",
-          'hover:shadow-lg',
-          'cursor-pointer',
-          "justify-center items-center",
-          'p-2',
-        )}
-        title={trace.url}
-      >
-        <div>
-          <Checkbox
-            checked={selected}
-            onChange={e => {
-              onSelect(trace.id, (e.target! as HTMLInputElement).checked);
-            }}
-          />
-        </div>
-        <div
-          className={classnames(
-            "flex m-1",
-            "rounded-full",
-            "bg-zinc-300 text-gray-600",
-            "border border-gray-600",
-            "w-8 h-8",
-            "justify-center items-center",
-          )}
-        >
-          {id}
-        </div>
-        <div className="flex-1 p-2">
-          <b>{trace.title}:</b>{" "} {trace.description??trace.url}
-        </div>
-      </div>
-    </div>
-  )
-}
 
 type ComicItemProps = {
   trace: RecordStep;
@@ -135,8 +62,7 @@ export function ComicItem({
         "relative",
         'grid grid-rows-3 grid-flow-col',
         'content-center',
-        'text-lg text-blue-chathams text-center',
-        'border border-black mb-0.5',
+        'text-base text-blue-chathams text-center',
         'hover:shadow-lg',
         'cursor-pointer',
         classes,
@@ -151,7 +77,7 @@ export function ComicItem({
       >
         <Checkbox
           checked={selected}
-          onChange={e => {
+          onChange={(e: Event) => {
             onSelect(trace.id, (e.target! as HTMLInputElement).checked);
           }}
         />
@@ -160,7 +86,7 @@ export function ComicItem({
         className={classnames(
           "justify-self-center content-center row-span-3",
           "text-black",
-          "w-16 p-2",
+          "w-12 p-1",
         )}
       >
         {trace.title === "click" ? (
@@ -191,8 +117,8 @@ export function ComicItem({
       </div>
       <div className={classnames(
         "col-span-2 border-b border-l border-black",
-        "text-lg text-black font-bold content-center",
-        "p-4",
+        "text-base text-black font-bold content-center",
+        "p-2",
       )}>
         {capitalizeFirstLetter(trace.title)}
       </div>
@@ -215,7 +141,6 @@ export function ComicItem({
             "data-comics-content",
             "word-break-word",
             "hyphens-auto",
-            "p-2",
           )}
           title={trace.description}
         >
@@ -226,55 +151,61 @@ export function ComicItem({
   )
 }
 
-type ImageComicsCardProps = {
-  children: ComponentChildren;
-  onImageClick: (id: string) => void;
+type EditingCardProps = {
+  dataId: number,
+  trace: RecordStep;
+  selected: boolean;
   onElementSizeChanged: (id: string) => void;
-  step: RecordStep;
-  dataId: number;
+  onSelect: (id: string, selected: boolean) => void;
+  classes?: string;
 };
 
-export function ImageComicsCard({
-  children,
-  onImageClick,
-  onElementSizeChanged,
-  step,
+export function EditingCard({
   dataId,
-}: ImageComicsCardProps) {
+  trace,
+  selected,
+  onElementSizeChanged,
+  onSelect,
+  classes,
+}: EditingCardProps) {
+  useLayoutEffect(()=> {
+    onElementSizeChanged(trace.id);
+  }, []);
+
   return (
     <div
       draggable
       className={classnames(
+        'w-full block',
         'data-comics-item',
-        "p-4",
-        "border-2 border-transparent",
+        'border border-black mb-0.5 rounded-lg',
+        'hover:ring-gray-500 hover:bg-gray-100',
       )}
-      id={step.id}
+      id={trace.id}
       data-id={dataId}
     >
-      <div className={"flex"}>
+      <ComicItem
+        trace={trace}
+        isAlign={trace.image ? true: false}
+        selected={selected}
+        onElementSizeChanged={()=> {}}
+        onSelect={onSelect}
+      />
+      {/* {trace.image && (
         <div
-          className={classnames(
-            { "w-full" : !step.image},
-            { "max-w-52" : step.image}
-          )}
+          className={"p-4"}
         >
-          {children}
+          <img
+            src={trace.image}
+            className={"border shadow-2xl"}
+          />
         </div>
-        {step.image && (
-          <div
-            className={"flex-1"}
-          >
-            <img
-              src={step.image}
-              className={"w-full border"}
-            />
-          </div>
-        )}
-      </div>
+      )} */}
     </div>
+
   )
-}
+};
+
 
 type EditViewProps = {
   // sessionId: string;
@@ -310,15 +241,60 @@ function EditView({
   const recordSteps = store.recordSteps();
   const links = store.getLink("index");
 
-  const parentRef = useRef<HTMLDivElement | null>(null);
+  // const parentRef = useRef<HTMLDivElement | null>(null);
 
-  const [sourceNode, setSourceNode] = useState<HTMLDivElement | null>(null);
-  const [dragState, setDragState] = useState<string>("End"); // Start Trigger End
-  const [startTop, setStartTop] = useState(0);
+  // const [dragState, setDragState] = useState<string>("End"); // Start Trigger End
+
+  const [steps, setSteps] = useState<RecordStep[]>(recordSteps);
+
+  // const prevSourceRef = useRef<number | null>(null);
+  // const prevTargetRef = useRef<number | null>(null);
+  const [sourceIndex, setSourceIndex] = useState<number | null>(null);
+  const [targetIndex, setTargetIndex] = useState<number | null>(null);
+  const [highlightIndex, setHighlightIndex] = useState<number | null>(null);
+
+  const prevSourceRef = useRef(sourceIndex);
+  const prevTargetRef = useRef(targetIndex);
 
   useEffect(() => {
     recordingService.getTracesById(id!);
   }, [id, links]);
+
+  useEffect(()=> {
+    if (recordSteps.length) {
+      setSteps(recordSteps);
+    }
+  }, [recordSteps])
+
+  useEffect(() => {
+    if (sourceIndex !== null && targetIndex !== null) {
+      if (sourceIndex === targetIndex) {
+      } else {
+      }
+    }
+    else if (sourceIndex !== null && targetIndex === null) {
+    }
+    else if (sourceIndex === null && targetIndex !== null) {
+    }
+    else {
+      const source = prevSourceRef.current!;
+      const target = prevTargetRef.current!;
+      const selected = steps.splice(source, 1);
+
+      const newSteps = [
+        ...steps.slice(0, target),
+        ...selected,
+        ...steps.slice(target),
+      ];
+      newSteps.map((ns, index) => ns.index = index);
+
+      setSteps(newSteps);
+    }
+
+    prevSourceRef.current = sourceIndex;
+    prevTargetRef.current = targetIndex;
+
+  }, [sourceIndex, targetIndex])
 
   const [selectedList, setSelectedList] = useState<string[]>([]);
 
@@ -332,15 +308,15 @@ function EditView({
     return false;
   }, [selectedList])
 
-  const addItem = (item: string) => {
-    const exist = recordSteps.filter(step => step.id === item);
+  const addSelectedItem = (item: string) => {
+    const exist = steps.filter(step => step.id === item);
     if (exist)
       setSelectedList(prev => [...prev, item]);
   };
 
   // Remove item
-  const removeItem = (item: string) => {
-    const exist = recordSteps.filter(step => step.id === item);
+  const removeSelectedItem = (item: string) => {
+    const exist = steps.filter(step => step.id === item);
     if (exist)
       setSelectedList(prevList => prevList.filter(existingItem => existingItem !== item));
   };
@@ -406,9 +382,9 @@ function EditView({
 
   const onSelect = (id: string, selected: boolean) => {
     if (selected) {
-      addItem(id);
+      addSelectedItem(id);
     } else {
-      removeItem(id);
+      removeSelectedItem(id);
     }
   }
 
@@ -418,7 +394,11 @@ function EditView({
 
   const onDelete = () => {
     if (selectedList.length) {
-      store.removeRecordSteps(selectedList);
+      for (let x = 0; x < selectedList.length; x++) {
+        const index = steps.findIndex(step => step.id === selectedList[x]);
+        steps.splice(index, 1);
+      }
+      setSteps(steps);
       setSelectedList([]);
     }
   }
@@ -426,7 +406,7 @@ function EditView({
   const onEdit = async() => {
     if (selectedList.length === 1) {
       const selectedStep = selectedList[0];
-      const step = recordSteps.find(item => item.id === selectedStep);
+      const step = steps.find(item => item.id === selectedStep);
       if (!step) {
         return;
       }
@@ -440,8 +420,70 @@ function EditView({
         step.title = form.title;
         step.description = form.description;
         step.url = form.url;
-        store.updateRecordStep(step);
+
+        const index = step.index;
+
+        setSteps([
+          ...steps.slice(0, index),
+          step,
+          ...steps.slice(index! + 1),
+        ]);
       }
+    }
+  }
+
+  const onNew = async(index: number) => {
+    const step = {
+      index: index,
+      pk: "",
+      id: generateHexString(8),
+      type: "",
+      title: "",
+      description: "",
+      timestamp: Date.now(),
+      tagName: "",
+      width: 0,
+      height: 0,
+      clientX: 0,
+      clientY: 0,
+      url: "",
+      image: null,
+    };
+    const regex = /^([a-zA-Z][a-zA-Z\d+\-.]*):\/\/([a-zA-Z\d\-\.]+)\.([a-zA-Z]{2,})(\/[a-zA-Z0-9\-._~:\/?#[\]@!$&'()*+,;%=]*)?$/;
+    let form = await EditPrompt({
+      title: "Editing - " + step.title,
+      trace: step,
+      confirmAction: "Done",
+    });
+
+    while(
+      form.result && ( form.title === "" || !regex.test(form.url))
+    ) {
+      step.title = form.title;
+      step.url = form.url;
+      step.description = form.description;
+      form = await EditPrompt({
+        title: "Editing - " + step.title,
+        trace: step,
+        confirmAction: "Done",
+      });
+    }
+
+    if (form.result) {
+      step.title = form.title;
+      step.description = form.description;
+      step.url = form.url;
+      step.type = form.type;
+      step.index = index;
+
+      const newIndex = step.index + 1;
+      const newSteps = [
+        ...steps.slice(0, newIndex),
+        {...step, index: newIndex},
+        ...steps.slice(newIndex),
+      ];
+      newSteps.map((ns, index) => ns.index = index);
+      setSteps(newSteps);
     }
   }
 
@@ -451,75 +493,50 @@ function EditView({
 
   const onDragStart = (e: DragEvent) => {
     const target = e.target;
-    if (target instanceof HTMLDivElement) {
-      setTimeout(() => {
-        target.classList.add("moving");
-        Array.from(target.children).forEach((child) => {
-          (child as HTMLElement).style.visibility = 'hidden';
-        });
-      }, 0);
-      e.dataTransfer!.effectAllowed = "move";
-      setSourceNode(target);
-      setDragState("Start");
-      setStartTop(target.getBoundingClientRect().top);
+    if (target instanceof HTMLDivElement && target.classList.contains('data-comics-item')) {
+      const selectIndex = target.getAttribute("data-id")
+      setSourceIndex(Number(selectIndex!));
     }
   };
 
-  const onDragOver = (e: Event) => {
+  // const onDragOver = (e: DragEvent) => {
+  //   e.preventDefault();
+  // };
+
+  const onDragLeave = (e: DragEvent) => {
     e.preventDefault();
   };
 
-  const onDragEnter = (e: Event) => {
+  const onDragEnter = (e: DragEvent) => {
     e.preventDefault();
-    const target = e.target;
-    if (target === parentRef.current) {
-      setDragState("Start");
-      return;
-    }
-    if (target === sourceNode) {
-      setDragState("Start");
-      return;
-    }
-    if (target instanceof HTMLDivElement && target.classList.contains('data-comics-item') && sourceNode && dragState === "Start") {
-      const children = [...parentRef.current!.children];
-      const sourceIndex = children.indexOf(sourceNode);
-      const targetIndex = children.indexOf(target);
-      if (sourceIndex <= targetIndex) {
-        parentRef.current!.insertBefore(sourceNode, target.nextElementSibling);
-      } else {
-        parentRef.current!.insertBefore(sourceNode, target);
+    const target = e.target as HTMLElement;
+    const draggableItem = target.closest('[data-id]') as HTMLElement;
+    if (draggableItem instanceof HTMLDivElement && draggableItem.classList.contains('data-comics-item')) {
+      const currentIndex = Number(draggableItem.getAttribute("data-id")!);
+      if (sourceIndex !== null && sourceIndex < currentIndex) {
+        setTargetIndex(currentIndex);
+        setHighlightIndex(currentIndex);
       }
-      setDragState("Trigger");
+      else if (sourceIndex !== null && sourceIndex > currentIndex) {
+        setTargetIndex(currentIndex);
+        setHighlightIndex(currentIndex - 1);
+      }
     }
   };
 
   const onDragEnd = (e: DragEvent) => {
-    const target = e.target;
-    if (target instanceof HTMLDivElement) {
-      target.classList.remove("moving");
-      Array.from(target.children).forEach((child) => {
-        (child as HTMLElement).style.visibility = "visible";
-      });
-    }
-    setDragState("End");
+    e.preventDefault();
+    setTargetIndex(null);
+    setSourceIndex(null);
+    setHighlightIndex(null);
   };
 
   const onSave = (id: string) => {
-    const children = [...parentRef.current!.children];
-    children.map((child, newIndex) => {
-      const selectIndex = child.getAttribute("data-id");
-      const step = recordSteps.find(item => item.index === Number(selectIndex));
-      if (step) {
-        step.index = newIndex;
-        store.updateRecordStep(step);
-      }
-    })
+    store.clearRecordSteps();
+    store.addRecordSteps(steps);
     recordingService.saveTraces(id);
     window.alert("Changes have been saved!");
   }
-
-  let navId = 0;
-  let dataId = 0;
 
   return (
     <div className="w-full">
@@ -570,50 +587,74 @@ function EditView({
         )}
       </div>
       <div
-        ref={parentRef}
-        className={"mx-auto max-w-2xl"}
+        id="data-comics-list"
+        className={"mt-4 mx-auto w-1/3"}
         onDragStart={onDragStart}
         onDragEnter={onDragEnter}
-        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
         onDragEnd={onDragEnd}
       >
         {/* <div style={{ height: offscreenUpperHeight }} /> */}
         {
-          recordSteps.map((step, index) => {
-            if (step.tagName === "Navigate" || step.tagName === "Switch") {
-              navId++;
-              dataId++;
-              return (
-                <ComicHeader
-                  id ={navId}
-                  dataId={index}
-                  trace={step}
-                  selected={selectedList.some(item => item === step.id)}
-                  onElementSizeChanged={onRendered}
-                  onSelect={onSelect}
-                  classes={classnames({ "data-comics-nav": navId !== 1 })}
+          <>
+            {steps.length !== 0 && (
+              <div
+                id="data-comics-space"
+                data-id={-1}
+                className={classnames(
+                  "group flex w-full justify-center items-center rounded-lg",
+                  {"hover:border-gray-300 hover:border-2": highlightIndex === null},
+                  "h-4",
+                  "cursor-pointer",
+                  {"ring-2 ring-blue-500 bg-blue-100 ": highlightIndex === -1}
+                )}
+                onClick={() => {
+                  onNew(-1)
+                }}
+              >
+                <IconButton
+                  icon={PlusIcon}
+                  size="lg"
+                  title="New"
+                  classes="text-blue-500 cursor-pointer hidden group-hover:block"
                 />
-              )
-            } else {
-              dataId++;
+              </div>
+            )}
+            {steps.map((step, index) => {
               return (
-                <ImageComicsCard
-                  onImageClick={(id) => {}}
-                  onElementSizeChanged={onRendered}
-                  step={step}
-                  dataId={index}
-                >
-                  <ComicItem
+                <>
+                  <EditingCard
+                    dataId={index}
                     trace={step}
-                    isAlign={step.image ? true: false}
                     selected={selectedList.some(item => item === step.id)}
-                    onElementSizeChanged={onRendered}
                     onSelect={onSelect}
+                    onElementSizeChanged={() => {}}
                   />
-                </ImageComicsCard>
+                  <div
+                    id="data-comics-space"
+                    data-id={index}
+                    className={classnames(
+                      "group flex w-full justify-center items-center rounded-lg",
+                      {"hover:border-gray-300 hover:border-2": highlightIndex === null},
+                      "h-4",
+                      "cursor-pointer",
+                      {"ring-2 ring-blue-500 bg-blue-100": highlightIndex === index}
+                    )}
+                    onClick={() => {
+                      onNew(index)
+                    }}
+                  >
+                    <IconButton
+                      icon={PlusIcon}
+                      size="lg"
+                      title="New"
+                      classes="text-blue-500 cursor-pointer hidden group-hover:block"
+                    />
+                  </div>
+                </>
               )
-            }
-          })
+            })}
+          </>
         }
         {/* <div style={{ height: offscreenLowerHeight }} /> */}
       </div>
