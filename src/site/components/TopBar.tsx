@@ -1,7 +1,6 @@
 import {
-  Input,
-  CancelIcon,
   EditIcon,
+  FileCodeIcon,
   FolderIcon,
   HelpIcon,
   IconButton,
@@ -258,13 +257,13 @@ function TopBar({
                   </IconButton>
                   <div className="w-4"></div>
                   <IconButton
-                    icon={CancelIcon}
+                    icon={FileCodeIcon}
                     onClick={toggleEditMode}
                     size="lg"
-                    title="Exit"
+                    title="View"
                     classes="border border-black rounded-sm cursor-pointer"
                   >
-                    Exit
+                    View
                   </IconButton>
                 </>
               )}
