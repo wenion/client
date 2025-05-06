@@ -1,4 +1,5 @@
 import {
+  Input,
   CancelIcon,
   EditIcon,
   FolderIcon,
@@ -7,8 +8,9 @@ import {
   LinkButton,
   NoteFilledIcon,
 } from '@hypothesis/frontend-shared';
-import { useCallback, useEffect, useMemo, useRef } from 'preact/hooks';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { route } from 'preact-router';
+import classnames from 'classnames';
 
 import type { SidebarSettings } from '../../types/config';
 import { applyTheme } from '../../sidebar/helpers/theme';
@@ -65,7 +67,8 @@ function TopBar({
   const store = useSidebarStore();
   const isLoggedIn = store.isLoggedIn();
   const hasFetchedProfile = store.hasFetchedProfile();
-  // const inputRef = useRef<HTMLInputElement | null>(null);
+  const inputRef = useRef<HTMLDivElement | null>(null);
+
 
   const recordItems = store.recordItems();
   const recordSteps = store.recordSteps();
@@ -126,6 +129,21 @@ function TopBar({
     [session, hasAutoDisplayPreference],
   );
 
+  const [editable, setEditable] = useState(false);
+
+  useEffect(()=>{
+    if (editable) {
+      inputRef.current!.focus();
+    }
+  }, [editable])
+
+  const onBlur = (taskName: string) => {
+    setEditable(false);
+    if (recordItem) {
+      recordingService.updateRecord(recordItem.id, {name: taskName});
+    }
+  }
+
   return (
     <div>
       <header class="nav-bar">
@@ -138,10 +156,18 @@ function TopBar({
           )}
           {showEdit && recordItem && (
             <div
-              className="m-auto self-center text-xl"
+              ref={inputRef}
+              className={classnames(
+                "m-auto self-center text-xl",
+                {"py-4 px-2 focus-visible" : editable},
+              )}
+              data-focus-visible-added={editable}
+              contenteditable={editable}
+              onBlur={() => onBlur(inputRef.current!.innerText)}
+              onClick={() => setEditable(true)}
             >
               {recordItem.taskName}
-              </div>
+            </div>
           )}
           <nav className="nav-bar-links mx-14">
             {isLoggedIn && !showEdit ? (
