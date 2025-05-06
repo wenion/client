@@ -151,6 +151,45 @@ export function ComicItem({
   )
 }
 
+type EditingCardSpacingProps = {
+  index: number,
+  onClick: (id: number) => void;
+  hovered: boolean;
+  classes?: string;
+};
+
+export function EditingCardSpacing({
+  index,
+  onClick,
+  hovered,
+  classes,
+}: EditingCardSpacingProps) {
+
+  return (
+    <div
+      id="data-comics-space"
+      data-id={index}
+      className={classnames(
+        "group flex w-full justify-center items-center rounded-lg",
+        "hover:border-gray-300 hover:border-2",
+        "h-4",
+        "cursor-pointer",
+        {"ring-2 ring-blue-500 bg-blue-100 ": hovered},
+        classes
+      )}
+      onClick={() => onClick(index)}
+    >
+      <IconButton
+        icon={PlusIcon}
+        size="lg"
+        title="New"
+        classes="text-blue-500 cursor-pointer hidden group-hover:block"
+      />
+    </div>
+  )
+}
+
+
 type EditingCardProps = {
   dataId: number,
   trace: RecordStep;
@@ -598,27 +637,11 @@ function EditView({
         {
           <>
             {steps.length !== 0 && (
-              <div
-                id="data-comics-space"
-                data-id={-1}
-                className={classnames(
-                  "group flex w-full justify-center items-center rounded-lg",
-                  {"hover:border-gray-300 hover:border-2": highlightIndex === null},
-                  "h-4",
-                  "cursor-pointer",
-                  {"ring-2 ring-blue-500 bg-blue-100 ": highlightIndex === -1}
-                )}
-                onClick={() => {
-                  onNew(-1)
-                }}
-              >
-                <IconButton
-                  icon={PlusIcon}
-                  size="lg"
-                  title="New"
-                  classes="text-blue-500 cursor-pointer hidden group-hover:block"
-                />
-              </div>
+              <EditingCardSpacing
+                index={-1}
+                onClick={onNew}
+                hovered={highlightIndex === -1}
+              />
             )}
             {steps.map((step, index) => {
               return (
@@ -630,27 +653,11 @@ function EditView({
                     onSelect={onSelect}
                     onElementSizeChanged={() => {}}
                   />
-                  <div
-                    id="data-comics-space"
-                    data-id={index}
-                    className={classnames(
-                      "group flex w-full justify-center items-center rounded-lg",
-                      {"hover:border-gray-300 hover:border-2": highlightIndex === null},
-                      "h-4",
-                      "cursor-pointer",
-                      {"ring-2 ring-blue-500 bg-blue-100": highlightIndex === index}
-                    )}
-                    onClick={() => {
-                      onNew(index)
-                    }}
-                  >
-                    <IconButton
-                      icon={PlusIcon}
-                      size="lg"
-                      title="New"
-                      classes="text-blue-500 cursor-pointer hidden group-hover:block"
-                    />
-                  </div>
+                  <EditingCardSpacing
+                    index={index}
+                    onClick={onNew}
+                    hovered={highlightIndex === index}
+                  />
                 </>
               )
             })}
