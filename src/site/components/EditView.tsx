@@ -1,6 +1,13 @@
-import { ArrowUpIcon, IconButton, TrashIcon, EditIcon, CancelIcon, PlusIcon, Checkbox } from '@hypothesis/frontend-shared';
-import type { ComponentChildren, JSX } from 'preact';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState, useRef, Ref} from 'preact/hooks';
+import {
+  ArrowUpIcon,
+  CancelIcon,
+  TrashIcon,
+  EditIcon,
+  FileImageIcon,
+  PlusIcon,
+} from '@hypothesis/frontend-shared';
+import { IconButton, Checkbox } from '@hypothesis/frontend-shared';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState, useRef} from 'preact/hooks';
 import classnames from 'classnames';
 
 import type { RecordStep } from '../../types/api';
@@ -70,17 +77,26 @@ export function ComicItem({
     >
       <div
         className={classnames(
-          "absolute",
+          "absolute flex",
           "text-black",
           "p-2",
         )}
       >
         <Checkbox
           checked={selected}
+          onClick={(e: PointerEvent) => e.stopPropagation()}
           onChange={(e: Event) => {
-            onSelect(trace.id, (e.target! as HTMLInputElement).checked);
+            onSelect(trace.id, !selected);
           }}
         />
+        {trace.image && (
+          <IconButton
+            icon={FileImageIcon}
+            size="lg"
+            title="image"
+            classes="cursor-pointer"
+          />
+        )}
       </div>
       <div
         className={classnames(
@@ -211,6 +227,8 @@ export function EditingCard({
     onElementSizeChanged(trace.id);
   }, []);
 
+  const [isExpanded, setIsExpanded] = useState(false);
+
   return (
     <div
       draggable
@@ -219,9 +237,11 @@ export function EditingCard({
         'data-comics-item',
         'border border-black mb-0.5 rounded-lg',
         'hover:ring-gray-500 hover:bg-gray-100',
+        classes
       )}
       id={trace.id}
       data-id={dataId}
+      onClick={() => setIsExpanded(!isExpanded)}
     >
       <ComicItem
         trace={trace}
@@ -230,7 +250,7 @@ export function EditingCard({
         onElementSizeChanged={()=> {}}
         onSelect={onSelect}
       />
-      {/* {trace.image && (
+      {trace.image && isExpanded && (
         <div
           className={"p-4"}
         >
@@ -239,12 +259,11 @@ export function EditingCard({
             className={"border shadow-2xl"}
           />
         </div>
-      )} */}
+      )}
     </div>
 
   )
 };
-
 
 type EditViewProps = {
   // sessionId: string;
