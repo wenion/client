@@ -1,4 +1,5 @@
 import {
+  CancelIcon,
   HelpIcon,
   ProfileFilledIcon,
   ProfileIcon,
@@ -20,8 +21,8 @@ import { useSidebarStore } from '../store';
 import Menu from './Menu';
 import MenuItem from './MenuItem';
 import MenuSection from './MenuSection';
-// import HomeIcon from '../../images/icons/home';
 import NuggetIcon from '../../images/icons/nugget';
+import ChatIcon from '../../images/icons/chat';
 
 export type UserMenuProps = {
   onLogout: () => void;
@@ -40,12 +41,14 @@ function UserMenu({ frameSync, onLogout, settings }: UserMenuProps) {
   const defaultAuthority = store.defaultAuthority();
   const profile = store.profile();
   const allMessageCount = store.allMessageCount();
+  const tab = store.selectedTab();
 
   const isThirdParty = isThirdPartyUser(profile.userid, defaultAuthority);
   const service = serviceConfig(settings);
   const username = getUsername(profile.userid);
   const displayName = profile.user_info?.display_name ?? username;
   const [isOpen, setOpen] = useState(false);
+  const [prevTab, setPrevTab] = useState<TabName>('annotation');
 
   const serviceSupports = (feature: keyof Service) =>
     service && !!service[feature];
@@ -66,6 +69,17 @@ function UserMenu({ frameSync, onLogout, settings }: UserMenuProps) {
     frameSync.notifyHost('openNotebook', store.focusedGroupId());
   };
   const onSelectProfile = () => frameSync.notifyHost('openProfile');
+
+  const toggleTab = () => {
+    if (tab === 'chatui') {
+      store.closeChatUi();
+      store.selectTab(prevTab);
+    } else {
+      // switch to chat ui tab
+      setPrevTab(tab);
+      store.selectTab('chatui');
+    }
+  };
 
   const requestHelp = () => {
     const service = serviceConfig(settings);
@@ -112,13 +126,15 @@ function UserMenu({ frameSync, onLogout, settings }: UserMenuProps) {
         onOpenChanged={setOpen}
       >
         <MenuSection>
-          <MenuItem
-            icon={ ProfileFilledIcon }
-            label={displayName}
-            isDisabled={!isSelectableProfile}
-            href={profileHref}
-            onClick={isSelectableProfile ? onProfileSelected : undefined}
-          />
+          {tab !== "chatui" && (
+            <MenuItem
+              icon={ ProfileFilledIcon }
+              label={displayName}
+              isDisabled={!isSelectableProfile}
+              href={profileHref}
+              onClick={isSelectableProfile ? onProfileSelected : undefined}
+            />
+          )}
           {/* {!isThirdParty && (
             <MenuItem
               label="Account settings"
@@ -128,27 +144,34 @@ function UserMenu({ frameSync, onLogout, settings }: UserMenuProps) {
           {isProfileEnabled && (
             <MenuItem label="Your profile" onClick={() => onSelectProfile()} />
           )}
+          {tab !== "chatui" && (
+            <MenuItem
+              icon={ NuggetIcon }
+              label="Knowledge Nuggets"
+              onClick={() => onSelectNotebook()}
+            />
+          )}
           <MenuItem
-            icon={ NuggetIcon }
-            label="Knowledge Nuggets"
-            onClick={() => onSelectNotebook()}
+            icon={ tab !== "chatui" ? ChatIcon : CancelIcon }
+            label={tab !== "chatui" ? "ChatUI" : 'Exit ChatUI'}
+            title={tab !== "chatui" ? "Switch to ChatUI": "Leave ChatUI"}
+            onClick={() => toggleTab()}
           />
-          <MenuItem
-            icon={ ShareIcon }
-            label="Share"
-            title="Share annotations on this page"
-            onClick={() => store.toggleSidebarPanel('shareGroupAnnotations')}
-          />
-          {/* <MenuItem
-            icon={ HomeIcon }
-            label="Home"
-            href={store.getLink('home')}
-          /> */}
-          <MenuItem
-            icon={ HelpIcon }
-            label="Help"
-            onClick={requestHelp}
-          />
+          {tab !== "chatui" && (
+            <MenuItem
+              icon={ ShareIcon }
+              label="Share"
+              title="Share annotations on this page"
+              onClick={() => store.toggleSidebarPanel('shareGroupAnnotations')}
+            />
+          )}
+          {tab !== "chatui" && (
+            <MenuItem
+              icon={ HelpIcon }
+              label="Help"
+              onClick={requestHelp}
+            />
+          )}
         </MenuSection>
         {logoutAvailable && (
           <MenuSection>

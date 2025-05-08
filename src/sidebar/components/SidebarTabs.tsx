@@ -23,6 +23,7 @@ import { useRootThread } from './hooks/use-root-thread';
 import { useRootVideoThread } from './hooks/use-root-video-thread';
 import MessageTab from './MessageTab';
 import QueryTab from './QueryTab';
+import ChatUiTab from './ChatUiTab';
 import RecordingTab from './RecordingTab';
 import SearchBar from './search/SearchBar';
 
@@ -171,7 +172,7 @@ function SidebarTabs({
         )}
       >
         <div className="flex gap-x-6 theme-clean:ml-[15px] mt-1" role="tablist">
-          {selectedTab !== 'query' && (
+          {selectedTab !== 'query' && selectedTab !== 'chatui' && (
             <>
               <Tab
                 count={annotationCount}
@@ -240,7 +241,13 @@ function SidebarTabs({
             Video annotations
           </Tab> */}
         </div>
-        {!((selectedTab === 'shareflow' && recordView === "view") || selectedTab === 'query') && (<SearchBar />)}
+        {!(
+          (selectedTab === 'shareflow' && recordView === "view") ||
+          selectedTab === 'query' ||
+          selectedTab === 'chatui'
+          ) && (
+          <SearchBar />
+        )}
         <div
           className="space-y-3"
           role="tabpanel"
@@ -290,6 +297,7 @@ function SidebarTabs({
           {selectedTab === 'message' && <MessageTab />}
           {selectedTab === 'shareflow' && <RecordingTab />}
           {selectedTab === 'query' && <QueryTab />}
+          {selectedTab === 'chatui' && <ChatUiTab />}
           {/* {selectedTab == 'video' && <VideoThreadList threads={rootVideoThread.children} />} */}
           {(selectedTab === 'annotation' || selectedTab === 'note' || selectedTab === 'orphan' ) && (
             <ThreadList threads={rootThread.children} />

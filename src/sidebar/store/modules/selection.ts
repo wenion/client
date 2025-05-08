@@ -22,6 +22,7 @@ const TAB_SORTKEY_DEFAULT: Record<TabName, SortKey> = {
   message: 'Location',
   shareflow: 'Newest',
   query: 'Newest',
+  chatui: 'Newest',
 };
 
 function initialSelection(settings: SidebarSettings): BooleanMap {
@@ -60,6 +61,8 @@ export type State = {
 
   selectedTab: TabName;
 
+  disableTabSwitching: boolean;
+
   /**
    * Sort order for annotations.
    */
@@ -77,6 +80,7 @@ function initialState(settings: SidebarSettings): State {
     expanded: initialSelection(settings),
     forcedVisible: {},
     selectedTab: 'annotation',
+    disableTabSwitching: false,
     sortKey: TAB_SORTKEY_DEFAULT.annotation,
     focusRequest: null,
   };
@@ -115,7 +119,20 @@ const reducers = {
   },
 
   SELECT_TAB(state: State, action: { tab: TabName }) {
+    if (action.tab !== 'chatui' && state.disableTabSwitching) {
+      return {};
+    }
+    else if (action.tab === 'chatui') {
+      return {
+        ...setTab(action.tab, state.selectedTab),
+        disableTabSwitching: true,
+      }
+    }
     return setTab(action.tab, state.selectedTab);
+  },
+
+  SET_DISABLE_TAB_SWITCHING(state: State, action: {disableTabSwitching: boolean }) {
+    return { disableTabSwitching: action.disableTabSwitching };
   },
 
   SET_EXPANDED(state: State, action: { id: string; expanded: boolean }) {
@@ -269,6 +286,10 @@ function selectTab(tabKey: TabName) {
   return makeAction(reducers, 'SELECT_TAB', { tab: tabKey });
 }
 
+function closeChatUi() {
+  return makeAction(reducers, 'SET_DISABLE_TAB_SWITCHING', { disableTabSwitching: false });
+}
+
 /**
  * Set the expanded state for a single annotation/thread.
  *
@@ -392,6 +413,7 @@ export const selectionModule = createStoreModule(initialState, {
     clearSelection,
     selectAnnotations,
     selectTab,
+    closeChatUi,
     setAnnotationFocusRequest,
     setExpanded,
     setForcedVisible,

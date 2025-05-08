@@ -29,6 +29,7 @@ import { queryModule } from './modules/query';
 import { recordingsModule } from './modules/recordings';
 import { useStore } from './use-store';
 import { whitelistModule } from './modules/whitelist';
+import { chatUiModule } from './modules/chat-ui';
 
 export type SidebarStore = ReturnType<typeof createSidebarStore>;
 
@@ -75,6 +76,7 @@ export function createSidebarStore(settings: SidebarSettings) {
     whitelistModule,
     messagesModule,
     recordingsModule,
+    chatUiModule,
   ] as const;
   return createStore(modules, [settings], middleware);
 }

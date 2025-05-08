@@ -56,6 +56,7 @@ export default function SearchIconButton() {
 
   const toggleSearchPanel = () => {
     if (selectedTab !== 'query') {
+      setPrevTab(selectedTab);
       store.selectTab('query');
     } else {
       store.selectTab(prevTab);

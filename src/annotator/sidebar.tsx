@@ -457,6 +457,12 @@ export class Sidebar implements Destroyable {
       this.toolbar.isSilentMode = change.muted;
       this.toolbar.highlightsVisible = change.highlightsVisible;
       this.toolbar.recordingStatus = change.recording;
+
+      if (change.tab === 'chatui') {
+        this.toolbar.useMinimalControls = true;
+      } else {
+        this.toolbar.useMinimalControls = false;
+      }
     })
 
     this._sidebarRPC.on('setSidebarVisible', (value: 'on' | 'off' | null)=> {

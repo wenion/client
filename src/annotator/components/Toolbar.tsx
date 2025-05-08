@@ -169,7 +169,7 @@ export default function Toolbar({
           to close the sidebar, and only if the sidebar is open. This button is
           absolutely positioned some way down the edge of the sidebar.
       */}
-      {useMinimalControls && isSidebarOpen && (
+      {/* {useMinimalControls && isSidebarOpen && (
         <Button
           classes={classnames(
             'transition-colors focus-visible-ring ring-inset',
@@ -188,6 +188,40 @@ export default function Toolbar({
         >
           <CancelIcon />
         </Button>
+      )} */}
+      {useMinimalControls && (
+        <>
+          <Button
+            classes={classnames(
+              'transition-colors focus-visible-ring ring-inset',
+              // Height and width to align with the sidebar's top bar
+              'h-[40px] w-[33px] pl-[6px] rounded-bl',
+              'bg-white text-grey-5 hover:text-grey-9',
+              // Turn on left and bottom borders to continue the
+              // border of the sidebar's top bar
+              'border-l border-b',
+            )}
+            elementRef={toggleSidebarRef}
+            title="Annotation sidebar"
+            expanded={isSidebarOpen}
+            pressed={isSidebarOpen}
+            onClick={toggleSidebar}
+            unstyled
+          >
+          {isSidebarOpen ? <CaretRightIcon /> : <CaretLeftIcon />}
+          </Button>
+          <div className="space-y-px-1.5 mt-px-2">
+          {isConnected && isLoggedIn && (
+            <>
+              <ToolbarButton
+                title={recordingStatus ? 'Currently Recording' : 'Press To Start Record ShareFlows'}
+                icon={recordingStatus ? RecordingIcon : RecordingOffIcon}
+                onClick={toggleRecording}
+              />
+              </>
+          )}
+          </div>
+        </>
       )}
       {!useMinimalControls && (
         <>

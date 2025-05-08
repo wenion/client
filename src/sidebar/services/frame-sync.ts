@@ -549,8 +549,14 @@ export class FrameSyncService {
         this._lastTrace = trace;
       }
     });
-    this._extensionRPC.on("cmdData", (message: Record<string, any>) => {
-    });
+    this._extensionRPC.on('cmdData', (message: Record<string, any>) => {
+      if (message.event === "chrome.storage.sync.chatUi") {
+        this._store.setChatUiModel(message.model);
+        this._store.setChatUiToken(message.token);
+        this._store.setChatUiUrl(message.url);
+        this._store.setChatUiOption(message.link);
+      }
+    })
   }
 
   sendTraceData(
@@ -681,6 +687,10 @@ export class FrameSyncService {
 
         const focusedShareflowInfo = this._store.getDefault('focusedShareflow');
         const isPin = !(focusedShareflowInfo === 'null' || !focusedShareflowInfo);
+        const tab = this._store.getSync('tab');
+        if (tab === 'chatui') {
+          this._store.selectTab('chatui');
+        }
 
         const isOpen = this._store.getDefault('lastOpen') === 'on';
 
@@ -703,6 +713,18 @@ export class FrameSyncService {
           this._recordingService.unloadRecordItems();
           this._store.clearRecordSteps();
           // this._store.clearMessages();
+        }
+      }
+    );
+
+    watch(
+      this._store.subscribe,
+      () => this._store.selectedTab(),
+      (tab, prevTab) => {
+        this._store.setSync('tab', tab);
+        if (tab === 'chatui') {
+          this._store.setSync('muted', true);
+          this._store.setSync('highlightsVisible', false);
         }
       }
     );
@@ -1023,7 +1045,9 @@ export class FrameSyncService {
                   textContent: 'start',
                 }
               );
-              this._hostRPC.call('closeSidebar');
+              if (this._store.selectedTab() !== 'chatui') {
+                this._hostRPC.call('closeSidebar');
+              }
               // turn off notification when recording starts
               this._store.setSync("muted", true);
               break;

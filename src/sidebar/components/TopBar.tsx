@@ -53,6 +53,7 @@ function TopBar({
   const store = useSidebarStore();
   const isLoggedIn = store.isLoggedIn();
   const hasFetchedProfile = store.hasFetchedProfile();
+  const tab = store.selectedTab();
 
   const toggleSharePanel = () => {
     store.toggleSidebarPanel('shareGroupAnnotations');
@@ -100,9 +101,10 @@ function TopBar({
         )}
         data-testid="top-bar-content"
       >
-        {isSidebar ? <GroupList /> : <StreamSearchInput />}
+        {isSidebar && tab !== 'chatui' && (<GroupList />)}
+        {!isSidebar && tab !== 'chatui' && (<StreamSearchInput />)}
         <div className="grow flex items-center justify-end">
-          {isLoggedIn && (
+          {isLoggedIn && tab !== 'chatui' && (
             <TopBarToggleButton
               icon={CloudUploadIcon}
               onClick={toggleSavePanel}
@@ -110,7 +112,7 @@ function TopBar({
               title="Save the page to your repository"
             />
           )}
-          {isSidebar && (
+          {isSidebar && tab !== 'chatui' && (
             <>
               <ReconnectStreamButton />
               <SearchIconButton />

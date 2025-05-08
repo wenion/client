@@ -3,6 +3,7 @@ import { useState } from 'preact/hooks';
 import classnames from 'classnames';
 
 import { withServices } from '../service-context';
+import ModelingIcon from '../../images/icons/modeling';
 import ShareIcon from '../../images/icons/shared';
 import UnshareIcon from '../../images/icons/unshared';
 import type { RecordingService } from '../services/recording';
@@ -33,7 +34,15 @@ function RecordingMenu({
         shared: share,
       }
     );
+  };
 
+  const onRegenerate = (recordItem: RecordItem) => {
+    recordingService.updateRecord(
+      recordItem.id,
+      {
+        regenerate: true,
+      }
+    );
   };
 
   const menuLabel = (
@@ -61,6 +70,11 @@ function RecordingMenu({
         onOpenChanged={setOpen}
       >
         <MenuSection>
+          <MenuItem
+            label='Regenerate'
+            icon={ModelingIcon}
+            onClick={() => onRegenerate(recordItem)}
+          />
           <MenuItem
             label={recordItem.shared? 'Unshare' : 'Share'}
             icon={recordItem.shared? UnshareIcon: ShareIcon}
