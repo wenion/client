@@ -549,6 +549,8 @@ export class FrameSyncService {
         this._lastTrace = trace;
       }
     });
+    this._extensionRPC.on("cmdData", (message: Record<string, any>) => {
+    });
   }
 
   sendTraceData(
@@ -1353,6 +1355,13 @@ export class FrameSyncService {
    */
   notifySite(method: SidebarToSiteEvent, ...args: unknown[]) {
     this._siteRPC.call(method, ...args);
+  }
+
+  /**
+   * Send an RPC message to the extension.
+   */
+  notifyExtension(method: SidebarToExtensionEvent, ...args: unknown[]) {
+    this._extensionRPC.call(method, ...args);
   }
 
   notification(data: {id:string, title: string, context: string}) {
