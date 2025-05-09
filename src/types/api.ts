@@ -484,6 +484,14 @@ export type RecordingStepData = {
   offsetY? : number;
 }
 
+export type APIShareflowSegmentation = {
+  sections: {
+    title: string;
+    steps_id: string[];
+    description: string;
+  }[];
+};
+
 export type RecordItemParams = {
   /**
    * Client-side identifier: set even if annotation does not have a
@@ -515,6 +523,7 @@ export type RecordItem = {
   description: string;
   groupid: string;
   role: string;
+  version: number;
   shared: boolean;
   timestamp: number;
   userid: string;

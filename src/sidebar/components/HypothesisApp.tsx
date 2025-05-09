@@ -18,11 +18,11 @@ import HelpPanel from './HelpPanel';
 import NotebookView from './NotebookView';
 import ProfileView from './ProfileView';
 import ShareDialog from './ShareDialog';
+import ShareflowDialog from './ShareflowDialog';
 import SidebarView from './SidebarView';
 import StreamView from './StreamView';
 import ToastMessages from './ToastMessages';
 import TopBar from './TopBar';
-import SearchPanel from './search/SearchPanel';
 
 export type HypothesisAppProps = {
   auth: AuthService;
@@ -166,6 +166,7 @@ function HypothesisApp({
         <ToastMessages />
         <HelpPanel />
         <ShareDialog shareTab={!isThirdParty} />
+        <ShareflowDialog shareTab={!isThirdParty} />
 
         {route && (
           <main>

@@ -1,11 +1,8 @@
-import { TrashIcon, EllipsisIcon } from '@hypothesis/frontend-shared';
+import { TrashIcon, EllipsisIcon, SettingsIcon } from '@hypothesis/frontend-shared';
 import { useState } from 'preact/hooks';
 import classnames from 'classnames';
 
-import { withServices } from '../service-context';
-import ShareIcon from '../../images/icons/shared';
-import UnshareIcon from '../../images/icons/unshared';
-import type { RecordingService } from '../services/recording';
+import { useSidebarStore } from '../store';
 import type { RecordItem } from '../../types/api';
 
 import Menu from './Menu';
@@ -14,26 +11,20 @@ import MenuSection from './MenuSection';
 
 
 export type RecordingMenuProps = {
-  recordingService: RecordingService;
   recordItem: RecordItem;
   onDelete: (recordItem: RecordItem) => void;
 };
 
-function RecordingMenu({
-  recordingService,
+export default function RecordingMenu({
   recordItem,
   onDelete,
 }: RecordingMenuProps) {
+  const store = useSidebarStore();
   const [isOpen, setOpen] = useState(false);
 
-  const onUpdate = (recordItem: RecordItem, share: boolean) => {
-    recordingService.updateRecord(
-      recordItem.id,
-      {
-        shared: share,
-      }
-    );
-
+  const onOpen = (recordItem: RecordItem) => {
+    store.setFocusedRecordItemId(recordItem.id);
+    store.toggleSidebarPanel('shareShareFlow', true);
   };
 
   const menuLabel = (
@@ -62,9 +53,9 @@ function RecordingMenu({
       >
         <MenuSection>
           <MenuItem
-            label={recordItem.shared? 'Unshare' : 'Share'}
-            icon={recordItem.shared? UnshareIcon: ShareIcon}
-            onClick={() => onUpdate(recordItem, !recordItem.shared)}
+            label='Settings'
+            icon={SettingsIcon}
+            onClick={() => onOpen(recordItem)}
           />
           <MenuItem
             label='Delete'
@@ -76,5 +67,3 @@ function RecordingMenu({
     </div>
   );
 }
-
-export default withServices(RecordingMenu, ['recordingService']);
