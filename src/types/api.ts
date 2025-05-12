@@ -462,6 +462,7 @@ export type APIShareflowSegmentation = {
     steps_id: string[];
     description: string;
   }[];
+  version?: string;
 };
 
 export type RecordItemParams = {

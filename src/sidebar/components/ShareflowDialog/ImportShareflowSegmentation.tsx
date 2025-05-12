@@ -69,6 +69,7 @@ function ImportShareflowSegmentation({
   const store = useSidebarStore();
   const focusedRecordItem = store.focusedRecordItemId();
   const [recordItem, setRecordItem] = useState<RecordItem | null>(null);
+  const recordSteps = store.recordSteps();
   const currentUser = store.profile().userid;
 
   useEffect(()=> {
@@ -86,6 +87,16 @@ function ImportShareflowSegmentation({
     setError(null);
     readExportFile(file)
       .then(shareflowSegmentation => {
+        const stepIds = recordSteps.map(s => s.id);
+        shareflowSegmentation.sections.map(section => {
+          section.steps_id.map(
+            sectionId => {
+              if (!stepIds.includes(sectionId)) {
+                throw new Error("Missing items from import file in shareflow");
+              }
+            }
+          );
+        })
         setShareflowSegmentation(shareflowSegmentation);
       })
       .catch(err => {
@@ -132,6 +143,8 @@ function ImportShareflowSegmentation({
       store.defaultContentFrame() &&
       store.hasFetchedAnnotations() &&
       !store.isFetchingAnnotations() &&
+      !error &&
+      file &&
       importSegmentation,
   );
 
@@ -155,7 +168,7 @@ function ImportShareflowSegmentation({
     {recordItem ? (
       <>
         <p className="text-color-text-light mb-3">
-          version: {recordItem.version}
+          version: {recordItem.extra && recordItem.extra?.version}
         </p>
         <label htmlFor={fileInputId} className="font-medium">
           Select Shareflow Segmentation file:
