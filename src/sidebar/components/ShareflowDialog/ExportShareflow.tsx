@@ -156,7 +156,12 @@ function ExportShareflow({
               }
             })
           );
-          return JSON.stringify(data, null, 2);
+
+          return JSON.stringify({
+            version: recordItem?.version??null,
+            name: recordItem?.taskName??null,
+            data: data
+          }, null, 2);
         }
         /* istanbul ignore next - This should never happen */
         default:
