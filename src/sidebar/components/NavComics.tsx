@@ -2,6 +2,7 @@ import { useRef } from 'preact/hooks';
 import classnames from 'classnames';
 
 import type { RecordItem, RecordStep } from '../../types/api';
+import { useSidebarStore } from '../store';
 import { getElementWidthWithMargins } from '../util/dom';
 import ArrowIcon from '../../images/icons/dataComicsArrow';
 
@@ -13,7 +14,7 @@ function capitalizeFirstLetter(str: string): string {
 type NavComicsProps = {
   recordItem: RecordItem;
   steps: RecordStep[];
-  onClick: (step: RecordStep) => void;
+  onClick: (step: RecordStep, sectionId?: number) => void;
 };
 
 export default function NavComics({
@@ -21,6 +22,7 @@ export default function NavComics({
   steps,
   onClick,
 }: NavComicsProps) {
+  const store = useSidebarStore();
   const scollRef = useRef<HTMLDivElement | null>(null);
 
   const navs = steps.filter(step => step.tagName === "Navigate" || step.tagName === "Switch");
@@ -39,6 +41,30 @@ export default function NavComics({
     const scrollLength = getElementWidthWithMargins(scollRef.current!);
     const scrollLeft = scollRef.current!.scrollLeft;
     const xRightOffset = xOffset + getElementWidthWithMargins(document.getElementById("nav"+ step.id)!);
+
+    if (xRightOffset - scrollLeft > scrollLength || xOffset - scrollLeft < 0) {
+      scollRef.current!.scrollTo({
+        left: xOffset,
+        behavior: 'smooth',
+      });
+    }
+  };
+
+  const onSectionClick = (index: number, id: string) => {
+    const recordStep = store.getRecordStepById(id);
+    if (!recordStep) {
+      return;
+    }
+    onClick(recordStep, index);
+
+    let xOffset = 0;
+    for (let i = 0; i < index; i++) {
+      // 32 is the arrow's width
+      xOffset = xOffset + getElementWidthWithMargins(document.getElementById("nav" + index)!) + 32;
+    }
+    const scrollLength = getElementWidthWithMargins(scollRef.current!);
+    const scrollLeft = scollRef.current!.scrollLeft;
+    const xRightOffset = xOffset + getElementWidthWithMargins(document.getElementById("nav"+ index)!);
 
     if (xRightOffset - scrollLeft > scrollLength || xOffset - scrollLeft < 0) {
       scollRef.current!.scrollTo({
@@ -94,8 +120,45 @@ export default function NavComics({
         ref={scollRef}
         onWheel={(event) => onWheelEvent(event)}
       >
-        {
-          navs.map((step, index) => (
+        {recordItem.extra?.sections && (
+          recordItem.extra?.sections.map((item, index) => {
+            return (
+              <>
+                <div
+                  id={"nav" + index}
+                  className={classnames(
+                    "rounded-xl border border-gray-400",
+                    "hover:shadow-lg",
+                    "cursor-pointer",
+                    "text-blue-chathams",
+                    "text-pretty text-ellipsis",
+                    "justify-center content-center",
+                    "min-w-32",
+                    // "overflow-hidden",
+                    "px-4 m-2",     // Add padding for better spacing
+                  )}
+                  title={item.description}
+                  onClick={() => onSectionClick(index, item.steps_id[0])}
+                >
+                  <b>{capitalizeFirstLetter(item.title)}</b>
+                </div>
+                {index !== recordItem.extra?.sections.length! - 1 && (
+                  <div
+                    className={classnames(
+                      "flex justify-center items-center px-2",
+                      "cursor-pointer",
+                    )}
+                  >
+                    <ArrowIcon />
+                  </div>
+                )}
+              </>
+            )
+          })
+        )}
+        {recordItem.extra && Object.keys(recordItem.extra).length === 0 && (
+          navs.map((step, index) => {
+            return (
             <>
               <div
                 id={"nav" + step.id}
@@ -126,7 +189,8 @@ export default function NavComics({
                 </div>
               )}
             </>
-          ))
+          )}
+        ))
         }
       </div>
     </div>

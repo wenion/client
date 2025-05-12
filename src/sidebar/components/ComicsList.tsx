@@ -142,6 +142,7 @@ function ComicsList({
   const navRef = useRef<HTMLDivElement | null>(null);
   const previousTopThreadRef = useRef<RecordStep | null>(null);
 
+  const [sectionId, setSectionId] = useState(0);
   const [firstRender, setFirstRender] = useState(true);
 
   const [imageThreads, setImageThreads] = useState(() => new Map());
@@ -249,8 +250,17 @@ function ComicsList({
     frameSync.notifyHost('openImageViewer', {id: id, timeLineList: recordSteps});
   }
 
-  const onNavClick = (step: RecordStep) => {
+  const getComicsNavElementHeightById = (id: number): number => {
+    const ele =
+      document.querySelector(`.data-comics-nav[data-id="${id}"]`) as HTMLDivElement | null;
+    return ele ? getElementHeightWithMargins(ele) : 0;
+  }
+
+  const onNavClick = (step: RecordStep, sectionId?: number) => {
     setScrollToId(step.id);
+    if (sectionId) {
+      setSectionId(sectionId);
+    }
   }
 
   // Effect to scroll a particular thread into view. This is mainly used to
@@ -272,9 +282,13 @@ function ComicsList({
 
     const getThreadHeight = (thread: RecordStep) => threadHeights.get(thread.id) ?? 0;
 
-    const yOffset = topLevelThreads
+    let yOffset = topLevelThreads
       .slice(0, threadIndex)
       .reduce((total, thread) => total + getThreadHeight(thread), 0);
+
+    for (let i = 0; i < sectionId; i++) {
+      yOffset += getComicsNavElementHeightById(i);
+    }
 
     scrollRef.current!.scrollTo({
       top: yOffset,
@@ -455,7 +469,140 @@ function ComicsList({
             className={"mx-2"}
           >
             {/* <div style={{ height: offscreenUpperHeight }} /> */}
-            {
+            {recordItem && recordItem.extra?.sections && (
+              recordItem.extra?.sections.map((item, index) => {
+                let n = 0;
+                let navId = 0;
+                let dataId = 0;
+                return (
+                  <>
+                    <div
+                      className={classnames("data-comics-nav")}
+                      data-id={index}
+                      title={item.title}
+                    >
+                      <div
+                        className={classnames(
+                          "flex flex-row",
+                          "bg-gray-100 rounded-xl text-lg text-blue-chathams text-center",
+                          "border-2 border-gray-400",
+                          'hover:shadow-lg',
+                          'cursor-pointer',
+                          "justify-center items-center",
+                          'p-2',
+                        )}
+                        title={item.description}
+                      >
+                        <b>{item.title}</b>
+                        <p className="text-md">{item.description}</p>
+                      </div>
+                    </div>
+                    {item.steps_id.map((stepId, index) => {
+                      const step = store.getRecordStepById(stepId);
+                      if (!step) {
+                        return (<></>)
+                      }
+                      if (index !== n) {
+                        return;
+                      } else {
+                        if (step.tagName === "Navigate" || step.tagName === "Switch") {
+                          n++;
+                          navId++;
+                          dataId++;
+                          return (
+                            <ComicHeader
+                              dataId={dataId}
+                              trace={step}
+                              onElementSizeChanged={onRendered}
+                              classes={classnames({ "data-comics-nav": navId !== 1 })}
+                            />
+                          )
+                        } else if (step.image) {
+                          let start = n;
+                          let accumulated = 1;
+                          const subSteps = item.steps_id.map(stepId=>
+                            store.getRecordStepById(stepId)
+                          );
+                          // get the next step of this section
+                          let nextIndex = n + 1;
+                          let nextStep = subSteps[nextIndex];
+                          while (
+                            nextStep &&
+                            nextStep.image === null &&
+                            nextStep.tagName !== 'Navigate' &&
+                            nextStep.tagName !== 'Switch' &&
+                            accumulated < 3
+                          ) {
+                            accumulated++;
+                            nextIndex++;
+                            nextStep = subSteps[nextIndex];
+                          }
+                          n = n + accumulated;
+                          dataId++;
+                          return (
+                            <ImageComicsCard
+                              onImageClick={(id) => onDblClick(id)}
+                              onElementSizeChanged={onRendered}
+                              step={step}
+                              dataId={dataId}
+                            >
+                              {subSteps.slice(start, start + accumulated).map(s =>
+                                s ? (
+                                  <ComicItem
+                                    trace={s}
+                                    isAlign={s.image ? true: false}
+                                    onElementSizeChanged={onRendered}
+                                  />
+                                ) : (<></>)
+                              )}
+                            </ImageComicsCard>
+                          )
+                        } else {
+                          let start = n;
+                          let accumulated = 1;
+                          const subSteps = item.steps_id.map(stepId=>
+                            store.getRecordStepById(stepId)
+                          );
+                          let nextIndex = n + 1;
+                          let nextStep = subSteps[nextIndex];
+                          while (
+                            nextStep &&
+                            nextStep.image === null &&
+                            nextStep.tagName !== "Navigate" &&
+                            nextStep.tagName !== "Switch" &&
+                            accumulated < 3
+                          ) {
+                            accumulated++;
+                            nextIndex++;
+                            nextStep = subSteps[nextIndex];
+                          }
+                          n = n + accumulated;
+                          dataId++;
+                          return (
+                            <TextComicsCard
+                              step={step}
+                              dataId={dataId}
+                            >
+                              {subSteps.slice(start, start + accumulated).map(s =>
+                                s ? (
+                                  <ComicItem
+                                    trace={s}
+                                    isAlign={s.image ? true: false}
+                                    onElementSizeChanged={onRendered}
+                                    classes='mr-0.5'
+                                  />
+                                ) : (<></>)
+                              )}
+                            </TextComicsCard>
+                          )
+                        }
+                      }
+                    })}
+                  </>
+                )
+              })
+            )}
+            {recordItem && recordItem.extra && Object.keys(recordItem.extra).length === 0 && (
               recordSteps.map((step, index) => {
                 if (index !== n) {
                   return;
@@ -550,7 +697,7 @@ function ComicsList({
                   }
                 }
               })
-            }
+            )}
             {/* <div style={{ height: offscreenLowerHeight }} /> */}
           </div>
         </div>

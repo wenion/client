@@ -312,6 +312,11 @@ function getRecordStepByPk(state: State, pk: string) {
   return step?? null;
 }
 
+function getRecordStepById(state: State, id: string) {
+  const step = state.recordSteps.find(r => r.id === id);
+  return step?? null;
+}
+
 function getShouldScroll(state: State) {
   return state.shouldScroll;
 }
@@ -363,6 +368,7 @@ export const recordingsModule = createStoreModule(initialState, {
     recordItems,
     recordItemsCount,
     recordSteps,
+    getRecordStepById,
     getRecordStepByPk,
     getShouldScroll,
   },
