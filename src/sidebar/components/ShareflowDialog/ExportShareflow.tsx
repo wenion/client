@@ -41,7 +41,7 @@ const exportFormats: ExportFormat[] = [
   {
     value: 'json',
     title: 'JSON',
-    description: 'For import into another Hypothesis group or document',
+    description: 'For import into segmentation shareflow',
   },
   // {
   //   value: 'txt',
