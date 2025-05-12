@@ -131,7 +131,7 @@ function capitalizeFirstLetter(str: string): string {
 }
 
 type ComicHeaderProps = {
-  id: number;
+  id?: number;
   dataId: number,
   trace: RecordStep;
   onElementSizeChanged: (id: string) => void;
@@ -175,18 +175,20 @@ export function ComicHeader({
         title={trace.url}
         onClick={() => onClick(trace.url)}
       >
-        <div
-          className={classnames(
-            "flex m-1",
-            "rounded-full",
-            "bg-zinc-300 text-gray-600",
-            "border border-gray-600",
-            "w-8 h-8",
-            "justify-center items-center",
-          )}
-        >
-          {id}
-        </div>
+        {id && (
+          <div
+            className={classnames(
+              "flex m-1",
+              "rounded-full",
+              "bg-zinc-300 text-gray-600",
+              "border border-gray-600",
+              "w-8 h-8",
+              "justify-center items-center",
+            )}
+          >
+            {id}
+          </div>
+        )}
         <div className="flex-1">
           <b>{capitalizeFirstLetter(trace.title)}:</b>{" "} {trace.description??trace.url}
         </div>

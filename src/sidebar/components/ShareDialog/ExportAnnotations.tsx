@@ -323,11 +323,13 @@ function ExportAnnotations({
               />
               <div className="grow-0 ml-2 min-w-[5rem]">
                 <Select
+                  aria-label="Export format"
                   value={exportFormat}
                   onChange={setExportFormat}
                   buttonContent={exportFormat.shortTitle ?? exportFormat.title}
                   data-testid="export-format-select"
-                  right
+                  alignListbox="right"
+                  listboxOverflow="wrap"
                 >
                   {exportFormats.map(exportFormat => (
                     <Select.Option

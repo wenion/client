@@ -211,19 +211,21 @@ export default function RecordingList({
   };
 
   const updateContentSize = () => {
-    const offset = 100;
+    setTimeout(() => {
+      const offset = 100;
 
-    let sidebarPanelHeight = 0;
-    const elements = document.querySelectorAll('[data-component="Dialog"][tabindex="-1"][variant="custom"]');
-    for (const el of elements) {
-      sidebarPanelHeight += getElementHeightWithMargins(el);
-    }
-    setContentHeight(window.innerHeight - sidebarPanelHeight - offset);
+      let sidebarPanelHeight = 0;
+      const elements = document.querySelectorAll('[data-component="Dialog"][tabindex="-1"][variant="custom"]');
+      for (const el of elements) {
+        sidebarPanelHeight += getElementHeightWithMargins(el);
+      }
+      setContentHeight(window.innerHeight - sidebarPanelHeight - offset);
+    }, 10);
   };
 
   useLayoutEffect(() => {
     updateContentSize();
-  }, [activePanelName, ]);
+  }, [activePanelName]);
 
   useEffect(() => {
     return () => {

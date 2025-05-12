@@ -442,34 +442,6 @@ export type RawMessageData = {
   extra?: ExtraDataComics[];
 };
 
-export type kmStep = {
-  type: string;
-  url: string;
-  title: string;
-  text: string;
-  description: string;
-  image: string;
-  screenshot?: string;
-  width? : number;
-  height? : number;
-  offsetX? : number;
-  offsetY? : number;
-}
-
-export type kmProcess = {
-  title: string;
-  name: string;
-  image: string;
-  steps: kmStep[] | null;
-}
-
-export type dataComics = {
-  userid: string;
-  taskName: string;
-  sessionId: string;
-  KM_Process: kmProcess[] | null;
-}
-
 export type RecordingStepData = {
   type: string;
   id: string;
@@ -483,6 +455,15 @@ export type RecordingStepData = {
   offsetX? : number;
   offsetY? : number;
 }
+
+export type APIShareflowSegmentation = {
+  sections: {
+    title: string;
+    steps_id: string[];
+    description: string;
+  }[];
+  version?: string;
+};
 
 export type RecordItemParams = {
   /**
@@ -515,9 +496,11 @@ export type RecordItem = {
   description: string;
   groupid: string;
   role: string;
+  version: number;
   shared: boolean;
   timestamp: number;
   userid: string;
+  extra?: APIShareflowSegmentation;
 };
 
 export type RecordStep = {
