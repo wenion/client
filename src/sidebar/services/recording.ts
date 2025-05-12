@@ -198,6 +198,7 @@ export class RecordingService {
         options
       );
       this._store.updateRecordItem(recordItem);
+      this._toastMessenger.success(recordItem.taskName + 'is updated! ');
     } catch (err) {
       if (err.response.status === 404) {
         this._toastMessenger.error('Error: '+ err.response.status);
