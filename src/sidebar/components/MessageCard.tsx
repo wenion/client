@@ -89,7 +89,7 @@ function MessageCard({ message, recordingService }: MessageCardProps) {
                         >
                           <b>{e.task_name}</b>
                         </div>
-                        <b>{` - ${e.role?.teaching_role}`}</b>
+                        {e.role && (<b>{` - ${e.role?.teaching_role}`}</b>)}
                       </div>
                       <p className="text-xs ml-2 truncate">{e.description}</p>
                     </div>
