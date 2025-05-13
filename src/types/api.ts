@@ -423,6 +423,12 @@ export type ExtraDataComics = {
   task_name: string;
   user_id: string;
   current_step?: string[];
+  role?: {
+    teaching_role: string;
+    campus?: string;
+    teaching_unit?: string;
+  };
+  description?: string;
   url?: string;
 };
 
