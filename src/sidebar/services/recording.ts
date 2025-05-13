@@ -1,4 +1,5 @@
 import { extractHostURL } from '../../shared/custom';
+import { generateHexString } from '../../shared/random';
 import type { SidebarStore } from '../store';
 import type { APIService } from './api';
 import type { ToastMessengerService } from './toast-messenger';
@@ -48,7 +49,7 @@ export class RecordingService {
     this._store.addRecordSteps(traceSteps);
   }
 
-  async selectRecordTabViewByPk(pk: string, current_step: string[]) {
+  async selectRecordTabViewByPk(pk: string, current_step: string[], expert_step?: string) {
     const recordItem = this._store.getRecordItemByPk(pk);
     if (recordItem) {
       const id = recordItem.id;
@@ -58,43 +59,78 @@ export class RecordingService {
       this._store.selectTab('shareflow');
       this._store.setRecordTabView(id);
 
-      let target = null;
-      for (let i = 0; i < current_step.length; i++) {
-        const temp = this._store.getRecordStepByPk(current_step[i]);
-        if (temp) {
-          target = temp
-          break;
+      const subSteps = current_step
+        .map(stepId => this._store.getRecordStepByPk(stepId))
+        .filter(step => step !== null);
+
+      // if push step is empty, set expert step as target step
+      if (subSteps.length === 0) {
+        if (expert_step) {
+          const keyStep = this._store.getRecordStepByPk(expert_step);
+          if (keyStep) {
+            subSteps.push(keyStep);
+          }
+        }
+      } else {
+        if (expert_step) {
+          setTimeout(() => {
+            const keyStep = this._store.getRecordStepByPk(expert_step);
+            if (keyStep) {
+              // add message
+              const expertMessage = {
+                type: 'expert_message',
+                id: generateHexString(7),
+                title: 'Got stuck?',
+                message: "The below expert step may help",
+                extra: [{
+                  pk: recordItem.id,
+                  session_id: recordItem.sessionId,
+                  task_name: recordItem.taskName,
+                  user_id: recordItem.userid,
+                  current_step: [expert_step],
+                }],
+                date: Date.now()*1000,
+                need_save_flag: true,
+                show_flag: true,
+                unread_flag: true
+              };
+              this._toastMessenger.message([expertMessage,]);
+            }
+          }, 5000);
         }
       }
 
-      if (target && target.id) {
-        // if target is not in document.getElementById
-        setTimeout(() => {
+      setTimeout(() => {
+        for(const target of subSteps) {
           const threadElement = document.getElementById(target.id);
           if (threadElement) {
             console.log("target found >>", target)
             this.scrollTo(target.id);
-          } else {
-            const arr = this._store.recordSteps();
+            return;
+          }
+        }
 
-            const targetIndex = arr.findIndex(item => item.id === target.id);
-            if (targetIndex === -1) {
+        console.log("No match push pk")
+        if (subSteps && subSteps[0]) {
+          const allSteps = this._store.recordSteps();
+
+          const target = subSteps[0];
+          const targetIndex = allSteps.findIndex(item => item.id === target.id);
+          if (targetIndex === -1) {
+            console.error('No match again')
+            return;
+          }
+          for (let i = targetIndex - 1; i >= 0; i--) {
+            const targetElement = document.getElementById(allSteps[i].id);
+            if (targetElement) {
+              console.log("new target found >>", allSteps[i])
+              this.scrollTo(allSteps[i].id);
               return;
             }
-
-            for (let i = targetIndex - 1; i >= 0; i--) {
-              const targetElement = document.getElementById(arr[i].id);
-              if (targetElement) {
-                console.log("new target found >>", arr[i])
-                this.scrollTo(arr[i].id);
-                break;
-              }
-            }
           }
-        }, 1000);
-      } else {
-        console.error("can't find the shareflow step id ", pk, target)
-      }
+        }
+        console.error("No match")
+      }, 1000);
     }
     else {
       console.error("can't find the shareflow with pk " + pk)

@@ -58,26 +58,33 @@ function ImportShareflowSegmentation({
   recordingService,
   toastMessenger,
 }: ImportShareflowSegmentationProps) {
-  const [file, setFile] = useState<File | null>(null);
-
-  // Annotations extracted from `file`.
-  const [shareflowSegmentation, setShareflowSegmentation] = useState<APIShareflowSegmentation | null>(
-    null,
-  );
-  const [error, setError] = useState<string | null>(null);
-
   const store = useSidebarStore();
   const focusedRecordItem = store.focusedRecordItemId();
   const [recordItem, setRecordItem] = useState<RecordItem | null>(null);
   const recordSteps = store.recordSteps();
   const currentUser = store.profile().userid;
+  const [file, setFile] = useState<File | null>(null);
+
+  const [error, setError] = useState<string | null>(null);
+  const [unsavedSegmentation, setUnsavedSegmentation] =
+    useState<APIShareflowSegmentation | null>(null);
+  const [segmentation, setSegmentation] = useState<APIShareflowSegmentation | null>(null);
 
   useEffect(()=> {
     if (focusedRecordItem) {
       const recordItem = store.getRecordItemById(focusedRecordItem);
       setRecordItem(recordItem);
+      if (recordItem && recordItem.extra && Object.keys(recordItem.extra).length !== 0) {
+        setSegmentation(recordItem.extra);
+      }
     }
   }, [focusedRecordItem]);
+
+  useEffect(()=> {
+    if (recordItem && recordItem.extra && Object.keys(recordItem.extra).length !== 0) {
+      setSegmentation(recordItem.extra);
+    }
+  }, [])
 
   // Parse input file, extract annotations and update the user list.
   useEffect(() => {
@@ -97,7 +104,7 @@ function ImportShareflowSegmentation({
             }
           );
         })
-        setShareflowSegmentation(shareflowSegmentation);
+        setUnsavedSegmentation(shareflowSegmentation);
       })
       .catch(err => {
         setError(err.message);
@@ -112,14 +119,29 @@ function ImportShareflowSegmentation({
         });
       }
       recordingService.updateRecord(recordItem.id, {
-        extra: shareflowSegmentation
+        extra: unsavedSegmentation
       });
     } else {
       toastMessenger.error("invaild shareflow", {
         autoDismiss: false,
       });
     }
-  }, [recordItem, shareflowSegmentation, currentUser]);
+  }, [recordItem, unsavedSegmentation, currentUser]);
+
+  const deleteSegmentation = useCallback(() => {
+    if (recordItem && recordItem.userid !== currentUser) {
+      toastMessenger.error("It is not your shareflow", {
+        autoDismiss: false,
+      });
+    }
+
+    if (!!segmentation) {
+      recordingService.updateRecord(recordItem!.id, {
+        extra: {},
+      });
+      setSegmentation(null);
+    }
+  }, [recordItem, segmentation, unsavedSegmentation, currentUser]);
 
   const fileInputId = useId();
 
@@ -149,7 +171,7 @@ function ImportShareflowSegmentation({
   );
 
   // True if we're validating a JSON file after it has been selected.
-  const parseInProgress = file && !shareflowSegmentation && !error;
+  const parseInProgress = file && !unsavedSegmentation && !error;
 
   // True if we're validating or importing.
   const importsPending = store.importsPending();
@@ -167,9 +189,16 @@ function ImportShareflowSegmentation({
     <>
     {recordItem ? (
       <>
-        <p className="text-color-text-light mb-3">
-          version: {recordItem.extra && recordItem.extra?.version}
-        </p>
+        {!!segmentation &&(
+          <>
+            <p className="text-color-text-light mb-3">
+              Existing Shareflow Segmentation
+            </p>
+            <p className="text-color-text-light mb-3">
+              version: {recordItem.extra && recordItem.extra?.version}
+            </p>
+          </>
+        )}
         <label htmlFor={fileInputId} className="font-medium">
           Select Shareflow Segmentation file:
         </label>
@@ -186,6 +215,14 @@ function ImportShareflowSegmentation({
               {importProgress}% complete
             </span>
           )}
+          <Button
+            data-testid="import-button"
+            disabled={segmentation === null}
+            onClick={deleteSegmentation}
+            variant="primary"
+          >
+            Delete
+          </Button>
           <Button
             data-testid="import-button"
             disabled={!importReady || busy}

@@ -71,16 +71,21 @@ function MessageCard({ message, recordingService }: MessageCardProps) {
               <div className="flex flex-col space-y-2">
                 {message.extra && message.extra.map(e => {
                   return (
-                    <div className="flex items-center">
-                      <div className="grow px-1.5 touch:p-2">
+                    <div className="items-center" title={e.description}>
+                      <div className="flex grow px-1.5 touch:p-2">
                         <div
                           className={classnames(
                             "cursor-pointer",
                             "text-blue-curious hover:text-blue-chathams underline underline-offset-1",
                           )}
+                          title={e.description}
                           onClick={() => {
                             if (e.session_id && e.user_id && !e.url) {
-                              recordingService.selectRecordTabViewByPk(e.session_id, e.current_step ?? []);
+                              recordingService.selectRecordTabViewByPk(
+                                e.session_id,
+                                e.current_step ?? [],
+                                e.expert_step
+                              );
                             } else if (e.url) {
                               window.open(e.url);
                             }
@@ -88,7 +93,9 @@ function MessageCard({ message, recordingService }: MessageCardProps) {
                         >
                           <b>{e.task_name}</b>
                         </div>
+                        {e.role && (<b>{` - ${e.role?.teaching_role}`}</b>)}
                       </div>
+                      <p className="text-xs ml-2 truncate">{e.description}</p>
                     </div>
                   );
                 })}

@@ -51,10 +51,15 @@ function ToastMessageContext({
   const textStyle = applyTheme(['annotationFontFamily'], {});
   const time = "date" in message ? new Date(message.date/1000): new Date();
 
+  const onClick = (e: ExtraDataComics) => {
+    callBack(e);
+    setTimeout(() => onDismiss(message.id), 500);
+  }
+
   return (
     <Card>
       <CardHeader title={message.title} onClose={() => onDismiss(message.id)} />
-      <CardContent>
+      <CardContent classes="space-y-0.5">
         <StyledText>
           <MarkdownView
             markdown={message.message as string}
@@ -82,14 +87,20 @@ function ToastMessageContext({
             )
           } else {
             return (
-              <div
-                className={classnames(
-                  "cursor-pointer",
-                  "text-blue-curious hover:text-blue-chathams underline underline-offset-1",
-                )}
-                onClick={() => callBack(e)}
-              >
-                <b>{e.task_name}</b>
+              <div title={e.description}>
+                <div className={'flex'}>
+                  <div
+                    className={classnames(
+                      "cursor-pointer",
+                      "text-blue-curious hover:text-blue-chathams underline underline-offset-1",
+                    )}
+                    onClick={() => onClick(e)}
+                  >
+                    <b>{e.task_name}</b>
+                  </div>
+                  {e.role && (<b>{` - ${e.role?.teaching_role}`}</b>)}
+                </div>
+                <p className="text-md ml-2 truncate">{e.description}</p>
               </div>
             )
           }
