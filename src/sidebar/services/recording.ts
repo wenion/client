@@ -62,7 +62,6 @@ export class RecordingService {
       const subSteps = current_step
         .map(stepId => this._store.getRecordStepByPk(stepId))
         .filter(step => step !== null);
-      console.log("subSteps", subSteps)
 
       // if push step is empty, set expert step as target step
       if (subSteps.length === 0) {
