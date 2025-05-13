@@ -429,6 +429,7 @@ export type ExtraDataComics = {
     teaching_unit?: string;
   };
   description?: string;
+  expert_step?: string;
   url?: string;
 };
 

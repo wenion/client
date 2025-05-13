@@ -961,11 +961,16 @@ export class FrameSyncService {
         session_id: string,
         user_id: string,
         current_step: string[],
+        expert_step: string,
       }
     )=> {
       this._store.selectTab('shareflow');
       console.log("click current_step ", extra.current_step)
-      this._recordingService.selectRecordTabViewByPk(extra.session_id, extra.current_step);
+      this._recordingService.selectRecordTabViewByPk(
+        extra.session_id,
+        extra.current_step,
+        extra.expert_step
+      );
     })
 
     // When user toggles the highlight visibility control in the sidebar container,

@@ -1,4 +1,5 @@
 import { extractHostURL } from '../../shared/custom';
+import { generateHexString } from '../../shared/random';
 import type { SidebarStore } from '../store';
 import type { APIService } from './api';
 import type { ToastMessengerService } from './toast-messenger';
@@ -48,7 +49,7 @@ export class RecordingService {
     this._store.addRecordSteps(traceSteps);
   }
 
-  async selectRecordTabViewByPk(pk: string, current_step: string[]) {
+  async selectRecordTabViewByPk(pk: string, current_step: string[], expert_step?: string) {
     const recordItem = this._store.getRecordItemByPk(pk);
     if (recordItem) {
       const id = recordItem.id;
@@ -62,6 +63,43 @@ export class RecordingService {
         .map(stepId => this._store.getRecordStepByPk(stepId))
         .filter(step => step !== null);
       console.log("subSteps", subSteps)
+
+      // if push step is empty, set expert step as target step
+      if (subSteps.length === 0) {
+        if (expert_step) {
+          const keyStep = this._store.getRecordStepByPk(expert_step);
+          if (keyStep) {
+            subSteps.push(keyStep);
+          }
+        }
+      } else {
+        if (expert_step) {
+          setTimeout(() => {
+            const keyStep = this._store.getRecordStepByPk(expert_step);
+            if (keyStep) {
+              // add message
+              const expertMessage = {
+                type: 'expert_message',
+                id: generateHexString(7),
+                title: 'Got stuck?',
+                message: "The below expert step may help",
+                extra: [{
+                  pk: recordItem.id,
+                  session_id: recordItem.sessionId,
+                  task_name: recordItem.taskName,
+                  user_id: recordItem.userid,
+                  current_step: [expert_step],
+                }],
+                date: Date.now()*1000,
+                need_save_flag: true,
+                show_flag: true,
+                unread_flag: true
+              };
+              this._toastMessenger.message([expertMessage,]);
+            }
+          }, 5000);
+        }
+      }
 
       setTimeout(() => {
         for(const target of subSteps) {

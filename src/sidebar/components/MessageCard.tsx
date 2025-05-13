@@ -81,7 +81,11 @@ function MessageCard({ message, recordingService }: MessageCardProps) {
                           title={e.description}
                           onClick={() => {
                             if (e.session_id && e.user_id && !e.url) {
-                              recordingService.selectRecordTabViewByPk(e.session_id, e.current_step ?? []);
+                              recordingService.selectRecordTabViewByPk(
+                                e.session_id,
+                                e.current_step ?? [],
+                                e.expert_step
+                              );
                             } else if (e.url) {
                               window.open(e.url);
                             }
