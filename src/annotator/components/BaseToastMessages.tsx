@@ -51,6 +51,11 @@ function ToastMessageContext({
   const textStyle = applyTheme(['annotationFontFamily'], {});
   const time = "date" in message ? new Date(message.date/1000): new Date();
 
+  const onClick = (e: ExtraDataComics) => {
+    callBack(e);
+    setTimeout(() => onDismiss(message.id), 500);
+  }
+
   return (
     <Card>
       <CardHeader title={message.title} onClose={() => onDismiss(message.id)} />
@@ -89,7 +94,7 @@ function ToastMessageContext({
                       "cursor-pointer",
                       "text-blue-curious hover:text-blue-chathams underline underline-offset-1",
                     )}
-                    onClick={() => callBack(e)}
+                    onClick={() => onClick(e)}
                   >
                     <b>{e.task_name}</b>
                   </div>
