@@ -296,7 +296,7 @@ export function ComicItem({
   )
 }
 
-type ImageComicsCardProps = {
+type ImageComicCardProps = {
   children: ComponentChildren;
   onImageClick: (id: string) => void;
   onElementSizeChanged: (id: string) => void;
@@ -304,13 +304,13 @@ type ImageComicsCardProps = {
   dataId: number;
 };
 
-export function ImageComicsCard({
+export function ImageComicCard({
   children,
   onImageClick,
   onElementSizeChanged,
   step,
   dataId,
-}: ImageComicsCardProps) {
+}: ImageComicCardProps) {
   const onClick = (url: string) => {
     window.open(url, '_blank');
   }
@@ -337,19 +337,19 @@ export function ImageComicsCard({
   )
 }
 
-type TextComicsCardProps = {
+type TextComicCardProps = {
   dataId: number;
   step: RecordStep;
   children: ComponentChildren;
   classes?: string;
 };
 
-export function TextComicsCard({
+export function TextComicCard({
   dataId,
   step,
   children,
   classes,
-}: TextComicsCardProps) {
+}: TextComicCardProps) {
   const onClick = (url: string) => {
     window.open(url, '_blank');
   }

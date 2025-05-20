@@ -26,7 +26,7 @@ import {
   getElementHeightWithMargins,
   getElementWidthWithMargins,
 } from '../util/dom';
-import { ComicHeader, ComicItem, ImageComicsCard, TextComicsCard} from './ComicsCard';
+import { ComicHeader, ComicItem, ImageComicCard, TextComicCard} from './ComicCard';
 import NavComics from './NavComics';
 
 // The precision of the `scrollPosition` value in pixels; values will be rounded
@@ -540,7 +540,7 @@ function ComicList({
                           n = n + accumulated;
                           dataId++;
                           return (
-                            <ImageComicsCard
+                            <ImageComicCard
                               onImageClick={(id) => onDblClick(id)}
                               onElementSizeChanged={onRendered}
                               step={step}
@@ -555,7 +555,7 @@ function ComicList({
                                   />
                                 ) : (<></>)
                               )}
-                            </ImageComicsCard>
+                            </ImageComicCard>
                           )
                         } else {
                           let start = n;
@@ -579,7 +579,7 @@ function ComicList({
                           n = n + accumulated;
                           dataId++;
                           return (
-                            <TextComicsCard
+                            <TextComicCard
                               step={step}
                               dataId={dataId}
                             >
@@ -593,7 +593,7 @@ function ComicList({
                                   />
                                 ) : (<></>)
                               )}
-                            </TextComicsCard>
+                            </TextComicCard>
                           )
                         }
                       }
@@ -647,7 +647,7 @@ function ComicList({
                     n = n + accumulated + 1;
                     dataId++;
                     return (
-                      <ImageComicsCard
+                      <ImageComicCard
                         onImageClick={(id) => onDblClick(id)}
                         onElementSizeChanged={onRendered}
                         step={step}
@@ -660,7 +660,7 @@ function ComicList({
                             onElementSizeChanged={onRendered}
                           />
                         )}
-                      </ImageComicsCard>
+                      </ImageComicCard>
                     )
                   } else {
                     let accumulated = 0;
@@ -680,7 +680,7 @@ function ComicList({
                     n = n + accumulated + 1;
                     dataId++;
                     return (
-                      <TextComicsCard
+                      <TextComicCard
                         step={step}
                         dataId={dataId}
                       >
@@ -692,7 +692,7 @@ function ComicList({
                             classes='mr-0.5'
                           />
                         )}
-                      </TextComicsCard>
+                      </TextComicCard>
                     )
                   }
                 }
