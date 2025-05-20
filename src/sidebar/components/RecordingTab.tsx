@@ -67,6 +67,11 @@ function RecordingTab({
     setLastId(id);
     recordingService.selectRecordTabView('list');
     recordingService.updateTracking();
+
+    const hasFocused = store.getDefault('focusedShareflow');
+    if (hasFocused) {
+      recordingService.toggleRecordPin(id, false);
+    }
   };
 
   const onPin = (recordItem: RecordItem, value: boolean) => {
