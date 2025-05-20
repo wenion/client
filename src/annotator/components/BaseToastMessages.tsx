@@ -6,6 +6,7 @@ import type { ComponentChildren } from 'preact';
 
 import { formatSortableDateTime } from '../../shared/time';
 import type { ExtraDataComics } from '../../types/api';
+import { username as getUsername } from '../../sidebar/helpers/account-id';
 import StyledText from './StyledText';
 import MarkdownView from './MarkdownView';
 import { applyTheme } from './Excerpt';
@@ -98,9 +99,13 @@ function ToastMessageContext({
                   >
                     <b>{e.task_name}</b>
                   </div>
-                  {e.role && (<b>{` - ${e.role?.teaching_role}`}</b>)}
+                  {e.role && (
+                    <p className="indent-2">
+                      created by <strong>{e.role?.teaching_role} ({getUsername(e.user_id)})</strong>
+                    </p>
+                  )}
                 </div>
-                <p className="text-md ml-2 truncate">{e.description}</p>
+                <p className="text-md indent-2 truncate italic text-gray-500">{e.description}</p>
               </div>
             )
           }
