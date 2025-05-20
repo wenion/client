@@ -8,7 +8,7 @@ import { useSidebarStore } from '../store';
 import ActionList from './ActionList';
 import RecordingList from './RecordingList';
 import TimelineList from './TimelineList';
-import ComicList from './ComicsList';
+import ComicList from './ComicList';
 import type { RecordItem, RecordStep } from '../../types/api';
 
 type RecordingTabProps = {

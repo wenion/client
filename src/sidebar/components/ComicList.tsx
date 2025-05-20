@@ -110,7 +110,7 @@ export type ComicListProps = {
 /**
  * Create the iframe that will load the notebook application.
  */
-function ComicsList({
+function ComicList({
   onOpen,
   onClose,
   onRefreshStep,
@@ -706,4 +706,4 @@ function ComicsList({
   );
 }
 
-export default withServices(ComicsList, ['frameSync']);
+export default withServices(ComicList, ['frameSync']);
