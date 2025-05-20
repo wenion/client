@@ -679,8 +679,8 @@ export class FrameSyncService {
       async (isLoggedIn, prevIsLoggedIn) => {
         this._hostRPC.call('isLoggedIn', isLoggedIn);
 
-        const focusedShareflowInfo = this._store.getDefault('focusedShareflow');
-        const isPin = !(focusedShareflowInfo === 'null' || !focusedShareflowInfo);
+        const focusedShareflow = this._store.getDefault('focusedShareflow');
+        const isPin = !(focusedShareflow === 'null' || !focusedShareflow);
 
         const isOpen = this._store.getDefault('lastOpen') === 'on';
 

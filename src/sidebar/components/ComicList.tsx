@@ -102,6 +102,7 @@ function calculateFirstVisibleThread(
 export type ComicListProps = {
   onOpen: (recordItem: RecordItem, recordSteps: RecordStep[], top: RecordStep) => void;
   onClose: (id: string) => void;
+  onPin: (recordItem: RecordItem, value: boolean) => void;
   onRefreshStep: (record: string | null, recordStep: string | null) => void;
 
   frameSync: FrameSyncService;
@@ -113,6 +114,7 @@ export type ComicListProps = {
 function ComicList({
   onOpen,
   onClose,
+  onPin,
   onRefreshStep,
   frameSync,
 }: ComicListProps) {
@@ -123,16 +125,8 @@ function ComicList({
   const shouldScroll = store.getShouldScroll();
   const activePanelName = store.activePanelName();
 
-  const focusedShareflowInfo = store.getDefault('focusedShareflow');
-  const isPin = !(focusedShareflowInfo === 'null' || !focusedShareflowInfo);
-
-  const pinOn = (value: Record<string, string | null>) => {
-    store.setDefault('focusedShareflow', JSON.stringify(value));
-  }
-
-  const pinOff = () => {
-    store.setDefault('focusedShareflow', null);
-  }
+  const focusedShareflow = store.getDefault('focusedShareflow');
+  const isPin = !(focusedShareflow === 'null' || !focusedShareflow);
 
   const headerElement = useRef<HTMLDivElement | null>(null);
   const contentElement = useRef<HTMLDivElement | null>(null);
@@ -424,7 +418,7 @@ function ComicList({
             <Button
               classes={classnames('flex-none', 'border-black')}
               onClick={() => {
-                isPin? pinOff(): pinOn({id: recordItem?.id?? null, scrollToId: focusedStepId})
+                isPin? onPin(recordItem!, false): onPin(recordItem!, true)
               }}
             >
               {isPin? (<PinFilledIcon className={classnames("text-brand")} />): (<PinIcon />)}

@@ -69,6 +69,10 @@ function RecordingTab({
     recordingService.updateTracking();
   };
 
+  const onPin = (recordItem: RecordItem, value: boolean) => {
+    recordingService.toggleRecordPin(recordItem.id, value);
+  }
+
   const onDelete = async (recordItem: RecordItem) => {
     if (
       await confirm({
@@ -105,6 +109,7 @@ function RecordingTab({
         <ComicList
           onOpen={onPageOpen}
           onClose={onClose}
+          onPin={onPin}
           onRefreshStep={onRefreshStep}
         />
       )}

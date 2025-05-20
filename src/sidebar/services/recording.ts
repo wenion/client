@@ -242,6 +242,14 @@ export class RecordingService {
     }
   }
 
+  async toggleRecordPin(id: string, value: boolean) {
+    const recordItem = await this._api.recording.update(
+      { id: id },
+      { pin: value }
+    );
+    this._store.setDefault('focusedShareflow', value ? recordItem.id : null);
+  };
+
   async deleteRecord(id: string) {
     await this._api.recording.delete({ id: id });
     this._store.removeRecordItem(id);
