@@ -27,8 +27,8 @@ export default function NavComics({
 
   const navs = steps.filter(step => step.tagName === "Navigate" || step.tagName === "Switch");
 
-  const onNavClick = (step: RecordStep) => {
-    onClick(step);
+  const onNavClick = (step: RecordStep, index: number) => {
+    onClick(step, index);
     const threadIndex = navs.findIndex(t => t.id === step.id);
     if (threadIndex === -1) {
       return;
@@ -174,7 +174,7 @@ export default function NavComics({
                   "px-4 m-2",     // Add padding for better spacing
                 )}
                 title={step.description ?? step.url}
-                onClick={() => onNavClick(step)}
+                onClick={() => onNavClick(step, index)}
               >
                 <b>{capitalizeFirstLetter(step.title)}:</b>{" "}{step.description ?? step.url}
               </div>
