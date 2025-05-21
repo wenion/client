@@ -83,7 +83,12 @@ function IntroductionPanel({ session }: IntroductionPanelProps) {
                   return (
                     <li key={item.id} className="search-result-zero__list-item">
                       {parts[0]}
-                      <a className="link" href={item.link}>
+                      <a
+                        className="link"
+                        href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         {item.highlight}
                       </a>
                       {parts[1]}
