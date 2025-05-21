@@ -9,6 +9,7 @@ export type State = {
   tabView: 'list' | 'ongoing' | string;
   focusedRecordItemId: string | null;
   focusedStepId: string | null;
+  navFocusedStepId: string | null;
   recordItems: RecordItem[];
   recordSteps: RecordStep[];
   shouldScroll: boolean;
@@ -19,6 +20,7 @@ function initialState(): State {
     tabView: 'list',
     focusedRecordItemId: null,
     focusedStepId: null,
+    navFocusedStepId: null,
     recordItems: [],
     recordSteps: [],
     shouldScroll: true,
@@ -44,6 +46,10 @@ const reducers = {
 
   SET_FOCUSED_STEP_ID(state: State, action: { scrollToId: string | null }) {
     return { focusedStepId: action.scrollToId };
+  },
+
+  SET_NAV_FOCUSED_STEP_ID(state: State, action: { scrollToId: string | null }) {
+    return { navFocusedStepId: action.scrollToId };
   },
 
   ADD_RECORDITEMS(state: State, action: {recordItems: RecordItem[] }): Partial<State> {
@@ -172,6 +178,10 @@ function setFocusedStepId(scrollToId: string | null) {
   return makeAction(reducers, 'SET_FOCUSED_STEP_ID', {scrollToId: scrollToId});
 }
 
+function setNavFocusedStepId(scrollToId: string | null) {
+  return makeAction(reducers, 'SET_NAV_FOCUSED_STEP_ID', {scrollToId: scrollToId});
+}
+
 function addRecordItems(recordItems: RecordItem[]) {
   return makeAction(reducers, 'ADD_RECORDITEMS', {recordItems: recordItems});
 }
@@ -269,6 +279,10 @@ function getFocusedStepId(state: State) {
   return state.focusedStepId;
 }
 
+function getNavFocusedStepId(state: State) {
+  return state.navFocusedStepId;
+}
+
 function getRecordItemById(state: State, id: string) {
   const recordItem = state.recordItems.find(r => r.id === id);
   return recordItem?? null;
@@ -347,6 +361,7 @@ export const recordingsModule = createStoreModule(initialState, {
   actionCreators: {
     setRecordTabView,
     setFocusedStepId,
+    setNavFocusedStepId,
     addRecordItems,
     updateRecordItem,
     clearRecordItems,
@@ -360,6 +375,7 @@ export const recordingsModule = createStoreModule(initialState, {
   },
   selectors: {
     getFocusedStepId,
+    getNavFocusedStepId,
     getRecordTabView,
     getRecordItem,
     getRecordItemById,

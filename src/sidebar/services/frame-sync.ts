@@ -694,6 +694,7 @@ export class FrameSyncService {
             this._store.selectTab('shareflow');
             await this._recordingService.selectRecordTabView('view', id);
             this._recordingService.scrollTo(scrollToId);
+            this._store.setNavFocusedStepId(scrollToId);
           }
 
           this._hostRPC.call('webClipping', {savePage: false});

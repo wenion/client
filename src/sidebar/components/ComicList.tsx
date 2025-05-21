@@ -225,12 +225,18 @@ function ComicList({
   const allLoaded = useMemo(
     () => {
       let load = true;
+      const threads = topLevelThreads.filter(item => item.image);
+      if (threads.length > 0 && imageThreads.size === 0) {
+        setImageThreads(new Map(threads.map(item => [item.id, false])));
+        return false;
+      }
+
       imageThreads.forEach((value) => {
         load = load && value; // Check if all values are truthy
       });
       return load;
     },
-    [imageThreads]
+    [imageThreads, topLevelThreads]
   );
 
   const onMouseLeave = () => {
@@ -240,13 +246,17 @@ function ComicList({
     previousTopThreadRef.current = topThread;
   }
 
+  const onComicClick = (id: string) => {
+    store.setNavFocusedStepId(id);
+  }
+
   const onDblClick = (id: string) => {
     frameSync.notifyHost('openImageViewer', {id: id, timeLineList: recordSteps});
   }
 
   const getComicsNavElementHeightById = (id: number): number => {
     const ele =
-      document.querySelector(`.data-comics-nav[data-id="${id}"]`) as HTMLDivElement | null;
+      document.querySelector(`[class="data-comics-nav"][data-id="${id}"]`) as HTMLDivElement | null;
     return ele ? getElementHeightWithMargins(ele) : 0;
   }
 
@@ -296,7 +306,6 @@ function ComicList({
       return;
     }
 
-    const topThreadId = topThread?.id || null;
     if (firstRender) {
       // if (topThreadId !== focusedStepId) {
       //   if (!allLoaded) {
@@ -309,6 +318,7 @@ function ComicList({
       // }
       return;
     }
+    const topThreadId = topThread?.id || null;
 
     if (topThreadId !== focusedStepId) {
       if (unreachableThreads.some(r => r.id === focusedStepId)) {
@@ -329,12 +339,24 @@ function ComicList({
     }
   }, [focusedStepId, threadHeights, topThread, shouldScroll, firstRender, allLoaded])
 
+  const onLoaded = (id: string, value:boolean) => {
+    setImageThreads(prevThreads => {
+      const changedThreads = new Map();
+      if (prevThreads.has(id)) {
+        changedThreads.set(id, value);
+      }
+      return new Map([...prevThreads, ...changedThreads]);
+    });
+  };
+
   // When the set of TimelineCard height changes, recalculate the real rendered
   // heights of thread cards and update `threadHeights` state if there are changes.
   const onRendered = useCallback((id: string) => {
-    const imageId = 'img' + id;
-    const threadElement = document.getElementById(id)!;
-    const imageElement = document.getElementById(imageId);
+    const threadElements = Array.from(document.querySelectorAll(`[id="${id}"]`));
+
+    const threadElement = threadElements.find(el =>
+      el.className === 'data-comics-item'|| el.className === 'data-comics-item data-comics-nav'
+    );
 
     setThreadHeights(prevHeights => {
       const changedHeights = new Map();
@@ -373,18 +395,6 @@ function ComicList({
       }
 
       return new Map([...prevHeights, ...changedHeights]);
-    });
-
-    setImageThreads(prevThreads => {
-      const changedThreads = new Map();
-      if (imageElement) {
-        if (prevThreads.has(imageId)) {
-          changedThreads.set(imageId, true);
-        } else {
-          changedThreads.set(imageId, false);
-        }
-      }
-      return new Map([...prevThreads, ...changedThreads]);
     });
 
     updateContentSize();
@@ -473,6 +483,8 @@ function ComicList({
                     <div
                       className={classnames("data-comics-nav")}
                       data-id={index}
+                      id={item.steps_id[0]}
+                      onClick={() => onComicClick(item.steps_id[0])}
                       title={item.title}
                     >
                       <div
@@ -508,6 +520,7 @@ function ComicList({
                               dataId={dataId}
                               trace={step}
                               onElementSizeChanged={onRendered}
+                              onClick={onComicClick}
                               classes={classnames({ "data-comics-nav": navId !== 1 })}
                             />
                           )
@@ -537,6 +550,8 @@ function ComicList({
                             <ImageComicCard
                               onImageClick={(id) => onDblClick(id)}
                               onElementSizeChanged={onRendered}
+                              onLoaded={onLoaded}
+                              onClick={onComicClick}
                               step={step}
                               dataId={dataId}
                             >
@@ -576,6 +591,7 @@ function ComicList({
                             <TextComicCard
                               step={step}
                               dataId={dataId}
+                              onClick={onComicClick}
                             >
                               {subSteps.slice(start, start + accumulated).map(s =>
                                 s ? (
@@ -618,6 +634,7 @@ function ComicList({
                           dataId={dataId}
                           trace={step}
                           onElementSizeChanged={onRendered}
+                          onClick={onComicClick}
                           classes={classnames({ "data-comics-nav": navId !== 1 })}
                         />
                       </>
@@ -643,7 +660,9 @@ function ComicList({
                     return (
                       <ImageComicCard
                         onImageClick={(id) => onDblClick(id)}
+                        onLoaded={onLoaded}
                         onElementSizeChanged={onRendered}
+                        onClick={onComicClick}
                         step={step}
                         dataId={dataId}
                       >
@@ -677,6 +696,7 @@ function ComicList({
                       <TextComicCard
                         step={step}
                         dataId={dataId}
+                        onClick={onComicClick}
                       >
                         {recordSteps.slice(index, index + accumulated + 1).map(s =>
                           <ComicItem
