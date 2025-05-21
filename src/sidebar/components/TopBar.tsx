@@ -124,12 +124,6 @@ function TopBar({
               />)}
             </>
           )}
-          {/* {!isLoggedIn && (<TopBarToggleButton
-            icon={HomeIcon}
-            onClick={requestQuery}
-            size='custom'
-            title="Go to the home page"
-          />)} */}
           {!isLoggedIn && (<TopBarToggleButton
             icon={HelpIcon}
             expanded={isHelpPanelOpen}
