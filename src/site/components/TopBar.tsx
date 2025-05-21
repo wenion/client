@@ -112,7 +112,9 @@ function TopBar({
     if (pathname.endsWith('/edit')) {
       route(pathname.slice(0, -5));
     } else {
-      route(pathname + "/edit");
+      // route(pathname + "/edit");
+      const url = pathname + "/edit";
+      window.open(url, '_blank')
     }
   };
 
