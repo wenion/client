@@ -42,7 +42,58 @@ function capitalizeFirstLetter(str: string): string {
 }
 
 
+type ComicHeaderProps = {
+  index: number;
+  trace: RecordStep;
+  classes?: string;
+};
+
+export function ComicHeader({
+  index,
+  trace,
+  classes,
+}: ComicHeaderProps) {
+  return (
+    <div
+      className={classnames(
+        classes,
+      )}
+      id={trace.id}
+    >
+      <div
+        className={classnames(
+          "flex",
+          "rounded-xl text-lg text-blue-chathams text-center",
+          'hover:shadow-lg',
+          'cursor-pointer',
+          "justify-center items-center",
+          'p-2',
+        )}
+        title={trace.url}
+      >
+        <div
+          className={classnames(
+            "flex m-1",
+            "rounded-full",
+            "bg-zinc-300 text-gray-600",
+            "border border-gray-600",
+            "w-8 h-8",
+            "justify-center items-center",
+          )}
+        >
+          {index}
+        </div>
+        <div className="flex-1">
+          <b>{capitalizeFirstLetter(trace.title)}:</b>{" "} {trace.description??trace.url}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 type ComicItemProps = {
+  index: number;
+  sectionId: number;
   trace: RecordStep;
   isAlign: boolean;
   selected: boolean;
@@ -52,6 +103,8 @@ type ComicItemProps = {
 };
 
 export function ComicItem({
+  index,
+  sectionId,
   trace,
   isAlign = false,
   selected,
@@ -62,13 +115,13 @@ export function ComicItem({
   useLayoutEffect(()=> {
     onElementSizeChanged(trace.id);
   }, []);
-
   return (
     <div
       className={classnames(
         "relative",
-        'grid grid-rows-3 grid-flow-col',
-        'content-center',
+        {'grid grid-rows-3 grid-flow-col': trace.tagName !== "Navigate" && trace.tagName !== "Switch"},
+        'content-center rounded-lg',
+        {'bg-gray-100': trace.tagName === "Navigate" || trace.tagName === "Switch"},
         'text-base text-blue-chathams text-center',
         'hover:shadow-lg',
         'cursor-pointer',
@@ -98,71 +151,85 @@ export function ComicItem({
           />
         )}
       </div>
-      <div
-        className={classnames(
-          "justify-self-center content-center row-span-3",
-          "text-black",
-          "w-12 p-1",
-        )}
-      >
-        {trace.title === "click" ? (
-          <ClickIcon />
-        ) : trace.title === "type" && trace.tagName !== "SELECT" ? (
-          <TypeIcon />
-        ) : trace.title === "select" ? (
-          <SelectAreaIcon />
-        ) : trace.title === "scroll" && trace.description === "down" ? (
-          <ScrollDownIcon />
-        ) : trace.title === "scroll" && trace.description === "up" ? (
-          <ScrollUpIcon />
-        ) : trace.title === "submit" ? (
-          <SubmitIcon />
-        ) : trace.title === "search" ? (
-          <SearchIcon />
-        ) : trace.title === "type" && trace.tagName === "SELECT" ? (
-          <SelectionIcon />
-        ) : trace.title === "copy" ? (
-          <CopyIcon />
-        ) : trace.title === "paste" ? (
-          <PasteIcon />
-        ) : trace.type === "annotation" ? (
-          <AnnotationIcon />
+      {
+        (trace.tagName === "Navigate" || trace.tagName === "Switch") ? (
+          <>
+            <ComicHeader
+              index ={sectionId}
+              trace={trace}
+              classes='rounded-lg bg-gray-100'
+            />
+          </>
         ) : (
-          <QuestionIcon />
-        )}
-      </div>
-      <div className={classnames(
-        "col-span-2 border-b border-l border-black",
-        "text-base text-black font-bold content-center",
-        "p-2",
-      )}>
-        {capitalizeFirstLetter(trace.title)}
-      </div>
-      <div
-        className={classnames(
-          "flex row-span-2 col-span-2",
-          "h-full",
-          "pl-1",
-          "bg-transparent",
-          {"italic": isAlign},
-          "cursor-pointer",
-        )}
-      >
-        <div
-          className={classnames(
-            "text-sm",
-            "overflow-hidden",
-            "text-ellipsis",
-            "content-center",
-            "data-comics-content",
-            "word-break-word",
-            "hyphens-auto",
-          )}
-          title={trace.description}
-        >
-          {trace.description}
-        </div>
-      </div>
+          <>
+            <div
+              className={classnames(
+                "justify-self-center content-center row-span-3",
+                "text-black",
+                "w-12 p-1",
+              )}
+            >
+              {trace.title === "click" ? (
+                <ClickIcon />
+              ) : trace.title === "type" && trace.tagName !== "SELECT" ? (
+                <TypeIcon />
+              ) : trace.title === "select" ? (
+                <SelectAreaIcon />
+              ) : trace.title === "scroll" && trace.description === "down" ? (
+                <ScrollDownIcon />
+              ) : trace.title === "scroll" && trace.description === "up" ? (
+                <ScrollUpIcon />
+              ) : trace.title === "submit" ? (
+                <SubmitIcon />
+              ) : trace.title === "search" ? (
+                <SearchIcon />
+              ) : trace.title === "type" && trace.tagName === "SELECT" ? (
+                <SelectionIcon />
+              ) : trace.title === "copy" ? (
+                <CopyIcon />
+              ) : trace.title === "paste" ? (
+                <PasteIcon />
+              ) : trace.type === "annotation" ? (
+                <AnnotationIcon />
+              ) : (
+                <QuestionIcon />
+              )}
+            </div>
+            <div className={classnames(
+              "col-span-2 border-b border-l border-black",
+              "text-base text-black font-bold content-center",
+              "p-2",
+            )}>
+              {capitalizeFirstLetter(trace.title)}
+            </div>
+            <div
+              className={classnames(
+                "flex row-span-2 col-span-2",
+                "h-full",
+                "pl-1",
+                "bg-transparent",
+                {"italic": isAlign},
+                "cursor-pointer",
+              )}
+            >
+              <div
+                className={classnames(
+                  "text-sm",
+                  "overflow-hidden",
+                  "text-ellipsis",
+                  "content-center",
+                  "data-comics-content",
+                  "word-break-word",
+                  "hyphens-auto",
+                )}
+                title={trace.description}
+              >
+                {trace.description}
+              </div>
+            </div>
+          </>
+        )
+      }
     </div>
   )
 }
@@ -208,6 +275,7 @@ export function EditingCardSpacing({
 
 type EditingCardProps = {
   dataId: number,
+  sectionId: number,
   trace: RecordStep;
   selected: boolean;
   onElementSizeChanged: (id: string) => void;
@@ -217,6 +285,7 @@ type EditingCardProps = {
 
 export function EditingCard({
   dataId,
+  sectionId,
   trace,
   selected,
   onElementSizeChanged,
@@ -244,6 +313,8 @@ export function EditingCard({
       onClick={() => setIsExpanded(!isExpanded)}
     >
       <ComicItem
+        index={dataId}
+        sectionId={sectionId}
         trace={trace}
         isAlign={trace.image ? true: false}
         selected={selected}
@@ -596,6 +667,8 @@ function EditView({
     window.alert("Changes have been saved!");
   }
 
+  let navId = 0;
+
   return (
     <div className="w-full">
       <TopBar
@@ -663,10 +736,14 @@ function EditView({
               />
             )}
             {steps.map((step, index) => {
+              if (step.tagName === "Navigate" || step.tagName === "Switch") {
+                navId++;
+              }
               return (
                 <>
                   <EditingCard
                     dataId={index}
+                    sectionId={navId}
                     trace={step}
                     selected={selectedList.some(item => item === step.id)}
                     onSelect={onSelect}
