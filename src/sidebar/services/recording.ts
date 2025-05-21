@@ -2,6 +2,7 @@ import { extractHostURL } from '../../shared/custom';
 import { generateHexString } from '../../shared/random';
 import type { SidebarStore } from '../store';
 import type { APIService } from './api';
+import type { RecordStep } from '../../types/api';
 import type { ToastMessengerService } from './toast-messenger';
 
 /**
@@ -33,11 +34,7 @@ export class RecordingService {
     this._store.clearRecordItems();
   }
 
-  async saveTraces(id: string) {
-    const updates = this._store.recordSteps();
-    updates.map(step => {
-      step.id = step.id.replace(/^tr/, "");
-    });
+  async saveTraces(id: string, updates: RecordStep[]) {
     this._store.clearRecordSteps();
     const results = await this._api.traces.update({id: id}, updates);
     this._store.addRecordSteps(results);

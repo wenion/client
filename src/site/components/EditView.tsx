@@ -673,9 +673,7 @@ function EditView({
   };
 
   const onSave = (id: string) => {
-    store.clearRecordSteps();
-    store.addRecordSteps(steps);
-    recordingService.saveTraces(id);
+    recordingService.saveTraces(id, steps);
     window.alert("Changes have been saved!");
   }
 
@@ -731,7 +729,7 @@ function EditView({
       </div>
       <div
         id="data-comics-list"
-        className={"mt-4 mx-auto w-3/5"}
+        className={"mt-4 mx-auto w-1/2"}
         onDragStart={onDragStart}
         onDragEnter={onDragEnter}
         onDragLeave={onDragLeave}
