@@ -302,16 +302,26 @@ export function EditingCard({
     <div
       draggable
       className={classnames(
-        'w-full block',
+        // 'w-full block',
         'data-comics-item',
-        'border border-black mb-0.5 rounded-lg',
-        'hover:ring-gray-500 hover:bg-gray-100',
+        'flex',
+        // 'border border-black mb-0.5 rounded-lg',
+        // 'hover:ring-gray-500 hover:bg-gray-100',
         classes
       )}
       id={trace.id}
       data-id={dataId}
       onClick={() => setIsExpanded(!isExpanded)}
     >
+      <div
+        className={classnames(
+          'w-full block',
+          'h-fit',
+          // 'data-comics-item',
+          'border border-black mb-0.5 rounded-lg',
+          'hover:ring-gray-500 hover:bg-gray-100',
+        )}
+      >
       <ComicItem
         index={dataId}
         sectionId={sectionId}
@@ -321,13 +331,15 @@ export function EditingCard({
         onElementSizeChanged={()=> {}}
         onSelect={onSelect}
       />
-      {trace.image && isExpanded && (
+      </div>
+      {/* {trace.image && isExpanded && ( */}
+      {trace.image && (
         <div
-          className={"p-4"}
+          className={"ml-0.5 cursor-pointer border hover:shadow-lg overflow-clip"}
         >
           <img
             src={trace.image}
-            className={"border shadow-2xl"}
+            className={"border shadow-2xl h-auto"}
           />
         </div>
       )}
@@ -719,7 +731,7 @@ function EditView({
       </div>
       <div
         id="data-comics-list"
-        className={"mt-4 mx-auto w-1/3"}
+        className={"mt-4 mx-auto w-3/5"}
         onDragStart={onDragStart}
         onDragEnter={onDragEnter}
         onDragLeave={onDragLeave}
