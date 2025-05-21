@@ -97,7 +97,7 @@ function IntroductionPanel({ session }: IntroductionPanelProps) {
                 } else {
                   return (
                     <li key={item.id} className="search-result-zero__list-item">
-                      <a className="link" href={item.link}>{item.text}</a>
+                      <a className="link" href={item.link} target="_blank" rel="noopener noreferrer">{item.text}</a>
                     </li>
                   );
                 }
