@@ -6,12 +6,15 @@ import {
   MinusIcon,
   PlusIcon,
 } from '@hypothesis/frontend-shared';
-import { useCallback, useEffect, useId, useMemo, useState} from 'preact/hooks';
+import { useCallback, useEffect, useState} from 'preact/hooks';
 import classnames from 'classnames';
 import { Fragment } from 'preact';
 import type { ComponentChildren } from 'preact';
 
+import { withServices } from '../../service-context';
+import type { RecordingService } from '../../services/recording';
 import { useSidebarStore } from '../../store';
+import type { Group, RecordItem } from '../../../types/api';
 
 type IconComponent = typeof FileGenericIcon;
 
@@ -113,6 +116,7 @@ export type shareWithGroupsProps = {
    * because `FilterControls` can conditionally render nothing if no filter is
    * configured.
    */
+  recordingService: RecordingService;
   withCardContainer?: boolean;
 };
 
@@ -128,21 +132,42 @@ export type shareWithGroupsProps = {
  * This doesn't include the state of other layers of filters which have their
  * own UI controls such as search or the annotation type tabs.
  */
-export default function shareWithGroups({
+function shareWithGroups({
+  recordingService,
   withCardContainer = false,
 }: shareWithGroupsProps) {
   const store = useSidebarStore();
   const allGroups = store.allGroups();
+  const allRecordItems = store.recordItems();
 
-  const [shareWithGroups, setShareWithGroups] = useState(allGroups);
+  const focusedRecordItem = store.focusedRecordItemId();
+  const [recordItem, setRecordItem] = useState<RecordItem | null>(null);
 
-  const removeFromGroups = (id: string) => {
-    setShareWithGroups(prev => {
+  const [shareWithGroups, setShareWithGroups] = useState<Group[]>([]);
 
-      const index = prev.findIndex(item => item.id === id);
-      return prev.splice(index, 1);
-    });
-  };
+  useEffect(()=> {
+    if (focusedRecordItem) {
+      const recordItem = store.getRecordItemById(focusedRecordItem);
+      setRecordItem(recordItem);
+
+      if (recordItem && recordItem.groups) {
+        const groups = recordItem.groups
+          .map(groupId => allGroups.find(g => g.id === groupId))
+          .filter((group): group is Group => group !== undefined);
+
+        setShareWithGroups(groups);
+      }
+    }
+  }, [focusedRecordItem, recordItem, allRecordItems]);
+
+  const removeFromGroups = useCallback(async (group: Group, value: boolean) => {
+    if (recordItem) {
+      await recordingService.updateRecord(recordItem.id, {
+        group: group.id,
+        action: value ? 'add' : 'remove'
+      });
+    }
+  }, [recordItem]);
   const Container = withCardContainer ? CardContainer : Fragment;
 
   return (
@@ -157,7 +182,7 @@ export default function shareWithGroups({
             label={groupInfo.name}
             description={`Share with ${groupInfo.name}`}
             active={true}
-            setActive={() => removeFromGroups(groupInfo.id)}
+            setActive={(value) => {removeFromGroups(groupInfo, value)}}
             testId="selection-toggle"
           />
         ))}
@@ -165,3 +190,8 @@ export default function shareWithGroups({
     </Container>
   );
 }
+
+export default withServices(shareWithGroups, [
+  'recordingService',
+  'toastMessenger',
+]);

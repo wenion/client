@@ -1019,6 +1019,7 @@ export class FrameSyncService {
                 info.sessionId,
                 info.description,
                 parseInt(info.startTime),
+                [],
               );
               this._extensionRPC.call(
                 'customEvent',

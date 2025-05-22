@@ -1,51 +1,62 @@
 import { Select } from '@hypothesis/frontend-shared';
-import { useEffect, useId, useMemo, useState } from 'preact/hooks';
+import { useCallback, useEffect, useId, useState } from 'preact/hooks';
 
 import { withServices } from '../../service-context';
+import type { RecordingService } from '../../services/recording';
 import type { ToastMessengerService } from '../../services/toast-messenger';
 import { useSidebarStore } from '../../store';
 import LoadingSpinner from './LoadingSpinner';
-import type { RecordItem } from '../../../types/api';
+import type { Group, RecordItem } from '../../../types/api';
 import ShareWithGroups from './ShareWithGroups';
 
 export type ShareShareflowProps = {
   // injected
+  recordingService: RecordingService;
   toastMessenger: ToastMessengerService;
 };
 
 /**
  * Render UI for sharing annotations (by URL) within the currently-focused group
  */
-function ShareShareflow({ toastMessenger }: ShareShareflowProps) {
+function ShareShareflow({ recordingService, toastMessenger }: ShareShareflowProps) {
   const store = useSidebarStore();
   const mainFrame = store.mainFrame();
   const focusedGroup = store.focusedGroup();
+  const allRecordItems = store.recordItems();
   const allGroups = store.allGroups();
   const sharingReady = focusedGroup && mainFrame;
 
   const focusedRecordItem = store.focusedRecordItemId();
   const [recordItem, setRecordItem] = useState<RecordItem | null>(null);
+  const [availableGroups, setAvailableGroups] = useState<Group[]>([]);
 
   // Try to preselect current group
-  const [selectedGroupId, setSelectedGroupId] =
-    useState(focusedGroup?.id??null);
-  
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+
   const userSelectId = useId();
 
-  const selectedGroup = useMemo(
-    () => {
-      const group = allGroups.find(group => group.id === selectedGroupId);
-      return group?? null;
-    },
-    [allGroups, selectedGroupId],
-  );
+  const addToGroups = useCallback(async (group: Group| null) => {
+    if (recordItem && group) {
+      await recordingService.updateRecord(recordItem.id, {
+        group: group.id,
+        action: 'add'
+      });
+    }
+  }, [recordItem]);
 
   useEffect(()=> {
     if (focusedRecordItem) {
       const recordItem = store.getRecordItemById(focusedRecordItem);
       setRecordItem(recordItem);
+
+      if (recordItem && recordItem.groups) {
+        const existingGroups = recordItem.groups;
+        const groups = allGroups.filter(group => !existingGroups.includes(group.id));
+        setAvailableGroups(groups);
+        setSelectedGroup(groups.length > 0? groups[0]: null);
+      }
     }
-  }, [focusedRecordItem]);
+  }, [focusedRecordItem, recordItem, allRecordItems]);
 
   if (!sharingReady) {
     return <LoadingSpinner />;
@@ -55,21 +66,13 @@ function ShareShareflow({ toastMessenger }: ShareShareflowProps) {
     <div className="text-color-text-light space-y-3">
       {recordItem ? (
         <>
-          <div
-            className="text-color-text font-medium"
-            data-testid="sharing-intro"
-          >
-            <p>
-              Shareflow Name :<b>{recordItem.taskName}</b>
-            </p>
-          </div>
           <div className="flex flex-col gap-y-3">
             <label htmlFor={userSelectId} className="font-medium">
               Choose one or more groups to share with:
             </label>
             <Select
-              value={selectedGroupId}
-              onChange={setSelectedGroupId}
+              value={selectedGroup}
+              onChange={(group: Group | null) => addToGroups(group)}
               buttonId={userSelectId}
               buttonContent={
                 <div className="flex gap-x-2">
@@ -78,8 +81,8 @@ function ShareShareflow({ toastMessenger }: ShareShareflowProps) {
               }
               data-testid="user-select"
             >
-              {allGroups.map(groupInfo => (
-                <Select.Option key={groupInfo.id} value={groupInfo.id}>
+              {availableGroups.map(groupInfo => (
+                <Select.Option key={groupInfo.id} value={groupInfo}>
                   <div className="flex gap-x-2">
                     {groupInfo.name}
                   </div>
@@ -99,4 +102,4 @@ function ShareShareflow({ toastMessenger }: ShareShareflowProps) {
   );
 }
 
-export default withServices(ShareShareflow, ['toastMessenger']);
+export default withServices(ShareShareflow, ['recordingService', 'toastMessenger']);
