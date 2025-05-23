@@ -26,7 +26,7 @@ export class RecordingService {
   }
 
   async loadRecordItems(uri: string) {
-    const result = await this._api.recordings.list({'target_uri': uri ?? ''});
+    const result = await this._api.recordings.list({'document_uri': uri ?? ''});
     this._store.addRecordItems(result);
   }
 
