@@ -45,15 +45,15 @@ type ToastMessageTransitionClasses = {
 function ToastMessageContext({
   message,
   onDismiss,
-  callBack
-}: {message:ToastMessage; onDismiss:(id: string) => void; callBack:(arg: any) => void}) {
+  callback
+}: {message:ToastMessage; onDismiss:(id: string) => void; callback:(arg: any) => void}) {
   // Capitalize the message type for prepending; Don't prepend a message
   // type for "notice" messages
   const textStyle = applyTheme(['annotationFontFamily'], {});
   const time = "date" in message ? new Date(message.date/1000): new Date();
 
   const onClick = (e: ExtraDataComics) => {
-    callBack(e);
+    callback(e);
     setTimeout(() => onDismiss(message.id), 500);
   }
 
@@ -170,7 +170,7 @@ type ToastMessagesProps = {
   onMessageDismiss: (id: string) => void;
   transitionClasses?: ToastMessageTransitionClasses;
   setTimeout_?: typeof setTimeout;
-  callBack:(arg: any) => void;
+  callback:(arg: any) => void;
 };
 
 /**
@@ -183,7 +183,7 @@ export function ToastMessages({
   transitionClasses,
   /* istanbul ignore next - test seam */
   setTimeout_ = setTimeout,
-  callBack,
+  callback,
 }: ToastMessagesProps) {
   // List of IDs of toast messages that have been dismissed and have an
   // in-progress 'out' transition
@@ -253,7 +253,7 @@ export function ToastMessages({
               <ToastMessageContext
                 message={message}
                 onDismiss={dismissMessage}
-                callBack={callBack}
+                callback={callback}
               />
             </ToastMessageTransition>
           </li>
