@@ -1009,7 +1009,7 @@ export class FrameSyncService {
             // click confirm
             if (
               info.taskName !== '' &&
-              info.description !== '' &&
+              // info.description !== '' &&
               info.sessionId !== '' &&
               Number.isInteger(parseInt(info.startTime)) &&
               parseInt(info.startTime) <= 0
