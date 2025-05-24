@@ -1,6 +1,6 @@
 import { CaretDownIcon, CaretRightIcon } from '@hypothesis/frontend-shared';
-import classnames from 'classnames';
 
+import classnames from 'classnames';
 import type { MessageType, RawMessageData } from '../../types/api';
 import { useSidebarStore } from '../store';
 import MessageCard from './MessageCard';

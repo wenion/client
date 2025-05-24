@@ -7,7 +7,7 @@ import type { RawMessageData, MessageType } from '../../../types/api'
 import { createSelector } from 'reselect';
 
 const initialState = {
-  expandedMessagePanels: ['organization', ],
+  expandedMessagePanels: ['addition', 'shareflow', 'organization',],
   messages: [],
 } as {
   expandedMessagePanels: MessageType[];
