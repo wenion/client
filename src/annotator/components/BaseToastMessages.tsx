@@ -60,7 +60,7 @@ function ToastMessageContext({
   return (
     <Card>
       <CardHeader title={message.title} onClose={() => onDismiss(message.id)} />
-      <CardContent classes="space-y-0.5">
+      <CardContent classes="m-2">
         <StyledText>
           <MarkdownView
             markdown={message.message as string}
