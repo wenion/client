@@ -209,6 +209,7 @@ export class StreamerService {
       }
     } else if (message.type === 'instant_message') {
       console.log("receive from TAD ", message)
+      message.autoDismiss = false;
       this._toastMessenger.message([message,]);
     } else if (message.type === 'shareflow-notification') {
       this._store.updateRecordItem(message);

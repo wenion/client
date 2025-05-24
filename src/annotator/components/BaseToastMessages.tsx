@@ -191,13 +191,13 @@ export function ToastMessages({
   // Tracks not finished timeouts for auto-dismiss toast messages
   const messageSchedules = useRef(new Map());
   const dismissMessage = useCallback((id: string) => {setDismissedMessages(ids => [...ids, id])}, []);
-
+  const delayTime = 10000 // ms
   const scheduleMessageDismiss = useCallback((id: string, index: number) => {
     // index: show animation-fade-out in order
     const timeout = setTimeout_(() => {
       dismissMessage(id);
       messageSchedules.current.delete(id);
-    }, 5000 + 1000 * index);
+    }, delayTime + 1000 * index);
     messageSchedules.current.set(id, timeout);
   }, [dismissMessage, setTimeout_]);
 
