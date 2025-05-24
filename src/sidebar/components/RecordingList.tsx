@@ -224,6 +224,7 @@ export default function RecordingList({
   const filters = store.getFilterValues();
   const sortKey = store.sortKey();
   const activePanelName = store.activePanelName();
+  const allGroups = store.allGroups();
 
   const contentElement = useRef<HTMLDivElement | null>(null);
   const scollRef = useRef<HTMLDivElement | null>(null);
@@ -255,7 +256,19 @@ export default function RecordingList({
   const sortedRecordItems = useMemo(() => {
     const filter = recordItems.filter(recordItem => {
       if (query) {
-        return (recordItem.taskName.includes(query)) || (recordItem.description.includes(query));
+        const _query = query.toLowerCase();
+
+        const groups = recordItem.groups
+          .map(groupId => allGroups.find(group => group.id === groupId))
+          .filter((group): group is Group => group !== undefined);
+
+        return (
+          recordItem.taskName.toLowerCase().includes(_query) ||
+          recordItem.description.toLowerCase().includes(_query) ||
+          recordItem.userid.toLowerCase().includes(_query) ||
+          groups.some(
+            group => group.name.toLowerCase().includes(_query))
+        )
       } else {
         return true;
       }
