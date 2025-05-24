@@ -5,12 +5,20 @@ import {
   EditIcon,
   FileImageIcon,
   PlusIcon,
+  Card,
+  CardActions,
+  CardHeader,
+  CardContent,
+  Button,
+  Input,
+  Textarea,
+  Overlay,
 } from '@hypothesis/frontend-shared';
 import { IconButton, Checkbox } from '@hypothesis/frontend-shared';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState, useRef} from 'preact/hooks';
 import classnames from 'classnames';
 
-import type { RecordStep } from '../../types/api';
+import type { RecordItem, RecordStep } from '../../types/api';
 import {
   getElementHeightWithMargins,
 } from '../../sidebar/util/dom';
@@ -380,7 +388,10 @@ function EditView({
 }: EditViewProps) {
   const store = useSidebarStore();
   const recordSteps = store.recordSteps();
+  const recordItems = store.recordItems();
   const links = store.getLink("index");
+
+  const [recordItem, setRecordItem] = useState<RecordItem | null>(null);
 
   // const parentRef = useRef<HTMLDivElement | null>(null);
 
@@ -397,6 +408,10 @@ function EditView({
   const prevSourceRef = useRef(sourceIndex);
   const prevTargetRef = useRef(targetIndex);
 
+  const [popup, setPopup] = useState(false);
+  const nameEl = useRef<HTMLInputElement>();
+  const descriptionEl = useRef<HTMLTextAreaElement>();
+
   useEffect(() => {
     recordingService.getTracesById(id!);
   }, [id, links]);
@@ -406,6 +421,11 @@ function EditView({
       setSteps(recordSteps);
     }
   }, [recordSteps])
+
+  useEffect(() => {
+    const item = recordItems.find(r => r.sessionId === id);
+    setRecordItem(item??null);
+  }, [recordItems])
 
   useEffect(() => {
     if (sourceIndex !== null && targetIndex !== null) {
@@ -628,6 +648,18 @@ function EditView({
     }
   }
 
+  const onConfirm = () => {
+    if (recordItem) {
+      const description= descriptionEl.current?.value?? '';
+      const taskName = nameEl.current?.value?? '';
+      recordingService.updateRecord(recordItem.id, {
+        name: taskName,
+        description: description,
+      })
+    }
+    setPopup(false);
+  };
+
   const onToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -688,9 +720,62 @@ function EditView({
         onSave={onSave}
         isSidebar={true}
       />
+      {popup && (
+        <Overlay>
+          <div className="w-xs mb-3">
+            <Card>
+              <CardHeader title={recordItem?.taskName} onClose={() => setPopup(false)} />
+              <CardContent>
+                <div className='flex justify-between items-center px-1'>
+                  <label htmlFor='input-name' className='font-semibold mr-2'>
+                    Name
+                  </label>
+                  <div className="sm:w-56 lg:w-96">
+                    <Input
+                      elementRef={nameEl}
+                      id="input-name"
+                      aria-label="Type the title"
+                      defaultValue={recordItem?.taskName}
+                    />
+                  </div>
+                </div>
+                <div className='flex justify-between items-center px-1'>
+                  <label htmlFor='textarea-name' className='font-semibold mr-2'>
+                    Description
+                  </label>
+                  <div className="sm:w-56 lg:w-96">
+                    <Textarea
+                      elementRef={descriptionEl}
+                      id="textarea-name"
+                      aria-label="Type the title"
+                      defaultValue={recordItem?.description}
+                      rows={5}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+              <CardActions classes="m-4">
+                <Button title="Cancel" onClick={() => setPopup(false)}>
+                Cancel
+                </Button>
+                <Button title="Confirm" variant="primary" onClick={onConfirm}>
+                Confirm
+                </Button>
+              </CardActions>
+            </Card>
+          </div>
+        </Overlay>
+      )}
       <div
         className={"fixed flex ml-32 mt-4 border border-black rounded-md"}
       >
+        <IconButton
+          icon={EditIcon}
+          onClick={() => setPopup(true)}
+          size="lg"
+          title="Edit"
+          classes="text-blue-500 cursor-pointer"
+        />
         <IconButton
           icon={ArrowUpIcon}
           onClick={onToTop}
