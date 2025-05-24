@@ -1,4 +1,6 @@
 import { CaretDownIcon, CaretRightIcon } from '@hypothesis/frontend-shared';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
+
 
 import classnames from 'classnames';
 import type { MessageType, RawMessageData } from '../../types/api';
@@ -17,11 +19,33 @@ export default function MessageList({
   threads,
 }: MessageListProps) {
   const store = useSidebarStore();
+  const query = store.filterQuery();
+
   const expandedMessagePanels = store.isMessagePanelExpanded(id);
 
   const toggleMessagePanel = () => {
     store.toggleMessagePanelExpansion(id);
   }
+
+  const sortedMessages = useMemo(() => {
+    const filter = threads.filter(thread => {
+      if (query) {
+        const _query = query.toLowerCase();
+
+        const extra = thread.extra && thread.extra
+          .find(e => e.task_name.toLowerCase().includes(_query))
+
+        return (
+          thread.title?.toLowerCase().includes(_query) ||
+          thread.message.toLowerCase().includes(_query) ||
+          extra
+        )
+      } else {
+        return true;
+      }
+    });
+    return filter;
+  }, [threads, query, expandedMessagePanels]);
 
   return (
     <>
@@ -41,7 +65,7 @@ export default function MessageList({
           {title}
         </h4>
         <span className="relative bottom-[3px] left-[2px] text-[10px]">
-          {threads.length}
+          {sortedMessages.length}
         </span>
         <div className="flex justify-end grow">
           {expandedMessagePanels ? (
@@ -51,7 +75,7 @@ export default function MessageList({
           )}
         </div>
       </div>
-      {expandedMessagePanels && threads.map(child => (
+      {expandedMessagePanels && sortedMessages.map(child => (
         <div
           className={classnames(
             // The goal is to space out each annotation card vertically. Typically
