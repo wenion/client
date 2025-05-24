@@ -277,7 +277,7 @@ export class Sidebar implements Destroyable {
           interactionContext: JSON.stringify(arg),
         })
       }
-      render(<ToastMessages emitter={this._emitter} callBack={(arg)=> openDataComics(arg)}/>, this._messagesElement);
+      render(<ToastMessages emitter={this._emitter} callback={(arg)=> openDataComics(arg)}/>, this._messagesElement);
     }
 
     // Register the sidebar as a handler for Hypothesis errors in this frame.
