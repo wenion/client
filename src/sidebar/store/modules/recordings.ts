@@ -60,6 +60,10 @@ const reducers = {
       existing = state.recordItems.find(r => r.id === record.id);
 
       if (!existing) {
+        const date = new Date(record.timestamp);
+        if (date !== undefined) {
+          record.timestamp = date.getTime();
+        }
         added.push(record);
       }
     }
