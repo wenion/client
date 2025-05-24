@@ -46,7 +46,7 @@ export async function recordingPrompt({
 }> {
   const cancelButton = createRef<HTMLElement | undefined>();
   const nameEl = createRef<HTMLInputElement>();
-  const descriptionEl = createRef<HTMLInputElement>();
+  const descriptionEl = createRef<HTMLTextAreaElement>();
   const timeEl = createRef<HTMLInputElement>();
 
   let errorName =
