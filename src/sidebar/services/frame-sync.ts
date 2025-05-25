@@ -228,6 +228,8 @@ export class FrameSyncService {
   private _lastTrace: Trace | ClickTrace | KeyTrace | ScrollTrace | ChangeTrace;
   private _firstScrollTrace: ScrollTrace;
 
+  private _allowList: string[];
+
   constructor(
     $window: Window,
     annotationsService: AnnotationsService,
@@ -286,6 +288,7 @@ export class FrameSyncService {
     this._setupFeatureFlagSync();
     this._setupToastMessengerEvents();
     this._setupSyncChangeEffect();
+    this._allowList = this._store.getWhitelist();
   }
 
   private _stripHTML(input: string) {
@@ -541,6 +544,22 @@ export class FrameSyncService {
         skip = true;
       }
 
+      // temp
+      const url = new URL(trace.url);
+      const hostname = url.hostname;
+      const pass = this._allowList.some(
+        domain => {
+          return (
+            hostname === domain ||
+            hostname.endsWith("." + domain)
+          );
+      });
+      if (!pass) {
+        skip = true;
+        discard = true;
+        return;
+      }
+
       if (!skip) {
         this._streamer.send(trace);
       }
@@ -728,6 +747,14 @@ export class FrameSyncService {
       (lastOpen, prevLastOpen) => {
         this._hostRPC.call('setSidebarVisible', lastOpen);
         this._guestRPC.forEach(rpc => rpc.call('setSidebarVisible', lastOpen));
+      }
+    );
+
+    watch(
+      this._store.subscribe,
+      () => this._store.getWhitelist(),
+      (whitelist, preWhitelist) => {
+        this._allowList = whitelist;
       }
     );
 
