@@ -503,7 +503,7 @@ export type RecordItem = {
   taskName: string;
   description: string;
   groupid: string;
-  groups?: string[];
+  groups: string[];
   role: string;
   version: number;
   shared: boolean;

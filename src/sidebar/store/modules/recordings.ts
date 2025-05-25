@@ -10,6 +10,7 @@ export type State = {
   focusedRecordItemId: string | null;
   focusedStepId: string | null;
   navFocusedStepId: string | null;
+  expertStepId: string | null;
   recordItems: RecordItem[];
   recordSteps: RecordStep[];
   shouldScroll: boolean;
@@ -21,6 +22,7 @@ function initialState(): State {
     focusedRecordItemId: null,
     focusedStepId: null,
     navFocusedStepId: null,
+    expertStepId: null,
     recordItems: [],
     recordSteps: [],
     shouldScroll: true,
@@ -50,6 +52,10 @@ const reducers = {
 
   SET_NAV_FOCUSED_STEP_ID(state: State, action: { scrollToId: string | null }) {
     return { navFocusedStepId: action.scrollToId };
+  },
+
+  SET_EXPERT_STEP_ID(state: State, action: { expertStepId: string | null }) {
+    return { expertStepId: action.expertStepId };
   },
 
   ADD_RECORDITEMS(state: State, action: {recordItems: RecordItem[] }): Partial<State> {
@@ -186,6 +192,10 @@ function setNavFocusedStepId(scrollToId: string | null) {
   return makeAction(reducers, 'SET_NAV_FOCUSED_STEP_ID', {scrollToId: scrollToId});
 }
 
+function setExpertStepId(expertStepId: string | null) {
+  return makeAction(reducers, 'SET_EXPERT_STEP_ID', {expertStepId: expertStepId});
+}
+
 function addRecordItems(recordItems: RecordItem[]) {
   return makeAction(reducers, 'ADD_RECORDITEMS', {recordItems: recordItems});
 }
@@ -287,6 +297,10 @@ function getNavFocusedStepId(state: State) {
   return state.navFocusedStepId;
 }
 
+function getExpertStepId(state: State) {
+  return state.expertStepId;
+}
+
 function getRecordItemById(state: State, id: string) {
   const recordItem = state.recordItems.find(r => r.id === id);
   return recordItem?? null;
@@ -366,6 +380,7 @@ export const recordingsModule = createStoreModule(initialState, {
     setRecordTabView,
     setFocusedStepId,
     setNavFocusedStepId,
+    setExpertStepId,
     addRecordItems,
     updateRecordItem,
     clearRecordItems,
@@ -380,6 +395,7 @@ export const recordingsModule = createStoreModule(initialState, {
   selectors: {
     getFocusedStepId,
     getNavFocusedStepId,
+    getExpertStepId,
     getRecordTabView,
     getRecordItem,
     getRecordItemById,

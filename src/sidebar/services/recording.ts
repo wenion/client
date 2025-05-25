@@ -70,30 +70,7 @@ export class RecordingService {
         }
       } else {
         if (expert_step) {
-          setTimeout(() => {
-            const keyStep = this._store.getRecordStepByPk(expert_step);
-            if (keyStep) {
-              // add message
-              const expertMessage = {
-                type: 'expert_message',
-                id: generateHexString(7),
-                title: 'Got stuck?',
-                message: "The below expert step may help",
-                extra: [{
-                  pk: recordItem.id,
-                  session_id: recordItem.sessionId,
-                  task_name: recordItem.taskName,
-                  user_id: recordItem.userid,
-                  current_step: [expert_step],
-                }],
-                date: Date.now()*1000,
-                need_save_flag: true,
-                show_flag: true,
-                unread_flag: true
-              };
-              this._toastMessenger.message([expertMessage,]);
-            }
-          }, 5000);
+          this._store.setExpertStepId(expert_step);
         }
       }
 
