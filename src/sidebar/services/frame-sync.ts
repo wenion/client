@@ -288,7 +288,7 @@ export class FrameSyncService {
     this._setupFeatureFlagSync();
     this._setupToastMessengerEvents();
     this._setupSyncChangeEffect();
-    this._allowList = this._store.getWhitelist();
+    this._allowList = [];
   }
 
   private _stripHTML(input: string) {
@@ -485,8 +485,8 @@ export class FrameSyncService {
       }
 
       if (
-        trace.custom === 'go to' ||
-        trace.custom === 'switch to'
+        trace.custom.toLowerCase() === 'go to' ||
+        trace.custom === 'Switch to'
       ) {
         trace.label = trace.title === '' ? trace.url : trace.title;
       }
@@ -747,14 +747,6 @@ export class FrameSyncService {
       (lastOpen, prevLastOpen) => {
         this._hostRPC.call('setSidebarVisible', lastOpen);
         this._guestRPC.forEach(rpc => rpc.call('setSidebarVisible', lastOpen));
-      }
-    );
-
-    watch(
-      this._store.subscribe,
-      () => this._store.getWhitelist(),
-      (whitelist, preWhitelist) => {
-        this._allowList = whitelist;
       }
     );
 
@@ -1311,6 +1303,7 @@ export class FrameSyncService {
     const visible = change['highlightsVisible'];
     this._highlightsVisible = visible;
     this._guestRPC.forEach(rpc => rpc.call('setHighlightsVisible', visible));
+    this._allowList = change['whitelist']? change['whitelist'].split(", "): [];
 
     // recording - extension
     const recording = change['recording'];

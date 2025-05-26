@@ -10,6 +10,7 @@ const SYNC_HIGHLIGHTS_KEY = 'goldmind.sync.highlights';
 const SYNC_RECORDING_KEY = 'goldmind.sync.recording';
 const SYNC_RECORDING_TASK_NAME_KEY = 'goldmind.sync.recording.taskName';
 const SYNC_RECORDING_SESSION_ID_KEY = 'goldmind.sync.recording.sessionId';
+const SYNC_WHITELIST_KEY = 'goldmind.sync.whitelist';
 
 const SYNC_KEYS: Record<SyncKey, string> = {
   muted: SYNC_MUTED_KEY,
@@ -17,6 +18,7 @@ const SYNC_KEYS: Record<SyncKey, string> = {
   recording: SYNC_RECORDING_KEY,
   recordingTaskName: SYNC_RECORDING_TASK_NAME_KEY,
   recordingSessionId: SYNC_RECORDING_SESSION_ID_KEY,
+  whitelist: SYNC_WHITELIST_KEY,
 };
 
 const DEFAULT_KEYS: Record<Key, string> = {

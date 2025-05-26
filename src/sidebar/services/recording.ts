@@ -272,13 +272,13 @@ export class RecordingService {
   //   )
   // }
 
-  isInWhitelist(url?: string) {
-    if (url) {
-      const whitelist = this._store.getWhitelist();
-      return whitelist.some(whitelist => url.includes(whitelist));
-    }
-    return false;
-  }
+  // isInWhitelist(url?: string) {
+  //   if (url) {
+  //     const whitelist = this._store.getWhitelist();
+  //     return whitelist.some(whitelist => url.includes(whitelist));
+  //   }
+  //   return false;
+  // }
 
   async loadMessages() {
     // Load user account's messages
