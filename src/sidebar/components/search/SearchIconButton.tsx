@@ -7,6 +7,7 @@ import type { SidebarStore } from '../../store';
 import { useSidebarStore } from '../../store';
 import TopBarToggleButton from '../TopBarToggleButton';
 import GlobalSearchIcon from '../../../images/icons/globalSearch';
+import CloseIcon from '../../../images/icons/close';
 
 /**
  * Respond to keydown events on the document (shortcut keys):
@@ -69,7 +70,7 @@ export default function SearchIconButton() {
       {isLoading && <Spinner />}
       {!isLoading && (
         <TopBarToggleButton
-          icon={GlobalSearchIcon}
+          icon={selectedTab === 'query'? CloseIcon : GlobalSearchIcon}
           expanded={selectedTab === 'query'}
           pressed={selectedTab === 'query'}
           onClick={toggleSearchPanel}
