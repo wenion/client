@@ -2,11 +2,6 @@ import { TrashIcon, EllipsisIcon, SettingsIcon } from '@hypothesis/frontend-shar
 import { useState } from 'preact/hooks';
 import classnames from 'classnames';
 
-import { withServices } from '../service-context';
-import ModelingIcon from '../../images/icons/modeling';
-import ShareIcon from '../../images/icons/shared';
-import UnshareIcon from '../../images/icons/unshared';
-import type { RecordingService } from '../services/recording';
 import { useSidebarStore } from '../store';
 import type { RecordItem } from '../../types/api';
 
@@ -16,36 +11,25 @@ import MenuSection from './MenuSection';
 
 
 export type RecordingMenuProps = {
-  recordingService: RecordingService;
   recordItem: RecordItem;
   onDelete: (recordItem: RecordItem) => void;
 };
 
-function RecordingMenu({
-  recordingService,
+export default function RecordingMenu({
   recordItem,
   onDelete,
 }: RecordingMenuProps) {
   const store = useSidebarStore();
   const [isOpen, setOpen] = useState(false);
 
-  const onUpdate = (recordItem: RecordItem, share: boolean) => {
-    recordingService.updateRecord(
-      recordItem.id,
-      {
-        shared: share,
-      }
-    );
-  };
-
-  const onRegenerate = (recordItem: RecordItem) => {
-    recordingService.updateRecord(
-      recordItem.id,
-      {
-        regenerate: true,
-      }
-    );
-  };
+  // const onRegenerate = (recordItem: RecordItem) => {
+  //   recordingService.updateRecord(
+  //     recordItem.id,
+  //     {
+  //       regenerate: true,
+  //     }
+  //   );
+  // };
 
   const onOpen = (recordItem: RecordItem) => {
     store.setFocusedRecordItemId(recordItem.id);
@@ -77,20 +61,15 @@ function RecordingMenu({
         onOpenChanged={setOpen}
       >
         <MenuSection>
-          <MenuItem
+          {/* <MenuItem
             label='Regenerate'
             icon={ModelingIcon}
             onClick={() => onRegenerate(recordItem)}
-          />
+          /> */}
           <MenuItem
             label='Settings'
             icon={SettingsIcon}
             onClick={() => onOpen(recordItem)}
-          />
-          <MenuItem
-            label={recordItem.shared? 'Unshare' : 'Share'}
-            icon={recordItem.shared? UnshareIcon: ShareIcon}
-            onClick={() => onUpdate(recordItem, !recordItem.shared)}
           />
           <MenuItem
             label='Delete'
@@ -102,5 +81,3 @@ function RecordingMenu({
     </div>
   );
 }
-
-export default withServices(RecordingMenu, ['recordingService']);
