@@ -23,6 +23,7 @@ import SearchBar from './query/SearchBar';
 import UserMenu from './UserMenu';
 import LogoIcon from '../static/logo';
 import ExtensionIcon from '../static/extension';
+import { RecordItem } from '../../types/api';
 
 export type TopBarProps = {
   /** Flag indicating whether the app is in a sidebar context */
@@ -68,12 +69,28 @@ function TopBar({
   const hasFetchedProfile = store.hasFetchedProfile();
   const inputRef = useRef<HTMLDivElement | null>(null);
 
+  const [id, setId] = useState< null | string>(null);
+
+  useEffect(() => {
+    const url = window.location.href;
+    const queryString = url.split('?')[1] || '';
+    const params = new URLSearchParams(queryString);
+    setId(params.get('id')??null);
+    console.log("setId", id)
+  }, []);
 
   const recordItems = store.recordItems();
-  const recordSteps = store.recordSteps();
-  const [first, shareflow, id] = window.location.pathname.split("/");
+  // const recordSteps = store.recordSteps();
+  // const [first, shareflow, id] = window.location.pathname.split("/");
+  const [recordItem, setRecordItem] = useState<RecordItem | null>(null);
 
-  const recordItem = store.getRecordItemById(id);
+  useEffect(() => {
+    if (id) {
+      const r = store.getRecordItemById(id);
+      setRecordItem(r);
+    }
+  }, [id, recordItems]);
+
   const profile = store.profile();
 
   // Should this panel be auto-opened at app launch? Note that the actual
@@ -92,28 +109,38 @@ function TopBar({
   }, [profile, recordItem, recordItems])
 
   const showEdit = useMemo(() => {
-    const [first, shareflow, id] = window.location.pathname.split("/");
-    const isShareflow = shareflow === "shareflow";
+    const path = window.location.pathname;
+    const isShareflow = (path === "/shareflow" || path === "/edit");
     if (isLoggedIn && isShareflow && id) {
       return true;
     }
     return false;
-  }, [isLoggedIn]);
+  }, [isLoggedIn, id]);
 
   const displayMode = useMemo(() => {
-    if (showEdit && window.location.pathname.endsWith("/edit")) {
-      return "Save";
+    // if (showEdit && window.location.pathname.endsWith("/edit")) {
+    if (showEdit) {
+      const path = window.location.pathname;
+      if (path === "/edit") {
+        return "Save";
+      }
     }
     return "Edit";
   }, [showEdit]);
 
   const toggleEditMode = () => {
     const pathname = window.location.pathname;
+    const url = window.location.href;
+    const origin = window.location.origin;
+    const queryString = url.split('?')[1] || '';
+    const params = new URLSearchParams(queryString);
+    const id = params.get('id');
     if (pathname.endsWith('/edit')) {
-      route(pathname.slice(0, -5));
-    } else {
+      route("/shareflow?id=" + id);
+    }
+    else if (pathname.endsWith('/shareflow')) {
       // route(pathname + "/edit");
-      const url = pathname + "/edit";
+      const url = origin + "/edit?id=" + id;
       window.open(url, '_blank')
     }
   };
@@ -247,7 +274,9 @@ function TopBar({
                     onClick={
                       () => {
                         if (onSave) {
-                          onSave(id);
+                          if (id) {
+                            onSave(id);
+                          }
                         }
                       }
                     }

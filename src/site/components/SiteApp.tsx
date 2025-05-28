@@ -265,11 +265,11 @@ function SiteApp({
           onLogin={login}
           onSignUp={signUp}
           onLogout={logout} />
-        <ComicsView path="/shareflow/:id"
+        <ComicsView path="/shareflow"
           onLogin={login}
           onSignUp={signUp}
           onLogout={logout} />
-        <EditView path="/shareflow/:id/edit"
+        <EditView path="/edit"
           onLogin={login}
           onSignUp={signUp}
           onLogout={logout} />

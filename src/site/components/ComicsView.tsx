@@ -24,7 +24,6 @@ type ComicsViewProps = {
   onSignUp: () => void;
   session: SessionService;
   recordingService: RecordingService;
-  id?: string;
 };
 
 /**
@@ -40,14 +39,24 @@ function ComicsView({
   onSignUp,
   session,
   recordingService,
-  id,
 }: ComicsViewProps) {
   const store = useSidebarStore();
   const recordSteps = store.recordSteps();
   const links = store.getLink("index");
 
+  const [id, setId] = useState< null | string>(null);
+
   useEffect(() => {
-    recordingService.getTracesById(id!);
+    const url = window.location.href;
+    const queryString = url.split('?')[1] || '';
+    const params = new URLSearchParams(queryString);
+    setId(params.get('id')??null);
+  }, []);
+
+  useEffect(() => {
+    if (id) {
+      recordingService.getTracesById(id);
+    }
   }, [id, links]);
 
   const [imageThreads, setImageThreads] = useState(() => new Map());

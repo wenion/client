@@ -368,7 +368,6 @@ type EditViewProps = {
   onSignUp: () => void;
   session: SessionService;
   recordingService: RecordingService;
-  id?: string;
 };
 
 /**
@@ -384,12 +383,20 @@ function EditView({
   onSignUp,
   session,
   recordingService,
-  id,
 }: EditViewProps) {
   const store = useSidebarStore();
   const recordSteps = store.recordSteps();
   const recordItems = store.recordItems();
   const links = store.getLink("index");
+
+  const [id, setId] = useState< null | string>(null);
+
+  useEffect(() => {
+    const url = (window.location.href);
+    const queryString = url.split('?')[1] || '';
+    const params = new URLSearchParams(queryString);
+    setId(params.get('id')??null);
+  }, [])
 
   const [recordItem, setRecordItem] = useState<RecordItem | null>(null);
 
@@ -413,7 +420,9 @@ function EditView({
   const descriptionEl = useRef<HTMLTextAreaElement>();
 
   useEffect(() => {
-    recordingService.getTracesById(id!);
+    if (id) {
+      recordingService.getTracesById(id);
+    }
   }, [id, links]);
 
   useEffect(()=> {
