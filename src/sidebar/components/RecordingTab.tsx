@@ -50,8 +50,9 @@ function RecordingTab({
 
   const onPageOpen = (recordItem: RecordItem, recordSteps: RecordStep[], topThread: RecordStep) => {
     const url = store.getLink('home');
-    const pathname = "/shareflow/" + recordItem.id;
-    window.open(url + pathname, "_blank");
+    const fillUrl = new URL("/shareflow", url);
+    fillUrl.searchParams.set('id', recordItem.id);
+    window.open(fillUrl.toString(), "_blank");
   }
 
   const onOpen = (record: RecordItem) => {
