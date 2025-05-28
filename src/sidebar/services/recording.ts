@@ -2,6 +2,7 @@ import { extractHostURL } from '../../shared/custom';
 import { generateHexString } from '../../shared/random';
 import type { SidebarStore } from '../store';
 import type { APIService } from './api';
+import type { RecordStep } from '../../types/api';
 import type { ToastMessengerService } from './toast-messenger';
 
 /**
@@ -25,7 +26,7 @@ export class RecordingService {
   }
 
   async loadRecordItems(uri: string) {
-    const result = await this._api.recordings.list({'target_uri': uri ?? ''});
+    const result = await this._api.recordings.list({'document_uri': uri ?? ''});
     this._store.addRecordItems(result);
   }
 
@@ -33,11 +34,7 @@ export class RecordingService {
     this._store.clearRecordItems();
   }
 
-  async saveTraces(id: string) {
-    const updates = this._store.recordSteps();
-    updates.map(step => {
-      step.id = step.id.replace(/^tr/, "");
-    });
+  async saveTraces(id: string, updates: RecordStep[]) {
     this._store.clearRecordSteps();
     const results = await this._api.traces.update({id: id}, updates);
     this._store.addRecordSteps(results);
@@ -73,30 +70,7 @@ export class RecordingService {
         }
       } else {
         if (expert_step) {
-          setTimeout(() => {
-            const keyStep = this._store.getRecordStepByPk(expert_step);
-            if (keyStep) {
-              // add message
-              const expertMessage = {
-                type: 'expert_message',
-                id: generateHexString(7),
-                title: 'Got stuck?',
-                message: "The below expert step may help",
-                extra: [{
-                  pk: recordItem.id,
-                  session_id: recordItem.sessionId,
-                  task_name: recordItem.taskName,
-                  user_id: recordItem.userid,
-                  current_step: [expert_step],
-                }],
-                date: Date.now()*1000,
-                need_save_flag: true,
-                show_flag: true,
-                unread_flag: true
-              };
-              this._toastMessenger.message([expertMessage,]);
-            }
-          }, 5000);
+          this._store.setExpertStepId(expert_step);
         }
       }
 
@@ -196,6 +170,7 @@ export class RecordingService {
     sessionId: string,
     description: string,
     backdate: number,
+    groups: string[],
   ) {
     const result = await this._api.recording.create({}, {
       sessionId: sessionId,
@@ -203,6 +178,7 @@ export class RecordingService {
       description: description,
       startstamp: Date.now(),
       backdate: backdate,
+      groups: groups,
     });
     this._store.addRecordItems([result]);
     this.updateSyncRecording(true, result.id, result.taskName);
@@ -234,13 +210,21 @@ export class RecordingService {
         options
       );
       this._store.updateRecordItem(recordItem);
-      this._toastMessenger.success(recordItem.taskName + 'is updated! ');
+      this._toastMessenger.success(recordItem.taskName + ' is updated!');
     } catch (err) {
       if (err.response.status === 404) {
         this._toastMessenger.error('Error: '+ err.response.status);
       }
     }
   }
+
+  async toggleRecordPin(id: string, value: boolean) {
+    const recordItem = await this._api.recording.update(
+      { id: id },
+      { pin: value }
+    );
+    this._store.setDefault('focusedShareflow', value ? recordItem.id : null);
+  };
 
   async deleteRecord(id: string) {
     await this._api.recording.delete({ id: id });
@@ -288,13 +272,13 @@ export class RecordingService {
   //   )
   // }
 
-  isInWhitelist(url?: string) {
-    if (url) {
-      const whitelist = this._store.getWhitelist();
-      return whitelist.some(whitelist => url.includes(whitelist));
-    }
-    return false;
-  }
+  // isInWhitelist(url?: string) {
+  //   if (url) {
+  //     const whitelist = this._store.getWhitelist();
+  //     return whitelist.some(whitelist => url.includes(whitelist));
+  //   }
+  //   return false;
+  // }
 
   async loadMessages() {
     // Load user account's messages

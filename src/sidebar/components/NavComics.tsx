@@ -1,4 +1,4 @@
-import { useRef } from 'preact/hooks';
+import { useEffect, useRef } from 'preact/hooks';
 import classnames from 'classnames';
 
 import type { RecordItem, RecordStep } from '../../types/api';
@@ -24,11 +24,12 @@ export default function NavComics({
 }: NavComicsProps) {
   const store = useSidebarStore();
   const scollRef = useRef<HTMLDivElement | null>(null);
+  const focusedStepId = store.getNavFocusedStepId();
 
   const navs = steps.filter(step => step.tagName === "Navigate" || step.tagName === "Switch");
 
-  const onNavClick = (step: RecordStep) => {
-    onClick(step);
+  const onNavClick = (step: RecordStep, index: number) => {
+    onClick(step, index);
     const threadIndex = navs.findIndex(t => t.id === step.id);
     if (threadIndex === -1) {
       return;
@@ -50,6 +51,7 @@ export default function NavComics({
     }
   };
 
+  // For segmentation shareflow
   const onSectionClick = (index: number, id: string) => {
     const recordStep = store.getRecordStepById(id);
     if (!recordStep) {
@@ -60,11 +62,11 @@ export default function NavComics({
     let xOffset = 0;
     for (let i = 0; i < index; i++) {
       // 32 is the arrow's width
-      xOffset = xOffset + getElementWidthWithMargins(document.getElementById("nav" + index)!) + 32;
+      xOffset = xOffset + getElementWidthWithMargins(document.getElementById("nav" + id)!) + 32;
     }
     const scrollLength = getElementWidthWithMargins(scollRef.current!);
     const scrollLeft = scollRef.current!.scrollLeft;
-    const xRightOffset = xOffset + getElementWidthWithMargins(document.getElementById("nav"+ index)!);
+    const xRightOffset = xOffset + getElementWidthWithMargins(document.getElementById("nav"+ id)!);
 
     if (xRightOffset - scrollLeft > scrollLength || xOffset - scrollLeft < 0) {
       scollRef.current!.scrollTo({
@@ -73,6 +75,25 @@ export default function NavComics({
       });
     }
   };
+
+  useEffect(()=> {
+    let targetIndex = steps.findIndex(step => step.id === focusedStepId);
+    if (targetIndex === -1) {
+      return;
+    }
+
+    let target = document.getElementById("nav" + focusedStepId);
+
+    while(!target && targetIndex > 0) {
+      targetIndex = targetIndex - 1;
+      const step = steps[targetIndex];
+      target = document.getElementById("nav" + step.id);
+    }
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    }
+  }, [focusedStepId])
+
 
   const onWheelEvent = (e: WheelEvent) => {
     e.preventDefault();
@@ -125,7 +146,7 @@ export default function NavComics({
             return (
               <>
                 <div
-                  id={"nav" + index}
+                  id={"nav" + item.steps_id[0]}
                   className={classnames(
                     "rounded-xl border border-gray-400",
                     "hover:shadow-lg",
@@ -140,7 +161,7 @@ export default function NavComics({
                   title={item.description}
                   onClick={() => onSectionClick(index, item.steps_id[0])}
                 >
-                  <b>{capitalizeFirstLetter(item.title)}</b>
+                  <b>{index + 1}. {capitalizeFirstLetter(item.title)}</b>
                 </div>
                 {index !== recordItem.extra?.sections.length! - 1 && (
                   <div
@@ -174,9 +195,9 @@ export default function NavComics({
                   "px-4 m-2",     // Add padding for better spacing
                 )}
                 title={step.description ?? step.url}
-                onClick={() => onNavClick(step)}
+                onClick={() => onNavClick(step, index)}
               >
-                <b>{capitalizeFirstLetter(step.title)}:</b>{" "}{step.description ?? step.url}
+                <b>{index + 1}. {capitalizeFirstLetter(step.title)}:</b>{" "}{step.description ?? step.url}
               </div>
               {index !== navs.length - 1 && (
                 <div

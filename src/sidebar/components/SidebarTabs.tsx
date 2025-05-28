@@ -26,6 +26,7 @@ import QueryTab from './QueryTab';
 import ChatUiTab from './ChatUiTab';
 import RecordingTab from './RecordingTab';
 import SearchBar from './search/SearchBar';
+import FloatingPanel from './FloatingPanel';
 
 const idForTab = (name: TabName) => `${name}-tab`;
 const idForPanel = (name: TabName) => `${name}-panel`;
@@ -165,6 +166,7 @@ function SidebarTabs({
       <div aria-live="polite" role="status" className="sr-only">
         {tabCountsSummary}
       </div>
+      <FloatingPanel/>
       <div
         className={classnames(
           // 9px balances out the space above the tabs

@@ -9,6 +9,8 @@ export type State = {
   tabView: 'list' | 'ongoing' | string;
   focusedRecordItemId: string | null;
   focusedStepId: string | null;
+  navFocusedStepId: string | null;
+  expertStepId: string | null;
   recordItems: RecordItem[];
   recordSteps: RecordStep[];
   shouldScroll: boolean;
@@ -19,6 +21,8 @@ function initialState(): State {
     tabView: 'list',
     focusedRecordItemId: null,
     focusedStepId: null,
+    navFocusedStepId: null,
+    expertStepId: null,
     recordItems: [],
     recordSteps: [],
     shouldScroll: true,
@@ -46,6 +50,14 @@ const reducers = {
     return { focusedStepId: action.scrollToId };
   },
 
+  SET_NAV_FOCUSED_STEP_ID(state: State, action: { scrollToId: string | null }) {
+    return { navFocusedStepId: action.scrollToId };
+  },
+
+  SET_EXPERT_STEP_ID(state: State, action: { expertStepId: string | null }) {
+    return { expertStepId: action.expertStepId };
+  },
+
   ADD_RECORDITEMS(state: State, action: {recordItems: RecordItem[] }): Partial<State> {
     const added = [];
 
@@ -54,6 +66,10 @@ const reducers = {
       existing = state.recordItems.find(r => r.id === record.id);
 
       if (!existing) {
+        const date = new Date(record.timestamp);
+        if (date !== undefined) {
+          record.timestamp = date.getTime();
+        }
         added.push(record);
       }
     }
@@ -172,6 +188,14 @@ function setFocusedStepId(scrollToId: string | null) {
   return makeAction(reducers, 'SET_FOCUSED_STEP_ID', {scrollToId: scrollToId});
 }
 
+function setNavFocusedStepId(scrollToId: string | null) {
+  return makeAction(reducers, 'SET_NAV_FOCUSED_STEP_ID', {scrollToId: scrollToId});
+}
+
+function setExpertStepId(expertStepId: string | null) {
+  return makeAction(reducers, 'SET_EXPERT_STEP_ID', {expertStepId: expertStepId});
+}
+
 function addRecordItems(recordItems: RecordItem[]) {
   return makeAction(reducers, 'ADD_RECORDITEMS', {recordItems: recordItems});
 }
@@ -269,6 +293,14 @@ function getFocusedStepId(state: State) {
   return state.focusedStepId;
 }
 
+function getNavFocusedStepId(state: State) {
+  return state.navFocusedStepId;
+}
+
+function getExpertStepId(state: State) {
+  return state.expertStepId;
+}
+
 function getRecordItemById(state: State, id: string) {
   const recordItem = state.recordItems.find(r => r.id === id);
   return recordItem?? null;
@@ -347,6 +379,8 @@ export const recordingsModule = createStoreModule(initialState, {
   actionCreators: {
     setRecordTabView,
     setFocusedStepId,
+    setNavFocusedStepId,
+    setExpertStepId,
     addRecordItems,
     updateRecordItem,
     clearRecordItems,
@@ -360,6 +394,8 @@ export const recordingsModule = createStoreModule(initialState, {
   },
   selectors: {
     getFocusedStepId,
+    getNavFocusedStepId,
+    getExpertStepId,
     getRecordTabView,
     getRecordItem,
     getRecordItemById,

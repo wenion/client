@@ -95,12 +95,12 @@ function Thread({ thread, queryService}: ThreadProps) {
         >
           {thread.title}
         </h1>
-        <div
+        {/* <div
           className="grow-0 p-4 cursor-pointer"
           onClick={ e => { queryService.setBookmark(thread.id, !thread.isBookmark) }}
         >
           { thread.isBookmark ? <BookmarkFilledIcon /> : <BookmarkIcon />}
-        </div>
+        </div> */}
         <div className="grow-0 p-4 cursor-pointer" onClick={ e => { onClickExpand() }}>
           { isExpanded ? <MenuCollapseIcon /> : <MenuExpandIcon />}
         </div>

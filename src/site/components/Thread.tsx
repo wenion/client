@@ -74,9 +74,9 @@ function Thread({ thread, queryService}: ThreadProps) {
         >
           {thread.title}
         </h1>
-        <div className="grow-0 p-4 finger-cursor" onClick={ e => { queryService.setBookmark(thread.id, !thread.isBookmark) }}>
+        {/* <div className="grow-0 p-4 finger-cursor" onClick={ e => { queryService.setBookmark(thread.id, !thread.isBookmark) }}>
           { thread.isBookmark ? <BookmarkFilledIcon /> : <BookmarkIcon />}
-        </div>
+        </div> */}
         <div className="grow-0 p-4 finger-cursor" onClick={ e => { onClickExpand() }}>
           { isExpanded ? <MenuCollapseIcon /> : <MenuExpandIcon />}
         </div>

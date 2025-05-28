@@ -12,7 +12,6 @@ import LoginPromptPanel from './LoginPromptPanel';
 import PendingUpdatesNotification from './PendingUpdatesNotification';
 import SidebarContentError from './SidebarContentError';
 import SidebarTabs from './SidebarTabs';
-import FilterControls from './search/FilterControls';
 
 export type SidebarViewProps = {
   onLogin: () => void;

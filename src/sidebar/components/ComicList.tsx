@@ -26,7 +26,7 @@ import {
   getElementHeightWithMargins,
   getElementWidthWithMargins,
 } from '../util/dom';
-import { ComicHeader, ComicItem, ImageComicsCard, TextComicsCard} from './ComicsCard';
+import { ComicHeader, ComicItem, ImageComicCard, TextComicCard} from './ComicCard';
 import NavComics from './NavComics';
 
 // The precision of the `scrollPosition` value in pixels; values will be rounded
@@ -102,6 +102,7 @@ function calculateFirstVisibleThread(
 export type ComicListProps = {
   onOpen: (recordItem: RecordItem, recordSteps: RecordStep[], top: RecordStep) => void;
   onClose: (id: string) => void;
+  onPin: (recordItem: RecordItem, value: boolean) => void;
   onRefreshStep: (record: string | null, recordStep: string | null) => void;
 
   frameSync: FrameSyncService;
@@ -110,9 +111,10 @@ export type ComicListProps = {
 /**
  * Create the iframe that will load the notebook application.
  */
-function ComicsList({
+function ComicList({
   onOpen,
   onClose,
+  onPin,
   onRefreshStep,
   frameSync,
 }: ComicListProps) {
@@ -123,16 +125,8 @@ function ComicsList({
   const shouldScroll = store.getShouldScroll();
   const activePanelName = store.activePanelName();
 
-  const focusedShareflowInfo = store.getDefault('focusedShareflow');
-  const isPin = !(focusedShareflowInfo === 'null' || !focusedShareflowInfo);
-
-  const pinOn = (value: Record<string, string | null>) => {
-    store.setDefault('focusedShareflow', JSON.stringify(value));
-  }
-
-  const pinOff = () => {
-    store.setDefault('focusedShareflow', null);
-  }
+  const focusedShareflow = store.getDefault('focusedShareflow');
+  const isPin = !(focusedShareflow === 'null' || !focusedShareflow);
 
   const headerElement = useRef<HTMLDivElement | null>(null);
   const contentElement = useRef<HTMLDivElement | null>(null);
@@ -231,12 +225,18 @@ function ComicsList({
   const allLoaded = useMemo(
     () => {
       let load = true;
+      const threads = topLevelThreads.filter(item => item.image);
+      if (threads.length > 0 && imageThreads.size === 0) {
+        setImageThreads(new Map(threads.map(item => [item.id, false])));
+        return false;
+      }
+
       imageThreads.forEach((value) => {
         load = load && value; // Check if all values are truthy
       });
       return load;
     },
-    [imageThreads]
+    [imageThreads, topLevelThreads]
   );
 
   const onMouseLeave = () => {
@@ -246,13 +246,17 @@ function ComicsList({
     previousTopThreadRef.current = topThread;
   }
 
+  const onComicClick = (id: string) => {
+    store.setNavFocusedStepId(id);
+  }
+
   const onDblClick = (id: string) => {
     frameSync.notifyHost('openImageViewer', {id: id, timeLineList: recordSteps});
   }
 
   const getComicsNavElementHeightById = (id: number): number => {
     const ele =
-      document.querySelector(`.data-comics-nav[data-id="${id}"]`) as HTMLDivElement | null;
+      document.querySelector(`[class="data-comics-nav"][data-id="${id}"]`) as HTMLDivElement | null;
     return ele ? getElementHeightWithMargins(ele) : 0;
   }
 
@@ -302,7 +306,6 @@ function ComicsList({
       return;
     }
 
-    const topThreadId = topThread?.id || null;
     if (firstRender) {
       // if (topThreadId !== focusedStepId) {
       //   if (!allLoaded) {
@@ -315,6 +318,7 @@ function ComicsList({
       // }
       return;
     }
+    const topThreadId = topThread?.id || null;
 
     if (topThreadId !== focusedStepId) {
       if (unreachableThreads.some(r => r.id === focusedStepId)) {
@@ -335,12 +339,24 @@ function ComicsList({
     }
   }, [focusedStepId, threadHeights, topThread, shouldScroll, firstRender, allLoaded])
 
+  const onLoaded = (id: string, value:boolean) => {
+    setImageThreads(prevThreads => {
+      const changedThreads = new Map();
+      if (prevThreads.has(id)) {
+        changedThreads.set(id, value);
+      }
+      return new Map([...prevThreads, ...changedThreads]);
+    });
+  };
+
   // When the set of TimelineCard height changes, recalculate the real rendered
   // heights of thread cards and update `threadHeights` state if there are changes.
   const onRendered = useCallback((id: string) => {
-    const imageId = 'img' + id;
-    const threadElement = document.getElementById(id)!;
-    const imageElement = document.getElementById(imageId);
+    const threadElements = Array.from(document.querySelectorAll(`[id="${id}"]`));
+
+    const threadElement = threadElements.find(el =>
+      el.className === 'data-comics-item'|| el.className === 'data-comics-item data-comics-nav'
+    );
 
     setThreadHeights(prevHeights => {
       const changedHeights = new Map();
@@ -381,18 +397,6 @@ function ComicsList({
       return new Map([...prevHeights, ...changedHeights]);
     });
 
-    setImageThreads(prevThreads => {
-      const changedThreads = new Map();
-      if (imageElement) {
-        if (prevThreads.has(imageId)) {
-          changedThreads.set(imageId, true);
-        } else {
-          changedThreads.set(imageId, false);
-        }
-      }
-      return new Map([...prevThreads, ...changedThreads]);
-    });
-
     updateContentSize();
   }, []);
 
@@ -424,7 +428,7 @@ function ComicsList({
             <Button
               classes={classnames('flex-none', 'border-black')}
               onClick={() => {
-                isPin? pinOff(): pinOn({id: recordItem?.id?? null, scrollToId: focusedStepId})
+                isPin? onPin(recordItem!, false): onPin(recordItem!, true)
               }}
             >
               {isPin? (<PinFilledIcon className={classnames("text-brand")} />): (<PinIcon />)}
@@ -479,6 +483,8 @@ function ComicsList({
                     <div
                       className={classnames("data-comics-nav")}
                       data-id={index}
+                      id={item.steps_id[0]}
+                      onClick={() => onComicClick(item.steps_id[0])}
                       title={item.title}
                     >
                       <div
@@ -514,6 +520,7 @@ function ComicsList({
                               dataId={dataId}
                               trace={step}
                               onElementSizeChanged={onRendered}
+                              onClick={onComicClick}
                               classes={classnames({ "data-comics-nav": navId !== 1 })}
                             />
                           )
@@ -540,9 +547,11 @@ function ComicsList({
                           n = n + accumulated;
                           dataId++;
                           return (
-                            <ImageComicsCard
+                            <ImageComicCard
                               onImageClick={(id) => onDblClick(id)}
                               onElementSizeChanged={onRendered}
+                              onLoaded={onLoaded}
+                              onClick={onComicClick}
                               step={step}
                               dataId={dataId}
                             >
@@ -555,7 +564,7 @@ function ComicsList({
                                   />
                                 ) : (<></>)
                               )}
-                            </ImageComicsCard>
+                            </ImageComicCard>
                           )
                         } else {
                           let start = n;
@@ -579,9 +588,10 @@ function ComicsList({
                           n = n + accumulated;
                           dataId++;
                           return (
-                            <TextComicsCard
+                            <TextComicCard
                               step={step}
                               dataId={dataId}
+                              onClick={onComicClick}
                             >
                               {subSteps.slice(start, start + accumulated).map(s =>
                                 s ? (
@@ -593,7 +603,7 @@ function ComicsList({
                                   />
                                 ) : (<></>)
                               )}
-                            </TextComicsCard>
+                            </TextComicCard>
                           )
                         }
                       }
@@ -624,6 +634,7 @@ function ComicsList({
                           dataId={dataId}
                           trace={step}
                           onElementSizeChanged={onRendered}
+                          onClick={onComicClick}
                           classes={classnames({ "data-comics-nav": navId !== 1 })}
                         />
                       </>
@@ -647,9 +658,11 @@ function ComicsList({
                     n = n + accumulated + 1;
                     dataId++;
                     return (
-                      <ImageComicsCard
+                      <ImageComicCard
                         onImageClick={(id) => onDblClick(id)}
+                        onLoaded={onLoaded}
                         onElementSizeChanged={onRendered}
+                        onClick={onComicClick}
                         step={step}
                         dataId={dataId}
                       >
@@ -660,7 +673,7 @@ function ComicsList({
                             onElementSizeChanged={onRendered}
                           />
                         )}
-                      </ImageComicsCard>
+                      </ImageComicCard>
                     )
                   } else {
                     let accumulated = 0;
@@ -680,9 +693,10 @@ function ComicsList({
                     n = n + accumulated + 1;
                     dataId++;
                     return (
-                      <TextComicsCard
+                      <TextComicCard
                         step={step}
                         dataId={dataId}
+                        onClick={onComicClick}
                       >
                         {recordSteps.slice(index, index + accumulated + 1).map(s =>
                           <ComicItem
@@ -692,7 +706,7 @@ function ComicsList({
                             classes='mr-0.5'
                           />
                         )}
-                      </TextComicsCard>
+                      </TextComicCard>
                     )
                   }
                 }
@@ -706,4 +720,4 @@ function ComicsList({
   );
 }
 
-export default withServices(ComicsList, ['frameSync']);
+export default withServices(ComicList, ['frameSync']);

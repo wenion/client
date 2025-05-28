@@ -21,6 +21,7 @@ export type State = {
   recordingTaskName: string | null;
   recordingSessionId: string | null;
   tab: string | null;
+  whitelist: string;
 };
 
 export type Key = keyof State;
@@ -32,6 +33,7 @@ const initialState: State = {
   recordingTaskName: null,
   recordingSessionId: null,
   tab: null,
+  whitelist: '',
 };
 
 const reducers = {

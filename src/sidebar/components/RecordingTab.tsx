@@ -8,7 +8,7 @@ import { useSidebarStore } from '../store';
 import ActionList from './ActionList';
 import RecordingList from './RecordingList';
 import TimelineList from './TimelineList';
-import ComicList from './ComicsList';
+import ComicList from './ComicList';
 import type { RecordItem, RecordStep } from '../../types/api';
 
 type RecordingTabProps = {
@@ -67,7 +67,16 @@ function RecordingTab({
     setLastId(id);
     recordingService.selectRecordTabView('list');
     recordingService.updateTracking();
+
+    const hasFocused = store.getDefault('focusedShareflow');
+    if (hasFocused) {
+      recordingService.toggleRecordPin(id, false);
+    }
   };
+
+  const onPin = (recordItem: RecordItem, value: boolean) => {
+    recordingService.toggleRecordPin(recordItem.id, value);
+  }
 
   const onDelete = async (recordItem: RecordItem) => {
     if (
@@ -105,6 +114,7 @@ function RecordingTab({
         <ComicList
           onOpen={onPageOpen}
           onClose={onClose}
+          onPin={onPin}
           onRefreshStep={onRefreshStep}
         />
       )}

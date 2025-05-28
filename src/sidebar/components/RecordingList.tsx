@@ -3,6 +3,7 @@ import {
   Card,
   CardContent,
   EllipsisIcon,
+  FileGenericIcon,
   PreviewIcon,
   RadioCheckedIcon,
 } from '@hypothesis/frontend-shared';
@@ -12,7 +13,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/ho
 
 import { ListenerCollection } from '../../shared/listener-collection';
 import { useSidebarStore } from '../store';
-import type { RecordItem } from '../../types/api';
+import type { Group, RecordItem } from '../../types/api';
 import { getElementHeightWithMargins } from '../util/dom';
 import { formatRelativeDate } from '../util/time';
 import Slider from './Slider'
@@ -49,6 +50,53 @@ function Tag({
   )
 }
 
+type FilterToggleProps = {
+  /** A short description of what the filter matches (eg. "Pages 10-20") */
+  label: string;
+
+  /**
+   * A longer description of what the filter matches (eg. "Show annotations
+   * on pages 10-20").
+   */
+  description: string;
+
+  url?: string;
+
+  /** Is the filter currently active? */
+  active: boolean;
+
+  testId?: string;
+
+  // disabled?: boolean;
+};
+
+function FilterToggle({
+  label,
+  description,
+  url,
+  active = true,
+  testId,
+}: FilterToggleProps) {
+  return (
+    <Button
+      data-testid={testId}
+      classes={classnames({
+        // Compared to our regular buttons, these have less vertical padding,
+        // stronger rounding and slightly thinner text.
+        'font-medium rounded-lg py-1': true,
+        'text-grey-1 bg-grey-5': active,
+        // 'text-grey-1 bg-grey-7': active,
+        // 'opacity-50': disabled,
+      })}
+      variant="custom"
+      title={description}
+      onClick={() => window.open(url, "_blank")}
+    >
+      <span className="max-w-36 truncate">{label}</span>
+    </Button>
+  );
+}
+
 export type RecordingSliderProps = {
   recordItem: RecordItem;
   isSubmenuVisible?: boolean;
@@ -59,16 +107,33 @@ function RecordingSlider({
   recordItem,
   isSubmenuVisible,
 }: RecordingSliderProps) {
+  const store = useSidebarStore();
+  const allGroups = store.allGroups();
+
   const now = new Date();
   const createdDate = new Date(recordItem.timestamp);
+
+  const [shareWithGroups, setShareWithGroups] = useState<Group[]>([]);
+
+  useEffect(()=>{
+    if (recordItem && recordItem.groups) {
+      const groups = recordItem.groups
+        .map(groupId => allGroups.find(g => g.id === groupId))
+        .filter((group): group is Group => group !== undefined);
+
+      setShareWithGroups(groups);
+    }
+  }, [recordItem, allGroups])
 
   return (
     <Slider direction={isSubmenuVisible ? 'in' : 'out'}>
       <Card>
         <CardContent>
-          Description:
-          <div title={recordItem.description}>
-            <h5 className="word-break-word hyphens-auto">{recordItem.description}</h5>
+          <div>
+            <b>Description:</b>
+            <div title={recordItem.description}>
+              <p className="word-break-word hyphens-auto indent-2">{recordItem.description}</p>
+            </div>
           </div>
           <div class="grid grid-cols-3 gap-4">
             <div>
@@ -84,6 +149,23 @@ function RecordingSlider({
               <div class="text-blue-700">{formatRelativeDate(createdDate, now)}</div>
             </div>
           </div>
+          {shareWithGroups.length > 0 && (
+            <div
+              className="flex flex-row flex-wrap gap-2 items-center"
+              data-testid="filter-controls"
+            >
+              <b>Currently shared with:</b>
+              {shareWithGroups.map(groupInfo => (
+                <FilterToggle
+                  label={groupInfo.name}
+                  description={`Share with ${groupInfo.name}`}
+                  url={groupInfo.links.html}
+                  active={true}
+                  testId="selection-toggle"
+                />
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </Slider>
@@ -142,6 +224,7 @@ export default function RecordingList({
   const filters = store.getFilterValues();
   const sortKey = store.sortKey();
   const activePanelName = store.activePanelName();
+  const allGroups = store.allGroups();
 
   const contentElement = useRef<HTMLDivElement | null>(null);
   const scollRef = useRef<HTMLDivElement | null>(null);
@@ -173,7 +256,19 @@ export default function RecordingList({
   const sortedRecordItems = useMemo(() => {
     const filter = recordItems.filter(recordItem => {
       if (query) {
-        return (recordItem.taskName.includes(query)) || (recordItem.description.includes(query));
+        const _query = query.toLowerCase();
+
+        const groups = recordItem.groups
+          .map(groupId => allGroups.find(group => group.id === groupId))
+          .filter((group): group is Group => group !== undefined);
+
+        return (
+          recordItem.taskName.toLowerCase().includes(_query) ||
+          recordItem.description.toLowerCase().includes(_query) ||
+          recordItem.userid.toLowerCase().includes(_query) ||
+          groups.some(
+            group => group.name.toLowerCase().includes(_query))
+        )
       } else {
         return true;
       }
@@ -297,7 +392,7 @@ export default function RecordingList({
               <span>{record.taskName}</span>
             </div>
             <div className="flex items-center justify-end grow">
-              {!!record.shared && (
+              {record.groups && record.groups.length !== 0 && (
                 <Tag
                   sharedby={userid !== record.userid}
                   tag={userid === record.userid? "shared" : getUserName(record.userid!)}

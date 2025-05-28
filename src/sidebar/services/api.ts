@@ -273,7 +273,7 @@ export class APIService {
     create: APICall<Record<string, unknown>, Partial<RecordItemParams>, RecordItem>;
     delete: APICall<IDParam>;
     get: APICall<IDParam, void, RecordItem>;
-    update: APICall<IDParam, Partial<RecordItemParams>, RecordItem>;
+    update: APICall<IDParam, Partial<RecordItemParams & {pin: boolean}>, RecordItem>;
   };
   recordings: {
     list: APICall<Record<string, unknown>, void, RecordItem[]>;
@@ -424,7 +424,7 @@ export class APIService {
       get: apiCall('recording.read') as APICall<IDParam, void, RecordItem>,
       update: apiCall('recording.update') as APICall<
         IDParam,
-        Partial<RecordItem>,
+        Partial<RecordItem & {pin: boolean}>,
         RecordItem
       >,
     };

@@ -486,6 +486,7 @@ export type RecordItemParams = {
   targetUri: string;
   backdate: number;
   groupid: string;
+  groups?: string[];
   shared: boolean;
 };
 
@@ -502,6 +503,7 @@ export type RecordItem = {
   taskName: string;
   description: string;
   groupid: string;
+  groups: string[];
   role: string;
   version: number;
   shared: boolean;

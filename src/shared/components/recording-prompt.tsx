@@ -46,13 +46,13 @@ export async function recordingPrompt({
 }> {
   const cancelButton = createRef<HTMLElement | undefined>();
   const nameEl = createRef<HTMLInputElement>();
-  const descriptionEl = createRef<HTMLInputElement>();
+  const descriptionEl = createRef<HTMLTextAreaElement>();
   const timeEl = createRef<HTMLInputElement>();
 
   let errorName =
     message.init ? false : message.name.trim() === '' ? true : false;
-  let errorDescription =
-    message.init ? false : message.description.trim() === '' ? true : false;
+  // let errorDescription =
+  //   message.init ? false : message.description.trim() === '' ? true : false;
   let errorTime = 
     message.init ? false : message.startTime > 0 ? true : false;
 
@@ -131,7 +131,7 @@ export async function recordingPrompt({
             <Textarea
               elementRef={descriptionEl}
               aria-label="Enter the description"
-              feedback={errorDescription ? "error": undefined}
+              // feedback={errorDescription ? "error": undefined}
               defaultValue={message.description}
               rows={rowOfTextArea}
             />

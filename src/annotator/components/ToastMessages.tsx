@@ -6,7 +6,7 @@ import type { ToastMessage } from './BaseToastMessages';
 
 export type ToastMessagesProps = {
   emitter: Emitter;
-  callBack: (arg: any) => void;
+  callback: (arg: any) => void;
 };
 
 /**
@@ -14,7 +14,7 @@ export type ToastMessagesProps = {
  * that they "appear" in the viewport even when the sidebar is collapsed.
  * This is useful to make sure screen readers announce hidden messages.
  */
-export default function ToastMessages({ emitter, callBack }: ToastMessagesProps) {
+export default function ToastMessages({ emitter, callback }: ToastMessagesProps) {
   const [messages, setMessages] = useState<ToastMessage[]>([]);
   const addMessage = useCallback(
     (newMessage: ToastMessage) => {
@@ -42,6 +42,10 @@ export default function ToastMessages({ emitter, callBack }: ToastMessagesProps)
   }, [emitter, dismissMessage, addMessage]);
 
   return (
-    <BaseToastMessages messages={messages} onMessageDismiss={dismissMessage} callBack={callBack}/>
+    <BaseToastMessages
+      messages={messages}
+      onMessageDismiss={dismissMessage}
+      callback={callback}
+    />
   );
 }

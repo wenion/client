@@ -6,6 +6,7 @@ import type { ComponentChildren } from 'preact';
 
 import { formatSortableDateTime } from '../../shared/time';
 import type { ExtraDataComics } from '../../types/api';
+import { username as getUsername } from '../../sidebar/helpers/account-id';
 import StyledText from './StyledText';
 import MarkdownView from './MarkdownView';
 import { applyTheme } from './Excerpt';
@@ -44,22 +45,22 @@ type ToastMessageTransitionClasses = {
 function ToastMessageContext({
   message,
   onDismiss,
-  callBack
-}: {message:ToastMessage; onDismiss:(id: string) => void; callBack:(arg: any) => void}) {
+  callback
+}: {message:ToastMessage; onDismiss:(id: string) => void; callback:(arg: any) => void}) {
   // Capitalize the message type for prepending; Don't prepend a message
   // type for "notice" messages
   const textStyle = applyTheme(['annotationFontFamily'], {});
   const time = "date" in message ? new Date(message.date/1000): new Date();
 
   const onClick = (e: ExtraDataComics) => {
-    callBack(e);
+    callback(e);
     setTimeout(() => onDismiss(message.id), 500);
   }
 
   return (
     <Card>
       <CardHeader title={message.title} onClose={() => onDismiss(message.id)} />
-      <CardContent classes="space-y-0.5">
+      <CardContent classes="m-2">
         <StyledText>
           <MarkdownView
             markdown={message.message as string}
@@ -98,9 +99,13 @@ function ToastMessageContext({
                   >
                     <b>{e.task_name}</b>
                   </div>
-                  {e.role && (<b>{` - ${e.role?.teaching_role}`}</b>)}
+                  {e.role && (
+                    <p className="indent-2">
+                      created by <strong>{e.role?.teaching_role} ({getUsername(e.user_id)})</strong>
+                    </p>
+                  )}
                 </div>
-                <p className="text-md ml-2 truncate">{e.description}</p>
+                <p className="text-md indent-2 truncate italic text-gray-500">{e.description}</p>
               </div>
             )
           }
@@ -165,7 +170,7 @@ type ToastMessagesProps = {
   onMessageDismiss: (id: string) => void;
   transitionClasses?: ToastMessageTransitionClasses;
   setTimeout_?: typeof setTimeout;
-  callBack:(arg: any) => void;
+  callback:(arg: any) => void;
 };
 
 /**
@@ -178,7 +183,7 @@ export function ToastMessages({
   transitionClasses,
   /* istanbul ignore next - test seam */
   setTimeout_ = setTimeout,
-  callBack,
+  callback,
 }: ToastMessagesProps) {
   // List of IDs of toast messages that have been dismissed and have an
   // in-progress 'out' transition
@@ -186,13 +191,13 @@ export function ToastMessages({
   // Tracks not finished timeouts for auto-dismiss toast messages
   const messageSchedules = useRef(new Map());
   const dismissMessage = useCallback((id: string) => {setDismissedMessages(ids => [...ids, id])}, []);
-
+  const delayTime = 10000 // ms
   const scheduleMessageDismiss = useCallback((id: string, index: number) => {
     // index: show animation-fade-out in order
     const timeout = setTimeout_(() => {
       dismissMessage(id);
       messageSchedules.current.delete(id);
-    }, 5000 + 1000 * index);
+    }, delayTime + 1000 * index);
     messageSchedules.current.set(id, timeout);
   }, [dismissMessage, setTimeout_]);
 
@@ -248,7 +253,7 @@ export function ToastMessages({
               <ToastMessageContext
                 message={message}
                 onDismiss={dismissMessage}
-                callBack={callBack}
+                callback={callback}
               />
             </ToastMessageTransition>
           </li>

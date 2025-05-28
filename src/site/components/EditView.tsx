@@ -5,12 +5,20 @@ import {
   EditIcon,
   FileImageIcon,
   PlusIcon,
+  Card,
+  CardActions,
+  CardHeader,
+  CardContent,
+  Button,
+  Input,
+  Textarea,
+  Overlay,
 } from '@hypothesis/frontend-shared';
 import { IconButton, Checkbox } from '@hypothesis/frontend-shared';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState, useRef} from 'preact/hooks';
 import classnames from 'classnames';
 
-import type { RecordStep } from '../../types/api';
+import type { RecordItem, RecordStep } from '../../types/api';
 import {
   getElementHeightWithMargins,
 } from '../../sidebar/util/dom';
@@ -42,7 +50,58 @@ function capitalizeFirstLetter(str: string): string {
 }
 
 
+type ComicHeaderProps = {
+  index: number;
+  trace: RecordStep;
+  classes?: string;
+};
+
+export function ComicHeader({
+  index,
+  trace,
+  classes,
+}: ComicHeaderProps) {
+  return (
+    <div
+      className={classnames(
+        classes,
+      )}
+      id={trace.id}
+    >
+      <div
+        className={classnames(
+          "flex",
+          "rounded-xl text-lg text-blue-chathams text-center",
+          'hover:shadow-lg',
+          'cursor-pointer',
+          "justify-center items-center",
+          'p-2',
+        )}
+        title={trace.url}
+      >
+        <div
+          className={classnames(
+            "flex m-1",
+            "rounded-full",
+            "bg-zinc-300 text-gray-600",
+            "border border-gray-600",
+            "w-8 h-8",
+            "justify-center items-center",
+          )}
+        >
+          {index}
+        </div>
+        <div className="flex-1">
+          <b>{capitalizeFirstLetter(trace.title)}:</b>{" "} {trace.description??trace.url}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 type ComicItemProps = {
+  index: number;
+  sectionId: number;
   trace: RecordStep;
   isAlign: boolean;
   selected: boolean;
@@ -52,6 +111,8 @@ type ComicItemProps = {
 };
 
 export function ComicItem({
+  index,
+  sectionId,
   trace,
   isAlign = false,
   selected,
@@ -62,13 +123,13 @@ export function ComicItem({
   useLayoutEffect(()=> {
     onElementSizeChanged(trace.id);
   }, []);
-
   return (
     <div
       className={classnames(
         "relative",
-        'grid grid-rows-3 grid-flow-col',
-        'content-center',
+        {'grid grid-rows-3 grid-flow-col': trace.tagName !== "Navigate" && trace.tagName !== "Switch"},
+        'content-center rounded-lg',
+        {'bg-gray-100': trace.tagName === "Navigate" || trace.tagName === "Switch"},
         'text-base text-blue-chathams text-center',
         'hover:shadow-lg',
         'cursor-pointer',
@@ -98,71 +159,85 @@ export function ComicItem({
           />
         )}
       </div>
-      <div
-        className={classnames(
-          "justify-self-center content-center row-span-3",
-          "text-black",
-          "w-12 p-1",
-        )}
-      >
-        {trace.title === "click" ? (
-          <ClickIcon />
-        ) : trace.title === "type" && trace.tagName !== "SELECT" ? (
-          <TypeIcon />
-        ) : trace.title === "select" ? (
-          <SelectAreaIcon />
-        ) : trace.title === "scroll" && trace.description === "down" ? (
-          <ScrollDownIcon />
-        ) : trace.title === "scroll" && trace.description === "up" ? (
-          <ScrollUpIcon />
-        ) : trace.title === "submit" ? (
-          <SubmitIcon />
-        ) : trace.title === "search" ? (
-          <SearchIcon />
-        ) : trace.title === "type" && trace.tagName === "SELECT" ? (
-          <SelectionIcon />
-        ) : trace.title === "copy" ? (
-          <CopyIcon />
-        ) : trace.title === "paste" ? (
-          <PasteIcon />
-        ) : trace.type === "annotation" ? (
-          <AnnotationIcon />
+      {
+        (trace.tagName === "Navigate" || trace.tagName === "Switch") ? (
+          <>
+            <ComicHeader
+              index ={sectionId}
+              trace={trace}
+              classes='rounded-lg bg-gray-100'
+            />
+          </>
         ) : (
-          <QuestionIcon />
-        )}
-      </div>
-      <div className={classnames(
-        "col-span-2 border-b border-l border-black",
-        "text-base text-black font-bold content-center",
-        "p-2",
-      )}>
-        {capitalizeFirstLetter(trace.title)}
-      </div>
-      <div
-        className={classnames(
-          "flex row-span-2 col-span-2",
-          "h-full",
-          "pl-1",
-          "bg-transparent",
-          {"italic": isAlign},
-          "cursor-pointer",
-        )}
-      >
-        <div
-          className={classnames(
-            "text-sm",
-            "overflow-hidden",
-            "text-ellipsis",
-            "content-center",
-            "data-comics-content",
-            "word-break-word",
-            "hyphens-auto",
-          )}
-          title={trace.description}
-        >
-          {trace.description}
-        </div>
-      </div>
+          <>
+            <div
+              className={classnames(
+                "justify-self-center content-center row-span-3",
+                "text-black",
+                "w-12 p-1",
+              )}
+            >
+              {trace.title === "click" ? (
+                <ClickIcon />
+              ) : trace.title === "type" && trace.tagName !== "SELECT" ? (
+                <TypeIcon />
+              ) : trace.title === "select" ? (
+                <SelectAreaIcon />
+              ) : trace.title === "scroll" && trace.description === "down" ? (
+                <ScrollDownIcon />
+              ) : trace.title === "scroll" && trace.description === "up" ? (
+                <ScrollUpIcon />
+              ) : trace.title === "submit" ? (
+                <SubmitIcon />
+              ) : trace.title === "search" ? (
+                <SearchIcon />
+              ) : trace.title === "type" && trace.tagName === "SELECT" ? (
+                <SelectionIcon />
+              ) : trace.title === "copy" ? (
+                <CopyIcon />
+              ) : trace.title === "paste" ? (
+                <PasteIcon />
+              ) : trace.type === "annotation" ? (
+                <AnnotationIcon />
+              ) : (
+                <QuestionIcon />
+              )}
+            </div>
+            <div className={classnames(
+              "col-span-2 border-b border-l border-black",
+              "text-base text-black font-bold content-center",
+              "p-2",
+            )}>
+              {capitalizeFirstLetter(trace.title)}
+            </div>
+            <div
+              className={classnames(
+                "flex row-span-2 col-span-2",
+                "h-full",
+                "pl-1",
+                "bg-transparent",
+                {"italic": isAlign},
+                "cursor-pointer",
+              )}
+            >
+              <div
+                className={classnames(
+                  "text-sm",
+                  "overflow-hidden",
+                  "text-ellipsis",
+                  "content-center",
+                  "data-comics-content",
+                  "word-break-word",
+                  "hyphens-auto",
+                )}
+                title={trace.description}
+              >
+                {trace.description}
+              </div>
+            </div>
+          </>
+        )
+      }
     </div>
   )
 }
@@ -208,6 +283,7 @@ export function EditingCardSpacing({
 
 type EditingCardProps = {
   dataId: number,
+  sectionId: number,
   trace: RecordStep;
   selected: boolean;
   onElementSizeChanged: (id: string) => void;
@@ -217,6 +293,7 @@ type EditingCardProps = {
 
 export function EditingCard({
   dataId,
+  sectionId,
   trace,
   selected,
   onElementSizeChanged,
@@ -233,30 +310,44 @@ export function EditingCard({
     <div
       draggable
       className={classnames(
-        'w-full block',
+        // 'w-full block',
         'data-comics-item',
-        'border border-black mb-0.5 rounded-lg',
-        'hover:ring-gray-500 hover:bg-gray-100',
+        'flex',
+        // 'border border-black mb-0.5 rounded-lg',
+        // 'hover:ring-gray-500 hover:bg-gray-100',
         classes
       )}
       id={trace.id}
       data-id={dataId}
       onClick={() => setIsExpanded(!isExpanded)}
     >
+      <div
+        className={classnames(
+          'w-full block',
+          'h-fit',
+          // 'data-comics-item',
+          'border border-black mb-0.5 rounded-lg',
+          'hover:ring-gray-500 hover:bg-gray-100',
+        )}
+      >
       <ComicItem
+        index={dataId}
+        sectionId={sectionId}
         trace={trace}
         isAlign={trace.image ? true: false}
         selected={selected}
         onElementSizeChanged={()=> {}}
         onSelect={onSelect}
       />
-      {trace.image && isExpanded && (
+      </div>
+      {/* {trace.image && isExpanded && ( */}
+      {trace.image && (
         <div
-          className={"p-4"}
+          className={"ml-0.5 cursor-pointer border hover:shadow-lg overflow-clip"}
         >
           <img
             src={trace.image}
-            className={"border shadow-2xl"}
+            className={"border shadow-2xl h-auto"}
           />
         </div>
       )}
@@ -297,7 +388,10 @@ function EditView({
 }: EditViewProps) {
   const store = useSidebarStore();
   const recordSteps = store.recordSteps();
+  const recordItems = store.recordItems();
   const links = store.getLink("index");
+
+  const [recordItem, setRecordItem] = useState<RecordItem | null>(null);
 
   // const parentRef = useRef<HTMLDivElement | null>(null);
 
@@ -314,6 +408,10 @@ function EditView({
   const prevSourceRef = useRef(sourceIndex);
   const prevTargetRef = useRef(targetIndex);
 
+  const [popup, setPopup] = useState(false);
+  const nameEl = useRef<HTMLInputElement>();
+  const descriptionEl = useRef<HTMLTextAreaElement>();
+
   useEffect(() => {
     recordingService.getTracesById(id!);
   }, [id, links]);
@@ -323,6 +421,11 @@ function EditView({
       setSteps(recordSteps);
     }
   }, [recordSteps])
+
+  useEffect(() => {
+    const item = recordItems.find(r => r.sessionId === id);
+    setRecordItem(item??null);
+  }, [recordItems])
 
   useEffect(() => {
     if (sourceIndex !== null && targetIndex !== null) {
@@ -545,6 +648,18 @@ function EditView({
     }
   }
 
+  const onConfirm = () => {
+    if (recordItem) {
+      const description= descriptionEl.current?.value?? '';
+      const taskName = nameEl.current?.value?? '';
+      recordingService.updateRecord(recordItem.id, {
+        name: taskName,
+        description: description,
+      })
+    }
+    setPopup(false);
+  };
+
   const onToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -590,11 +705,11 @@ function EditView({
   };
 
   const onSave = (id: string) => {
-    store.clearRecordSteps();
-    store.addRecordSteps(steps);
-    recordingService.saveTraces(id);
+    recordingService.saveTraces(id, steps);
     window.alert("Changes have been saved!");
   }
+
+  let navId = 0;
 
   return (
     <div className="w-full">
@@ -605,9 +720,62 @@ function EditView({
         onSave={onSave}
         isSidebar={true}
       />
+      {popup && (
+        <Overlay>
+          <div className="w-xs mb-3">
+            <Card>
+              <CardHeader title={recordItem?.taskName} onClose={() => setPopup(false)} />
+              <CardContent>
+                <div className='flex justify-between items-center px-1'>
+                  <label htmlFor='input-name' className='font-semibold mr-2'>
+                    Name
+                  </label>
+                  <div className="sm:w-56 lg:w-96">
+                    <Input
+                      elementRef={nameEl}
+                      id="input-name"
+                      aria-label="Type the title"
+                      defaultValue={recordItem?.taskName}
+                    />
+                  </div>
+                </div>
+                <div className='flex justify-between items-center px-1'>
+                  <label htmlFor='textarea-name' className='font-semibold mr-2'>
+                    Description
+                  </label>
+                  <div className="sm:w-56 lg:w-96">
+                    <Textarea
+                      elementRef={descriptionEl}
+                      id="textarea-name"
+                      aria-label="Type the title"
+                      defaultValue={recordItem?.description}
+                      rows={5}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+              <CardActions classes="m-4">
+                <Button title="Cancel" onClick={() => setPopup(false)}>
+                Cancel
+                </Button>
+                <Button title="Confirm" variant="primary" onClick={onConfirm}>
+                Confirm
+                </Button>
+              </CardActions>
+            </Card>
+          </div>
+        </Overlay>
+      )}
       <div
         className={"fixed flex ml-32 mt-4 border border-black rounded-md"}
       >
+        <IconButton
+          icon={EditIcon}
+          onClick={() => setPopup(true)}
+          size="lg"
+          title="Edit"
+          classes="text-blue-500 cursor-pointer"
+        />
         <IconButton
           icon={ArrowUpIcon}
           onClick={onToTop}
@@ -646,7 +814,7 @@ function EditView({
       </div>
       <div
         id="data-comics-list"
-        className={"mt-4 mx-auto w-1/3"}
+        className={"mt-4 mx-auto w-1/2"}
         onDragStart={onDragStart}
         onDragEnter={onDragEnter}
         onDragLeave={onDragLeave}
@@ -663,10 +831,14 @@ function EditView({
               />
             )}
             {steps.map((step, index) => {
+              if (step.tagName === "Navigate" || step.tagName === "Switch") {
+                navId++;
+              }
               return (
                 <>
                   <EditingCard
                     dataId={index}
+                    sectionId={navId}
                     trace={step}
                     selected={selectedList.some(item => item === step.id)}
                     onSelect={onSelect}

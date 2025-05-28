@@ -228,6 +228,8 @@ export class FrameSyncService {
   private _lastTrace: Trace | ClickTrace | KeyTrace | ScrollTrace | ChangeTrace;
   private _firstScrollTrace: ScrollTrace;
 
+  private _allowList: string[];
+
   constructor(
     $window: Window,
     annotationsService: AnnotationsService,
@@ -286,6 +288,7 @@ export class FrameSyncService {
     this._setupFeatureFlagSync();
     this._setupToastMessengerEvents();
     this._setupSyncChangeEffect();
+    this._allowList = [];
   }
 
   private _stripHTML(input: string) {
@@ -482,8 +485,8 @@ export class FrameSyncService {
       }
 
       if (
-        trace.custom === 'go to' ||
-        trace.custom === 'switch to'
+        trace.custom.toLowerCase() === 'go to' ||
+        trace.custom === 'Switch to'
       ) {
         trace.label = trace.title === '' ? trace.url : trace.title;
       }
@@ -539,6 +542,22 @@ export class FrameSyncService {
         trace.tabId === this._lastTrace.tabId
       ) {
         skip = true;
+      }
+
+      // temp
+      const url = new URL(trace.url);
+      const hostname = url.hostname;
+      const pass = this._allowList.some(
+        domain => {
+          return (
+            hostname === domain ||
+            hostname.endsWith("." + domain)
+          );
+      });
+      if (!pass) {
+        skip = true;
+        discard = true;
+        return;
       }
 
       if (!skip) {
@@ -685,8 +704,8 @@ export class FrameSyncService {
       async (isLoggedIn, prevIsLoggedIn) => {
         this._hostRPC.call('isLoggedIn', isLoggedIn);
 
-        const focusedShareflowInfo = this._store.getDefault('focusedShareflow');
-        const isPin = !(focusedShareflowInfo === 'null' || !focusedShareflowInfo);
+        const focusedShareflow = this._store.getDefault('focusedShareflow');
+        const isPin = !(focusedShareflow === 'null' || !focusedShareflow);
         const tab = this._store.getSync('tab');
         if (tab === 'chatui') {
           this._store.selectTab('chatui');
@@ -704,6 +723,7 @@ export class FrameSyncService {
             this._store.selectTab('shareflow');
             await this._recordingService.selectRecordTabView('view', id);
             this._recordingService.scrollTo(scrollToId);
+            this._store.setNavFocusedStepId(scrollToId);
           }
 
           this._hostRPC.call('webClipping', {savePage: false});
@@ -1030,7 +1050,7 @@ export class FrameSyncService {
             // click confirm
             if (
               info.taskName !== '' &&
-              info.description !== '' &&
+              // info.description !== '' &&
               info.sessionId !== '' &&
               Number.isInteger(parseInt(info.startTime)) &&
               parseInt(info.startTime) <= 0
@@ -1040,6 +1060,7 @@ export class FrameSyncService {
                 info.sessionId,
                 info.description,
                 parseInt(info.startTime),
+                [],
               );
               this._extensionRPC.call(
                 'customEvent',
@@ -1306,6 +1327,7 @@ export class FrameSyncService {
     const visible = change['highlightsVisible'];
     this._highlightsVisible = visible;
     this._guestRPC.forEach(rpc => rpc.call('setHighlightsVisible', visible));
+    this._allowList = change['whitelist']? change['whitelist'].split(", "): [];
 
     // recording - extension
     const recording = change['recording'];

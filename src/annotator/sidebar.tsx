@@ -277,7 +277,7 @@ export class Sidebar implements Destroyable {
           interactionContext: JSON.stringify(arg),
         })
       }
-      render(<ToastMessages emitter={this._emitter} callBack={(arg)=> openDataComics(arg)}/>, this._messagesElement);
+      render(<ToastMessages emitter={this._emitter} callback={(arg)=> openDataComics(arg)}/>, this._messagesElement);
     }
 
     // Register the sidebar as a handler for Hypothesis errors in this frame.
@@ -588,7 +588,7 @@ export class Sidebar implements Destroyable {
 
       tagsToRemove.map(tag => {
         doc.querySelectorAll(tag).forEach((el: Element) => el.remove());
-      })
+      });
       this._sidebarRPC.call('webPage', doc.body.innerHTML, document.title, window.location.href, option.savePage);
     });
 

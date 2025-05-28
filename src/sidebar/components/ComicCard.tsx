@@ -19,15 +19,19 @@ import CopyIcon from '../../images/icons/action-copy';
 import PasteIcon from '../../images/icons/action-paste';
 import AnnotationIcon from '../../images/icons/action-annotation';
 
+const DELAYTIME = 1000;
+
 type ThumbnailProps = {
   trace: RecordStep;
   onClickEvent: (id: string) => void;
+  onLoaded: (id: string, value: boolean) => void;
   onElementSizeChanged: (id: string) => void;
 };
 
 function Thumbnail({
   trace,
   onClickEvent,
+  onLoaded,
   onElementSizeChanged
 }: ThumbnailProps) {
   const [loaded, setLoaded] = useState(false);
@@ -51,8 +55,9 @@ function Thumbnail({
     }
   };
 
-  const onLoad = () => {
+  const onLoad = (id: string) => {
     setLoaded(true);
+    onLoaded(id, true);
   };
 
   useLayoutEffect(() => {
@@ -110,7 +115,7 @@ function Thumbnail({
         // onMouseLeave={() => hover(false)}
         alt={trace.title}
         src={trace.image!}
-        onLoad={onLoad}
+        onLoad={() => onLoad(trace.id)}
       />
       <div
         ref={circleRef}
@@ -135,6 +140,7 @@ type ComicHeaderProps = {
   dataId: number,
   trace: RecordStep;
   onElementSizeChanged: (id: string) => void;
+  onClick: (id: string) => void;
   classes?: string;
 };
 
@@ -143,15 +149,30 @@ export function ComicHeader({
   dataId,
   trace,
   onElementSizeChanged,
+  onClick,
   classes,
 }: ComicHeaderProps) {
   useLayoutEffect(()=> {
     onElementSizeChanged(trace.id);
   }, []);
 
-  const onClick = (url: string) => {
+  const onLinkClick = (url: string) => {
     window.open(url, '_blank');
-  }
+  };
+
+  // let hoverTimer: number | undefined;
+  // const onMouseEnter = (event: Event, id: string) => {
+  //   event.stopPropagation();
+  //   event.preventDefault();
+  //   hoverTimer = setTimeout(() => {
+  //     onClick(id);
+  //   }, DELAYTIME);
+  // };
+  // const onMouseLeave = (event: Event, id: string) => {
+  //   event.stopPropagation();
+  //   event.preventDefault();
+  //   clearTimeout(hoverTimer);
+  // };
 
   return (
     <div
@@ -161,6 +182,9 @@ export function ComicHeader({
       )}
       id={trace.id}
       data-id={dataId}
+      onClick={()=>onClick(trace.id)}
+      // onMouseEnter={(e)=>onMouseEnter(e, trace.id)}
+      // onMouseLeave={(e)=>onMouseLeave(e, trace.id)}
     >
       <div
         className={classnames(
@@ -173,7 +197,7 @@ export function ComicHeader({
           'p-2',
         )}
         title={trace.url}
-        onClick={() => onClick(trace.url)}
+        onClick={() => onLinkClick(trace.url)}
       >
         {id && (
           <div
@@ -296,30 +320,47 @@ export function ComicItem({
   )
 }
 
-type ImageComicsCardProps = {
+type ImageComicCardProps = {
   children: ComponentChildren;
   onImageClick: (id: string) => void;
+  onLoaded: (id: string, value: boolean) => void;
   onElementSizeChanged: (id: string) => void;
+  onClick: (id: string) => void;
   step: RecordStep;
   dataId: number;
 };
 
-export function ImageComicsCard({
+export function ImageComicCard({
   children,
   onImageClick,
   onElementSizeChanged,
+  onLoaded,
+  onClick,
   step,
   dataId,
-}: ImageComicsCardProps) {
-  const onClick = (url: string) => {
-    window.open(url, '_blank');
-  }
+}: ImageComicCardProps) {
+  // let hoverTimer: number | undefined;
+  // const onMouseEnter = (event: Event, id: string) => {
+  //   event.stopPropagation();
+  //   event.preventDefault();
+  //   hoverTimer = setTimeout(() => {
+  //     onClick(id);
+  //   }, DELAYTIME);
+  // };
+  // const onMouseLeave = (event: Event, id: string) => {
+  //   event.stopPropagation();
+  //   event.preventDefault();
+  //   clearTimeout(hoverTimer);
+  // };
 
   return (
     <div
       className={classnames('data-comics-item')}
       id={step.id}
       data-id={dataId}
+      onClick={()=>onClick(step.id)}
+      // onMouseEnter={(e)=>onMouseEnter(e, step.id)}
+      // onMouseLeave={(e)=>onMouseLeave(e, step.id)}
     >
       <div className={"flex"}>
         <div
@@ -330,6 +371,7 @@ export function ImageComicsCard({
         <Thumbnail
           trace={step}
           onClickEvent={onImageClick}
+          onLoaded={onLoaded}
           onElementSizeChanged={onElementSizeChanged}
         />
       </div>
@@ -337,28 +379,43 @@ export function ImageComicsCard({
   )
 }
 
-type TextComicsCardProps = {
+type TextComicCardProps = {
   dataId: number;
   step: RecordStep;
   children: ComponentChildren;
+  onClick: (id: string) => void;
   classes?: string;
 };
 
-export function TextComicsCard({
+export function TextComicCard({
   dataId,
   step,
   children,
+  onClick,
   classes,
-}: TextComicsCardProps) {
-  const onClick = (url: string) => {
-    window.open(url, '_blank');
-  }
+}: TextComicCardProps) {
+  // let hoverTimer: number | undefined;
+  // const onMouseEnter = (event: Event, id: string) => {
+  //   event.stopPropagation();
+  //   event.preventDefault();
+  //   hoverTimer = setTimeout(() => {
+  //     onClick(id);
+  //   }, DELAYTIME);
+  // };
+  // const onMouseLeave = (event: Event, id: string) => {
+  //   event.stopPropagation();
+  //   event.preventDefault();
+  //   clearTimeout(hoverTimer);
+  // };
 
   return (
     <div
       className={classnames('data-comics-item', classes)}
       id={step.id}
       data-id={dataId}
+      onClick={()=>onClick(step.id)}
+      // onMouseEnter={(e)=>onMouseEnter(e, step.id)}
+      // onMouseLeave={(e)=>onMouseLeave(e, step.id)}
     >
       <div className={"flex"}>
         {children}

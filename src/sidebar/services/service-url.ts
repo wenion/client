@@ -30,6 +30,7 @@ export class ServiceURLService {
       const links = await this._apiRoutes.links();
       const whitelist = await this._apiRoutes.whitelist();
       this._store.updateWhitelist(whitelist)
+      this._store.setSync("whitelist", whitelist.join(", "));
       this._store.updateLinks(links);
     } catch (error) {
       console.warn(`Failed to fetch Hypothesis links: ${error.message}`);
