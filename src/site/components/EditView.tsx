@@ -150,14 +150,6 @@ export function ComicItem({
             onSelect(trace.id, !selected);
           }}
         />
-        {trace.image && (
-          <IconButton
-            icon={FileImageIcon}
-            size="lg"
-            title="image"
-            classes="cursor-pointer"
-          />
-        )}
       </div>
       {
         (trace.tagName === "Navigate" || trace.tagName === "Switch") ? (
