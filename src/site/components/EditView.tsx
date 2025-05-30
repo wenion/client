@@ -1,9 +1,10 @@
 import {
   ArrowUpIcon,
   CancelIcon,
+  CautionFilledIcon,
   TrashIcon,
   EditIcon,
-  FileImageIcon,
+  NoteIcon,
   PlusIcon,
   Card,
   CardActions,
@@ -879,10 +880,10 @@ function EditView({
           className={"fixed flex ml-32 mt-4 border border-black rounded-md"}
         >
           <IconButton
-            icon={EditIcon}
+            icon={NoteIcon}
             onClick={() => setPopup(true)}
             size="lg"
-            title="Edit"
+            title="Edit Title And Description"
             classes="text-blue-500 cursor-pointer"
           />
           <IconButton
@@ -903,7 +904,7 @@ function EditView({
           )}
           {exist && (
             <IconButton
-              icon={EditIcon}
+              icon={selectedList.length === 1 ? EditIcon : CautionFilledIcon}
               onClick={onEdit}
               size="lg"
               title="Edit Shareflow"
