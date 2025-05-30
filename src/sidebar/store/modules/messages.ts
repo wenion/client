@@ -30,8 +30,13 @@ export type State = typeof initialState;
 
 const reducers = {
   ADD_MESSAGES(state: State, action: { message: RawMessageData }) {
+    const index = state.messages.
+      findIndex(r => r.id === action.message.id);
+    if (index === -1) {
+      return { messages: [...state.messages, action.message] };
+    }
     return {
-      messages: [...state.messages, action.message],
+      messages: state.messages,
     };
   },
 
@@ -127,12 +132,6 @@ function isMessagePanelExpanded(state: State, panelName: MessageType) {
   return state.expandedMessagePanels.includes(panelName);
 }
 
-function hasMessage(state: State, messageId: string) {
-  return state.messages.some(message => {
-    return message.id === messageId;
-  })
-}
-
 /**
  * Count the number of orphans currently in the collection
  */
@@ -173,7 +172,6 @@ export const messagesModule = createStoreModule(initialState, {
   selectors: {
     isMessagePanelExpanded,
     messages,
-    hasMessage,
     additionMessages,
     shareFlowMessages,
     organizationMessages,

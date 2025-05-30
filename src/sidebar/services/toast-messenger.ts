@@ -158,10 +158,6 @@ export class ToastMessengerService extends TinyEmitter {
         visuallyHidden: false,
       };
 
-      if (this._store.hasMessage(message.id)) {
-        return;
-      }
-
       this._store.addMessages(msg);
       this.emit('toastMessageAdded', message);
     })
