@@ -46,14 +46,14 @@ function ToastMessageContext({
   message,
   onDismiss,
   callback
-}: {message:ToastMessage; onDismiss:(id: string) => void; callback:(arg: any) => void}) {
+}: {message:ToastMessage; onDismiss:(id: string) => void; callback:(args: Record<any, any>) => void}) {
   // Capitalize the message type for prepending; Don't prepend a message
   // type for "notice" messages
   const textStyle = applyTheme(['annotationFontFamily'], {});
   const time = "date" in message ? new Date(message.date/1000): new Date();
 
   const onClick = (e: ExtraDataComics) => {
-    callback(e);
+    callback({type: "click", message: e});
     setTimeout(() => onDismiss(message.id), 500);
   }
 
@@ -170,7 +170,7 @@ type ToastMessagesProps = {
   onMessageDismiss: (id: string) => void;
   transitionClasses?: ToastMessageTransitionClasses;
   setTimeout_?: typeof setTimeout;
-  callback:(arg: any) => void;
+  callback: (args: Record<any, any>) => void;
 };
 
 /**

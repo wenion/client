@@ -253,31 +253,32 @@ export class Sidebar implements Destroyable {
           tagName: 'EXPERT-TRACE_CLOSE',
           textContent: 'open',
           interactionContext: JSON.stringify(message)
-      })};
+        });
+      };
       const _messageOut = (messageId: string) => {
+        this._sidebarRPC.call('message', messageId);
         this._sidebarRPC.call('traceData', {
           eventType: 'click',
           eventSource: 'MESSAGE',
           tagName: 'EXPERT-TRACE_CLOSE',
           textContent: 'close',
           interactionContext: JSON.stringify({id: messageId}),
-        })
+        });
       };
       this._emitter.subscribe('messageIn', _messageIn)
       this._emitter.subscribe('messageOut', _messageOut)
-
-      const openDataComics = (arg: {session_id: string, user_id: string}) => {
+      const callback = (args: Record<any, any>) => {
         this.open();
-        this._sidebarRPC.call('selectDataComics', arg);
+        this._sidebarRPC.call('selectDataComics', args.message);
         this._sidebarRPC.call('traceData', {
           eventType: 'click',
           eventSource: 'MESSAGE',
           tagName: 'OPEN-DATACOMICS',
           textContent: 'close',
-          interactionContext: JSON.stringify(arg),
-        })
-      }
-      render(<ToastMessages emitter={this._emitter} callback={(arg)=> openDataComics(arg)}/>, this._messagesElement);
+          interactionContext: JSON.stringify(args.message),
+        });
+      };
+      render(<ToastMessages emitter={this._emitter} callback={callback}/>, this._messagesElement);
     }
 
     // Register the sidebar as a handler for Hypothesis errors in this frame.

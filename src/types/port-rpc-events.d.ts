@@ -112,6 +112,7 @@ export type HostToSidebarEvent =
   | 'postRating'
   | 'webPage'
   | 'selectDataComics'
+  | 'message'
   /**
    * Highlights have been toggled on/off.
    */

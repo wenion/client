@@ -6,7 +6,7 @@ import type { ToastMessage } from './BaseToastMessages';
 
 export type ToastMessagesProps = {
   emitter: Emitter;
-  callback: (arg: any) => void;
+  callback: (args: Record<any, any>) => void;
 };
 
 /**
