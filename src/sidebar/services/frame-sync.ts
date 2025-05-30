@@ -1122,12 +1122,12 @@ export class FrameSyncService {
         }
       }
       else {
-        this._streamer.send({
-          messageType: 'PageData',
-          textContent: htmlContent,
-          title: title,
-          url: url,
-        })
+        // this._streamer.send({
+        //   messageType: 'PageData',
+        //   textContent: htmlContent,
+        //   title: title,
+        //   url: url,
+        // });
       }
     });
 
