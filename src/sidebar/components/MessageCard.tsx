@@ -23,12 +23,18 @@ function MessageCard({ message, recordingService }: MessageCardProps) {
   const store = useSidebarStore();
   const textStyle = applyTheme(['annotationFontFamily'], {});
 
+  const markMessageRead = (message: RawMessageData) => {
+    message.unread_flag = false;
+    store.updateMessage(message);
+  };
+
   return (
     <Card
       classes="cursor-pointer focus-visible-ring theme-clean:border-none"
       data-testid="thread-card"
       tabIndex={-1}
       key={message.id}
+      onMouseEnter={() => markMessageRead(message)}
     >
       <CardContent>
         <section className="flex" data-testid="thread-container">
@@ -40,7 +46,7 @@ function MessageCard({ message, recordingService }: MessageCardProps) {
             )}
             data-testid="thread-content"
           >
-            <article className="space-y-4">
+            <article className="space-y-4 relative">
               <header>
                 <div className="flex gap-x-1 items-baseline flex-wrap-reverse">
                   <h3 className="text-color-text font-bold">{message.title}</h3>
@@ -49,6 +55,14 @@ function MessageCard({ message, recordingService }: MessageCardProps) {
                   </div>
                 </div>
               </header>
+              {message.unread_flag && (
+                <span
+                  className={classnames(
+                    "absolute -right-4 -top-8",
+                    "inline-block w-4 h-4 bg-red-600 rounded-full"
+                  )}
+                />
+              )}
               <div className='space-y-4'>
                 <Excerpt
                   collapsedHeight={400}

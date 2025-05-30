@@ -1,6 +1,5 @@
 import { CaretDownIcon, CaretRightIcon } from '@hypothesis/frontend-shared';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
-
+import { useEffect, useMemo, useState } from 'preact/hooks';
 
 import classnames from 'classnames';
 import type { MessageType, RawMessageData } from '../../types/api';
@@ -20,12 +19,10 @@ export default function MessageList({
 }: MessageListProps) {
   const store = useSidebarStore();
   const query = store.filterQuery();
-
   const expandedMessagePanels = store.isMessagePanelExpanded(id);
+  const toggleMessagePanel = () => store.toggleMessagePanelExpansion(id);
 
-  const toggleMessagePanel = () => {
-    store.toggleMessagePanelExpansion(id);
-  }
+  const [unreadMessages, setUnreadMessages] = useState<RawMessageData[]>([]);
 
   const sortedMessages = useMemo(() => {
     const filter = threads.filter(thread => {
@@ -47,6 +44,12 @@ export default function MessageList({
     return filter;
   }, [threads, query, expandedMessagePanels]);
 
+  useEffect(()=> {
+    setUnreadMessages(
+      sortedMessages.filter(message => message.unread_flag === true)
+    );
+  }, [sortedMessages]);
+
   return (
     <>
       <div
@@ -64,9 +67,11 @@ export default function MessageList({
         >
           {title}
         </h4>
-        <span className="relative bottom-[3px] left-[2px] text-[10px]">
-          {sortedMessages.length}
-        </span>
+        {unreadMessages.length !== 0 && (
+          <span className="relative bottom-[3px] left-[2px] text-[10px]">
+            {unreadMessages.length}
+          </span>
+        )}
         <div className="flex justify-end grow">
           {expandedMessagePanels ? (
             <CaretDownIcon />

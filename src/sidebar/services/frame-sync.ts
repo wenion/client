@@ -976,6 +976,14 @@ export class FrameSyncService {
       this._sidebarIsOpen = false;
     });
 
+    this._hostRPC.on('message', (messageId) => {
+      const message = this._store.findMessageByID(messageId);
+      if (message) {
+        message.unread_flag = false;
+        this._store.updateMessage(message);
+      }
+    });
+
     this._hostRPC.on('selectDataComics', (
       extra : {
         session_id: string,

@@ -2,13 +2,11 @@ import {
   HelpIcon,
   ProfileFilledIcon,
   ProfileIcon,
-  SettingsIcon,
   ShareIcon,
 } from '@hypothesis/frontend-shared';
 import { useState } from 'preact/hooks';
 
 import type { Service, SidebarSettings } from '../../types/config';
-import type { TabName } from '../../types/sidebar';
 import { serviceConfig } from '../config/service-config';
 import {
   isThirdPartyUser,
@@ -39,7 +37,6 @@ function UserMenu({ frameSync, onLogout, settings }: UserMenuProps) {
   const store = useSidebarStore();
   const defaultAuthority = store.defaultAuthority();
   const profile = store.profile();
-  const allMessageCount = store.allMessageCount();
 
   const isThirdParty = isThirdPartyUser(profile.userid, defaultAuthority);
   const service = serviceConfig(settings);

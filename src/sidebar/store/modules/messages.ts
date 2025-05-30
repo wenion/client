@@ -54,6 +54,23 @@ const reducers = {
   //   }
   // },
 
+  UPDATE_MESSAGE(state: State, action: {message: RawMessageData}): Partial<State> {
+    const index = state.messages.findIndex(r => r.id === action.message.id);
+    if (index === -1) {
+      return {
+        messages: state.messages,
+      };
+    }
+
+    return {
+      messages: [
+        ...state.messages.slice(0, index),
+        action.message,
+        ...state.messages.slice(index + 1),
+      ]
+    };
+  },
+
   CLEAR_MESSAGES(): Partial<State> {
     return { messages: [] };
   },
@@ -62,7 +79,7 @@ const reducers = {
     const include = state.expandedMessagePanels.includes(action.panel)
 
     return include ? {
-      expandedMessagePanels: state.expandedMessagePanels.filter((panel => panel !== action.panel))
+      expandedMessagePanels: state.expandedMessagePanels.filter(panel => panel !== action.panel)
     } : {
       expandedMessagePanels : [...state.expandedMessagePanels, action.panel]
     }
@@ -84,6 +101,10 @@ function clearMessages() {
   return makeAction(reducers, 'CLEAR_MESSAGES', undefined);
 }
 
+function updateMessage(message: RawMessageData) {
+  return makeAction(reducers, 'UPDATE_MESSAGE', { message });
+}
+
 // function removeOverTimeMessage() {
 //   return makeAction(reducers, 'REMOVE_OVERTIME_MESSAGES', undefined);
 // }
@@ -92,8 +113,14 @@ function toggleMessagePanelExpansion(panel: MessageType) {
   return makeAction(reducers, 'CHANGE_PANEL', { panel });
 }
 
-function allMessageCount(state: State) {
-  return state.messages.length;
+/* Selectors */
+
+function findMessageByID(state: State, id: string) {
+  return state.messages.find(message => message.id === id);
+}
+
+function messages(state: State) {
+  return state.messages;
 }
 
 function isMessagePanelExpanded(state: State, panelName: MessageType) {
@@ -127,21 +154,30 @@ const organizationMessages = createSelector(
     messages.filter(m => m.type === 'organisation_event').sort((a, b) => b.date - a.date), // Z -> A
 );
 
+const unreadMessages = createSelector(
+  (state: State) => state.messages,
+  messages =>
+    messages.filter(m => m.unread_flag === true),
+);
+
 export const messagesModule = createStoreModule(initialState, {
   namespace: 'messages',
   reducers,
   actionCreators: {
     addMessages,
     removeFromUnreadMessage,
+    updateMessage,
     clearMessages,
     toggleMessagePanelExpansion,
   },
   selectors: {
-    allMessageCount,
     isMessagePanelExpanded,
+    messages,
     hasMessage,
     additionMessages,
     shareFlowMessages,
     organizationMessages,
+    findMessageByID,
+    unreadMessages,
   },
 });

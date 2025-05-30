@@ -125,8 +125,7 @@ function SidebarTabs({
   const selectedTab = store.selectedTab();
   const noteCount = tabCounts.note;
 
-  const allMessageCount = store.allMessageCount();
-  const recordItemsCount = store.recordItemsCount();
+  const unreadMessageCount = store.unreadMessages().length;
   const videoAnnotationCount = store.videoAnnotationCount();
   const recordView = recordingService.getRecordTabView();
 
@@ -196,7 +195,7 @@ function SidebarTabs({
                 ShareFlows
               </Tab>
               <Tab
-                count={allMessageCount}
+                count={unreadMessageCount}
                 isWaitingToAnchor={isWaitingToAnchorAnnotations}
                 isSelected={selectedTab === 'message'}
                 label="Notifications"
