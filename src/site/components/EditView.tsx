@@ -16,8 +16,10 @@ import {
 } from '@hypothesis/frontend-shared';
 import { IconButton, Checkbox } from '@hypothesis/frontend-shared';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState, useRef} from 'preact/hooks';
+import debounce from 'lodash.debounce';
 import classnames from 'classnames';
 
+import { ListenerCollection } from '../../shared/listener-collection';
 import type { RecordItem, RecordStep } from '../../types/api';
 import {
   getElementHeightWithMargins,
@@ -272,6 +274,112 @@ export function EditingCardSpacing({
   )
 }
 
+type ThumbnailProps = {
+  trace: RecordStep;
+  onClickEvent: (id: string) => void;
+  onElementSizeChanged: (id: string) => void;
+};
+
+function Thumbnail({
+  trace,
+  onClickEvent,
+  onElementSizeChanged
+}: ThumbnailProps) {
+  const [loaded, setLoaded] = useState(false);
+  const [circleTop, setCircleTop] = useState(0);
+  const [circleLeft, setCircleLeft] = useState(0);
+  const imageRef = useRef<HTMLImageElement | null>(null);
+  const circleRef = useRef<HTMLDivElement | null>(null);
+
+  const updateCirclePosition = () => {
+    if (!imageRef.current) return;
+    const imageHeight = imageRef.current.clientHeight;
+    const { width, height, clientX: offsetX, clientY: offsetY } = trace;
+
+    if (width > 0 && height > 0 && offsetX >= 0 && offsetY >= 0) {
+      const widthToHeight = width / height;
+      const ratioHeight = imageHeight/height;
+      const ratioWidth = widthToHeight * imageHeight / width;
+
+      setCircleTop(Math.round(offsetY * ratioHeight - 8));
+      setCircleLeft(Math.round(offsetX * ratioWidth - 8));
+    }
+  };
+
+  const onLoad = () => {
+    setLoaded(true);
+  };
+
+  useLayoutEffect(() => {
+    updateCirclePosition();
+    onElementSizeChanged(trace.id);
+  }, [loaded]);
+
+  useLayoutEffect(() => {
+    const listeners = new ListenerCollection();
+
+    const updatePosition = debounce(
+      () => {
+        updateCirclePosition();
+        onElementSizeChanged(trace.id);
+      },
+      10,
+      { maxWait: 100 },
+    );
+
+    listeners.add(window, 'resize', updatePosition);
+
+    return () => {
+      listeners.removeAll();
+      updatePosition.cancel();
+    };
+  }, []);
+
+  // const hover = (hoved: boolean) => {
+  //   if (hoved && circleRef.current) {
+  //     circleRef.current.classList.add("animate-blink");
+  //   }
+  //   if (!hoved && circleRef.current) {
+  //     circleRef.current.classList.remove("animate-blink");
+  //   }
+  // }
+
+  return (
+    <div
+      className={classnames(
+        "relative",
+        "ml-0.5",
+        "cursor-pointer border",
+        "hover:shadow-lg",
+        "overflow-clip",
+      )}
+      onClick={() => onClickEvent(trace.id)}
+    >
+      <img
+        ref={imageRef}
+        className={classnames(
+          'cursor-pointer',
+        )}
+        id={'img' + trace.id}
+        // onMouseEnter={() => hover(true)}
+        // onMouseLeave={() => hover(false)}
+        alt={trace.title}
+        src={trace.image!}
+        onLoad={onLoad}
+      />
+      <div
+        ref={circleRef}
+        className={classnames(
+          "w-6 h-6 rounded-full",
+          "absolute border-2 border-red-500 bg-red-100/35 transition-all",
+          "duration-300 ease-in-out",
+        )}
+        style={{ top: `${circleTop}px`, left: `${circleLeft}px` }}
+      />
+    </div>
+  )
+}
+
 
 type EditingCardProps = {
   dataId: number,
@@ -334,14 +442,11 @@ export function EditingCard({
       </div>
       {/* {trace.image && isExpanded && ( */}
       {trace.image && (
-        <div
-          className={"ml-0.5 cursor-pointer border hover:shadow-lg overflow-clip"}
-        >
-          <img
-            src={trace.image}
-            className={"border shadow-2xl h-auto"}
-          />
-        </div>
+        <Thumbnail
+          trace={trace}
+          onClickEvent={() => {}}
+          onElementSizeChanged={() => {}}
+        />
       )}
     </div>
 
