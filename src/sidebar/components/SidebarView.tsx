@@ -38,6 +38,7 @@ function SidebarView({
   const focusedGroupId = store.focusedGroupId();
   const isLoading = store.isLoading();
   const isLoggedIn = store.isLoggedIn();
+  const activePanelName = store.activePanelName();
 
   const linkedAnnotationId = store.directLinkedAnnotationId();
   const linkedAnnotation = linkedAnnotationId
@@ -153,7 +154,7 @@ function SidebarView({
       {hasDirectLinkedGroupError && (
         <SidebarContentError errorType="group" onLoginRequest={onLogin} />
       )}
-      {!hasContentError && <SidebarTabs isLoading={isLoading} />}
+      {!hasContentError && activePanelName === null && <SidebarTabs isLoading={isLoading} />}
       {showLoggedOutMessage && <LoggedOutMessage onLogin={onLogin} />}
     </div>
   );
