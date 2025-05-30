@@ -656,7 +656,7 @@ function EditView({
       recordingService.updateRecord(recordItem.id, {
         name: taskName,
         description: description,
-      })
+      });
     }
     setPopup(false);
   };
@@ -767,95 +767,97 @@ function EditView({
           </div>
         </Overlay>
       )}
-      <div
-        className={"fixed flex ml-32 mt-4 border border-black rounded-md"}
-      >
-        <IconButton
-          icon={EditIcon}
-          onClick={() => setPopup(true)}
-          size="lg"
-          title="Edit"
-          classes="text-blue-500 cursor-pointer"
-        />
-        <IconButton
-          icon={ArrowUpIcon}
-          onClick={onToTop}
-          size="lg"
-          title="To Top"
-          classes="text-blue-500 cursor-pointer"
-        />
-        {exist && (
-          <IconButton
-            icon={TrashIcon}
-            onClick={onDelete}
-            size="lg"
-            title="Delete Shareflows"
-            classes="text-red-500 cursor-pointer"
-          />
-        )}
-        {exist && (
+      <div>
+        <div
+          className={"fixed flex ml-32 mt-4 border border-black rounded-md"}
+        >
           <IconButton
             icon={EditIcon}
-            onClick={onEdit}
+            onClick={() => setPopup(true)}
             size="lg"
-            title="Edit Shareflow"
-            disabled={selectedList.length !== 1}
+            title="Edit"
             classes="text-blue-500 cursor-pointer"
           />
-        )}
-        {exist && (
           <IconButton
-            icon={CancelIcon}
-            onClick={onDeselect}
+            icon={ArrowUpIcon}
+            onClick={onToTop}
             size="lg"
-            title="Deselect All"
+            title="To Top"
             classes="text-blue-500 cursor-pointer"
           />
-        )}
-      </div>
-      <div
-        id="data-comics-list"
-        className={"mt-4 mx-auto w-1/2"}
-        onDragStart={onDragStart}
-        onDragEnter={onDragEnter}
-        onDragLeave={onDragLeave}
-        onDragEnd={onDragEnd}
-      >
-        {/* <div style={{ height: offscreenUpperHeight }} /> */}
-        {
-          <>
-            {steps.length !== 0 && (
-              <EditingCardSpacing
-                index={-1}
-                onClick={onNew}
-                hovered={highlightIndex === -1}
-              />
-            )}
-            {steps.map((step, index) => {
-              if (step.tagName === "Navigate" || step.tagName === "Switch") {
-                navId++;
-              }
-              return (
-                <>
-                  <EditingCard
-                    dataId={index}
-                    sectionId={navId}
-                    trace={step}
-                    selected={selectedList.some(item => item === step.id)}
-                    onSelect={onSelect}
-                    onElementSizeChanged={() => {}}
-                  />
-                  <EditingCardSpacing
-                    index={index}
-                    onClick={onNew}
-                    hovered={highlightIndex === index}
-                  />
-                </>
-              )
-            })}
-          </>
-        }
-        {/* <div style={{ height: offscreenLowerHeight }} /> */}
+          {exist && (
+            <IconButton
+              icon={TrashIcon}
+              onClick={onDelete}
+              size="lg"
+              title="Delete Shareflows"
+              classes="text-red-500 cursor-pointer"
+            />
+          )}
+          {exist && (
+            <IconButton
+              icon={EditIcon}
+              onClick={onEdit}
+              size="lg"
+              title="Edit Shareflow"
+              disabled={selectedList.length !== 1}
+              classes="text-blue-500 cursor-pointer"
+            />
+          )}
+          {exist && (
+            <IconButton
+              icon={CancelIcon}
+              onClick={onDeselect}
+              size="lg"
+              title="Deselect All"
+              classes="text-blue-500 cursor-pointer"
+            />
+          )}
+        </div>
+        <div
+          id="data-comics-list"
+          className={"mt-4 mx-auto w-1/2"}
+          onDragStart={onDragStart}
+          onDragEnter={onDragEnter}
+          onDragLeave={onDragLeave}
+          onDragEnd={onDragEnd}
+        >
+          {/* <div style={{ height: offscreenUpperHeight }} /> */}
+          {
+            <>
+              {steps.length !== 0 && (
+                <EditingCardSpacing
+                  index={-1}
+                  onClick={onNew}
+                  hovered={highlightIndex === -1}
+                />
+              )}
+              {steps.map((step, index) => {
+                if (step.tagName === "Navigate" || step.tagName === "Switch") {
+                  navId++;
+                }
+                return (
+                  <>
+                    <EditingCard
+                      dataId={index}
+                      sectionId={navId}
+                      trace={step}
+                      selected={selectedList.some(item => item === step.id)}
+                      onSelect={onSelect}
+                      onElementSizeChanged={() => {}}
+                    />
+                    <EditingCardSpacing
+                      index={index}
+                      onClick={onNew}
+                      hovered={highlightIndex === index}
+                    />
+                  </>
+                )
+              })}
+            </>
+          }
+          {/* <div style={{ height: offscreenLowerHeight }} /> */}
+        </div>
       </div>
     </div>
   );
