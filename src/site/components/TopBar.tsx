@@ -131,7 +131,6 @@ function TopBar({
   const toggleEditMode = () => {
     const pathname = window.location.pathname;
     const url = window.location.href;
-    const origin = window.location.origin;
     const queryString = url.split('?')[1] || '';
     const params = new URLSearchParams(queryString);
     const id = params.get('id');
@@ -139,9 +138,7 @@ function TopBar({
       route("/shareflow?id=" + id);
     }
     else if (pathname.endsWith('/shareflow')) {
-      // route(pathname + "/edit");
-      const url = origin + "/edit?id=" + id;
-      window.open(url, '_blank')
+      route("/edit?id=" + id);
     }
   };
 
