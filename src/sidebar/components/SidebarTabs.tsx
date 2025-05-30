@@ -186,7 +186,7 @@ function SidebarTabs({
                 Annotations
               </Tab>
               <Tab
-                count={recordItemsCount}
+                count={0}
                 isWaitingToAnchor={isWaitingToAnchorAnnotations}
                 isSelected={selectedTab === 'shareflow'}
                 label="ShareFlows"
