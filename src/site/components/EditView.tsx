@@ -440,7 +440,6 @@ export function EditingCard({
         onSelect={onSelect}
       />
       </div>
-      {/* {trace.image && isExpanded && ( */}
       {trace.image && (
         <Thumbnail
           trace={trace}
@@ -695,6 +694,9 @@ function EditView({
           step,
           ...steps.slice(index! + 1),
         ]);
+
+        // deselect all
+        setSelectedList([]);
       }
     }
   }
