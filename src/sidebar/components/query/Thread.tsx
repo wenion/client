@@ -69,7 +69,7 @@ function Thread({ thread, queryService}: ThreadProps) {
     <>
       <header class="flex">
         <div
-          className="grow-0 p-4 cursor-pointer"
+          className="flex-none p-4 cursor-pointer"
         >
           {(() => {
             switch (thread.dataType) {
@@ -86,8 +86,8 @@ function Thread({ thread, queryService}: ThreadProps) {
         </div>
         <h1
           className={classnames(
-            "grow self-center ",
-            "text-left ml-2 text-base font-robo",
+            "grow self-center",
+            "text-left text-base font-robo",
             "break-all cursor-pointer truncate",
           )}
           title={thread.title}
@@ -95,34 +95,37 @@ function Thread({ thread, queryService}: ThreadProps) {
         >
           {thread.title}
         </h1>
-        {/* <div
-          className="grow-0 p-4 cursor-pointer"
-          onClick={ e => { queryService.setBookmark(thread.id, !thread.isBookmark) }}
+        <div
+          className={classnames(
+            "flex items-center",
+            "h-min self-center",
+            "text-blue-700 bg-blue-50",
+            "border-blue-200 border rounded px-1",
+            "cursor-pointer",
+            "hover:underline"
+          )}
+          onClick={() => onClickResult(thread)}
         >
-          { thread.isBookmark ? <BookmarkFilledIcon /> : <BookmarkIcon />}
-        </div> */}
-        <div className="grow-0 p-4 cursor-pointer" onClick={ e => { onClickExpand() }}>
+          <span>{thread.repository.split('-json', 1)[0]}</span>
+        </div>
+        <div className="flex-none p-4 cursor-pointer" onClick={ e => { onClickExpand() }}>
           { isExpanded ? <MenuCollapseIcon /> : <MenuExpandIcon />}
         </div>
       </header>
       <div
         class="cursor-pointer hover:text-blue-400"
         ref={content}
-        onClick={() => onClickResult(thread)}
       >
         <div
-          class="my-4 mx-12 cursor-pointer"
+          class="mt-2 mb-4 mx-8"
           data-testid="thread-content"
         >
           <MarkdownView
             markdown={thread.summary}
-            classes="cursor-pointer text-base leading-relaxed font-sans"
+            classes="text-base leading-relaxed font-sans"
             // style={textStyle}
           />
         </div>
-        <footer className="my-8">
-          <p className="ml-4 font-bold"><em>source</em>: {thread.repository}</p>
-        </footer>
       </div>
     </>
   );
