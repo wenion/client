@@ -670,6 +670,16 @@ function EditView({
     }
   }
 
+  const onNote = () => {
+    if (id === null) {
+      const url = (window.location.href);
+      const queryString = url.split('?')[1] || '';
+      const params = new URLSearchParams(queryString);
+      setId(params.get('id')??null);
+    }
+    setPopup(true);
+  };
+
   const onEdit = async() => {
     if (selectedList.length === 1) {
       const selectedStep = selectedList[0];
@@ -877,11 +887,11 @@ function EditView({
       )}
       <div>
         <div
-          className={"fixed flex ml-32 mt-4 border border-black rounded-md"}
+          className={"fixed flex ml-32 mt-4 border border-black rounded-md z-20"}
         >
           <IconButton
             icon={NoteIcon}
-            onClick={() => setPopup(true)}
+            onClick={onNote}
             size="lg"
             title="Edit Title And Description"
             classes="text-blue-500 cursor-pointer"
@@ -924,7 +934,7 @@ function EditView({
         </div>
         <div
           id="data-comics-list"
-          className={"mt-4 mx-auto w-1/2"}
+          className={"mt-4 mx-auto w-1/2 z-10"}
           onDragStart={onDragStart}
           onDragEnter={onDragEnter}
           onDragLeave={onDragLeave}
