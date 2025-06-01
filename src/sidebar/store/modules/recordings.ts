@@ -231,9 +231,9 @@ function addRecordSteps(recordSteps: RecordStep[]) {
       const linksState = getState().links;
       const link = linksState? linksState['index'] : null;
 
-      if (!link) {
-        recordSteps = [];
-      }
+      // if (!link) {
+      //   recordSteps = [];
+      // }
 
       recordSteps = recordSteps.filter((step, index) => {
         const existsInState =

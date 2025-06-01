@@ -34,25 +34,8 @@ export class RecordingService {
     this._store.clearRecordItems();
   }
 
-  revertTraces(updates: RecordStep[]) {
-    updates.map(update => {
-      if (update.image) {
-        const filename = update.image.split('/').pop();
-        if (filename) {
-          const id = filename.split('.')[0];
-          update.image = id;
-        }
-        else {
-          update.image = null;
-        }
-      }
-    });
-    return updates
-  }
-
   async saveTraces(id: string, updates: RecordStep[]) {
     this._store.clearRecordSteps();
-    updates = this.revertTraces(updates);
     const results = await this._api.traces.update({id: id}, updates);
     this._store.addRecordSteps(results);
   }
@@ -75,7 +58,6 @@ export class RecordingService {
 
   async autoSaveTraces(id: string, updates: RecordStep[]) {
     this._store.clearRecordSteps();
-    updates = this.revertTraces(updates);
     const results = await this._api.traces.update(
       {
         id: id,
