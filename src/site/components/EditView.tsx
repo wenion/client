@@ -569,6 +569,9 @@ function EditView({
       newSteps.map((ns, index) => ns.index = index);
 
       setSteps(newSteps);
+      if (id) {
+        recordingService.autoSaveTraces(id, newSteps);
+      }
     }
 
     prevSourceRef.current = sourceIndex;
