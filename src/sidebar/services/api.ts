@@ -6,6 +6,7 @@ import type {
   Profile,
   QueryResponseObject,
   FileMeta,
+  History,
   RawMessageData,
   RecordStep,
   RecordItem,
@@ -288,6 +289,13 @@ export class APIService {
     list: APICall<Record<string, unknown>, void, RecordStep[]>;
     update: APICall<Record<string, unknown>, RecordStep[], RecordStep[]>;
   };
+  history: {
+    get: APICall<Record<string, unknown>, void, RecordStep[]>;
+  };
+  histories: {
+    list: APICall<Record<string, unknown>, void, History[]>;
+    delete: APICall<IDParam>;
+  };
   tracking: {
     read: APICall<Record<string, unknown>, void, Track>;
     update: APICall<Record<string, unknown>, Track, void>;
@@ -452,6 +460,13 @@ export class APIService {
     this.traces = {
       list: apiCall('traces.read') as APICall<Record<string, unknown>, void, RecordStep[]>,
       update: apiCall('traces.update') as APICall<Record<string, unknown>, RecordStep[], RecordStep[]>,
+    };
+    this.history = {
+      get: apiCall('history.read') as APICall<Record<string, unknown>, void, RecordStep[]>,
+    };
+    this.histories = {
+      list: apiCall('histories.read') as APICall<Record<string, unknown>, void, History[]>,
+      delete: apiCall('histories.delete') as APICall<IDParam>,
     };
     this.tracking = {
       read: apiCall('tracking.read') as APICall<Record<string, unknown>, void, Track>,

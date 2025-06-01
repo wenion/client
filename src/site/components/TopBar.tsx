@@ -21,6 +21,7 @@ import { useSidebarStore } from '../../sidebar/store';
 import ThirdPartyMenu from './ThirdPartyMenu';
 import SearchBar from './query/SearchBar';
 import UserMenu from './UserMenu';
+import HistoryMenu from './HistoryMenu';
 import LogoIcon from '../static/logo';
 import ExtensionIcon from '../static/extension';
 import { RecordItem } from '../../types/api';
@@ -76,7 +77,7 @@ function TopBar({
     const queryString = url.split('?')[1] || '';
     const params = new URLSearchParams(queryString);
     setId(params.get('id')??null);
-    console.log("setId", id)
+
   }, []);
 
   const recordItems = store.recordItems();
@@ -139,6 +140,9 @@ function TopBar({
     }
     else if (pathname.endsWith('/shareflow')) {
       route("/edit?id=" + id);
+    }
+    if (id) {
+      recordingService.deleteHistoryList(id);
     }
   };
 
@@ -302,6 +306,10 @@ function TopBar({
                   >
                     View
                   </IconButton>
+                  <div className="w-4"></div>
+                  {id && (
+                    <HistoryMenu id={id}/>
+                  )}
                 </>
               )}
             </div>

@@ -34,15 +34,68 @@ export class RecordingService {
     this._store.clearRecordItems();
   }
 
+  revertTraces(updates: RecordStep[]) {
+    updates.map(update => {
+      if (update.image) {
+        const filename = update.image.split('/').pop();
+        if (filename) {
+          const id = filename.split('.')[0];
+          update.image = id;
+        }
+        else {
+          update.image = null;
+        }
+      }
+    });
+    return updates
+  }
+
   async saveTraces(id: string, updates: RecordStep[]) {
     this._store.clearRecordSteps();
+    updates = this.revertTraces(updates);
     const results = await this._api.traces.update({id: id}, updates);
     this._store.addRecordSteps(results);
+  }
+
+  async getHistoryList(id: string) {
+    const result = await this._api.histories.list({id: id});
+    this._store.setHistory(result);
+  }
+
+  async deleteHistoryList(id: string) {
+    await this._api.histories.delete({id: id});
+    this._store.setHistory(null);
+  }
+
+  async getHistoryVersion(id: string, version: number) {
+    this._store.clearRecordSteps();
+    const updates = await this._api.history.get({id: id, version: version});
+    this._store.addRecordSteps(updates);
+  }
+
+  async autoSaveTraces(id: string, updates: RecordStep[]) {
+    this._store.clearRecordSteps();
+    updates = this.revertTraces(updates);
+    const results = await this._api.traces.update(
+      {
+        id: id,
+        "response_mode": "auto"
+      }, updates
+    );
+    this._store.addRecordSteps(results);
+    // this._store.addRecordSteps(results);
+    // this._store.setHistory(results);
   }
 
   async getTracesById(id: string) {
     this._store.clearRecordSteps();
     const traceSteps = await this._api.traces.list({ id: id, "response_mode": "metadata" });
+    this._store.addRecordSteps(traceSteps);
+  }
+
+  async getVersionTracesById(id: string) {
+    this._store.clearRecordSteps();
+    const traceSteps = await this._api.traces.list({ id: id, "response_mode": "version" });
     this._store.addRecordSteps(traceSteps);
   }
 

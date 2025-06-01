@@ -389,6 +389,7 @@ type EditingCardProps = {
   selected: boolean;
   onElementSizeChanged: (id: string) => void;
   onSelect: (id: string, selected: boolean) => void;
+  onDblClick: (id: string) => void;
   classes?: string;
 };
 
@@ -399,6 +400,7 @@ export function EditingCard({
   selected,
   onElementSizeChanged,
   onSelect,
+  onDblClick,
   classes,
 }: EditingCardProps) {
   useLayoutEffect(()=> {
@@ -421,6 +423,7 @@ export function EditingCard({
       id={trace.id}
       data-id={dataId}
       onClick={() => setIsExpanded(!isExpanded)}
+      onDblClick={() => onDblClick(trace.id)}
     >
       <div
         className={classnames(
@@ -492,7 +495,14 @@ function EditView({
     const url = (window.location.href);
     const queryString = url.split('?')[1] || '';
     const params = new URLSearchParams(queryString);
-    setId(params.get('id')??null);
+    const paramId = params.get('id') ?? null;
+    setId(prev => (prev !== paramId ? paramId : prev));
+
+    return () => {
+      if (id) {
+        recordingService.saveTraces(id, steps);
+      }
+    };
   }, [])
 
   const [recordItem, setRecordItem] = useState<RecordItem | null>(null);
@@ -501,7 +511,7 @@ function EditView({
 
   // const [dragState, setDragState] = useState<string>("End"); // Start Trigger End
 
-  const [steps, setSteps] = useState<RecordStep[]>(recordSteps);
+  const [steps, setSteps] = useState<RecordStep[]>([]);
 
   // const prevSourceRef = useRef<number | null>(null);
   // const prevTargetRef = useRef<number | null>(null);
@@ -518,7 +528,7 @@ function EditView({
 
   useEffect(() => {
     if (id) {
-      recordingService.getTracesById(id);
+      recordingService.getVersionTracesById(id);
     }
   }, [id, links]);
 
@@ -526,7 +536,10 @@ function EditView({
     if (recordSteps.length) {
       setSteps(recordSteps);
     }
-  }, [recordSteps])
+    if (id) {
+      recordingService.getHistoryList(id);
+    }
+  }, [recordSteps]);
 
   useEffect(() => {
     const item = recordItems.find(r => r.sessionId === id);
@@ -666,6 +679,9 @@ function EditView({
         steps.splice(index, 1);
       }
       setSteps(steps);
+      if (id) {
+        recordingService.autoSaveTraces(id, steps);
+      }
       setSelectedList([]);
     }
   }
@@ -675,7 +691,8 @@ function EditView({
       const url = (window.location.href);
       const queryString = url.split('?')[1] || '';
       const params = new URLSearchParams(queryString);
-      setId(params.get('id')??null);
+      const paramId = params.get('id') ?? null;
+      setId(prev => (prev !== paramId ? paramId : prev));
     }
     setPopup(true);
   };
@@ -700,17 +717,28 @@ function EditView({
 
         const index = step.index;
 
-        setSteps([
+        const udpate = [
           ...steps.slice(0, index),
           step,
           ...steps.slice(index! + 1),
-        ]);
+        ];
+
+        if (id) {
+          recordingService.autoSaveTraces(id, udpate);
+        }
 
         // deselect all
         setSelectedList([]);
       }
     }
   }
+
+  const onDblClick = async(id: string) => {
+    setSelectedList([id,]);
+    setTimeout(()=> {
+      onEdit();
+    }, 200);
+  };
 
   const onNew = async(index: number) => {
     const step = {
@@ -764,6 +792,10 @@ function EditView({
       ];
       newSteps.map((ns, index) => ns.index = index);
       setSteps(newSteps);
+
+      if (id) {
+        recordingService.autoSaveTraces(id, newSteps);
+      }
     }
   }
 
@@ -825,7 +857,7 @@ function EditView({
 
   const onSave = (id: string) => {
     recordingService.saveTraces(id, steps);
-    window.alert("Changes have been saved!");
+    // window.alert("Changes have been saved!");
   }
 
   let navId = 0;
@@ -887,7 +919,7 @@ function EditView({
       )}
       <div>
         <div
-          className={"fixed flex ml-32 mt-4 border border-black rounded-md z-20"}
+          className={"fixed flex ml-32 mt-4 bg-white border border-black rounded-md z-20"}
         >
           <IconButton
             icon={NoteIcon}
@@ -962,6 +994,7 @@ function EditView({
                       trace={step}
                       selected={selectedList.some(item => item === step.id)}
                       onSelect={onSelect}
+                      onDblClick={onDblClick}
                       onElementSizeChanged={() => {}}
                     />
                     <EditingCardSpacing

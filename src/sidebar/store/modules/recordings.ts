@@ -1,7 +1,7 @@
 import type { Dispatch } from 'redux';
 import { createSelector } from 'reselect';
 
-import type { RecordItem, RecordStep } from '../../../types/api';
+import type { History, RecordItem, RecordStep } from '../../../types/api';
 import { createStoreModule, makeAction } from '../create-store';
 import type { State as LinksState } from './links';
 
@@ -14,6 +14,7 @@ export type State = {
   recordItems: RecordItem[];
   recordSteps: RecordStep[];
   shouldScroll: boolean;
+  history: History[] | null;
 };
 
 function initialState(): State {
@@ -26,6 +27,7 @@ function initialState(): State {
     recordItems: [],
     recordSteps: [],
     shouldScroll: true,
+    history: null,
   }
 }
 
@@ -176,6 +178,10 @@ const reducers = {
   SET_FOCUSED_RECORD_ITEM_ID(state: State, action: { id: string | null }) {
     return { focusedRecordItemId: action.id };
   },
+
+  SET_HISTORY(state: State, action: { history: History[] | null }) {
+    return { history: action.history };
+  },
 };
 
 // Action creators
@@ -278,9 +284,12 @@ function setShouldScroll(shouldScroll: boolean) {
   return makeAction(reducers, 'SET_SHOULD_SCROLL', {shouldScroll: shouldScroll});
 }
 
-
 function setFocusedRecordItemId(id: string | null) {
   return makeAction(reducers, 'SET_FOCUSED_RECORD_ITEM_ID', {id: id});
+}
+
+function setHistory(history: History[] | null) {
+  return makeAction(reducers, 'SET_HISTORY', {history: history});
 }
 
 // Selectors
@@ -357,6 +366,10 @@ function focusedRecordItemId(state: State) {
   return state.focusedRecordItemId;
 }
 
+function getHistory(state: State) {
+  return state.history;
+}
+
 // type RootState = {
 //   recordings: State;
 //   defaults: DefaultsState;
@@ -391,6 +404,7 @@ export const recordingsModule = createStoreModule(initialState, {
     clearRecordSteps,
     setShouldScroll,
     setFocusedRecordItemId,
+    setHistory,
   },
   selectors: {
     getFocusedStepId,
@@ -407,6 +421,7 @@ export const recordingsModule = createStoreModule(initialState, {
     getRecordStepById,
     getRecordStepByPk,
     getShouldScroll,
+    getHistory,
   },
   // rootSelectors: {
   //   currentRecordItem,

@@ -529,6 +529,13 @@ export type RecordStep = {
   image: string | null;
 };
 
+export type History = {
+  title: string;
+  created: string;
+  description?: string;
+  version: number;
+};
+
 export type Trace = {
   type: string,
   custom: string,
