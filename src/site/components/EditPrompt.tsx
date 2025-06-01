@@ -21,6 +21,7 @@ export async function EditPrompt({
   description: string,
   url: string,
   type: string,
+  tagName?: string,
 }> {
   const cancelButton = createRef<HTMLElement | undefined>();
   const container = document.createElement('div');
@@ -42,12 +43,12 @@ export async function EditPrompt({
     { id: '2', name: 'Copy', value: 'copy', type: 'copy' },
     { id: '3', name: 'Create highlight', value: 'create highlight', type: 'annotation' },
     { id: '4', name: 'Delete highlight', value: 'delete highlight', type: 'annotation' },
-    { id: '5', name: 'Navigate to', value: 'Navigate to', type: '' },
+    { id: '5', name: 'Navigate to', value: 'Navigate to', type: '', tagName: 'Navigate' },
     { id: '6', name: 'Paste', value: 'paste', type: 'paste' },
     { id: '7', name: 'Scroll', value: 'scroll', type: 'scroll' },
     { id: '8', name: 'Select', value: 'select', type: 'mouseup' },
     { id: '9', name: 'Submit', value: 'submit', type: 'submit' },
-    { id: '10', name: 'Switch to', value: 'Switch to', type: 'getfocus' },
+    { id: '10', name: 'Switch to', value: 'Switch to', type: 'getfocus', tagName: 'Switch' },
     { id: '11', name: 'Type', value: 'type', type: 'change' },
   ];
 
@@ -58,14 +59,17 @@ export async function EditPrompt({
 
       render(null, container);
       container.remove();
-      const type = items.find(item => item.value === title)?.type?? ''
+      const item = items.find(item => item.value === title);
+      const type = item?.type;
+      const tagName = item?.tagName;
 
       resolve({
         result: result,
         title: title,
         description: description,
         url: url,
-        type: type,
+        type: type??"undefined",
+        tagName: tagName,
       });
     };
 

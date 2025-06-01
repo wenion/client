@@ -714,6 +714,12 @@ function EditView({
         step.title = form.title;
         step.description = form.description;
         step.url = form.url;
+        if (form.type) {
+          step.type = form.type;
+        }
+        if (form.tagName) {
+          step.tagName = form.tagName;
+        }
 
         const index = step.index;
 
@@ -783,6 +789,9 @@ function EditView({
       step.url = form.url;
       step.type = form.type;
       step.index = index;
+      if (form.tagName) {
+        step.tagName = form.tagName;
+      }
 
       const newIndex = step.index + 1;
       const newSteps = [
