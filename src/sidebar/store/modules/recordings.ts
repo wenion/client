@@ -242,9 +242,6 @@ function addRecordSteps(recordSteps: RecordStep[]) {
           return false;
         }
 
-        if (step.image) {
-          step.image = link + 'api/image/' + step.image + '.jpg';
-        }
         /* backwards compatibility */
         if (!step.title) {
           step.title = step.type;
