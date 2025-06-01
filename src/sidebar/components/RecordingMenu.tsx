@@ -45,7 +45,7 @@ export default function RecordingMenu({
     >
       <Menu
         label={menuLabel}
-        title='More actions'
+        title="More..."
         align="right"
         menuIndicator={false}
         open={isOpen}
