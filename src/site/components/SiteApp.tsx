@@ -248,31 +248,40 @@ function SiteApp({
     >
       <Router>
         <HomeView path="/" />
-        <QueryView path="/query"
+        <QueryView
+          path="/query"
           onLogin={login}
           onSignUp={signUp}
           onLogout={logout}
-          isSidebar={isSidebar} />
-        <VideoView path="/video"
+        />
+        <VideoView
+          path="/video"
           onLogin={login}
           onSignUp={signUp}
           onLogout={logout}
           onAnchor={anchor}
           options={videoJsOptions}
           onReady={handlePlayerReady}
-          sidebarRPC={_sidebarRPC} />
-        <FileTreeView path="/files"
+          sidebarRPC={_sidebarRPC}
+        />
+        <FileTreeView
+          path="/files"
           onLogin={login}
           onSignUp={signUp}
-          onLogout={logout} />
-        <ComicsView path="/shareflow"
+          onLogout={logout}
+        />
+        <ComicsView
+          path="/shareflow"
           onLogin={login}
           onSignUp={signUp}
-          onLogout={logout} />
-        <EditView path="/edit"
+          onLogout={logout}
+        />
+        <EditView
+          path="/edit"
           onLogin={login}
           onSignUp={signUp}
-          onLogout={logout} />
+          onLogout={logout}
+        />
       </Router>
     </div>
   );

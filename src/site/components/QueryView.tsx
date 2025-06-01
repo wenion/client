@@ -13,9 +13,6 @@ import NotebookView from './NotebookView';
 import TopBar from './TopBar';
 
 export type QueryViewProps = {
-  /** Flag indicating whether the app is in a sidebar context */
-  isSidebar: boolean;
-
   /** Callback invoked when user clicks "Login" button */
   onLogin: () => void;
 
@@ -39,7 +36,6 @@ export type QueryViewProps = {
  * and content appropriate for the current route.
  */
 function QueryView({
-  isSidebar,
   onLogin,
   onLogout,
   onSignUp,
