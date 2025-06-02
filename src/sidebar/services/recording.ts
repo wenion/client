@@ -227,9 +227,11 @@ export class RecordingService {
       );
       this._store.updateRecordItem(recordItem);
       // for backend
-      setTimeout(() => {
-        this.selectRecordTabView('view', recordItem.id);
-      }, 1000);
+      if (options.generate) {
+        setTimeout(() => {
+          this.selectRecordTabView('view', recordItem.id);
+        }, 1000);
+      }
     } catch (err) {
       if (err.response.status === 404) {
         this._toastMessenger.error('Error: '+ err.response.status);
