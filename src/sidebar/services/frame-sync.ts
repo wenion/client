@@ -1083,7 +1083,13 @@ export class FrameSyncService {
                 textContent: 'finish',
               }
             )
-            await this._recordingService.stopRecord(sessionId, { endstamp: Date.now() });
+            await this._recordingService.stopRecord(
+              sessionId,
+              {
+                endstamp: Date.now(),
+                generate: this._store.selectedTab() as string === 'chatui'? false : true,
+              }
+            );
             this._hostRPC.call('openSidebar');
           }
           this._store.clearTraces();

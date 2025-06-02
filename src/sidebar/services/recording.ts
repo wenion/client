@@ -219,7 +219,7 @@ export class RecordingService {
     this.updateSyncRecording(true, result.id, result.taskName);
   }
 
-  async stopRecord(id: string, options: Record<string, any>) {
+  async stopRecord(id: string, options: {endstamp: number, generate: boolean}) {
     try {
       const recordItem = await this._api.recording.update(
         { id: id },
