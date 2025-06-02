@@ -217,7 +217,9 @@ export class RecordingService {
       groups: groups,
       generate: generate,
     });
-    this._store.addRecordItems([result]);
+    if (result && 'groups' in result) {
+      this._store.addRecordItems([result]);
+    }
     this.updateSyncRecording(true, result.id, result.taskName);
   }
 
