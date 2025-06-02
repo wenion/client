@@ -182,7 +182,7 @@ export default function Toolbar({
             // of the edge of the sidebar in clean theme
             'shadow-sidebar',
           )}
-          title="Close annotation sidebar"
+          title="Close Goldmind"
           onClick={closeSidebar}
           unstyled
         >
@@ -202,7 +202,7 @@ export default function Toolbar({
               'border-l border-b',
             )}
             elementRef={toggleSidebarRef}
-            title="Annotation sidebar"
+            title="Goldmind"
             expanded={isSidebarOpen}
             pressed={isSidebarOpen}
             onClick={toggleSidebar}
