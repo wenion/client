@@ -498,10 +498,19 @@ function EditView({
     const paramId = params.get('id') ?? null;
     setId(prev => (prev !== paramId ? paramId : prev));
 
-    return () => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+
       if (id) {
         recordingService.saveTraces(id, steps);
       }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [])
 
