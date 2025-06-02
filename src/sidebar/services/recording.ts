@@ -206,6 +206,7 @@ export class RecordingService {
     description: string,
     backdate: number,
     groups: string[],
+    generate: boolean,
   ) {
     const result = await this._api.recording.create({}, {
       sessionId: sessionId,
@@ -214,6 +215,7 @@ export class RecordingService {
       startstamp: Date.now(),
       backdate: backdate,
       groups: groups,
+      generate: generate,
     });
     this._store.addRecordItems([result]);
     this.updateSyncRecording(true, result.id, result.taskName);

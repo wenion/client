@@ -1047,6 +1047,7 @@ export class FrameSyncService {
                 info.description,
                 parseInt(info.startTime),
                 [],
+                this._store.selectedTab() as string === 'chatui'? false : true,
               );
               this._extensionRPC.call(
                 'customEvent',

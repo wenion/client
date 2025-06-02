@@ -271,7 +271,7 @@ export class APIService {
   };
 
   recording: {
-    create: APICall<Record<string, unknown>, Partial<RecordItemParams>, RecordItem>;
+    create: APICall<Record<string, unknown>, Partial<RecordItemParams> & {generate: boolean}, RecordItem>;
     delete: APICall<IDParam>;
     get: APICall<IDParam, void, RecordItem>;
     update: APICall<IDParam, Partial<RecordItemParams & {pin: boolean}>, RecordItem>;
