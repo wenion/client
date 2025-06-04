@@ -500,7 +500,6 @@ function ComicList({
                         title={item.description}
                       >
                         <b>{item.title}</b>
-                        <p className="text-md">{item.description}</p>
                       </div>
                     </div>
                     {item.steps_id.map((stepId, index) => {
