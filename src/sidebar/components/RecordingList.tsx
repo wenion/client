@@ -206,6 +206,7 @@ function Label({
 
 export type RecordingListProps = {
   onOpen: (record: RecordItem) => void;
+  onShare: (recordItem: RecordItem) => void;
   onDelete: (record: RecordItem) => void;
 };
 
@@ -214,6 +215,7 @@ export type RecordingListProps = {
  */
 export default function RecordingList({
   onOpen,
+  onShare,
   onDelete,
 }: RecordingListProps) {
   const store = useSidebarStore();
@@ -399,7 +401,11 @@ export default function RecordingList({
                 />
               )}
               {userid === record.userid ? (
-                <RecordingMenu recordItem={record} onDelete={onDelete}/>
+                <RecordingMenu
+                  recordItem={record}
+                  onShare={onShare}
+                  onDelete={onDelete}
+                />
               ) : (
                 <div
                   className={classnames(

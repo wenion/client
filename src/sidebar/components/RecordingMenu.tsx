@@ -8,19 +8,24 @@ import type { RecordItem } from '../../types/api';
 import Menu from './Menu';
 import MenuItem from './MenuItem';
 import MenuSection from './MenuSection';
+import ShareIcon from '../../images/icons/shared';
 
 
 export type RecordingMenuProps = {
   recordItem: RecordItem;
+  onShare: (recordItem: RecordItem) => void;
   onDelete: (recordItem: RecordItem) => void;
 };
 
 export default function RecordingMenu({
   recordItem,
+  onShare,
   onDelete,
 }: RecordingMenuProps) {
   const store = useSidebarStore();
   const [isOpen, setOpen] = useState(false);
+
+  const group = store.focusedGroup();
 
   const onOpen = (recordItem: RecordItem) => {
     store.setFocusedRecordItemId(recordItem.id);
@@ -52,6 +57,13 @@ export default function RecordingMenu({
         onOpenChanged={setOpen}
       >
         <MenuSection>
+          {group && (
+            <MenuItem
+              label={`Share with ${group.name.slice(0, 10)} `}
+              icon={ShareIcon}
+              onClick={() => onShare(recordItem)}
+            />
+          )}
           <MenuItem
             label='Settings'
             icon={SettingsIcon}

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'preact/hooks';
+import { useCallback, useMemo, useState } from 'preact/hooks';
 
 import { withServices } from '../service-context';
 import type { FrameSyncService } from '../services/frame-sync';
@@ -22,6 +22,8 @@ function RecordingTab({
 }: RecordingTabProps) {
   const store = useSidebarStore();
   const allTraces = store.allTraces();
+
+  const group = store.focusedGroup();
 
   const recordView = recordingService.getRecordTabView();
   const [lastId, setLastId] = useState<string | null>(null);
@@ -63,6 +65,15 @@ function RecordingTab({
     recordingService.selectRecordTabView('view', id);
     recordingService.updateTracking(record.id);
   };
+
+  const onShare = useCallback(async (recordItem: RecordItem) => {
+    if (group) {
+      await recordingService.updateRecord(recordItem.id, {
+        group: group.id,
+        action: 'add'
+      });
+    }
+  }, [group]);
 
   const onClose = (id: string) => {
     setLastId(id);
@@ -108,6 +119,7 @@ function RecordingTab({
       {recordView === 'list' && (
         <RecordingList
           onOpen={onOpen}
+          onShare={onShare}
           onDelete={onDelete}
         />
       )}
