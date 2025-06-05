@@ -54,7 +54,7 @@ function SearchBar({
       <SearchField
         inputRef={inputRef}
         classes="grow"
-        // defaultPlaceholder={''}
+        defaultPlaceholder={'Search for a task you need help with ...'}
         // Disable the input when there is a selection, as the selection
         // replaces any other filters.
         // disabled={hasSelection}
