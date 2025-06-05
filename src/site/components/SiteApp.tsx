@@ -165,6 +165,8 @@ function SiteApp({
   };
 
   useEffect(() => {
+    store.annotationFetchStarted();
+    store.annotationFetchFinished();
     if (shouldAutoDisplayTutorial(isSidebar, profile, settings)) {
       store.openSidebarPanel('help');
     }

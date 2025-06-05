@@ -5,6 +5,7 @@ import {
   HelpIcon,
   IconButton,
   LinkButton,
+  SpinnerSpokesIcon,
   NoteFilledIcon,
 } from '@hypothesis/frontend-shared';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
@@ -68,6 +69,7 @@ function TopBar({
   const store = useSidebarStore();
   const isLoggedIn = store.isLoggedIn();
   const hasFetchedProfile = store.hasFetchedProfile();
+  const isLoading = store.isLoading();
   const inputRef = useRef<HTMLDivElement | null>(null);
 
   const [id, setId] = useState< null | string>(null);
@@ -277,7 +279,7 @@ function TopBar({
                   Edit
                 </IconButton>
               )}
-              {displayMode === "Save" && (
+              {displayMode === "Save" && !isLoading && (
                 <>
                   <IconButton
                     icon={NoteFilledIcon}
@@ -293,6 +295,7 @@ function TopBar({
                     size="lg"
                     title="Save changes"
                     classes="border border-black rounded-sm cursor-pointer"
+                    disabled={isLoading}
                   >
                     Save
                   </IconButton>
@@ -311,6 +314,15 @@ function TopBar({
                     <HistoryMenu id={id}/>
                   )}
                 </>
+              )}
+              {isLoading && (
+                <IconButton
+                  icon={SpinnerSpokesIcon}
+                  size="lg"
+                  title="Loading"
+                >
+                  Loading
+                </IconButton>
               )}
             </div>
           )}
