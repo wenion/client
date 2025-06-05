@@ -28,6 +28,7 @@ import {
 import { withServices } from '../../sidebar/service-context';
 import type { RecordingService } from '../../sidebar/services/recording';
 import type { SessionService } from '../../sidebar/services/session';
+import type { ToastMessengerService } from '../../sidebar/services/toast-messenger';
 import { useSidebarStore } from '../../sidebar/store';
 
 import { EditPrompt} from './EditPrompt';
@@ -468,6 +469,7 @@ type EditViewProps = {
   onSignUp: () => void;
   session: SessionService;
   recordingService: RecordingService;
+  toastMessenger: ToastMessengerService;
 };
 
 /**
@@ -483,6 +485,7 @@ function EditView({
   onSignUp,
   session,
   recordingService,
+  toastMessenger,
 }: EditViewProps) {
   const store = useSidebarStore();
   const recordSteps = store.recordSteps();
@@ -878,7 +881,11 @@ function EditView({
 
   const onSave = (id: string) => {
     recordingService.saveTraces(id, steps);
-    // window.alert("Changes have been saved!");
+    toastMessenger.success("Changes have been saved!");
+    setTimeout(() => {
+      const messages = store.getToastMessages();
+      messages.map(message => store.removeToastMessage(message.id));
+    }, 1000);
   }
 
   let navId = 0;
@@ -1038,4 +1045,5 @@ function EditView({
 export default withServices(EditView, [
   'recordingService',
   'session',
+  'toastMessenger',
 ]);

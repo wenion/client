@@ -18,6 +18,7 @@ import { withServices } from '../../sidebar/service-context';
 import type { QueryService } from '../../sidebar/services/query';
 import type { RecordingService } from '../../sidebar/services/recording';
 import type { SessionService } from '../../sidebar/services/session';
+import ToastMessages from '../../sidebar/components/ToastMessages';
 import { useSidebarStore } from '../../sidebar/store';
 import ThirdPartyMenu from './ThirdPartyMenu';
 import SearchBar from './query/SearchBar';
@@ -70,6 +71,7 @@ function TopBar({
   const isLoggedIn = store.isLoggedIn();
   const hasFetchedProfile = store.hasFetchedProfile();
   const isLoading = store.isLoading();
+  const messages = store.getToastMessages();
   const inputRef = useRef<HTMLDivElement | null>(null);
 
   const [id, setId] = useState< null | string>(null);
@@ -295,7 +297,7 @@ function TopBar({
                     size="lg"
                     title="Save changes"
                     classes="border border-black rounded-sm cursor-pointer"
-                    disabled={isLoading}
+                    disabled={isLoading || messages.length !== 0}
                   >
                     Save
                   </IconButton>
@@ -315,7 +317,7 @@ function TopBar({
                   )}
                 </>
               )}
-              {isLoading && (
+              {(isLoading) && (
                 <IconButton
                   icon={SpinnerSpokesIcon}
                   size="lg"
@@ -328,6 +330,7 @@ function TopBar({
           )}
         </div>
       </header>
+      <ToastMessages />
     </div>
   );
 }
