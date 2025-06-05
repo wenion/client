@@ -491,17 +491,17 @@ export class FrameSyncService {
         trace.label = trace.title === '' ? trace.url : trace.title;
       }
 
-      if(
-        trace.type === this._lastTrace.type &&
-        trace.custom === this._lastTrace.custom &&
-        trace.type === 'change' &&
-        trace.custom === 'type' &&
-        trace.xpath === this._lastTrace.xpath
-      ) {
-        // remove repeat change-type trace
-        skip = true;
-        discard = false;
-      }
+      // if(
+      //   trace.type === this._lastTrace.type &&
+      //   trace.custom === this._lastTrace.custom &&
+      //   trace.type === 'change' &&
+      //   trace.custom === 'type' &&
+      //   trace.xpath === this._lastTrace.xpath
+      // ) {
+      //   // remove repeat change-type trace
+      //   skip = true;
+      //   discard = false;
+      // }
 
       if (
         trace.type === this._lastTrace.type &&
