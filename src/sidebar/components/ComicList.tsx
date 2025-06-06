@@ -219,7 +219,7 @@ function ComicList({
         scrollPosition,
         scrollContainerHeight,
       ),
-    [topLevelThreads, threadHeights, scrollPosition],
+    [topLevelThreads, threadHeights, scrollPosition, scrollContainerHeight],
   );
 
   const allLoaded = useMemo(
@@ -354,36 +354,18 @@ function ComicList({
   const onRendered = useCallback((id: string) => {
     const threadElements = Array.from(document.querySelectorAll(`[id="${id}"]`));
 
-    const threadElement = threadElements.find(el =>
-      el.className === 'data-comics-item'|| el.className === 'data-comics-item data-comics-nav'
-    );
-
     setThreadHeights(prevHeights => {
       const changedHeights = new Map();
 
-      if (!threadElement) {
-        // This could happen if the `ThreadList` DOM is not connected to the document.
-        //
-        // Errors earlier in the render can also potentially cause this (see
-        // https://github.com/hypothesis/client/pull/3665#issuecomment-895857072),
-        // although we don't in general try to make all effects robust to that
-        // as it is a problem that needs to be handled elsewhere.
-        console.warn(
-          'ThreadList could not measure thread. Element not found.',
-        );
+      if (threadElements.length === 0) {
         return prevHeights;
       }
 
-      if (threadElement && !threadElement.hasAttribute('data-id')) {
-        return prevHeights;
-      }
+      let height = 0;
+      threadElements.forEach(threadElement => {
+        height += getElementHeightWithMargins(threadElement);
+      });
 
-      let imageHeight = 0;
-      // if (imageElement && imageElement.classList.contains('hidden')) {
-      //   imageHeight = getElementHeightWithMargins(imageElement);
-      // }
-
-      const height = getElementHeightWithMargins(threadElement) - imageHeight;
       if (height !== prevHeights.get(id)) {
         changedHeights.set(id, height);
       }
