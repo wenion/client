@@ -328,6 +328,7 @@ type ImageComicCardProps = {
   onClick: (id: string) => void;
   step: RecordStep;
   dataId: number;
+  classes?: string;
 };
 
 export function ImageComicCard({
@@ -338,29 +339,14 @@ export function ImageComicCard({
   onClick,
   step,
   dataId,
+  classes,
 }: ImageComicCardProps) {
-  // let hoverTimer: number | undefined;
-  // const onMouseEnter = (event: Event, id: string) => {
-  //   event.stopPropagation();
-  //   event.preventDefault();
-  //   hoverTimer = setTimeout(() => {
-  //     onClick(id);
-  //   }, DELAYTIME);
-  // };
-  // const onMouseLeave = (event: Event, id: string) => {
-  //   event.stopPropagation();
-  //   event.preventDefault();
-  //   clearTimeout(hoverTimer);
-  // };
-
   return (
     <div
-      className={classnames('data-comics-item')}
+      className={classnames('data-comics-item', classes)}
       id={step.id}
       data-id={dataId}
       onClick={()=>onClick(step.id)}
-      // onMouseEnter={(e)=>onMouseEnter(e, step.id)}
-      // onMouseLeave={(e)=>onMouseLeave(e, step.id)}
     >
       <div className={"flex"}>
         <div
@@ -394,28 +380,12 @@ export function TextComicCard({
   onClick,
   classes,
 }: TextComicCardProps) {
-  // let hoverTimer: number | undefined;
-  // const onMouseEnter = (event: Event, id: string) => {
-  //   event.stopPropagation();
-  //   event.preventDefault();
-  //   hoverTimer = setTimeout(() => {
-  //     onClick(id);
-  //   }, DELAYTIME);
-  // };
-  // const onMouseLeave = (event: Event, id: string) => {
-  //   event.stopPropagation();
-  //   event.preventDefault();
-  //   clearTimeout(hoverTimer);
-  // };
-
   return (
     <div
       className={classnames('data-comics-item', classes)}
       id={step.id}
       data-id={dataId}
       onClick={()=>onClick(step.id)}
-      // onMouseEnter={(e)=>onMouseEnter(e, step.id)}
-      // onMouseLeave={(e)=>onMouseLeave(e, step.id)}
     >
       <div className={"flex"}>
         {children}
