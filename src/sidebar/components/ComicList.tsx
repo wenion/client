@@ -19,6 +19,7 @@ import classnames from 'classnames';
 
 import { withServices } from '../service-context';
 import type { FrameSyncService } from '../services/frame-sync';
+import type { RecordingService } from '../services/recording';
 import { ListenerCollection } from '../../shared/listener-collection';
 import { useSidebarStore } from '../store';
 import type { RecordItem, RecordStep } from '../../types/api';
@@ -106,6 +107,7 @@ export type ComicListProps = {
   onRefreshStep: (record: string | null, recordStep: string | null) => void;
 
   frameSync: FrameSyncService;
+  recordingService: RecordingService;
 };
 
 /**
@@ -117,6 +119,7 @@ function ComicList({
   onPin,
   onRefreshStep,
   frameSync,
+  recordingService,
 }: ComicListProps) {
   const store = useSidebarStore();
   const recordItem = store.getRecordItem();
@@ -124,6 +127,7 @@ function ComicList({
   const focusedStepId = store.getFocusedStepId();
   const shouldScroll = store.getShouldScroll();
   const activePanelName = store.activePanelName();
+  const expertStep = store.getExpertStep();
 
   const focusedShareflow = store.getDefault('focusedShareflow');
   const isPin = !(focusedShareflow === 'null' || !focusedShareflow);
@@ -135,6 +139,8 @@ function ComicList({
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const navRef = useRef<HTMLDivElement | null>(null);
   const previousTopThreadRef = useRef<RecordStep | null>(null);
+
+  const [expertStepId, setExpertStepId] = useState<string | null>(null);
 
   const [sectionId, setSectionId] = useState(0);
   const [firstRender, setFirstRender] = useState(true);
@@ -266,6 +272,15 @@ function ComicList({
       setSectionId(sectionId);
     }
   }
+
+  useEffect(() => {
+    if (expertStep && allLoaded) {
+      const target = recordingService.findStepInView([expertStep, ], recordSteps);
+      if (target) {
+        setExpertStepId(target.id);
+      }
+    }
+  }, [expertStep, allLoaded]);
 
   // Effect to scroll a particular thread into view. This is mainly used to
   // scroll a newly created annotation into view.
@@ -502,7 +517,10 @@ function ComicList({
                               trace={step}
                               onElementSizeChanged={onRendered}
                               onClick={onComicClick}
-                              classes={classnames({ "data-comics-nav": navId !== 1 })}
+                              classes={classnames(
+                                {"border-blue-500 border-2 bg-blue-50": expertStepId === step.id},
+                                {"data-comics-nav": navId !== 1 }
+                              )}
                             />
                           )
                         } else if (step.image) {
@@ -535,6 +553,7 @@ function ComicList({
                               onClick={onComicClick}
                               step={step}
                               dataId={dataId}
+                              classes={expertStepId === step.id? 'border-blue-500 border-2 bg-blue-50' : ''}
                             >
                               {subSteps.slice(start, start + accumulated).map(s =>
                                 s ? (
@@ -573,6 +592,7 @@ function ComicList({
                               step={step}
                               dataId={dataId}
                               onClick={onComicClick}
+                              classes={expertStepId === step.id? 'border-blue-500 border-2 bg-blue-50' : ''}
                             >
                               {subSteps.slice(start, start + accumulated).map(s =>
                                 s ? (
@@ -616,7 +636,10 @@ function ComicList({
                           trace={step}
                           onElementSizeChanged={onRendered}
                           onClick={onComicClick}
-                          classes={classnames({ "data-comics-nav": navId !== 1 })}
+                          classes={classnames(
+                            {"border-blue-500 border-2 bg-blue-50": expertStepId === step.id},
+                            {"data-comics-nav": navId !== 1 }
+                          )}
                         />
                       </>
                     )
@@ -646,6 +669,7 @@ function ComicList({
                         onClick={onComicClick}
                         step={step}
                         dataId={dataId}
+                        classes={expertStepId === step.id? 'border-blue-500 border-2 bg-blue-50' : ''}
                       >
                         {recordSteps.slice(index, index + accumulated + 1).map(s =>
                           <ComicItem
@@ -678,6 +702,7 @@ function ComicList({
                         step={step}
                         dataId={dataId}
                         onClick={onComicClick}
+                        classes={expertStepId === step.id? 'border-blue-500 border-2 bg-blue-50' : ''}
                       >
                         {recordSteps.slice(index, index + accumulated + 1).map(s =>
                           <ComicItem
@@ -701,4 +726,4 @@ function ComicList({
   );
 }
 
-export default withServices(ComicList, ['frameSync']);
+export default withServices(ComicList, ['frameSync', 'recordingService']);

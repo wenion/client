@@ -22,32 +22,32 @@ function FloatingPanel({
   const tabName = store.selectedTab();
 
   const recordSteps = store.recordSteps();
-  const expertStepId = store.getExpertStepId();
+  const expertStep = store.getExpertStep();
   const recordView = recordingService.getRecordTabView();
 
   const [timer, setTimer] = useState<number | undefined>(undefined);
 
   const onShow = useCallback(()=> {
     clearTimeout(timer);
-    if (expertStepId) {
-      const step = recordSteps.find(step => step.pk === expertStepId);
+    if (expertStep) {
+      const step = recordSteps.find(step => step.id === expertStep.id);
       recordingService.scrollTo(step ? step.id: null);
     }
-    setTimer(setTimeout(() => store.setExpertStepId(null), 1000));
-  }, [recordSteps, expertStepId]);
+    setTimer(setTimeout(() => store.setExpertStep(null), 1000));
+  }, [recordSteps, expertStep]);
 
   useEffect(()=> {
-    if (expertStepId && tabName === 'shareflow' && recordView === 'view') {
+    if (expertStep && tabName === 'shareflow' && recordView === 'view') {
       clearTimeout(timer);
-      setTimer(setTimeout(() => store.setExpertStepId(null), 12000));
+      setTimer(setTimeout(() => store.setExpertStep(null), 12000));
     } else {
       clearTimeout(timer);
     }
-  }, [expertStepId, tabName, recordView]);
+  }, [expertStep, tabName, recordView]);
 
   return (
     <>
-      {expertStepId && tabName === 'shareflow' && recordView === 'view' && (
+      {expertStep && tabName === 'shareflow' && recordView === 'view' && (
         <div className='fixed z-10 left-2 bottom-4 animate-fade-in-slow'>
           <div
             className={classnames(
@@ -67,7 +67,7 @@ function FloatingPanel({
             </div>
             <div
               className="flex w-12"
-              onClick={() => store.setExpertStepId(null)}
+              onClick={() => store.setExpertStep(null)}
             >
               <CancelIcon />
             </div>

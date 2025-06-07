@@ -81,7 +81,34 @@ export class RecordingService {
     this._store.addRecordSteps(traceSteps);
   }
 
-  async selectRecordTabViewByPk(pk: string, current_step: string[], expert_step?: string) {
+  findStepInView(targetSteps: RecordStep[], steps: RecordStep[]) {
+    for(const target of targetSteps) {
+      const threadElement = document.getElementById(target.id);
+      if (threadElement) {
+        console.log("Target found >>", target)
+        return target;
+      }
+    }
+
+    console.log("No direct match found, fallback to previous steps")
+    const target = targetSteps[0];
+    const targetIndex = steps.findIndex(step => step.id === target.id);
+    if (targetIndex === -1) {
+      console.error('Fallback target not found in full step list')
+      return null;
+    }
+    for (let i = targetIndex - 1; i >= 0; i--) {
+      const targetElement = document.getElementById(steps[i].id);
+      if (targetElement) {
+        console.log("Fallback target found >>", steps[i])
+        return steps[i];
+      }
+    }
+    console.log("No match found at all")
+    return null;
+  }
+
+  async selectRecordTabViewByPk(pk: string, current_step: string[], expertStepId?: string) {
     const recordItem = this._store.getRecordItemByPk(pk);
     if (recordItem) {
       const id = recordItem.id;
@@ -96,49 +123,17 @@ export class RecordingService {
         .filter(step => step !== null);
 
       // if push step is empty, set expert step as target step
-      if (subSteps.length === 0) {
-        if (expert_step) {
-          const keyStep = this._store.getRecordStepByPk(expert_step);
-          if (keyStep) {
-            subSteps.push(keyStep);
-          }
-        }
-      } else {
-        if (expert_step) {
-          this._store.setExpertStepId(expert_step);
-        }
+      const exportStep = this._store.getRecordStepByPk(expertStepId??'');
+      if (exportStep !== null) {
+        subSteps.push(exportStep);
+        this._store.setExpertStep(exportStep);
       }
 
       setTimeout(() => {
-        for(const target of subSteps) {
-          const threadElement = document.getElementById(target.id);
-          if (threadElement) {
-            console.log("target found >>", target)
-            this.scrollTo(target.id);
-            return;
-          }
+        const target = this.findStepInView(subSteps, this._store.recordSteps());
+        if (target) {
+          this.scrollTo(target.id);
         }
-
-        console.log("No match push pk")
-        if (subSteps && subSteps[0]) {
-          const allSteps = this._store.recordSteps();
-
-          const target = subSteps[0];
-          const targetIndex = allSteps.findIndex(item => item.id === target.id);
-          if (targetIndex === -1) {
-            console.error('No match again')
-            return;
-          }
-          for (let i = targetIndex - 1; i >= 0; i--) {
-            const targetElement = document.getElementById(allSteps[i].id);
-            if (targetElement) {
-              console.log("new target found >>", allSteps[i])
-              this.scrollTo(allSteps[i].id);
-              return;
-            }
-          }
-        }
-        console.error("No match")
       }, 1000);
     }
     else {

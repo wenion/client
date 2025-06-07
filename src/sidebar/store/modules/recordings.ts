@@ -10,7 +10,7 @@ export type State = {
   focusedRecordItemId: string | null;
   focusedStepId: string | null;
   navFocusedStepId: string | null;
-  expertStepId: string | null;
+  expertStep: RecordStep | null;
   recordItems: RecordItem[];
   recordSteps: RecordStep[];
   shouldScroll: boolean;
@@ -23,7 +23,7 @@ function initialState(): State {
     focusedRecordItemId: null,
     focusedStepId: null,
     navFocusedStepId: null,
-    expertStepId: null,
+    expertStep: null,
     recordItems: [],
     recordSteps: [],
     shouldScroll: true,
@@ -56,8 +56,8 @@ const reducers = {
     return { navFocusedStepId: action.scrollToId };
   },
 
-  SET_EXPERT_STEP_ID(state: State, action: { expertStepId: string | null }) {
-    return { expertStepId: action.expertStepId };
+  SET_EXPERT_STEP(state: State, action: { expertStep: RecordStep | null }) {
+    return { expertStep: action.expertStep };
   },
 
   ADD_RECORDITEMS(state: State, action: {recordItems: RecordItem[] }): Partial<State> {
@@ -198,8 +198,8 @@ function setNavFocusedStepId(scrollToId: string | null) {
   return makeAction(reducers, 'SET_NAV_FOCUSED_STEP_ID', {scrollToId: scrollToId});
 }
 
-function setExpertStepId(expertStepId: string | null) {
-  return makeAction(reducers, 'SET_EXPERT_STEP_ID', {expertStepId: expertStepId});
+function setExpertStep(expertStep: RecordStep | null) {
+  return makeAction(reducers, 'SET_EXPERT_STEP', {expertStep: expertStep});
 }
 
 function addRecordItems(recordItems: RecordItem[]) {
@@ -303,8 +303,8 @@ function getNavFocusedStepId(state: State) {
   return state.navFocusedStepId;
 }
 
-function getExpertStepId(state: State) {
-  return state.expertStepId;
+function getExpertStep(state: State) {
+  return state.expertStep;
 }
 
 function getRecordItemById(state: State, id: string) {
@@ -390,7 +390,7 @@ export const recordingsModule = createStoreModule(initialState, {
     setRecordTabView,
     setFocusedStepId,
     setNavFocusedStepId,
-    setExpertStepId,
+    setExpertStep,
     addRecordItems,
     updateRecordItem,
     clearRecordItems,
@@ -406,7 +406,7 @@ export const recordingsModule = createStoreModule(initialState, {
   selectors: {
     getFocusedStepId,
     getNavFocusedStepId,
-    getExpertStepId,
+    getExpertStep,
     getRecordTabView,
     getRecordItem,
     getRecordItemById,
