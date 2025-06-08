@@ -142,9 +142,6 @@ function ComicList({
 
   const [expertStepId, setExpertStepId] = useState<string | null>(null);
 
-  const [sectionId, setSectionId] = useState(0);
-  const [firstRender, setFirstRender] = useState(true);
-
   const [imageThreads, setImageThreads] = useState(() => new Map());
 
   // Client height of the scroll container.
@@ -260,17 +257,8 @@ function ComicList({
     frameSync.notifyHost('openImageViewer', {id: id, timeLineList: recordSteps});
   }
 
-  const getComicsNavElementHeightById = (id: number): number => {
-    const ele =
-      document.querySelector(`[class="data-comics-nav"][data-id="${id}"]`) as HTMLDivElement | null;
-    return ele ? getElementHeightWithMargins(ele) : 0;
-  }
-
   const onNavClick = (step: RecordStep, sectionId?: number) => {
     setScrollToId(step.id);
-    if (sectionId) {
-      setSectionId(sectionId);
-    }
   }
 
   useEffect(() => {
@@ -305,10 +293,6 @@ function ComicList({
       .slice(0, threadIndex)
       .reduce((total, thread) => total + getThreadHeight(thread), 0);
 
-    for (let i = 0; i < sectionId; i++) {
-      yOffset += getComicsNavElementHeightById(i);
-    }
-
     scrollRef.current!.scrollTo({
       top: yOffset,
       behavior: 'smooth',
@@ -321,18 +305,11 @@ function ComicList({
       return;
     }
 
-    if (firstRender) {
-      // if (topThreadId !== focusedStepId) {
-      //   if (!allLoaded) {
-      //     setScrollToId(focusedStepId);
-      //   }
-      // } else {
-        if (allLoaded) {
-          setFirstRender(false);
-        }
-      // }
+    if (!allLoaded) {
+      console.log("not all loaded")
       return;
     }
+
     const topThreadId = topThread?.id || null;
 
     if (topThreadId !== focusedStepId) {
@@ -352,7 +329,7 @@ function ComicList({
     } else {
       store.setShouldScroll(false);
     }
-  }, [focusedStepId, threadHeights, topThread, shouldScroll, firstRender, allLoaded])
+  }, [focusedStepId, threadHeights, topThread, shouldScroll, allLoaded])
 
   const onLoaded = (id: string, value:boolean) => {
     setImageThreads(prevThreads => {
@@ -518,8 +495,7 @@ function ComicList({
                               onElementSizeChanged={onRendered}
                               onClick={onComicClick}
                               classes={classnames(
-                                {"border-blue-500 border-2 bg-blue-50": expertStepId === step.id},
-                                {"data-comics-nav": navId !== 1 }
+                                {"border-blue-500 border-2 bg-blue-50": expertStepId === step.id}
                               )}
                             />
                           )
