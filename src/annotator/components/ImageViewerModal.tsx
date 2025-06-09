@@ -69,6 +69,8 @@ export default function ImageViewerModal({
 
   const onClose = () => {
     setIsHidden(true);
+    setCircleTop(null);
+    setCircleLeft(null);
     emitterRef.current!.publish('closeImageViewer', {id: id});
   };
 
@@ -106,7 +108,7 @@ export default function ImageViewerModal({
 
   useLayoutEffect(()=> {
     updateCirclePosition();
-  }, [trace])
+  }, [trace, circleTop, circleLeft])
 
   const find = useCallback((direction: string) => {
     if (trace && timeLineList) {
@@ -116,6 +118,8 @@ export default function ImageViewerModal({
       } else if (direction === 'next' && index < timeLineList.length - 1 ) {
         setId(timeLineList[index + 1].id);
       }
+      setCircleTop(null);
+      setCircleLeft(null);
     }
   }, [trace, id, timeLineList])
 

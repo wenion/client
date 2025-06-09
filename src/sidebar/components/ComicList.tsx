@@ -222,7 +222,7 @@ function ComicList({
         scrollPosition,
         scrollContainerHeight,
       ),
-    [topLevelThreads, threadHeights, scrollPosition, scrollContainerHeight],
+    [topLevelThreads, threadHeights, scrollPosition, scrollContainerHeight, focusedStepId],
   );
 
   const allLoaded = useMemo(
@@ -305,6 +305,12 @@ function ComicList({
       return;
     }
 
+    const found = topLevelThreads.find(thread => thread.id === focusedStepId);
+    if (!found?.image) {
+      setScrollToId(null);
+      return;
+    }
+
     if (!allLoaded) {
       console.log("not all loaded")
       return;
@@ -329,7 +335,7 @@ function ComicList({
     } else {
       store.setShouldScroll(false);
     }
-  }, [focusedStepId, threadHeights, topThread, shouldScroll, allLoaded])
+  }, [focusedStepId, threadHeights, topThread, shouldScroll, allLoaded, topLevelThreads])
 
   const onLoaded = (id: string, value:boolean) => {
     setImageThreads(prevThreads => {
