@@ -229,7 +229,7 @@ export class RecordingService {
       if (options.generate) {
         setTimeout(() => {
           this.selectRecordTabView('view', recordItem.id);
-        }, 1000);
+        }, 2000);
       }
     } catch (err) {
       if (err.response.status === 404) {
