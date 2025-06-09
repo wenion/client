@@ -27,8 +27,8 @@ export default function ImageViewerModal({
   const [timeLineList, setTimeLineList] = useState<RecordStep[] | null>(null);
   const [id, setId] = useState<string | null>(null);
 
-  const [circleTop, setCircleTop] = useState(0);
-  const [circleLeft, setCircleLeft] = useState(0);
+  const [circleTop, setCircleTop] = useState<number | null>(null);
+  const [circleLeft, setCircleLeft] = useState<number | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
   const circleRef = useRef<HTMLDivElement | null>(null);
 
@@ -90,7 +90,7 @@ export default function ImageViewerModal({
     const imageHeight = imageRef.current.clientHeight;
     const { width, height, clientX: offsetX, clientY: offsetY } = trace;
 
-    if (width > 0 && height > 0 && offsetX >= 0 && offsetY >= 0) {
+    if (width > 0 && height > 0 && offsetX !== null && offsetY !== null) {
       const widthToHeight = width / height;
       const ratioHeight = imageHeight/height;
       const ratioWidth = widthToHeight * imageHeight / width;
@@ -186,14 +186,16 @@ export default function ImageViewerModal({
                 src={trace.image}
                 onLoad={onLoad}
               />
-              <div
-                ref={circleRef}
-                className={classnames(
-                  'w-6 h-6 rounded-full',
-                  'absolute border-2 border-red-500 bg-red-100/35 transition-all',
-                )}
-                style={{ top: `${circleTop}px`, left: `${circleLeft}px` }}
-              />
+              {circleTop && circleLeft && (
+                <div
+                  ref={circleRef}
+                  className={classnames(
+                    'w-6 h-6 rounded-full',
+                    'absolute border-2 border-red-500 bg-red-100/35 transition-all',
+                  )}
+                  style={{ top: `${circleTop}px`, left: `${circleLeft}px` }}
+                />
+              )}
             </div>
           )}
           {trace && !trace.image && (
