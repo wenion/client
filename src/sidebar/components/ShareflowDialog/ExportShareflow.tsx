@@ -160,6 +160,7 @@ function ExportShareflow({
           return JSON.stringify({
             version: recordItem?.version??null,
             name: recordItem?.taskName??null,
+            description: recordItem?.description??null,
             data: data
           }, null, 2);
         }
