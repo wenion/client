@@ -306,10 +306,10 @@ function ComicList({
     }
 
     const found = topLevelThreads.find(thread => thread.id === focusedStepId);
-    if (!found?.image) {
-      setScrollToId(null);
-      return;
-    }
+    // if (!found?.image) {
+    //   setScrollToId(null);
+    //   return;
+    // }
 
     if (!allLoaded) {
       console.log("not all loaded")
