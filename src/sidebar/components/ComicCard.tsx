@@ -111,8 +111,6 @@ function Thumbnail({
           'cursor-pointer',
         )}
         id={'img' + trace.id}
-        // onMouseEnter={() => hover(true)}
-        // onMouseLeave={() => hover(false)}
         alt={trace.title}
         src={trace.image!}
         onLoad={() => onLoad(trace.id)}
