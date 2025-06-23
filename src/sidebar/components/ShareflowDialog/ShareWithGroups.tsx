@@ -43,6 +43,7 @@ type FilterToggleProps = {
   testId?: string;
 
   disabled?: boolean;
+  classes?: string;
 };
 
 /**
@@ -56,6 +57,7 @@ function FilterToggle({
   disabled = false,
   setActive,
   testId,
+  classes,
 }: FilterToggleProps) {
   return (
     <Button
@@ -67,7 +69,7 @@ function FilterToggle({
         'text-grey-7 bg-grey-2': !active,
         'text-grey-1 bg-grey-7': active,
         'opacity-50': disabled,
-      })}
+      }, classes)}
       disabled={disabled}
       onClick={() => setActive(!active)}
       pressed={active}
@@ -143,7 +145,7 @@ function shareWithGroups({
   const focusedRecordItem = store.focusedRecordItemId();
   const [recordItem, setRecordItem] = useState<RecordItem | null>(null);
 
-  const [shareWithGroups, setShareWithGroups] = useState<Group[]>([]);
+  const [shareWithGroups, setShareWithGroups] = useState<(Group | string)[]>([]);
 
   useEffect(()=> {
     if (focusedRecordItem) {
@@ -151,9 +153,10 @@ function shareWithGroups({
       setRecordItem(recordItem);
 
       if (recordItem && recordItem.groups) {
-        const groups = recordItem.groups
-          .map(groupId => allGroups.find(g => g.id === groupId))
-          .filter((group): group is Group => group !== undefined);
+        const groups = recordItem.groups.map(groupId => {
+          const found = allGroups.find(g => g.id === groupId);
+          return found?? groupId;
+        });
 
         setShareWithGroups(groups);
       }
@@ -168,6 +171,16 @@ function shareWithGroups({
       });
     }
   }, [recordItem]);
+
+  const removeFromGroupId = useCallback(async (groupId: string, value: boolean) => {
+    if (recordItem) {
+      await recordingService.updateRecord(recordItem.id, {
+        group: groupId,
+        action: value ? 'add' : 'remove'
+      });
+    }
+  }, [recordItem]);
+
   const Container = withCardContainer ? CardContainer : Fragment;
 
   return (
@@ -177,15 +190,31 @@ function shareWithGroups({
         data-testid="filter-controls"
       >
         <b>Currently shared with:</b>
-        {shareWithGroups.map(groupInfo => (
-          <FilterToggle
-            label={groupInfo.name}
-            description={`Share with ${groupInfo.name}`}
-            active={true}
-            setActive={(value) => {removeFromGroups(groupInfo, value)}}
-            testId="selection-toggle"
-          />
-        ))}
+        {shareWithGroups.map(groupInfo => {
+          if (typeof groupInfo === 'object') {
+            return (
+              <FilterToggle
+                label={groupInfo.name}
+                description={`Share with ${groupInfo.name}`}
+                active={true}
+                setActive={(value) => {removeFromGroups(groupInfo, value)}}
+                testId="selection-toggle"
+              />
+            )
+          }
+          else {
+            return (
+              <FilterToggle
+                label={groupInfo}
+                description={"Warning: You're sharing with an unknown group. Please remove it to protect your data."}
+                active={true}
+                setActive={(value) => {removeFromGroupId(groupInfo, value)}}
+                testId="selection-toggle"
+                classes='bg-red-700'
+              />
+            )
+          }
+        })}
       </div>
     </Container>
   );

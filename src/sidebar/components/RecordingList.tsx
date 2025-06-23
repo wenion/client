@@ -66,6 +66,7 @@ type FilterToggleProps = {
   active: boolean;
 
   testId?: string;
+  classes?: string;
 
   // disabled?: boolean;
 };
@@ -76,6 +77,7 @@ function FilterToggle({
   url,
   active = true,
   testId,
+  classes,
 }: FilterToggleProps) {
   return (
     <Button
@@ -87,7 +89,8 @@ function FilterToggle({
         'text-grey-1 bg-grey-5': active,
         // 'text-grey-1 bg-grey-7': active,
         // 'opacity-50': disabled,
-      })}
+      },
+        classes,)}
       variant="custom"
       title={description}
       onClick={() => window.open(url, "_blank")}
@@ -113,13 +116,14 @@ function RecordingSlider({
   const now = new Date();
   const createdDate = new Date(recordItem.timestamp);
 
-  const [shareWithGroups, setShareWithGroups] = useState<Group[]>([]);
+  const [shareWithGroups, setShareWithGroups] = useState<(Group | string)[]>([]);
 
   useEffect(()=>{
     if (recordItem && recordItem.groups) {
-      const groups = recordItem.groups
-        .map(groupId => allGroups.find(g => g.id === groupId))
-        .filter((group): group is Group => group !== undefined);
+      const groups = recordItem.groups.map(groupId => {
+        const found = allGroups.find(g => g.id === groupId);
+        return found?? groupId;
+      });
 
       setShareWithGroups(groups);
     }
@@ -155,15 +159,31 @@ function RecordingSlider({
               data-testid="filter-controls"
             >
               <b>Currently shared with:</b>
-              {shareWithGroups.map(groupInfo => (
-                <FilterToggle
-                  label={groupInfo.name}
-                  description={`Share with ${groupInfo.name}`}
-                  url={groupInfo.links.html}
-                  active={true}
-                  testId="selection-toggle"
-                />
-              ))}
+              {shareWithGroups.map(groupInfo => {
+                if (typeof groupInfo === 'object') {
+                  return (
+                    <FilterToggle
+                      label={groupInfo.name}
+                      description={`Share with ${groupInfo.name}`}
+                      url={groupInfo.links.html}
+                      active={true}
+                      testId="selection-toggle"
+                    />
+                  )
+                }
+                else {
+                  return (
+                    <FilterToggle
+                      label={`unknown group - ${groupInfo}`}
+                      description={`This group no longer exists or you’ve left it. To access it again, please rejoin.`}
+                      // url={groupInfo.links.html}
+                      active={true}
+                      testId="selection-toggle"
+                      classes='bg-red-700'
+                    />
+                  )
+                }
+              })}
             </div>
           )}
         </CardContent>
