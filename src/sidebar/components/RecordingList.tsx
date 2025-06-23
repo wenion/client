@@ -112,6 +112,7 @@ function RecordingSlider({
 }: RecordingSliderProps) {
   const store = useSidebarStore();
   const allGroups = store.allGroups();
+  const userid = store.profile().userid;
 
   const now = new Date();
   const createdDate = new Date(recordItem.timestamp);
@@ -122,8 +123,16 @@ function RecordingSlider({
     if (recordItem && recordItem.groups) {
       const groups = recordItem.groups.map(groupId => {
         const found = allGroups.find(g => g.id === groupId);
-        return found?? groupId;
-      });
+        if (found) {
+          return found;
+        }
+        else if (recordItem.userid === userid){
+          return groupId;
+        }
+        else {
+          return undefined; // skip this entry
+        }
+      }).filter((g): g is Group | string => g !== undefined);
 
       setShareWithGroups(groups);
     }
@@ -280,6 +289,11 @@ export default function RecordingList({
     const filter = recordItems.filter(recordItem => {
       if (query) {
         const _query = query.toLowerCase();
+
+        const exist = recordItem.groups.find(groupId => groupId === focusedGroup?.id);
+        if (!exist) {
+          return false;
+        }
 
         const groups = recordItem.groups
           .map(groupId => allGroups.find(group => group.id === groupId))
