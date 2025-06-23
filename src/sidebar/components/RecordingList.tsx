@@ -227,6 +227,7 @@ export default function RecordingList({
   const sortKey = store.sortKey();
   const activePanelName = store.activePanelName();
   const allGroups = store.allGroups();
+  const focusedGroup = store.focusedGroup();
 
   const contentElement = useRef<HTMLDivElement | null>(null);
   const scollRef = useRef<HTMLDivElement | null>(null);
@@ -272,9 +273,9 @@ export default function RecordingList({
             group => group.name.toLowerCase().includes(_query))
         )
       } else {
-        return true;
+        return recordItem.groups.find(groupId => groupId === focusedGroup?.id) ||
+          recordItem.userid === userid;
       }
-
     });
 
     const sorted = filter.sort(sorters[sortKey]);
