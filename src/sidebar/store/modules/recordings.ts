@@ -105,10 +105,16 @@ const reducers = {
       };
     }
 
+    const updated = action.recordItem;
+    const date = new Date(updated.timestamp);
+    if (date !== undefined) {
+      updated.timestamp = date.getTime();
+    }
+
     return {
       recordItems: [
         ...state.recordItems.slice(0, index),
-        action.recordItem,
+        updated,
         ...state.recordItems.slice(index + 1),
       ]
     };
