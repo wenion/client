@@ -32,18 +32,26 @@ const getUserName = (userid: string) => {
 type TagProps = {
   sharedby: boolean;
   tag: string;
+  classes?: string,
 };
 
 function Tag({
   sharedby,
   tag,
+  classes,
 }: TagProps) {
   return (
     <>
       {sharedby && (
         <em>shared by</em>
       )}
-      <div class="text-blue-700 bg-blue-50 border-blue-200 border rounded px-1 ml-1">
+      <div
+        className={classnames(
+          "text-blue-700 bg-blue-50 border-blue-200",
+          "border rounded px-1 ml-1",
+          classes
+        )}
+      >
         <span>{tag}</span>
       </div>
     </>
@@ -422,40 +430,31 @@ export default function RecordingList({
           onMouseLeave={onMouseLeave}
         >
           <div
-            className={classnames('flex items-center mx-2 gap-x-2')}
+            className={classnames('flex items-center mx-2 gap-x-2 min-h-10')}
           >
             <div><PreviewIcon /></div>
             <div data-component="title" className="w-0.7 text-lg truncate">
               <span>{record.taskName}</span>
             </div>
             <div className="flex items-center justify-end grow">
-              {record.groups && record.groups.length !== 0 && (
+              {record.groups && record.groups.length !== 0 ? (
                 <Tag
                   sharedby={userid !== record.userid}
                   tag={userid === record.userid? "shared" : getUserName(record.userid!)}
                 />
+              ) : (
+                <Tag
+                  sharedby={false}
+                  tag={'private'}
+                  classes='text-orange-500 bg-orange-50 border-orange-200'
+                />
               )}
-              {userid === record.userid ? (
+              {userid === record.userid && (
                 <RecordingMenu
                   recordItem={record}
                   onShare={onShare}
                   onDelete={onDelete}
                 />
-              ) : (
-                <div
-                  className={classnames(
-                    'flex items-center font-semibold rounded',
-                    'text-grey-7 bg-grey-1',
-                    'enabled:hover:text-grey-9 enabled:hover:bg-grey-2',
-                    'aria-pressed:text-grey-9 aria-expanded:text-grey-9',
-                    'grow-0 m-1 bg-grey-0 hover:bg-blue-400',
-                  )}
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  <span className="rotate-90 p-2">
-                    <EllipsisIcon />
-                  </span>
-                </div>
               )}
             </div>
           </div>
