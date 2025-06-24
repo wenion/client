@@ -441,6 +441,7 @@ export default function RecordingList({
                 <Tag
                   sharedby={userid !== record.userid}
                   tag={userid === record.userid? "shared" : getUserName(record.userid!)}
+                  classes={userid === record.userid? 'text-green-500 bg-green-50 border-green-200' : ''}
                 />
               ) : (
                 <Tag
