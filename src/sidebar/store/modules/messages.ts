@@ -144,7 +144,7 @@ const additionMessages = createSelector(
 const shareFlowMessages = createSelector(
   (state: State) => state.messages,
   messages =>
-    messages.filter(m => m.type === 'instant_message').sort((a, b) => b.date - a.date),
+    messages.filter(m => m.type === 'instant_message' && m.need_save_flag).sort((a, b) => b.date - a.date),
 );
 
 const organizationMessages = createSelector(

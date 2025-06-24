@@ -210,6 +210,10 @@ export class StreamerService {
     } else if (message.type === 'instant_message') {
       message.unread_flag = true;
       message.autoDismiss = false;
+      message.need_save_flag = true;
+      if (this._store.getSync('muted')) {
+        message.need_save_flag = false;
+      }
       console.log("receive from TAD ", message)
       this._toastMessenger.message([message,]);
     } else if (message.type === 'shareflow-notification') {
