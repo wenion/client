@@ -217,7 +217,13 @@ export class StreamerService {
       console.log("receive from TAD ", message)
       this._toastMessenger.message([message,]);
     } else if (message.type === 'shareflow-notification') {
-      this._store.updateRecordItem(message);
+      // add
+      if (this._store.getRecordItemById(message.id)) {
+        this._store.updateRecordItem(message);
+      }
+      else {
+        this._store.addRecordItems([message]);
+      }
     } else {
       warnOnce('Received unsupported notification', message.type);
     }
