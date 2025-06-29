@@ -171,7 +171,7 @@ function ImageEditor({
     setChanged(false);
   };
 
-  const save = () => {
+  const save = async () => {
     const canvas = canvasRef2.current;
     if (!canvas) return;
 
@@ -187,11 +187,10 @@ function ImageEditor({
       let id = match ? match[1] : null;
 
       if (id) {
-        recordingService.updateImage(id, data);
+        await recordingService.updateImage(id, data);
         store.updateRecordStep(trace);
-        window.location.reload();
-
         onSave(id);
+        window.location.reload();
       }
     }
   };
