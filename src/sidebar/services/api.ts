@@ -304,6 +304,9 @@ export class APIService {
     read: APICall<Record<string, unknown>, void, Track>;
     update: APICall<Record<string, unknown>, Track, void>;
   };
+  image: {
+    update: APICall<IDParam, Record<string, unknown>, void>;
+  };
 
 
   constructor(
@@ -476,6 +479,9 @@ export class APIService {
       read: apiCall('tracking.read') as APICall<Record<string, unknown>, void, Track>,
       update: apiCall('tracking.update') as APICall<Record<string, unknown>, Track, void>,
     };
+    this.image = {
+      update: apiCall('image.update') as APICall<IDParam, Record<string, unknown>, void>,
+    }
   }
 
   /**

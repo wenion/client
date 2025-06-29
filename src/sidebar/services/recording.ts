@@ -69,6 +69,13 @@ export class RecordingService {
     // this._store.setHistory(results);
   }
 
+  async updateImage(id: string, imageData: string) {
+    this._api.image.update(
+      { id: id },
+      { image: imageData }
+    );
+  };
+
   async getTracesById(id: string) {
     this._store.clearRecordSteps();
     const traceSteps = await this._api.traces.list({ id: id, "response_mode": "metadata" });

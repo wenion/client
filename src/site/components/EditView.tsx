@@ -26,6 +26,7 @@ import {
   getElementHeightWithMargins,
 } from '../../sidebar/util/dom';
 import { withServices } from '../../sidebar/service-context';
+import ImageEditor from './ImageEditor';
 import type { RecordingService } from '../../sidebar/services/recording';
 import type { SessionService } from '../../sidebar/services/session';
 import type { ToastMessengerService } from '../../sidebar/services/toast-messenger';
@@ -355,7 +356,6 @@ function Thumbnail({
         "hover:shadow-lg",
         "overflow-clip",
       )}
-      onClick={() => onClickEvent(trace.id)}
     >
       <img
         ref={imageRef}
@@ -368,6 +368,9 @@ function Thumbnail({
         alt={trace.title}
         src={trace.image!}
         onLoad={onLoad}
+        onDblClick={() => {
+          onClickEvent(trace.id);
+        }}
       />
       {circleTop && circleLeft && (
         <div
@@ -393,6 +396,7 @@ type EditingCardProps = {
   onElementSizeChanged: (id: string) => void;
   onSelect: (id: string, selected: boolean) => void;
   onDblClick: (id: string) => void;
+  onImageDblClick: (id: string) => void;
   classes?: string;
 };
 
@@ -404,6 +408,7 @@ export function EditingCard({
   onElementSizeChanged,
   onSelect,
   onDblClick,
+  onImageDblClick,
   classes,
 }: EditingCardProps) {
   useLayoutEffect(()=> {
@@ -426,7 +431,6 @@ export function EditingCard({
       id={trace.id}
       data-id={dataId}
       onClick={() => setIsExpanded(!isExpanded)}
-      onDblClick={() => onDblClick(trace.id)}
     >
       <div
         className={classnames(
@@ -436,21 +440,22 @@ export function EditingCard({
           'border border-black mb-0.5 rounded-lg',
           'hover:ring-gray-500 hover:bg-gray-100',
         )}
+        onDblClick={() => onDblClick(trace.id)}
       >
-      <ComicItem
-        index={dataId}
-        sectionId={sectionId}
-        trace={trace}
-        isAlign={trace.image ? true: false}
-        selected={selected}
-        onElementSizeChanged={()=> {}}
-        onSelect={onSelect}
-      />
+        <ComicItem
+          index={dataId}
+          sectionId={sectionId}
+          trace={trace}
+          isAlign={trace.image ? true: false}
+          selected={selected}
+          onElementSizeChanged={()=> {}}
+          onSelect={onSelect}
+        />
       </div>
       {trace.image && (
         <Thumbnail
           trace={trace}
-          onClickEvent={() => {}}
+          onClickEvent={onImageDblClick}
           onElementSizeChanged={() => {}}
         />
       )}
@@ -536,7 +541,9 @@ function EditView({
   const prevSourceRef = useRef(sourceIndex);
   const prevTargetRef = useRef(targetIndex);
 
+  const [step, setStep] = useState<RecordStep | null>(null);
   const [popup, setPopup] = useState(false);
+  const [imagePopup, setImagePopup] = useState(false);
   const nameEl = useRef<HTMLInputElement>();
   const descriptionEl = useRef<HTMLTextAreaElement>();
 
@@ -902,7 +909,7 @@ function EditView({
         isSidebar={true}
       />
       {popup && (
-        <Overlay>
+        <Overlay classes={"z-40"}>
           <div className="w-xs mb-3">
             <Card>
               <CardHeader title={recordItem?.taskName} onClose={() => setPopup(false)} />
@@ -947,9 +954,18 @@ function EditView({
           </div>
         </Overlay>
       )}
+      {imagePopup && step && (
+        <Overlay>
+          <ImageEditor
+            trace={step}
+            onSave={(id: string) => {console.log("id", id); setImagePopup(false)}}
+            onCancel={(id: string) => {setImagePopup(false)}}
+          />
+        </Overlay>
+      )}
       <div>
         <div
-          className={"fixed flex ml-32 mt-4 bg-white border border-black rounded-md z-20"}
+          className={"fixed flex ml-32 mt-4 bg-white border border-black rounded-md"}
         >
           <IconButton
             icon={NoteIcon}
@@ -1025,6 +1041,11 @@ function EditView({
                       selected={selectedList.some(item => item === step.id)}
                       onSelect={onSelect}
                       onDblClick={onDblClick}
+                      onImageDblClick={(id)=> {
+                        setImagePopup(true);
+                        const s = steps.find(step => step.id === id)??null;
+                        setStep(s);
+                      }}
                       onElementSizeChanged={() => {}}
                     />
                     <EditingCardSpacing
