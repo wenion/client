@@ -188,9 +188,10 @@ function ImageEditor({
 
       if (id) {
         await recordingService.updateImage(id, data);
+        trace.image = data;
         store.updateRecordStep(trace);
         onSave(id);
-        window.location.reload();
+        // window.location.reload();
       }
     }
   };
