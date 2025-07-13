@@ -269,6 +269,14 @@ export class RecordingService {
     this._store.setDefault('focusedShareflow', value ? recordItem.id : null);
   };
 
+  async setRecordScore(id: string, value: number) {
+    const recordItem = await this._api.recording.update(
+      { id: id },
+      { score: value }
+    );
+    this._store.updateRecordItem(recordItem);
+  };
+
   async deleteRecord(id: string) {
     await this._api.recording.delete({ id: id });
     this._store.removeRecordItem(id);

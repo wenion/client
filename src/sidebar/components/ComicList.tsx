@@ -29,6 +29,7 @@ import {
 } from '../util/dom';
 import { ComicHeader, ComicItem, ImageComicCard, TextComicCard} from './ComicCard';
 import NavComics from './NavComics';
+import ThumbUpIcon from '../../images/icons/thumbUp';
 
 // The precision of the `scrollPosition` value in pixels; values will be rounded
 // down to the nearest multiple of this scale value
@@ -104,6 +105,7 @@ export type ComicListProps = {
   onOpen: (recordItem: RecordItem, recordSteps: RecordStep[], top: RecordStep) => void;
   onClose: (id: string) => void;
   onPin: (recordItem: RecordItem, value: boolean) => void;
+  onScore: (recordItem: RecordItem, value: number) => void;
   onRefreshStep: (record: string | null, recordStep: string | null) => void;
 
   frameSync: FrameSyncService;
@@ -117,6 +119,7 @@ function ComicList({
   onOpen,
   onClose,
   onPin,
+  onScore,
   onRefreshStep,
   frameSync,
   recordingService,
@@ -412,6 +415,16 @@ function ComicList({
               }}
             >
               {isPin? (<PinFilledIcon className={classnames("text-brand")} />): (<PinIcon />)}
+            </Button>
+            <Button
+              classes={classnames('flex-none','border-black')}
+              onClick={() => onScore(recordItem!, recordItem?.score ? 0 : 1)}
+            >
+              <div class={classnames(
+                {'text-brand': recordItem?.score !== 0},
+              )}>
+                <ThumbUpIcon />
+              </div>
             </Button>
             <Button
               classes={classnames('flex-none', 'border-black')}

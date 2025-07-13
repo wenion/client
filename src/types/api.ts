@@ -510,6 +510,8 @@ export type RecordItem = {
   timestamp: number;
   userid: string;
   extra?: APIShareflowSegmentation;
+  score: number;
+  scores: number;
 };
 
 export type RecordStep = {

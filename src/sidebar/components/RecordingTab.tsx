@@ -90,6 +90,10 @@ function RecordingTab({
     recordingService.toggleRecordPin(recordItem.id, value);
   }
 
+  const onScore = (recordItem: RecordItem, value: number) => {
+    recordingService.setRecordScore(recordItem.id, value);
+  }
+
   const onDelete = async (recordItem: RecordItem) => {
     if (
       await confirm({
@@ -128,6 +132,7 @@ function RecordingTab({
           onOpen={onPageOpen}
           onClose={onClose}
           onPin={onPin}
+          onScore={onScore}
           onRefreshStep={onRefreshStep}
         />
       )}

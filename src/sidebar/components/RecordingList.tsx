@@ -18,6 +18,7 @@ import { getElementHeightWithMargins } from '../util/dom';
 import { formatRelativeDate } from '../util/time';
 import Slider from './Slider'
 import RecordingMenu from './RecordingMenu';
+import ThumbUpIcon from '../../images/icons/thumbUp';
 
 const capitalize = (word: string) => {
   return word.charAt(0).toUpperCase() + word.slice(1);
@@ -288,6 +289,12 @@ export default function RecordingList({
       return a.userid.localeCompare(b.userid);
     },
 
+    Popularity: (a: RecordItem, b: RecordItem) => {
+      const dateA = a.scores;
+      const dateB = b.scores;
+      return dateB - dateA;
+    },
+
     Location: (a: RecordItem, b: RecordItem) => {
       return a.userid.localeCompare(b.userid);
     },
@@ -437,6 +444,12 @@ export default function RecordingList({
               <span>{record.taskName}</span>
             </div>
             <div className="flex items-center justify-end grow">
+              {record.scores !== 0 && (
+                <>
+                  <ThumbUpIcon />
+                  <sub>{record.scores}</sub>
+                </>
+              )}
               {record.groups && record.groups.length !== 0 ? (
                 <Tag
                   sharedby={userid !== record.userid}

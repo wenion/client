@@ -9,7 +9,7 @@ import { countIf, trueKeys, toTrueMap } from '../../util/collections';
 import { createStoreModule, makeAction } from '../create-store';
 
 type BooleanMap = Record<string, boolean>;
-type SortKey = 'Location' | 'Newest' | 'Oldest' | 'User';
+type SortKey = 'Location' | 'Newest' | 'Oldest' | 'User' | 'Popularity';
 
 /**
  * Default sort keys for each tab.
@@ -378,6 +378,7 @@ const sortKeys = createSelector(
     }
     if (selectedTab === 'shareflow') {
       sortKeysForTab.push('User');
+      sortKeysForTab.push('Popularity');
     }
     return sortKeysForTab;
   },
