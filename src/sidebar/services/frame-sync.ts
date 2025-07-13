@@ -484,6 +484,10 @@ export class FrameSyncService {
         }
       }
 
+      if (trace.type === 'wheel' && this._lastTrace.type === 'wheel') {
+        skip = true;
+      }
+
       if (
         trace.custom.toLowerCase() === 'go to' ||
         trace.custom === 'Switch to'
