@@ -2,28 +2,42 @@ import { TrashIcon, EllipsisIcon, SettingsIcon } from '@hypothesis/frontend-shar
 import { useState } from 'preact/hooks';
 import classnames from 'classnames';
 
+import { withServices } from '../service-context';
 import { useSidebarStore } from '../store';
+import type { RecordingService } from '../services/recording';
 import type { RecordItem } from '../../types/api';
 
 import Menu from './Menu';
 import MenuItem from './MenuItem';
 import MenuSection from './MenuSection';
 import ShareIcon from '../../images/icons/shared';
+import ModelingIcon from '../../images/icons/modeling';
 
 
 export type RecordingMenuProps = {
   recordItem: RecordItem;
   onShare: (recordItem: RecordItem) => void;
   onDelete: (recordItem: RecordItem) => void;
+  recordingService: RecordingService;
 };
 
-export default function RecordingMenu({
+function RecordingMenu({
   recordItem,
   onShare,
   onDelete,
+  recordingService,
 }: RecordingMenuProps) {
   const store = useSidebarStore();
   const [isOpen, setOpen] = useState(false);
+
+  const onRegenerate = (recordItem: RecordItem) => {
+    recordingService.updateRecord(
+      recordItem.id,
+      {
+        regenerate: true,
+      }
+    );
+  };
 
   const group = store.focusedGroup();
 
@@ -57,6 +71,11 @@ export default function RecordingMenu({
         onOpenChanged={setOpen}
       >
         <MenuSection>
+          {/* <MenuItem
+            label='Regenerate'
+            icon={ModelingIcon}
+            onClick={() => onRegenerate(recordItem)}
+          /> */}
           {group && (
             <MenuItem
               label={`Share with ${group.name.slice(0, 10)} `}
@@ -79,3 +98,5 @@ export default function RecordingMenu({
     </div>
   );
 }
+
+export default withServices(RecordingMenu, ['recordingService']);
