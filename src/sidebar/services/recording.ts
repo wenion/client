@@ -261,6 +261,14 @@ export class RecordingService {
     }
   }
 
+  async syncUpdateRecord(id: string, options: Record<string, any>) {
+    const recordItem = await this._api.recording.update(
+      { id: id },
+      options
+    );
+    return recordItem;
+  }
+
   async toggleRecordPin(id: string, value: boolean) {
     const recordItem = await this._api.recording.update(
       { id: id },

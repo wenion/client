@@ -844,6 +844,18 @@ function EditView({
     setPopup(false);
   };
 
+  const onAuto = async() => {
+    if (recordItem) {
+      const update = await recordingService.syncUpdateRecord(recordItem.id, {
+        request_summary: true,
+        url: window.location.href
+      });
+      if (descriptionEl.current) {
+        descriptionEl.current.value = update.description;
+      }
+    }
+  };
+
   const onToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -914,31 +926,36 @@ function EditView({
             <Card>
               <CardHeader title={recordItem?.taskName} onClose={() => setPopup(false)} />
               <CardContent>
-                <div className='flex justify-between items-center px-1'>
-                  <label htmlFor='input-name' className='font-semibold mr-2'>
+                <div className='flex items-center gap-4 px-1 mb-4'>
+                  <label htmlFor='input-name' className='font-semibold w-24 shrink-0'>
                     Name
                   </label>
-                  <div className="sm:w-56 lg:w-96">
+                  <div className='flex-1 sm:w-56 lg:w-96'>
                     <Input
                       elementRef={nameEl}
-                      id="input-name"
-                      aria-label="Type the title"
+                      id='input-name'
+                      aria-label='Type the title'
                       defaultValue={recordItem?.taskName}
                     />
                   </div>
                 </div>
-                <div className='flex justify-between items-center px-1'>
-                  <label htmlFor='textarea-name' className='font-semibold mr-2'>
+                <div className='flex items-center items-start gap-4 px-1'>
+                  <label htmlFor='textarea-name' className='font-semibold w-24 shrink-0 pt-1'>
                     Description
                   </label>
-                  <div className="sm:w-56 lg:w-96">
+                  <div className='flex-1 sm:w-56 lg:w-96'>
                     <Textarea
                       elementRef={descriptionEl}
-                      id="textarea-name"
-                      aria-label="Type the title"
+                      id='textarea-name'
+                      aria-label='Type the title'
                       defaultValue={recordItem?.description}
                       rows={5}
                     />
+                  </div>
+                  <div className="pt-1">
+                    <Button title='Confirm' variant='primary' onClick={onAuto}>
+                      AI Suggest
+                    </Button>
                   </div>
                 </div>
               </CardContent>

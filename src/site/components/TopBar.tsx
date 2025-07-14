@@ -2,6 +2,7 @@ import {
   EditIcon,
   FileCodeIcon,
   FolderIcon,
+  GridIcon,
   HelpIcon,
   IconButton,
   LinkButton,
@@ -17,6 +18,7 @@ import { applyTheme } from '../../sidebar/helpers/theme';
 import { withServices } from '../../sidebar/service-context';
 import type { QueryService } from '../../sidebar/services/query';
 import type { RecordingService } from '../../sidebar/services/recording';
+import type { ToastMessengerService } from '../../sidebar/services/toast-messenger';
 import type { SessionService } from '../../sidebar/services/session';
 import ToastMessages from '../../sidebar/components/ToastMessages';
 import { useSidebarStore } from '../../sidebar/store';
@@ -46,6 +48,7 @@ export type TopBarProps = {
   // injected
   queryService: QueryService;
   recordingService: RecordingService;
+  toastMessenger: ToastMessengerService;
   settings: SidebarSettings;
   session: SessionService;
 };
@@ -62,6 +65,7 @@ function TopBar({
   onSave,
   queryService,
   recordingService,
+  toastMessenger,
   settings,
   session,
 }: TopBarProps) {
@@ -149,6 +153,15 @@ function TopBar({
       recordingService.deleteHistoryList(id);
     }
   };
+
+  const generateSegmentation = () => {
+    if (recordItem) {
+      const update = recordingService.syncUpdateRecord(recordItem.id, {
+        request_segmentation: true,
+      });
+      // toastMessenger.success("generateSegmentation have been saved!");
+    }
+  }
 
   const onActiveChanged = useCallback(
     () => {
@@ -284,6 +297,16 @@ function TopBar({
               {displayMode === "Save" && !isLoading && (
                 <>
                   <IconButton
+                    icon={GridIcon}
+                    onClick={generateSegmentation}
+                    size="lg"
+                    title="Segmentation"
+                    classes="border border-black rounded-sm cursor-pointer"
+                  >
+                    Segmentation
+                  </IconButton>
+                  <div className="w-4"></div>
+                  <IconButton
                     icon={NoteFilledIcon}
                     onClick={
                       () => {
@@ -338,6 +361,7 @@ function TopBar({
 export default withServices(TopBar, [
   'queryService',
   'recordingService',
+  'toastMessenger',
   'settings',
   'session',
 ]);
