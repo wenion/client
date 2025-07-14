@@ -155,8 +155,12 @@ function TopBar({
   };
 
   const generateSegmentation = () => {
-    if (recordItem) {
-      const update = recordingService.syncUpdateRecord(recordItem.id, {
+    if (
+      recordItem &&
+      recordItem.extra &&
+      Object.keys(recordItem.extra).length === 0
+    ) {
+      recordingService.updateRecord(recordItem.id, {
         request_segmentation: true,
       });
       // toastMessenger.success("generateSegmentation have been saved!");
