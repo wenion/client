@@ -130,7 +130,7 @@ export default function NavComics({
     // }
   }
 
-  if (navs.length === 1) {
+  if (navs.length === 1 && recordItem.extra && Object.keys(recordItem.extra).length === 0) {
     return (<></>);
   }
 
