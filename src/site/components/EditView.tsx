@@ -1028,6 +1028,24 @@ function EditView({
           )}
         </div>
         <div
+          class="flex w-3/5 justify-self-center items-center m-4"
+        >
+          <Input
+            id="description"
+            className="w-96"
+            disabled
+            defaultValue={recordItem?.description}
+          />
+          <IconButton
+            onClick={onNote}
+            size="lg"
+            title="Change"
+            classes="border border-black cursor-pointer ml-4"
+          >
+            Change
+          </IconButton>
+        </div>
+        <div
           id="data-comics-list"
           className={"mt-4 mx-auto w-1/2 z-10"}
           onDragStart={onDragStart}
