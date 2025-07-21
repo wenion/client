@@ -304,10 +304,10 @@ function TopBar({
                     icon={GridIcon}
                     onClick={generateSegmentation}
                     size="lg"
-                    title="Segmentation"
+                    title="organise"
                     classes="border border-black rounded-sm cursor-pointer"
                   >
-                    Segmentation
+                    Organise
                   </IconButton>
                   <div className="w-4"></div>
                   <IconButton
