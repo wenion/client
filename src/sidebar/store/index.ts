@@ -27,6 +27,7 @@ import { viewerModule } from './modules/viewer';
 import { resultModule } from './modules/results';
 import { queryModule } from './modules/query';
 import { recordingsModule } from './modules/recordings';
+import { siteModule } from './modules/site';
 import { useStore } from './use-store';
 import { whitelistModule } from './modules/whitelist';
 
@@ -75,6 +76,7 @@ export function createSidebarStore(settings: SidebarSettings) {
     whitelistModule,
     messagesModule,
     recordingsModule,
+    siteModule,
   ] as const;
   return createStore(modules, [settings], middleware);
 }
