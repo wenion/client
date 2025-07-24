@@ -563,9 +563,17 @@ function EditView({
   }, [recordSteps]);
 
   useEffect(() => {
-    const item = recordItems.find(r => r.sessionId === id);
-    setRecordItem(item??null);
-  }, [recordItems])
+    if (recordItems.length && recordItem === null) {
+      const url = (window.location.href);
+      const queryString = url.split('?')[1] || '';
+      const params = new URLSearchParams(queryString);
+      const paramId = params.get('id') ?? null;
+      const id = paramId;
+
+      const item = recordItems.find(r => r.sessionId === id);
+      setRecordItem(item??null);
+    }
+  })
 
   useEffect(() => {
     if (sourceIndex !== null && targetIndex !== null) {
