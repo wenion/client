@@ -1,13 +1,17 @@
 import { createStoreModule, makeAction } from '../create-store';
 
+import type { RecordItem } from '../../../types/api';
+
 type Popup = 'Segmentation' | 'Description';
 
 export type State = {
   popup: Popup | null;
+  currentRecordItem: RecordItem | null;
 };
 
 const initialState: State = {
   popup: null,
+  currentRecordItem: null,
 };
 
 const reducers = {
@@ -36,12 +40,15 @@ const reducers = {
       popup,
     };
   },
+
+  SET_CURRENT_RECORD_ITEM(state: State, action: { recordItem: RecordItem | null }) {
+    return { currentRecordItem: action.recordItem };
+  },
 };
 
 function openPopup(popup: Popup) {
   return makeAction(reducers, 'OPEN_POPUP', { popup });
 }
-
 
 function closePopup(popup: Popup) {
   return makeAction(reducers, 'CLOSE_POPUP', { popup });
@@ -50,6 +57,12 @@ function closePopup(popup: Popup) {
 function togglePopup(popup: Popup) {
   return makeAction(reducers, 'TOGGLE_POPUP', {
     popup,
+  });
+}
+
+function updateCurrentRecordItem(currentRecordItem: RecordItem | null) {
+  return makeAction(reducers, 'SET_CURRENT_RECORD_ITEM', {
+    recordItem: currentRecordItem,
   });
 }
 
@@ -64,6 +77,10 @@ function getPopup(state: State) {
   return state.popup;
 }
 
+function currentRecordItem(state: State) {
+  return state.currentRecordItem;
+}
+
 export const siteModule = createStoreModule(initialState, {
   namespace: 'site',
   reducers,
@@ -71,8 +88,10 @@ export const siteModule = createStoreModule(initialState, {
     openPopup,
     closePopup,
     togglePopup,
+    updateCurrentRecordItem,
   },
   selectors: {
     getPopup,
+    currentRecordItem,
   },
 });

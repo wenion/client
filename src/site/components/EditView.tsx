@@ -498,6 +498,7 @@ function EditView({
   const recordSteps = store.recordSteps();
   const recordItems = store.recordItems();
   const links = store.getLink("index");
+  const recordItem = store.currentRecordItem();
 
   const [id, setId] = useState< null | string>(null);
 
@@ -523,8 +524,6 @@ function EditView({
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [])
-
-  const [recordItem, setRecordItem] = useState<RecordItem | null>(null);
 
   // const parentRef = useRef<HTMLDivElement | null>(null);
 
@@ -572,7 +571,7 @@ function EditView({
       const id = paramId;
 
       const item = recordItems.find(r => r.sessionId === id);
-      setRecordItem(item??null);
+      store.updateCurrentRecordItem(item??null);
     }
   })
 
@@ -849,6 +848,8 @@ function EditView({
         name: taskName,
         description: description,
       });
+
+      store.updateCurrentRecordItem(update);
 
       if (descriptionEl.current) {
         descriptionEl.current.value = update.description;

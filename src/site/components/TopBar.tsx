@@ -77,6 +77,7 @@ function TopBar({
   const isLoading = store.isLoading();
   const messages = store.getToastMessages();
   const inputRef = useRef<HTMLDivElement | null>(null);
+  const recordItem = store.currentRecordItem();
 
   const [id, setId] = useState< null | string>(null);
 
@@ -91,14 +92,6 @@ function TopBar({
   const recordItems = store.recordItems();
   // const recordSteps = store.recordSteps();
   // const [first, shareflow, id] = window.location.pathname.split("/");
-  const [recordItem, setRecordItem] = useState<RecordItem | null>(null);
-
-  useEffect(() => {
-    if (id) {
-      const r = store.getRecordItemById(id);
-      setRecordItem(r);
-    }
-  }, [id, recordItems]);
 
   const profile = store.profile();
 
@@ -155,16 +148,17 @@ function TopBar({
   };
 
   const generateSegmentation = () => {
-    if (
-      recordItem &&
-      recordItem.extra &&
-      Object.keys(recordItem.extra).length === 0
-    ) {
-      recordingService.updateRecord(recordItem.id, {
-        request_segmentation: true,
-      });
-      // toastMessenger.success("generateSegmentation have been saved!");
-    }
+    store.openPopup('Segmentation');
+    // if (
+    //   recordItem &&
+    //   recordItem.extra &&
+    //   Object.keys(recordItem.extra).length === 0
+    // ) {
+    //   recordingService.updateRecord(recordItem.id, {
+    //     request_segmentation: true,
+    //   });
+    //   // toastMessenger.success("generateSegmentation have been saved!");
+    // }
   }
 
   const onActiveChanged = useCallback(
@@ -187,10 +181,13 @@ function TopBar({
     }
   }, [editable])
 
-  const onBlur = (taskName: string) => {
+  const onBlur = async (taskName: string) => {
     setEditable(false);
-    if (recordItem) {
-      recordingService.updateRecord(recordItem.id, {name: taskName});
+    if (recordItem && recordItem.taskName !== taskName) {
+      const update = await recordingService.syncUpdateRecord(recordItem.id, {
+        name: taskName,
+      });
+      store.updateCurrentRecordItem(update);
     }
   }
 
