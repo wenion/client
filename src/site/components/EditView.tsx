@@ -546,6 +546,7 @@ function EditView({
   const [imagePopup, setImagePopup] = useState(false);
   const nameEl = useRef<HTMLInputElement>();
   const descriptionEl = useRef<HTMLTextAreaElement>();
+  const descriptionTitleEl = useRef<HTMLInputElement>();
 
   useEffect(() => {
     if (id) {
@@ -840,14 +841,26 @@ function EditView({
     }
   }
 
-  const onConfirm = () => {
+  const onConfirm = async() => {
     if (recordItem) {
       const description= descriptionEl.current?.value?? '';
       const taskName = nameEl.current?.value?? '';
-      recordingService.updateRecord(recordItem.id, {
+      const update = await recordingService.syncUpdateRecord(recordItem.id, {
         name: taskName,
         description: description,
       });
+
+      if (descriptionEl.current) {
+        descriptionEl.current.value = update.description;
+      }
+
+      if (nameEl.current) {
+        nameEl.current.value = update.taskName;
+      }
+
+      if (descriptionTitleEl.current) {
+        descriptionTitleEl.current.value = update.description;
+      }
     }
     setPopup(false);
   };
@@ -992,13 +1005,13 @@ function EditView({
         <div
           className={"fixed flex ml-32 mt-4 bg-white border border-black rounded-md"}
         >
-          <IconButton
+          {/* <IconButton
             icon={NoteIcon}
             onClick={onNote}
             size="lg"
             title="Edit Title And Description"
             classes="text-blue-500 cursor-pointer"
-          />
+          /> */}
           <IconButton
             icon={ArrowUpIcon}
             onClick={onToTop}
@@ -1036,11 +1049,12 @@ function EditView({
           )}
         </div>
         <div
-          class="flex w-3/5 justify-self-center items-center m-4"
+          class="flex w-1/2 justify-self-center items-center m-4"
         >
           <Input
+            elementRef={descriptionTitleEl}
             id="description"
-            className="w-96"
+            className="bg-transparent"
             disabled
             defaultValue={recordItem?.description}
           />
