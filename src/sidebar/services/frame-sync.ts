@@ -751,6 +751,15 @@ export class FrameSyncService {
       (lastOpen, prevLastOpen) => {
         this._hostRPC.call('setSidebarVisible', lastOpen);
         this._guestRPC.forEach(rpc => rpc.call('setSidebarVisible', lastOpen));
+        this._extensionRPC.call(
+          'customEvent',
+          {
+            eventType: 'client',
+            custom: 'lastOpen',
+            tagName: 'lastOpen',
+            textContent: lastOpen,
+          }
+        );
       }
     );
 
