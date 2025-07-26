@@ -4,12 +4,13 @@ import {
   CautionFilledIcon,
   TrashIcon,
   EditIcon,
-  NoteIcon,
   PlusIcon,
   Card,
   CardActions,
   CardHeader,
   CardContent,
+  CheckIcon,
+  RedoIcon,
   Button,
   Input,
   Textarea,
@@ -17,6 +18,7 @@ import {
 } from '@hypothesis/frontend-shared';
 import { IconButton, Checkbox } from '@hypothesis/frontend-shared';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState, useRef} from 'preact/hooks';
+import type { ComponentChildren } from 'preact';
 import debounce from 'lodash.debounce';
 import classnames from 'classnames';
 
@@ -32,6 +34,7 @@ import type { SessionService } from '../../sidebar/services/session';
 import type { ToastMessengerService } from '../../sidebar/services/toast-messenger';
 import { useSidebarStore } from '../../sidebar/store';
 
+import NavComics from './NavComics';
 import { EditPrompt} from './EditPrompt';
 import TopBar from './TopBar';
 
@@ -56,7 +59,7 @@ function capitalizeFirstLetter(str: string): string {
 
 
 type ComicHeaderProps = {
-  index: number;
+  index?: number;
   trace: RecordStep;
   classes?: string;
 };
@@ -84,18 +87,20 @@ export function ComicHeader({
         )}
         title={trace.url}
       >
-        <div
-          className={classnames(
-            "flex m-1",
-            "rounded-full",
-            "bg-zinc-300 text-gray-600",
-            "border border-gray-600",
-            "w-8 h-8",
-            "justify-center items-center",
-          )}
-        >
-          {index}
-        </div>
+        {index && (
+          <div
+            className={classnames(
+              "flex m-1",
+              "rounded-full",
+              "bg-zinc-300 text-gray-600",
+              "border border-gray-600",
+              "w-8 h-8",
+              "justify-center items-center",
+            )}
+          >
+            {index}
+          </div>
+        )}
         <div className="flex-1">
           <b>{capitalizeFirstLetter(trace.title)}:</b>{" "} {trace.description??trace.url}
         </div>
@@ -104,8 +109,78 @@ export function ComicHeader({
   )
 }
 
+type ImageComicCardProps = {
+  children: ComponentChildren;
+  onImageClick: (id: string) => void;
+  onElementSizeChanged: (id: string) => void;
+  onClick: (id: string) => void;
+  step: RecordStep;
+  dataId: number;
+  classes?: string;
+};
+
+export function ImageComicCard({
+  children,
+  onImageClick,
+  onElementSizeChanged,
+  onClick,
+  step,
+  dataId,
+  classes,
+}: ImageComicCardProps) {
+  return (
+    <div
+      className={classnames('data-comics-item', classes)}
+      id={step.id}
+      data-id={dataId}
+      onClick={()=>onClick(step.id)}
+    >
+      <div className={"flex"}>
+        <div
+          className={"flex-1"}
+        >
+          {children}
+        </div>
+        <Thumbnail
+          trace={step}
+          onClickEvent={onImageClick}
+          onElementSizeChanged={onElementSizeChanged}
+        />
+      </div>
+    </div>
+  )
+}
+
+type TextComicCardProps = {
+  dataId: number;
+  step: RecordStep;
+  children: ComponentChildren;
+  onClick: (id: string) => void;
+  classes?: string;
+};
+
+export function TextComicCard({
+  dataId,
+  step,
+  children,
+  onClick,
+  classes,
+}: TextComicCardProps) {
+  return (
+    <div
+      className={classnames('data-comics-item', classes)}
+      id={step.id}
+      data-id={dataId}
+      onClick={()=>onClick(step.id)}
+    >
+      <div className={"flex"}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
 type ComicItemProps = {
-  index: number;
   sectionId: number;
   trace: RecordStep;
   isAlign: boolean;
@@ -113,10 +188,10 @@ type ComicItemProps = {
   onElementSizeChanged: (id: string) => void;
   onSelect: (id: string, selected: boolean) => void;
   classes?: string;
+  editable?: boolean;
 };
 
 export function ComicItem({
-  index,
   sectionId,
   trace,
   isAlign = false,
@@ -124,6 +199,7 @@ export function ComicItem({
   onElementSizeChanged,
   onSelect,
   classes,
+  editable,
 }: ComicItemProps) {
   useLayoutEffect(()=> {
     onElementSizeChanged(trace.id);
@@ -136,26 +212,29 @@ export function ComicItem({
         'content-center rounded-lg',
         {'bg-gray-100': trace.tagName === "Navigate" || trace.tagName === "Switch"},
         'text-base text-blue-chathams text-center',
+        // 'border border-black',
         'hover:shadow-lg',
         'cursor-pointer',
         classes,
       )}
     >
-      <div
-        className={classnames(
-          "absolute flex",
-          "text-black",
-          "p-2",
-        )}
-      >
-        <Checkbox
-          checked={selected}
-          onClick={(e: PointerEvent) => e.stopPropagation()}
-          onChange={(e: Event) => {
-            onSelect(trace.id, !selected);
-          }}
-        />
-      </div>
+      {editable && (
+        <div
+          className={classnames(
+            "absolute flex",
+            "text-black",
+            "p-2",
+          )}
+        >
+          <Checkbox
+            checked={selected}
+            onClick={(e: PointerEvent) => e.stopPropagation()}
+            onChange={(e: Event) => {
+              onSelect(trace.id, !selected);
+            }}
+          />
+        </div>
+      )}
       {
         (trace.tagName === "Navigate" || trace.tagName === "Switch") ? (
           <>
@@ -443,13 +522,13 @@ export function EditingCard({
         onDblClick={() => onDblClick(trace.id)}
       >
         <ComicItem
-          index={dataId}
           sectionId={sectionId}
           trace={trace}
           isAlign={trace.image ? true: false}
           selected={selected}
           onElementSizeChanged={()=> {}}
           onSelect={onSelect}
+          editable={true}
         />
       </div>
       {trace.image && (
@@ -498,7 +577,10 @@ function EditView({
   const recordSteps = store.recordSteps();
   const recordItems = store.recordItems();
   const links = store.getLink("index");
+  const currentPopup = store.getPopup();
   const recordItem = store.currentRecordItem();
+
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const [id, setId] = useState< null | string>(null);
 
@@ -525,11 +607,8 @@ function EditView({
     };
   }, [])
 
-  // const parentRef = useRef<HTMLDivElement | null>(null);
-
-  // const [dragState, setDragState] = useState<string>("End"); // Start Trigger End
-
   const [steps, setSteps] = useState<RecordStep[]>([]);
+  const [preRecordItem, setPreRecordItem] = useState<RecordItem | null>(null);
 
   // const prevSourceRef = useRef<number | null>(null);
   // const prevTargetRef = useRef<number | null>(null);
@@ -572,6 +651,7 @@ function EditView({
 
       const item = recordItems.find(r => r.sessionId === id);
       store.updateCurrentRecordItem(item??null);
+      setPreRecordItem(item??null);
     }
   })
 
@@ -931,6 +1011,48 @@ function EditView({
     }, 1000);
   }
 
+  const onNavClick = (step: RecordStep, sectionId?: number) => {
+    const elements = document.querySelectorAll("#" + step.id);
+    for (const el of elements) {
+      if (el.hasAttribute('data-id')) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        break; // scroll only the first match
+      }
+    }
+  }
+
+  const onAccept = async() => {
+    if (recordItem) {
+      const update = await recordingService.syncUpdateRecord(recordItem.id, {
+        extra: recordItem.extra,
+      });
+      store.updateCurrentRecordItem(update);
+      setPreRecordItem(update);
+    }
+    store.closePopup('Segmentation');
+  };
+
+  const onDecline = () => {
+    // get original version
+    store.updateCurrentRecordItem(preRecordItem);
+    store.closePopup('Segmentation');
+  };
+
+  const onReorganise = async() => {
+    if (recordItem) {
+      const update = await recordingService.syncUpdateRecord(recordItem.id, {
+        request_segmentation: true,
+      });
+      store.updateCurrentRecordItem(update);
+    }
+  };
+
+  const onCloseOverlay = (e : MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onDecline();
+    }
+  };
+
   let navId = 0;
 
   return (
@@ -942,6 +1064,211 @@ function EditView({
         onSave={onSave}
         isSidebar={true}
       />
+      {currentPopup && (
+        <Overlay
+          classes={"flex flex-col z-40"}
+          onClick={onCloseOverlay}
+        >
+          <div
+            className={'h-[90%] bg-white'}
+          >
+          {recordItem && (
+            <div
+              className="mx-2 my-4 w-[32rem]"
+            >
+              <NavComics
+                recordItem={recordItem}
+                steps={recordSteps}
+                onClick={onNavClick}
+              />
+            </div>
+          )}
+          <div
+            className={'h-[85%] overflow-auto bg-white border-t border-b'}
+            ref={scrollRef}
+            onMouseLeave={() => {}}
+          >
+            <div
+              className={"mx-2 w-[32rem]"}
+            >
+            {recordItem && recordItem.extra?.sections && (
+              recordItem.extra?.sections.map((item, index) => {
+                let n = 0;
+                let navId = 0;
+                let dataId = 0;
+                return (
+                  <>
+                    <div
+                      className={classnames("data-comics-nav")}
+                      data-id={index}
+                      id={item.steps_id[0]}
+                      title={item.title}
+                    >
+                      <div
+                        className={classnames(
+                          "flex flex-row",
+                          "bg-gray-100 rounded-xl text-lg text-blue-chathams text-center",
+                          "border-2 border-gray-400",
+                          'hover:shadow-lg',
+                          'cursor-pointer',
+                          "justify-center items-center",
+                          'p-2',
+                        )}
+                        title={item.description}
+                      >
+                        <b>{index + 1}.{item.title}</b>
+                      </div>
+                    </div>
+                    {item.steps_id.map((stepId, index) => {
+                      const step = store.getRecordStepById(stepId);
+                      if (!step) {
+                        return (<></>)
+                      }
+                      if (index !== n) {
+                        return;
+                      } else {
+                        if (step.tagName === "Navigate" || step.tagName === "Switch") {
+                          n++;
+                          navId++;
+                          dataId++;
+                          return (
+                            <ComicHeader
+                              trace={step}
+                              classes='rounded-lg border border-black'
+                            />
+                          )
+                        } else if (step.image) {
+                          let start = n;
+                          let accumulated = 1;
+                          const subSteps = item.steps_id.map(stepId=>
+                            store.getRecordStepById(stepId)
+                          );
+                          // get the next step of this section
+                          let nextIndex = n + 1;
+                          let nextStep = subSteps[nextIndex];
+                          while (
+                            nextStep &&
+                            nextStep.image === null &&
+                            nextStep.tagName !== 'Navigate' &&
+                            nextStep.tagName !== 'Switch' &&
+                            accumulated < 3
+                          ) {
+                            accumulated++;
+                            nextIndex++;
+                            nextStep = subSteps[nextIndex];
+                          }
+                          n = n + accumulated;
+                          dataId++;
+                          return (
+                            <ImageComicCard
+                              onImageClick={(id) => onDblClick(id)}
+                              onElementSizeChanged={onRendered}
+                              onClick={()=>{}}
+                              step={step}
+                              dataId={dataId}
+                            >
+                              {subSteps.slice(start, start + accumulated).map(s =>
+                                s ? (
+                                  <ComicItem
+                                    trace={s}
+                                    isAlign={s.image ? true: false}
+                                    onElementSizeChanged={onRendered}
+                                    sectionId={dataId}
+                                    selected={false}
+                                    classes='mr-0.5 border border-black'
+                                    onSelect={() => {}}
+                                    editable={false}
+                                  />
+                                ) : (<></>)
+                              )}
+                            </ImageComicCard>
+                          )
+                        } else {
+                          let start = n;
+                          let accumulated = 1;
+                          const subSteps = item.steps_id.map(stepId=>
+                            store.getRecordStepById(stepId)
+                          );
+                          let nextIndex = n + 1;
+                          let nextStep = subSteps[nextIndex];
+                          while (
+                            nextStep &&
+                            nextStep.image === null &&
+                            nextStep.tagName !== "Navigate" &&
+                            nextStep.tagName !== "Switch" &&
+                            accumulated < 3
+                          ) {
+                            accumulated++;
+                            nextIndex++;
+                            nextStep = subSteps[nextIndex];
+                          }
+                          n = n + accumulated;
+                          dataId++;
+                          return (
+                            <TextComicCard
+                              step={step}
+                              dataId={dataId}
+                              onClick={() =>{}}
+                            >
+                              {subSteps.slice(start, start + accumulated).map(s =>
+                                s ? (
+                                  <ComicItem
+                                    sectionId={dataId}
+                                    trace={s}
+                                    isAlign={s.image ? true: false}
+                                    onElementSizeChanged={onRendered}
+                                    selected={false}
+                                    classes='mr-0.5 border border-black w-full block'
+                                    onSelect={() => {}}
+                                    editable={false}
+                                  />
+                                ) : (<></>)
+                              )}
+                            </TextComicCard>
+                          )
+                        }
+                      }
+                    })}
+                  </>
+                )
+              })
+            )}
+            </div>
+          </div>
+          <div
+            className="flex py-2 bg-white justify-around"
+          >
+            <Button
+              icon={CheckIcon}
+              size="lg"
+              title="Accept"
+              onClick={onAccept}
+              classes="text-blue-500 cursor-pointer"
+            >
+              Accept
+            </Button>
+            <Button
+              icon={CancelIcon}
+              size="lg"
+              title="Decline"
+              onClick={onDecline}
+              classes="text-blue-500 cursor-pointer"
+            >
+              Decline
+            </Button>
+            <Button
+              icon={RedoIcon}
+              size="lg"
+              title="Reorganise"
+              onClick={onReorganise}
+              classes="text-blue-500 cursor-pointer"
+            >
+              Reorganise
+            </Button>
+          </div>
+          </div>
+        </Overlay>
+      )}
       {popup && (
         <Overlay classes={"z-40"}>
           <div className="w-xs mb-3">
@@ -976,7 +1303,7 @@ function EditView({
                   </div>
                   <div className="pt-1">
                     <Button title='Confirm' variant='primary' onClick={onAuto}>
-                      AI Suggest
+                      Regenerate Description
                     </Button>
                   </div>
                 </div>
@@ -1055,7 +1382,7 @@ function EditView({
           <Input
             elementRef={descriptionTitleEl}
             id="description"
-            className="bg-transparent"
+            className="w-96 bg-transparent"
             disabled
             defaultValue={recordItem?.description}
           />
