@@ -42,6 +42,8 @@ function ComicsView({
 }: ComicsViewProps) {
   const store = useSidebarStore();
   const recordSteps = store.recordSteps();
+  const recordItems = store.recordItems();
+  const recordItem = store.currentRecordItem();
   const links = store.getLink("index");
 
   const [id, setId] = useState< null | string>(null);
@@ -58,6 +60,19 @@ function ComicsView({
       recordingService.getTracesById(id);
     }
   }, [id, links]);
+
+  useEffect(() => {
+    if (recordItems.length && recordItem === null) {
+      const url = (window.location.href);
+      const queryString = url.split('?')[1] || '';
+      const params = new URLSearchParams(queryString);
+      const paramId = params.get('id') ?? null;
+      const id = paramId;
+
+      const item = recordItems.find(r => r.sessionId === id);
+      store.updateCurrentRecordItem(item??null);
+    }
+  });
 
   const [imageThreads, setImageThreads] = useState(() => new Map());
   const [threadHeights, setThreadHeights] = useState(() => new Map());
