@@ -16,7 +16,7 @@ type Options = {
   /** Callback invoked when "Annotate" button is clicked */
   onToggleHide: (value: string) => void;
   /** Callback invoked when "Highlight" button is clicked */
-  onHome: () => void;
+  onHome: (option: string) => void;
 };
 
 /**
@@ -35,7 +35,7 @@ export class ControlPanel implements Destroyable {
   private _isVisible: boolean;
   private _listeners: ListenerCollection;
   private _onToggleHide: (value: string) => void;
-  private _onHome: () => void;
+  private _onHome: (option: string) => void;
 
   private _dragState: {isDragging: boolean, offsetX: number, offsetY: number};
   // private _isDragging: boolean;

@@ -1,4 +1,8 @@
 import classnames from 'classnames';
+import { useState } from 'preact/hooks';
+
+import Menu from './Menu';
+import MenuItem from './MenuItem';
 
 import PowerIcon from '../../images/icons/power'
 import LogoIcon from '../../images/icons/logo'
@@ -6,7 +10,7 @@ import LogoIcon from '../../images/icons/logo'
 export type ControlBarrProps = {
   isVisible: boolean;
   onToggleHide: (value: string) => void;
-  onHome: () => void;
+  onHome: (option: string) => void;
 };
 
 /**
@@ -17,6 +21,10 @@ export default function ControlBar({
   onToggleHide,
   onHome,
 }: ControlBarrProps) {
+  const [position, setPosition] = useState({ x: 0, y: 0});
+
+  const [isOpen, setOpen] = useState(false);
+
   return (
     <div
       className={classnames(
@@ -53,8 +61,28 @@ export default function ControlBar({
           'cursor-pointer',
         )}
         title="Goldmind Icon"
-        onClick={() => onHome()}
+        onContextMenu={(event: MouseEvent) => {
+          event.preventDefault();
+          setPosition({ x: event.clientX, y: event.clientY});
+          setOpen(true);
+        }}
       >
+        <Menu
+          label={<></>}
+          title={"Settings"}
+          align={position.x + 100 > window.innerWidth ? "right" : "left" }
+          open={isOpen}
+          onOpenChanged={setOpen}
+        >
+          <MenuItem
+            label={"Disable PDF View"}
+            onClick={() => onHome("disablePDF")}
+          />
+          <MenuItem
+            label={"Enable PDF View"}
+            onClick={() => onHome("enablePDF")}
+          />
+        </Menu>
         <LogoIcon />
       </div>
     </div>

@@ -68,7 +68,9 @@ export type GuestToSidebarEvent =
    */
   | 'toggleAnnotationSelection'
 
-  | 'setSidebarVisible';
+  | 'setSidebarVisible'
+
+  | 'setSidebarOption';
 
 /**
  * Events that the host sends to the guest

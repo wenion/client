@@ -955,6 +955,18 @@ export class FrameSyncService {
       this._store.setDefault('lastOpen', visible);
     });
 
+    guestRPC.on('setSidebarOption', (option) => {
+      this._extensionRPC.call(
+        'customEvent',
+        {
+          eventType: 'client',
+          custom: 'lastOpen',
+          tagName: 'lastOpen',
+          textContent: option === 'disablePDF' ? 'off': 'on',
+        }
+      );
+    });
+
     guestRPC.connect(port);
 
     // Synchronize highlight visibility in this guest with the sidebar's controls.

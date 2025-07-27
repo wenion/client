@@ -291,7 +291,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
 
     this._controlPanel = new ControlPanel(this.element, {
       onToggleHide: (value: string) => this.setSidebarVisible(value),
-      onHome: () => {},
+      onHome: (option: string) => this.sendSidebarOption(option),
     });
 
     this._tag = new Tag(this.element);
@@ -836,6 +836,10 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
 
   setSidebarVisible(value: string) {
     this._sidebarRPC.call('setSidebarVisible', value);
+  }
+
+  sendSidebarOption(value: string) {
+    this._sidebarRPC.call('setSidebarOption', value);
   }
 
   /**
