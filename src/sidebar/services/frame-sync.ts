@@ -488,8 +488,6 @@ export class FrameSyncService {
         skip = true;
       }
 
-      console.log("trace.custom", trace.custom)
-
       if (
         trace.custom && (
           trace.custom.toLowerCase() === 'go to' ||
