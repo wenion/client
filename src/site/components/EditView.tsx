@@ -50,6 +50,7 @@ import QuestionIcon from '../../images/icons/action-question';
 import CopyIcon from '../../images/icons/action-copy';
 import PasteIcon from '../../images/icons/action-paste';
 import AnnotationIcon from '../../images/icons/action-annotation';
+import NavigationIcon from '../../images/icons/action-navigation';
 import { generateHexString } from '../../shared/random';
 
 function capitalizeFirstLetter(str: string): string {
@@ -208,9 +209,10 @@ export function ComicItem({
     <div
       className={classnames(
         "relative",
-        {'grid grid-rows-3 grid-flow-col': trace.tagName !== "Navigate" && trace.tagName !== "Switch"},
+        {'grid grid-rows-3 grid-flow-col': !editable},
+        {'grid grid-rows-3 grid-flow-col': editable && (trace.tagName !== "Navigate" && trace.tagName !== "Switch")},
         'content-center rounded-lg',
-        {'bg-gray-100': trace.tagName === "Navigate" || trace.tagName === "Switch"},
+        {'bg-gray-100': editable && (trace.tagName === "Navigate" || trace.tagName === "Switch")},
         'text-base text-blue-chathams text-center',
         // 'border border-black',
         'hover:shadow-lg',
@@ -236,7 +238,7 @@ export function ComicItem({
         </div>
       )}
       {
-        (trace.tagName === "Navigate" || trace.tagName === "Switch") ? (
+        (editable && (trace.tagName === "Navigate" || trace.tagName === "Switch")) ? (
           <>
             <ComicHeader
               index ={sectionId}
@@ -275,6 +277,8 @@ export function ComicItem({
                 <PasteIcon />
               ) : trace.type === "annotation" ? (
                 <AnnotationIcon />
+              ) : trace.tagName === "Navigate" || trace.tagName === "Switch" ? (
+                <NavigationIcon />
               ) : (
                 <QuestionIcon />
               )}
@@ -1127,17 +1131,18 @@ function EditView({
                       if (index !== n) {
                         return;
                       } else {
-                        if (step.tagName === "Navigate" || step.tagName === "Switch") {
-                          n++;
-                          navId++;
-                          dataId++;
-                          return (
-                            <ComicHeader
-                              trace={step}
-                              classes='rounded-lg border border-black'
-                            />
-                          )
-                        } else if (step.image) {
+                        // if (step.tagName === "Navigate" || step.tagName === "Switch") {
+                        //   n++;q
+                        //   navId++;
+                        //   dataId++;
+                        //   return (
+                        //     <ComicHeader
+                        //       trace={step}
+                        //       classes='rounded-lg border border-black'
+                        //     />
+                        //   )
+                        // } else
+                        if (step.image) {
                           let start = n;
                           let accumulated = 1;
                           const subSteps = item.steps_id.map(stepId=>
