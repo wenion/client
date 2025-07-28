@@ -147,18 +147,18 @@ function TopBar({
     }
   };
 
-  const generateSegmentation = () => {
+  const generateSegmentation = async () => {
     store.openPopup('Segmentation');
-    // if (
-    //   recordItem &&
-    //   recordItem.extra &&
-    //   Object.keys(recordItem.extra).length === 0
-    // ) {
-    //   recordingService.updateRecord(recordItem.id, {
-    //     request_segmentation: true,
-    //   });
-    //   // toastMessenger.success("generateSegmentation have been saved!");
-    // }
+    if (
+      recordItem &&
+      recordItem.extra &&
+      Object.keys(recordItem.extra).length === 0
+    ) {
+      const update = await recordingService.syncUpdateRecord(recordItem.id, {
+        request_segmentation: true,
+      });
+      store.updateCurrentRecordItem(update);
+    }
   }
 
   const onActiveChanged = useCallback(
