@@ -1243,33 +1243,38 @@ function EditView({
           <div
             className="flex py-2 bg-white justify-around"
           >
-            <Button
-              icon={CheckIcon}
-              size="lg"
-              title="Accept"
-              onClick={onAccept}
-              classes="text-blue-500 cursor-pointer"
-            >
-              Accept
-            </Button>
-            <Button
-              icon={CancelIcon}
-              size="lg"
-              title="Decline"
-              onClick={onDecline}
-              classes="text-blue-500 cursor-pointer"
-            >
-              Decline
-            </Button>
-            <Button
-              icon={RedoIcon}
-              size="lg"
-              title="Reorganise"
-              onClick={onReorganise}
-              classes="text-blue-500 cursor-pointer"
-            >
-              Reorganise
-            </Button>
+            <div className="flex">
+              <Button
+                icon={CancelIcon}
+                size="lg"
+                title="Decline"
+                onClick={onDecline}
+                classes="text-blue-500 cursor-pointer"
+              >
+                Decline
+              </Button>
+            </div>
+            <div className="flex">
+              <Button
+                icon={RedoIcon}
+                size="lg"
+                title="Reorganise"
+                onClick={onReorganise}
+                classes="text-blue-500 cursor-pointer mx-4"
+              >
+                Reorganise
+              </Button>
+              <Button
+                icon={CheckIcon}
+                variant="primary"
+                size="lg"
+                title="Accept"
+                onClick={onAccept}
+                classes="text-blue-500 cursor-pointer mx-4"
+              >
+                Accept
+              </Button>
+            </div>
           </div>
           </div>
         </Overlay>
