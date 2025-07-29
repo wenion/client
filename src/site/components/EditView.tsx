@@ -12,6 +12,7 @@ import {
   CheckIcon,
   RedoIcon,
   Button,
+  Spinner,
   Input,
   Textarea,
   Overlay,
@@ -1073,6 +1074,7 @@ function EditView({
         <Overlay
           classes={"flex flex-col z-40"}
           onClick={onCloseOverlay}
+          variant="dark"
         >
           <div
             className={'h-[90%] bg-white'}
@@ -1089,157 +1091,167 @@ function EditView({
             </div>
           )}
           <div
-            className={'h-[85%] overflow-auto bg-white border-t border-b'}
+            className={classnames(
+              'flex h-[85%] overflow-auto',
+              {'bg-white': !isLoading},
+              {'bg-gray-200': isLoading},
+              'border-t border-b')}
             ref={scrollRef}
             onMouseLeave={() => {}}
           >
-            <div
-              className={"mx-2 w-[32rem]"}
-            >
-            {recordItem && recordItem.extra?.sections && (
-              recordItem.extra?.sections.map((item, index) => {
-                let n = 0;
-                let navId = 0;
-                let dataId = 0;
-                return (
-                  <>
-                    <div
-                      className={classnames("data-comics-nav")}
-                      data-id={index}
-                      id={item.steps_id[0]}
-                      title={item.title}
-                    >
+            {isLoading ? (
+              <div className={"flex self-center mr-auto ml-auto"}>
+                <Spinner size="lg" color="text-inverted"/>
+              </div>
+            ) : (
+              <div
+                className={"mx-2 w-[32rem]"}
+              >
+              {recordItem && recordItem.extra?.sections && (
+                recordItem.extra?.sections.map((item, index) => {
+                  let n = 0;
+                  let navId = 0;
+                  let dataId = 0;
+                  return (
+                    <>
                       <div
-                        className={classnames(
-                          "flex flex-row",
-                          "bg-gray-100 rounded-xl text-lg text-blue-chathams text-center",
-                          "border-2 border-gray-400",
-                          'hover:shadow-lg',
-                          'cursor-pointer',
-                          "justify-center items-center",
-                          'p-2',
-                        )}
-                        title={item.description}
+                        className={classnames("data-comics-nav")}
+                        data-id={index}
+                        id={item.steps_id[0]}
+                        title={item.title}
                       >
-                        <b>{index + 1}.{item.title}</b>
+                        <div
+                          className={classnames(
+                            "flex flex-row",
+                            "bg-gray-100 rounded-xl text-lg text-blue-chathams text-center",
+                            "border-2 border-gray-400",
+                            'hover:shadow-lg',
+                            'cursor-pointer',
+                            "justify-center items-center",
+                            'p-2',
+                          )}
+                          title={item.description}
+                        >
+                          <b>{index + 1}.{item.title}</b>
+                        </div>
                       </div>
-                    </div>
-                    {item.steps_id.map((stepId, index) => {
-                      const step = store.getRecordStepById(stepId);
-                      if (!step) {
-                        return (<></>)
-                      }
-                      if (index !== n) {
-                        return;
-                      } else {
-                        // if (step.tagName === "Navigate" || step.tagName === "Switch") {
-                        //   n++;q
-                        //   navId++;
-                        //   dataId++;
-                        //   return (
-                        //     <ComicHeader
-                        //       trace={step}
-                        //       classes='rounded-lg border border-black'
-                        //     />
-                        //   )
-                        // } else
-                        if (step.image) {
-                          let start = n;
-                          let accumulated = 1;
-                          const subSteps = item.steps_id.map(stepId=>
-                            store.getRecordStepById(stepId)
-                          );
-                          // get the next step of this section
-                          let nextIndex = n + 1;
-                          let nextStep = subSteps[nextIndex];
-                          while (
-                            nextStep &&
-                            nextStep.image === null &&
-                            nextStep.tagName !== 'Navigate' &&
-                            nextStep.tagName !== 'Switch' &&
-                            accumulated < 3
-                          ) {
-                            accumulated++;
-                            nextIndex++;
-                            nextStep = subSteps[nextIndex];
-                          }
-                          n = n + accumulated;
-                          dataId++;
-                          return (
-                            <ImageComicCard
-                              onImageClick={(id) => onDblClick(id)}
-                              onElementSizeChanged={onRendered}
-                              onClick={()=>{}}
-                              step={step}
-                              dataId={dataId}
-                            >
-                              {subSteps.slice(start, start + accumulated).map(s =>
-                                s ? (
-                                  <ComicItem
-                                    trace={s}
-                                    isAlign={s.image ? true: false}
-                                    onElementSizeChanged={onRendered}
-                                    sectionId={dataId}
-                                    selected={false}
-                                    classes='mr-0.5 border border-black'
-                                    onSelect={() => {}}
-                                    editable={false}
-                                  />
-                                ) : (<></>)
-                              )}
-                            </ImageComicCard>
-                          )
-                        } else {
-                          let start = n;
-                          let accumulated = 1;
-                          const subSteps = item.steps_id.map(stepId=>
-                            store.getRecordStepById(stepId)
-                          );
-                          let nextIndex = n + 1;
-                          let nextStep = subSteps[nextIndex];
-                          while (
-                            nextStep &&
-                            nextStep.image === null &&
-                            nextStep.tagName !== "Navigate" &&
-                            nextStep.tagName !== "Switch" &&
-                            accumulated < 3
-                          ) {
-                            accumulated++;
-                            nextIndex++;
-                            nextStep = subSteps[nextIndex];
-                          }
-                          n = n + accumulated;
-                          dataId++;
-                          return (
-                            <TextComicCard
-                              step={step}
-                              dataId={dataId}
-                              onClick={() =>{}}
-                            >
-                              {subSteps.slice(start, start + accumulated).map(s =>
-                                s ? (
-                                  <ComicItem
-                                    sectionId={dataId}
-                                    trace={s}
-                                    isAlign={s.image ? true: false}
-                                    onElementSizeChanged={onRendered}
-                                    selected={false}
-                                    classes='mr-0.5 border border-black w-full block'
-                                    onSelect={() => {}}
-                                    editable={false}
-                                  />
-                                ) : (<></>)
-                              )}
-                            </TextComicCard>
-                          )
+                      {item.steps_id.map((stepId, index) => {
+                        const step = store.getRecordStepById(stepId);
+                        if (!step) {
+                          return (<></>)
                         }
-                      }
-                    })}
-                  </>
-                )
-              })
+                        if (index !== n) {
+                          return;
+                        } else {
+                          // if (step.tagName === "Navigate" || step.tagName === "Switch") {
+                          //   n++;q
+                          //   navId++;
+                          //   dataId++;
+                          //   return (
+                          //     <ComicHeader
+                          //       trace={step}
+                          //       classes='rounded-lg border border-black'
+                          //     />
+                          //   )
+                          // } else
+                          if (step.image) {
+                            let start = n;
+                            let accumulated = 1;
+                            const subSteps = item.steps_id.map(stepId=>
+                              store.getRecordStepById(stepId)
+                            );
+                            // get the next step of this section
+                            let nextIndex = n + 1;
+                            let nextStep = subSteps[nextIndex];
+                            while (
+                              nextStep &&
+                              nextStep.image === null &&
+                              nextStep.tagName !== 'Navigate' &&
+                              nextStep.tagName !== 'Switch' &&
+                              accumulated < 3
+                            ) {
+                              accumulated++;
+                              nextIndex++;
+                              nextStep = subSteps[nextIndex];
+                            }
+                            n = n + accumulated;
+                            dataId++;
+                            return (
+                              <ImageComicCard
+                                onImageClick={(id) => onDblClick(id)}
+                                onElementSizeChanged={onRendered}
+                                onClick={()=>{}}
+                                step={step}
+                                dataId={dataId}
+                              >
+                                {subSteps.slice(start, start + accumulated).map(s =>
+                                  s ? (
+                                    <ComicItem
+                                      trace={s}
+                                      isAlign={s.image ? true: false}
+                                      onElementSizeChanged={onRendered}
+                                      sectionId={dataId}
+                                      selected={false}
+                                      classes='mr-0.5 border border-black'
+                                      onSelect={() => {}}
+                                      editable={false}
+                                    />
+                                  ) : (<></>)
+                                )}
+                              </ImageComicCard>
+                            )
+                          } else {
+                            let start = n;
+                            let accumulated = 1;
+                            const subSteps = item.steps_id.map(stepId=>
+                              store.getRecordStepById(stepId)
+                            );
+                            let nextIndex = n + 1;
+                            let nextStep = subSteps[nextIndex];
+                            while (
+                              nextStep &&
+                              nextStep.image === null &&
+                              nextStep.tagName !== "Navigate" &&
+                              nextStep.tagName !== "Switch" &&
+                              accumulated < 3
+                            ) {
+                              accumulated++;
+                              nextIndex++;
+                              nextStep = subSteps[nextIndex];
+                            }
+                            n = n + accumulated;
+                            dataId++;
+                            return (
+                              <TextComicCard
+                                step={step}
+                                dataId={dataId}
+                                onClick={() =>{}}
+                              >
+                                {subSteps.slice(start, start + accumulated).map(s =>
+                                  s ? (
+                                    <ComicItem
+                                      sectionId={dataId}
+                                      trace={s}
+                                      isAlign={s.image ? true: false}
+                                      onElementSizeChanged={onRendered}
+                                      selected={false}
+                                      classes='mr-0.5 border border-black w-full block'
+                                      onSelect={() => {}}
+                                      editable={false}
+                                    />
+                                  ) : (<></>)
+                                )}
+                              </TextComicCard>
+                            )
+                          }
+                        }
+                      })}
+                    </>
+                  )
+                })
+              )}
+              </div>
             )}
-            </div>
           </div>
           <div
             className="flex py-2 bg-white justify-around"
