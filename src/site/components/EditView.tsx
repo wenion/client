@@ -583,6 +583,7 @@ function EditView({
   const links = store.getLink("index");
   const currentPopup = store.getPopup();
   const recordItem = store.currentRecordItem();
+  const isLoading = store.isLoading();
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -1261,6 +1262,7 @@ function EditView({
                 title="Reorganise"
                 onClick={onReorganise}
                 classes="text-blue-500 cursor-pointer mx-4"
+                disabled={isLoading}
               >
                 Reorganise
               </Button>
