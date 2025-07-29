@@ -332,7 +332,15 @@ export class FrameSyncService {
       console.log("extension close")
     })
     this._extensionRPC.on('connect', () => {
-      console.log("extension connect")
+      this._extensionRPC.call(
+        'customEvent',
+        {
+          eventType: 'client',
+          custom: 'lastOpen',
+          tagName: 'lastOpen',
+          textContent: 'request',
+        }
+      );
     })
     this._extensionRPC.on(
       'traceData',
@@ -575,6 +583,21 @@ export class FrameSyncService {
       }
     });
     this._extensionRPC.on("cmdData", (message: Record<string, any>) => {
+      if (
+        message.event === "chrome.storage.sync.lastOpen" ||
+        message.event === "chrome.storage.request.lastOpen"
+      ) {
+        this._guestRPC.forEach(
+          guest => {
+            if (message.value === 'off') {
+              guest.call('setSidebarPdf', false);
+            }
+            if (message.value === 'on') {
+              guest.call('setSidebarPdf', true);
+            }
+          }
+        );
+      }
     });
   }
 
@@ -946,6 +969,18 @@ export class FrameSyncService {
 
     guestRPC.on('setSidebarVisible', (visible) => {
       this._store.setDefault('lastOpen', visible);
+    });
+
+    guestRPC.on('setSidebarPdf', (value) => {
+      this._extensionRPC.call(
+        'customEvent',
+        {
+          eventType: 'client',
+          custom: 'lastOpen',
+          tagName: 'lastOpen',
+          textContent: value ? 'on': 'off',
+        }
+      );
     });
 
     guestRPC.on('setSidebarOption', (option) => {

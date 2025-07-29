@@ -70,6 +70,8 @@ export type GuestToSidebarEvent =
 
   | 'setSidebarVisible'
 
+  | 'setSidebarPdf'
+
   | 'setSidebarOption';
 
 /**
@@ -136,6 +138,7 @@ export type HostToSidebarEvent =
 export type SidebarToGuestEvent =
   | 'showAnnotationTags'
   | 'setSidebarVisible'
+  | 'setSidebarPdf'
   /**
    * The sidebar is asking the guest(s) to delete an annotation.
    */

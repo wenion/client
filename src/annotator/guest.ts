@@ -291,6 +291,7 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
 
     this._controlPanel = new ControlPanel(this.element, {
       onToggleHide: (value: string) => this.setSidebarVisible(value),
+      onTogglePdf: (value: boolean) => this.setSidebarPdf(value),
       onHome: (option: string) => this.sendSidebarOption(option),
     });
 
@@ -600,6 +601,10 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
       this._controlPanel.visible = value;
     });
 
+    this._sidebarRPC.on('setSidebarPdf', (value: boolean) => {
+      this._controlPanel.pdfMode = value;
+    });
+
     this._sidebarRPC.on('deleteAnnotation', (tag: string) => this.detach(tag));
 
     this._sidebarRPC.on(
@@ -836,6 +841,10 @@ export class Guest extends TinyEmitter implements Annotator, Destroyable {
 
   setSidebarVisible(value: string) {
     this._sidebarRPC.call('setSidebarVisible', value);
+  }
+
+  setSidebarPdf(value: boolean) {
+    this._sidebarRPC.call('setSidebarPdf', value);
   }
 
   sendSidebarOption(value: string) {

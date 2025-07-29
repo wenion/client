@@ -15,6 +15,7 @@ function toPx(pixels: number) {
 type Options = {
   /** Callback invoked when "Annotate" button is clicked */
   onToggleHide: (value: string) => void;
+  onTogglePdf: (value: boolean) => void;
   /** Callback invoked when "Highlight" button is clicked */
   onHome: (option: string) => void;
 };
@@ -33,8 +34,10 @@ export class ControlPanel implements Destroyable {
   private _shadowRoot: ShadowRoot;
   private _view: Window;
   private _isVisible: boolean;
+  private _isPdfMode: boolean;
   private _listeners: ListenerCollection;
   private _onToggleHide: (value: string) => void;
+  private _onTogglePdf: (value: boolean) => void;
   private _onHome: (option: string) => void;
 
   private _dragState: {isDragging: boolean, offsetX: number, offsetY: number};
@@ -65,9 +68,11 @@ export class ControlPanel implements Destroyable {
 
     this._view = element.ownerDocument.defaultView!;
     this._isVisible = false;
+    this._isPdfMode = false;
     this._dragState = {isDragging: false, offsetX: 0, offsetY: 0};
 
     this._onToggleHide = options.onToggleHide;
+    this._onTogglePdf = options.onTogglePdf;
     this._onHome = options.onHome;
 
     this._listeners = new ListenerCollection();
@@ -202,11 +207,22 @@ export class ControlPanel implements Destroyable {
     this._render();
   }
 
+  get pdfMode() {
+    return this._isPdfMode;
+  }
+
+  set pdfMode(value: boolean) {
+    this._isPdfMode = value;
+    this._render();
+  }
+
   private _render() {
     render(
       <ControlBar
         isVisible={this._isVisible}
+        isPdfMode={this._isPdfMode}
         onToggleHide={this._onToggleHide}
+        onTogglePdf={this._onTogglePdf}
         onHome={this._onHome}
       />,
       this._shadowRoot,

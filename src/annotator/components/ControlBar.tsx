@@ -1,5 +1,6 @@
 import classnames from 'classnames';
 import { useState } from 'preact/hooks';
+import { FilePdfIcon, FilePdfFilledIcon } from '@hypothesis/frontend-shared';
 
 import Menu from './Menu';
 import MenuItem from './MenuItem';
@@ -9,7 +10,9 @@ import LogoIcon from '../../images/icons/logo'
 
 export type ControlBarrProps = {
   isVisible: boolean;
+  isPdfMode: boolean;
   onToggleHide: (value: string) => void;
+  onTogglePdf: (value: boolean) => void;
   onHome: (option: string) => void;
 };
 
@@ -18,23 +21,29 @@ export type ControlBarrProps = {
  */
 export default function ControlBar({
   isVisible,
+  isPdfMode,
   onToggleHide,
+  onTogglePdf,
   onHome,
 }: ControlBarrProps) {
   const [position, setPosition] = useState({ x: 0, y: 0});
 
   const [isOpen, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <div
       className={classnames(
         'fixed',
-        'flex',
+        'flex items-center',
         'bg-slate-50 bg-blend-lighten',
         'border rounded-3xl',
         'p-1',
         'shadow-lg cursor-move',
+        'transition-all duration-500 ease-in-out',
       )}
+      onMouseEnter={() => setExpanded(true)}
+      onMouseLeave={() => setExpanded(false)}
     >
       <div
         id="hideToggle"
@@ -52,6 +61,21 @@ export default function ControlBar({
       >
         <PowerIcon/>
       </div>
+        <div
+          id="pdfToggle"
+          class={classnames(
+            'transform scale-0',
+            {'m-2 w-4 h-4 scale-100' : expanded},
+            'content-center',
+            'cursor-pointer',
+            'transition-all duration-300 ease-in-out',
+            {'grayscale' : !isPdfMode},
+          )}
+          title={isPdfMode? 'You are using the Goldmind Viewer': 'You are using the Normal Viewer'}
+          onClick={() => onTogglePdf(!isPdfMode)}
+        >
+          {expanded ? (isPdfMode ? <FilePdfFilledIcon /> : <FilePdfIcon />) : <></>}
+        </div>
       <div
         id="Goldmind Icon"
         class={classnames(
@@ -61,11 +85,11 @@ export default function ControlBar({
           'cursor-pointer',
         )}
         title="Goldmind Icon"
-        onContextMenu={(event: MouseEvent) => {
-          event.preventDefault();
-          setPosition({ x: event.clientX, y: event.clientY});
-          setOpen(true);
-        }}
+        // onContextMenu={(event: MouseEvent) => {
+        //   event.preventDefault();
+        //   setPosition({ x: event.clientX, y: event.clientY});
+        //   setOpen(true);
+        // }}
       >
         <Menu
           label={<></>}
