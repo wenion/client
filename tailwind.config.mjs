@@ -24,6 +24,7 @@ export default {
         'fade-out': 'fade-out 0.3s forwards',
         'pulse-fade-out': 'pulse-fade-out 5s ease-in-out forwards',
         'slide-in-from-right': 'slide-in-from-right 0.3s forwards ease-in-out',
+        'slide-out-from-left': 'slide-out-from-left 0.3s forwards ease-in-out',
         'slide-in-from-right-slow': 'right-to-left 1s forwards ease-in-out',
         'slide-in-from-left-slow': 'left-to-right 1s forwards ease-in-out',
         'blink': 'blink 1s ease-in-out infinite',
@@ -190,6 +191,19 @@ export default {
           '100%': {
             left: '0',
             opacity: '1',
+          },
+        },
+        'slide-out-from-left': {
+          '0%': {
+            opacity: '1',
+            left: '0',
+          },
+          '20%': {
+            left: '10px',
+          },
+          '100%': {
+            left: '100%',
+            opacity: '0',
           },
         },
         'right-to-left': {
