@@ -18,6 +18,7 @@ import QuestionIcon from '../../images/icons/action-question';
 import CopyIcon from '../../images/icons/action-copy';
 import PasteIcon from '../../images/icons/action-paste';
 import AnnotationIcon from '../../images/icons/action-annotation';
+import NavigationIcon from '../../images/icons/action-navigation';
 
 const DELAYTIME = 1000;
 
@@ -280,6 +281,8 @@ export function ComicItem({
           <PasteIcon />
         ) : trace.type === "annotation" ? (
           <AnnotationIcon />
+        ) : trace.tagName === "Navigate" || trace.tagName === "Switch" ? (
+          <NavigationIcon />
         ) : (
           <QuestionIcon />
         )}

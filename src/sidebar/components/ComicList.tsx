@@ -503,22 +503,23 @@ function ComicList({
                       if (index !== n) {
                         return;
                       } else {
-                        if (step.tagName === "Navigate" || step.tagName === "Switch") {
-                          n++;
-                          navId++;
-                          dataId++;
-                          return (
-                            <ComicHeader
-                              dataId={dataId}
-                              trace={step}
-                              onElementSizeChanged={onRendered}
-                              onClick={onComicClick}
-                              classes={classnames(
-                                {"border-blue-500 border-2 bg-blue-50": expertStepId === step.id}
-                              )}
-                            />
-                          )
-                        } else if (step.image) {
+                        // if (step.tagName === "Navigate" || step.tagName === "Switch") {
+                        //   n++;
+                        //   navId++;
+                        //   dataId++;
+                        //   return (
+                        //     <ComicHeader
+                        //       dataId={dataId}
+                        //       trace={step}
+                        //       onElementSizeChanged={onRendered}
+                        //       onClick={onComicClick}
+                        //       classes={classnames(
+                        //         {"border-blue-500 border-2 bg-blue-50": expertStepId === step.id}
+                        //       )}
+                        //     />
+                        //   )
+                        // } else
+                        if (step.image) {
                           let start = n;
                           let accumulated = 1;
                           const subSteps = item.steps_id.map(stepId=>
