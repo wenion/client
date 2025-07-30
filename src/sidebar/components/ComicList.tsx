@@ -265,6 +265,7 @@ function ComicList({
   }
 
   useEffect(() => {
+    // Highlight Expert Step
     if (expertStep && allLoaded) {
       const target = recordingService.findStepInView([expertStep, ], recordSteps);
       if (target) {
