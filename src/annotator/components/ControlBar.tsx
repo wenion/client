@@ -61,7 +61,7 @@ export default function ControlBar({
       >
         <PowerIcon/>
       </div>
-      <div
+      {/* <div
         id="pdfToggle"
         class={classnames(
           'transform scale-0',
@@ -75,7 +75,7 @@ export default function ControlBar({
         onClick={() => onTogglePdf(!isPdfMode)}
       >
         {expanded ? (isPdfMode ? <FilePdfFilledIcon /> : <FilePdfIcon />) : <></>}
-      </div>
+      </div> */}
       <div
         id="Goldmind Icon"
         class={classnames(
