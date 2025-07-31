@@ -115,6 +115,36 @@ export class RecordingService {
     return null;
   }
 
+  async goToStep(session_id: string, type: string, stepId?: string) {
+    const recordItem = this._store.getRecordItemByPk(session_id);
+    if (recordItem) {
+      const id = recordItem.id;
+      this._store.selectTab('shareflow');
+      this._store.setRecordTabView(id);
+
+      const subSteps: RecordStep[] = [];
+
+      // if push step is empty, set expert step as target step
+      const step = this._store.getRecordStepByPk(stepId??'');
+      if (step !== null) {
+        subSteps.push(step);
+        if (type === "expertStep") {
+          this._store.setExpertStep(step);
+        }
+      }
+
+      setTimeout(() => {
+        const target = this.findStepInView(subSteps, this._store.recordSteps());
+        if (target) {
+          this.scrollTo(target.id);
+        }
+      }, 500);
+    }
+    else {
+      console.error("can't find the shareflow with session id " + session_id)
+    }
+  }
+
   async selectRecordTabViewByPk(pk: string, current_step: string[], expertStepId?: string) {
     const recordItem = this._store.getRecordItemByPk(pk);
     if (recordItem) {

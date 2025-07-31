@@ -22,6 +22,7 @@ import type {
   ScrollTrace,
   ChangeTrace,
   ClientTrace,
+  ExtraDataComics,
 } from '../../types/api';
 import type {
   SidebarToHostEvent,
@@ -1038,20 +1039,57 @@ export class FrameSyncService {
     });
 
     this._hostRPC.on('selectDataComics', (
-      extra : {
-        session_id: string,
-        user_id: string,
-        current_step: string[],
-        expert_step: string,
-      }
-    )=> {
+      extra : ExtraDataComics
+    ) => {
       this._store.selectTab('shareflow');
-      console.log("click current_step ", extra.current_step)
-      this._recordingService.selectRecordTabViewByPk(
-        extra.session_id,
-        extra.current_step,
-        extra.expert_step
-      );
+      this._recordingService.selectRecordTabView('view', extra.session_id);
+
+      const jumpMessage = {
+        type: 'jump',
+        id: extra.session_id,
+        title: "Jump To...",
+        message: "Choose where to scroll:",
+        date: Date.now()*1000,
+        show_flag: true,
+        unread_flag: true,
+        need_save_flag: true,
+        extra: [extra,],
+      }
+      this._toastMessenger.message([jumpMessage,]);
+    })
+
+    this._hostRPC.on('jumpDataComics', (
+      args : {
+        messageType: string;
+        type: string;
+        message: ExtraDataComics;
+      }
+    ) => {
+      const currentSteps = args.message.current_step;
+      const nextStep = currentSteps && currentSteps.length > 0 ? currentSteps[0]: '';
+      const currentStep = currentSteps && currentSteps.length > 1 ? currentSteps[1]: '';
+
+      if (args.type === "expertStep") {
+        this._recordingService.goToStep(
+          args.message.session_id,
+          args.type,
+          args.message.expert_step,
+        );
+      }
+      else if (args.type === "nextStep") {
+        this._recordingService.goToStep(
+          args.message.session_id,
+          args.type,
+          nextStep,
+        );
+      }
+      else if (args.type === "currentStep") {
+        this._recordingService.goToStep(
+          args.message.session_id,
+          args.type,
+          currentStep
+        );
+      }
     })
 
     // When user toggles the highlight visibility control in the sidebar container,

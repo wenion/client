@@ -1,7 +1,8 @@
 // var _jsxFileName = "/home/runner/work/frontend-shared/frontend-shared/src/components/feedback/ToastMessages.tsx";
 import classnames from 'classnames';
 import { Card, CardHeader, CardContent } from '@hypothesis/frontend-shared';
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { IconButton, DottedCircleIcon, ArrowRightIcon, SchoolIcon, Dialog } from '@hypothesis/frontend-shared';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 
 import { formatSortableDateTime } from '../../shared/time';
@@ -13,7 +14,7 @@ import { applyTheme } from './Excerpt';
 
 export type ToastMessage = {
   id: string;
-  type: 'error' | 'success' | 'notice' | 'message';
+  type: 'error' | 'success' | 'notice' | 'message' | 'instant_message';
   title: string;
   message: ComponentChildren;
   linkName?: string;
@@ -37,6 +38,12 @@ type ToastMessageTransitionClasses = {
   transitionOut?: string;
 };
 
+type ToastMessageContextProps = {
+  message: ToastMessage;
+  onDismiss: (id: string) => void;
+  callback: (args: Record<any, any>) => void;
+};
+
 /**
  * An individual toast message: a brief and transient success or error message.
  * The message may be dismissed by clicking on it. `visuallyHidden` toast
@@ -46,15 +53,19 @@ function ToastMessageContext({
   message,
   onDismiss,
   callback
-}: {message:ToastMessage; onDismiss:(id: string) => void; callback:(args: Record<any, any>) => void}) {
+}: ToastMessageContextProps) {
   // Capitalize the message type for prepending; Don't prepend a message
   // type for "notice" messages
   const textStyle = applyTheme(['annotationFontFamily'], {});
   const time = "date" in message ? new Date(message.date/1000): new Date();
 
   const onClick = (e: ExtraDataComics) => {
-    callback({type: "click", message: e});
-    setTimeout(() => onDismiss(message.id), 500);
+    callback({
+      messageType: 'push',
+      type: "click",
+      message: e
+    });
+    onDismiss(message.id);
   }
 
   return (
@@ -118,16 +129,115 @@ function ToastMessageContext({
   )
 }
 
+type ToastMessageContextComponentProps = {
+  message:ToastMessage;
+  onDismiss:(id: string) => void;
+  callback:(args: Record<any, any>) => void;
+};
+
+function ToastMessageContextComponent({
+  message,
+  onDismiss,
+  callback
+}: ToastMessageContextComponentProps) {
+  const [currentStep, setCurrentStep] = useState<string | null>(null);
+  const [nextStep, setNextStep] = useState<string | null>(null);
+  const [expertStep, setExpertStep] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (message.extra && message.extra[0]) {
+      const extra = message.extra[0];
+      if (extra.expert_step) {
+        setExpertStep(extra.expert_step);
+      }
+
+      if (extra.current_step && extra.current_step.length === 1) {
+        setCurrentStep(extra.current_step[0]);
+        setNextStep(extra.current_step[0]);
+      }
+
+      if (extra.current_step && extra.current_step.length > 1) {
+        setNextStep(extra.current_step[0]);
+        setCurrentStep(extra.current_step[1]);
+      }
+    }
+  }, []);
+
+  const onClick = (type: string, value: string) => {
+    callback({
+      messageType: 'jump',
+      type: type,
+      message: message.extra![0]
+    });
+    setTimeout(() => {onDismiss(message.id)}, 500);
+  }
+
+  return (
+    <Dialog
+      title={message.title}
+      onClose={() => onDismiss(message.id)}
+      initialFocus={'manual'}
+      classes={'w-80 justify-self-center'}
+    >
+      <p>Choose where to scroll:</p>
+      {
+        message.extra && message.extra[0] && (
+          <>
+            {currentStep && (
+              <IconButton
+                size="lg"
+                icon={DottedCircleIcon}
+                title="Current Step"
+                data-testid="current-button"
+                classes={"border border-black rounded-lg justify-start"}
+                onClick={() => onClick('currentStep', currentStep)}
+              >
+                Current Step
+              </IconButton>
+            )}
+            {nextStep && (
+              <IconButton
+                size="lg"
+                icon={ArrowRightIcon}
+                title="Next Step"
+                data-testid="next-button"
+                classes={"border border-black rounded-lg justify-start"}
+                onClick={() => onClick('nextStep', nextStep)}
+              >
+                Next Step
+              </IconButton>
+            )}
+            {expertStep && (
+              <IconButton
+                size="lg"
+                icon={SchoolIcon}
+                title="Next Expert Step"
+                data-testid="next-expert-button"
+                classes={"border border-black rounded-lg justify-start"}
+                onClick={() => onClick('expertStep', expertStep)}
+              >
+                Next Expert Step
+              </IconButton>
+            )}
+          </>
+        )
+      }
+    </Dialog>
+  )
+}
+
 const ToastMessageTransition = ({
   direction,
   onTransitionEnd,
   children,
-  transitionClasses = {}
+  transitionClasses = {},
+  type,
 }: {
   direction: string;
   onTransitionEnd: (direction: string) => void;
   children: ComponentChildren;
   transitionClasses: ToastMessageTransitionClasses | undefined;
+  type: 'horizontal' | 'vertical';
 }) => {
   const isDismissed = direction === 'out';
   const containerRef = useRef(null); //RefObject<HTMLElement>
@@ -140,14 +250,14 @@ const ToastMessageTransition = ({
   };
   const classes = useMemo(() => {
     const {
-      transitionIn = 'animate-fade-in',
-      transitionOut = 'animate-fade-out'
+      transitionIn = type === 'vertical' ? 'animate-fade-in' : 'animate-slide-in-from-right',
+      transitionOut = type === 'vertical' ? 'animate-fade-out': 'animate-slide-out-from-left'
     } = transitionClasses;
     return {
       [transitionIn]: !isDismissed,
       [transitionOut]: isDismissed
     };
-  }, [isDismissed, transitionClasses]);
+  }, [isDismissed, transitionClasses, type]);
 
   return (
     <div
@@ -249,12 +359,23 @@ export function ToastMessages({
               direction={isDismissed ? 'out' : 'in'}
               onTransitionEnd={direction => onTransitionEnd(direction, message, index)}
               transitionClasses={transitionClasses}
+              type={message.type === 'instant_message'? 'vertical' : 'horizontal'}
             >
-              <ToastMessageContext
-                message={message}
-                onDismiss={dismissMessage}
-                callback={callback}
-              />
+              {
+                message.type === 'instant_message' ? (
+                  <ToastMessageContext
+                    message={message}
+                    onDismiss={dismissMessage}
+                    callback={callback}
+                  />
+                ): (
+                  <ToastMessageContextComponent
+                    message={message}
+                    onDismiss={dismissMessage}
+                    callback={callback}
+                  />
+                )
+              }
             </ToastMessageTransition>
           </li>
         )

@@ -269,14 +269,19 @@ export class Sidebar implements Destroyable {
       this._emitter.subscribe('messageOut', _messageOut)
       const callback = (args: Record<any, any>) => {
         this.open();
-        this._sidebarRPC.call('selectDataComics', args.message);
-        this._sidebarRPC.call('traceData', {
-          eventType: 'click',
-          eventSource: 'MESSAGE',
-          tagName: 'OPEN-DATACOMICS',
-          textContent: 'close',
-          interactionContext: JSON.stringify(args.message),
-        });
+        if (args.messageType === 'push') {
+          this._sidebarRPC.call('selectDataComics', args.message);
+          this._sidebarRPC.call('traceData', {
+            eventType: 'click',
+            eventSource: 'MESSAGE',
+            tagName: 'OPEN-DATACOMICS',
+            textContent: 'close',
+            interactionContext: JSON.stringify(args.message),
+          });
+        }
+        if (args.messageType === 'jump') {
+          this._sidebarRPC.call('jumpDataComics', args);
+        }
       };
       render(<ToastMessages emitter={this._emitter} callback={callback}/>, this._messagesElement);
     }
