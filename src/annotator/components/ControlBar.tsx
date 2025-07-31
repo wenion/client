@@ -61,21 +61,21 @@ export default function ControlBar({
       >
         <PowerIcon/>
       </div>
-        <div
-          id="pdfToggle"
-          class={classnames(
-            'transform scale-0',
-            {'m-2 w-4 h-4 scale-100' : expanded},
-            'content-center',
-            'cursor-pointer',
-            'transition-all duration-300 ease-in-out',
-            {'grayscale' : !isPdfMode},
-          )}
-          title={isPdfMode? 'You are using the Goldmind Viewer': 'You are using the Normal Viewer'}
-          onClick={() => onTogglePdf(!isPdfMode)}
-        >
-          {expanded ? (isPdfMode ? <FilePdfFilledIcon /> : <FilePdfIcon />) : <></>}
-        </div>
+      <div
+        id="pdfToggle"
+        class={classnames(
+          'transform scale-0',
+          {'m-2 w-4 h-4 scale-100' : expanded},
+          'content-center',
+          'cursor-pointer',
+          'transition-all duration-300 ease-in-out',
+          {'grayscale' : !isPdfMode},
+        )}
+        title={isPdfMode? 'You are using the Goldmind Viewer': 'You are using the Normal Viewer'}
+        onClick={() => onTogglePdf(!isPdfMode)}
+      >
+        {expanded ? (isPdfMode ? <FilePdfFilledIcon /> : <FilePdfIcon />) : <></>}
+      </div>
       <div
         id="Goldmind Icon"
         class={classnames(
