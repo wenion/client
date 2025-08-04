@@ -473,7 +473,9 @@ export class FrameSyncService {
         const offsetY = lastTrace.scrollY - this._firstScrollTrace.scrollY;
 
         if (offsetX === 0 && offsetY === 0) {
-          skip = true
+          if (trace.custom !== 'click') {
+            skip = true
+          }
         } else {
           let labelString = offsetX < 0 ? 'left' : offsetX === 0 ? '' : 'right';
           if (labelString === '') {
