@@ -10,13 +10,19 @@ import StyledText from './StyledText';
 import MarkdownView from './MarkdownView';
 import { applyTheme } from '../helpers/theme';
 import type { RecordingService } from '../services/recording';
+import type { ToastMessengerService } from '../services/toast-messenger';
 
 type MessageCardProps = {
   message: RawMessageData;
   recordingService: RecordingService;
+  toastMessenger: ToastMessengerService;
 };
 
-function MessageCard({ message, recordingService }: MessageCardProps) {
+function MessageCard({
+  message,
+  recordingService,
+  toastMessenger,
+}: MessageCardProps) {
   const now = new Date();
   const createdDate = new Date(message.date/1000);
 
@@ -94,15 +100,23 @@ function MessageCard({ message, recordingService }: MessageCardProps) {
                           )}
                           title={e.description}
                           onClick={() => {
-                            if (e.session_id && e.user_id && !e.url) {
-                              recordingService.selectRecordTabViewByPk(
-                                e.session_id,
-                                e.current_step ?? [],
-                                e.expert_step
-                              );
-                            } else if (e.url) {
-                              window.open(e.url);
-                            }
+                            store.selectTab('shareflow');
+                            recordingService.selectRecordTabView('view', e.session_id);
+                            setTimeout(() => {
+                              const jumpMessage = {
+                                type: 'jump',
+                                id: e.session_id,
+                                title: "Jump To...",
+                                message: "Choose where to scroll:",
+                                date: Date.now()*1000,
+                                show_flag: true,
+                                unread_flag: true,
+                                need_save_flag: true,
+                                extra: [e,],
+                                autoDismiss: false,
+                              }
+                              toastMessenger.message([jumpMessage,]);
+                            }, 3000);
                           }}
                         >
                           <b>{e.task_name}</b>
@@ -122,4 +136,7 @@ function MessageCard({ message, recordingService }: MessageCardProps) {
   )
 }
 
-export default withServices(MessageCard, ['recordingService']);
+export default withServices(MessageCard, [
+  'recordingService',
+  'toastMessenger',
+]);
