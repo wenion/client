@@ -128,9 +128,8 @@ export class RecordingService {
       const step = this._store.getRecordStepByPk(stepId??'');
       if (step !== null) {
         subSteps.push(step);
-        if (type === "expertStep") {
-          this._store.setExpertStep(step);
-        }
+        // Highlight the step
+        this._store.setExpertStep(step);
       }
 
       setTimeout(() => {
@@ -182,7 +181,7 @@ export class RecordingService {
     const currentView = this._store.getRecordTabView();
 
     if (newView !== currentView) {
-      if (newView === 'view' && id) {
+      if (newView === 'view' && id && id !== currentView) {
         try {
           this._store.clearRecordSteps();
           const traceSteps = await this._api.traces.list({ id: id, "response_mode": "metadata" });
@@ -194,6 +193,8 @@ export class RecordingService {
           this._store.setRecordTabView('list');
           this._toastMessenger.error('This shareflow is not accessible. Error: ' + err.message);
         }
+      }
+      else if (newView === 'view' && id && id === currentView) {
       }
       else {
         this._store.selectTab('shareflow');

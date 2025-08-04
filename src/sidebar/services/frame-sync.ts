@@ -1044,18 +1044,21 @@ export class FrameSyncService {
       this._store.selectTab('shareflow');
       this._recordingService.selectRecordTabView('view', extra.session_id);
 
-      const jumpMessage = {
-        type: 'jump',
-        id: extra.session_id,
-        title: "Jump To...",
-        message: "Choose where to scroll:",
-        date: Date.now()*1000,
-        show_flag: true,
-        unread_flag: true,
-        need_save_flag: true,
-        extra: [extra,],
-      }
-      this._toastMessenger.message([jumpMessage,]);
+      setTimeout(() => {
+        const jumpMessage = {
+          type: 'jump',
+          id: extra.session_id,
+          title: "Jump To...",
+          message: "Choose where to scroll:",
+          date: Date.now()*1000,
+          show_flag: true,
+          unread_flag: true,
+          need_save_flag: true,
+          extra: [extra,],
+          autoDismiss: false,
+        }
+        this._toastMessenger.message([jumpMessage,]);
+      }, 3000);
     })
 
     this._hostRPC.on('jumpDataComics', (
