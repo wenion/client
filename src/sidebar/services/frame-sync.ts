@@ -1046,6 +1046,10 @@ export class FrameSyncService {
       this._store.selectTab('shareflow');
       this._recordingService.selectRecordTabView('view', extra.session_id);
 
+      if (extra.current_step?.length === 0 && !extra.expert_step) {
+        return;
+      }
+
       setTimeout(() => {
         const jumpMessage = {
           type: 'jump',

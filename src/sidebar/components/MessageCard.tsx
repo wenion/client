@@ -102,6 +102,9 @@ function MessageCard({
                           onClick={() => {
                             store.selectTab('shareflow');
                             recordingService.selectRecordTabView('view', e.session_id);
+                            if (e.current_step?.length === 0 && !e.expert_step) {
+                              return;
+                            }
                             setTimeout(() => {
                               const jumpMessage = {
                                 type: 'jump',

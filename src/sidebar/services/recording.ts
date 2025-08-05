@@ -97,6 +97,11 @@ export class RecordingService {
       }
     }
 
+    if (targetSteps.length === 0) {
+      console.log("Empty list, No match found")
+      return null;
+    }
+
     console.log("No direct match found, fallback to previous steps")
     const target = targetSteps[0];
     const targetIndex = steps.findIndex(step => step.id === target.id);
