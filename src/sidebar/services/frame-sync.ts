@@ -317,12 +317,12 @@ export class FrameSyncService {
   }
 
   private _addClientInformation(
-    trace : (Trace | ClickTrace | KeyTrace | ScrollTrace | ChangeTrace) & { title?: string }
+    trace : Trace | ClickTrace | KeyTrace | ScrollTrace | ChangeTrace
   ) {
     return {
       ...trace,
       userid: this._store.profile().userid ?? trace.tabId + '_' + trace.windowId,
-      title: trace.title ? trace.title : this._store.mainFrame()?.metadata.title || document.title,
+      title: this._store.mainFrame()?.metadata.title || document.title,
       region: '',
       sessionId: this._store.getSync('recordingSessionId') as string | null,
       taskName: this._store.getSync('recordingTaskName') as string | null,
@@ -561,8 +561,18 @@ export class FrameSyncService {
 
       // temp
       const url = new URL(trace.url);
-      const protocol = url.protocol;
+      let protocol = url.protocol;
       const hostname = url.hostname;
+
+      if (protocol === "chrome-extension:") {
+        const params = url.searchParams;
+        const newUrl = params.get('file');
+        if (newUrl) {
+          trace.url = decodeURI(newUrl);
+          trace.title = trace.url.split('/').pop()??trace.url;
+        }
+        protocol = 'file:';
+      }
 
       if (
         (
