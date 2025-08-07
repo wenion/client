@@ -316,15 +316,19 @@ export class FrameSyncService {
     return text;
   }
 
-  private _addClientInformation(trace : Trace | ClickTrace | KeyTrace | ScrollTrace | ChangeTrace) {
+  private _addClientInformation(
+    trace : (Trace | ClickTrace | KeyTrace | ScrollTrace | ChangeTrace) & { title?: string }
+  ) {
     return {
       ...trace,
       userid: this._store.profile().userid ?? trace.tabId + '_' + trace.windowId,
-      title: this._store.mainFrame()?.metadata.title || document.title,
+      title: trace.title ? trace.title : this._store.mainFrame()?.metadata.title || document.title,
       region: '',
       sessionId: this._store.getSync('recordingSessionId') as string | null,
       taskName: this._store.getSync('recordingTaskName') as string | null,
       ipAddress: '',
+      tagName: trace.tagName? trace.tagName : '',
+      eventSource: trace.eventSource? trace.eventSource: '',
     }
   }
 
@@ -551,19 +555,25 @@ export class FrameSyncService {
         }
       }
 
+      // temp
+      const url = new URL(trace.url);
+      const protocol = url.protocol;
+      const hostname = url.hostname;
+
       if (
-        trace.type === this._lastTrace.type &&
-        trace.type === "getfocus" &&
-        trace.textContent === "onFocused" &&
-        trace.url === this._lastTrace.url &&
-        trace.tabId === this._lastTrace.tabId
+        (
+          protocol === "file:" &&
+          trace.interactionContext === "onTabUpdated" &&
+        // ? ) || (
+          trace.type === this._lastTrace.type &&
+          trace.type === "getfocus" &&
+          trace.textContent === "onFocused" &&
+          trace.url === this._lastTrace.url &&
+          trace.tabId === this._lastTrace.tabId
+        )
       ) {
         skip = true;
       }
-
-      // temp
-      const url = new URL(trace.url);
-      const hostname = url.hostname;
       const pass = this._allowList.some(
         domain => {
           return (
@@ -571,7 +581,8 @@ export class FrameSyncService {
             hostname.endsWith("." + domain)
           );
       });
-      if (!pass) {
+
+      if (!pass && protocol !== 'file:') {
         skip = true;
         discard = true;
         return;
