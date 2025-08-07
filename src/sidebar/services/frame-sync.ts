@@ -535,6 +535,10 @@ export class FrameSyncService {
         discard = false;
       }
 
+      if (trace.type === "getConfigForTab") {
+        skip = true;
+      }
+
       // google excel
       if (
         trace.url.startsWith("https://docs.google.com/spreadsheets/") &&
@@ -565,7 +569,7 @@ export class FrameSyncService {
           protocol === "file:" &&
           trace.interactionContext === "onTabUpdated" &&
         // ? ) || (
-          trace.type === this._lastTrace.type &&
+          // trace.type === this._lastTrace.type &&
           trace.type === "getfocus" &&
           trace.textContent === "onFocused" &&
           trace.url === this._lastTrace.url &&
