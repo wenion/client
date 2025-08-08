@@ -569,7 +569,9 @@ export class FrameSyncService {
         const newUrl = params.get('file');
         if (newUrl) {
           trace.url = decodeURI(newUrl);
-          trace.title = trace.url.split('/').pop()??trace.url;
+          const match = trace.url.match(/([^\s;\/?"]+\.pdf)/i);;
+          const filename = match ? match[1] : trace.url;
+          trace.title = filename;
         }
         protocol = 'file:';
       }
