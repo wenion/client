@@ -92,9 +92,8 @@ function Thumbnail({
   return (
     <div
       className={classnames(
-        "relative",
-        "ml-0.5",
-        "cursor-pointer border",
+        "relative ml-0.5",
+        "cursor-pointer border h-fit",
         "hover:shadow-lg",
         "overflow-clip",
       )}
