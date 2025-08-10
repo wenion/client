@@ -344,7 +344,7 @@ export function EditingCardSpacing({
       className={classnames(
         "group flex w-full justify-center items-center rounded-lg",
         "hover:border-gray-300 hover:border-2",
-        "h-4",
+        "h-8 mb-2 mt-2",
         "cursor-pointer",
         {"ring-2 ring-blue-500 bg-blue-100 ": hovered},
         classes
@@ -507,6 +507,7 @@ export function EditingCard({
       className={classnames(
         // 'w-full block',
         'data-comics-item',
+        'data-comics-item-edit',
         'flex',
         // 'border border-black mb-0.5 rounded-lg',
         // 'hover:ring-gray-500 hover:bg-gray-100',
