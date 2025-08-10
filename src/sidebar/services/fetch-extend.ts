@@ -23,7 +23,7 @@ type XHRCallback = {
    * Callback triggered when the XHR request is successfully completed.
    * This is usually fired once the request finishes loading.
    */
-  onFinished: () => void;
+  onFinished: (status?: string) => void;
 
   /**
    * Callback to set the abort function for the XHR request.
@@ -130,6 +130,7 @@ export function createAPIBlobXHRCall(
         const apiURL = new URL(url);
 
         const xhr = new XMLHttpRequest();
+        let skipOnLoadEnd = false;
         xhr.open("POST", apiURL.toString());
         // xhr.setRequestHeader('Content-Type', 'multipart/form-data');
         xhr.setRequestHeader('Hypothesis-Client-Version', '__VERSION__');
@@ -170,6 +171,8 @@ export function createAPIBlobXHRCall(
             }
           } else {
               reject(`Error: ${xhr.status} ${xhr.statusText}`); // Reject with error message
+              skipOnLoadEnd = true;
+              onFinished(xhr.status.toString());
           }
         };
 
@@ -178,7 +181,9 @@ export function createAPIBlobXHRCall(
         };
 
         xhr.onloadend = function () {
-          onFinished();
+          if (!skipOnLoadEnd) {
+            onFinished();
+          }
         };
 
         xhr.onabort = function () {

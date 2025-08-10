@@ -612,7 +612,7 @@ export class FrameSyncService {
         this._lastTrace = trace;
       }
     });
-    this._extensionRPC.on("cmdData", (message: Record<string, any>) => {
+    this._extensionRPC.on("cmdData", async (message: Record<string, any>) => {
       if (
         message.event === "chrome.storage.sync.lastOpen" ||
         message.event === "chrome.storage.request.lastOpen"
@@ -627,6 +627,37 @@ export class FrameSyncService {
             }
           }
         );
+      }
+      if (message.event === "webclip") {
+        const base64 = message.value;
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+
+        this._recordingService.saveFile(
+          message.title,
+          base64.length,
+          'application/x-mimearchive',
+          username(this._store.profile().userid),
+          message.access,
+          new Blob([bytes.buffer], { type: 'application/x-mimearchive' }),
+          (status?: string) => {
+            if (status === undefined) {
+              console.log("status")
+              this._toastMessenger.success(message.name + " uploaded successfully!");
+            } else {
+              this._toastMessenger.error("Upload failed, status code: " + status);
+            }
+          }
+        );
+        this._hostRPC.call('openSidebar');
+      }
+      if (message.event === "webclipFailed") {
+        console.log("message", message.value)
+        this._toastMessenger.error(message.value);
+        this._hostRPC.call('openSidebar');
       }
     });
   }
@@ -1245,20 +1276,24 @@ export class FrameSyncService {
       if (savePage) {
         let info = await webClippingPrompt({
           title: "Web Clipping",
-          message: {name: title, access: "private"},
+          message: {
+            name: title,
+            access: "private",
+            information: "*When you clip, the sidebar will close automatically to start capturing. After a moment, it will reopen. If the capture fails, please try again."
+          },
           confirmAction: "Done",
           rowOfTextArea: 2,
         });
         if (info.result) {
-          this._recordingService.saveFile(
-            info.name,
-            htmlContent.length,
-            'text/html',
-            username(this._store.profile().userid),
-            info.access,
-            new Blob([htmlContent], { type: 'text/html' }),
-            () => {
-              this._toastMessenger.success(title + " uploaded successfully!")
+          this._hostRPC.call('closeSidebar');
+          this._extensionRPC.call(
+            'customEvent',
+            {
+              eventType: 'client',
+              custom: 'webclip',
+              tagName: 'webclip',
+              title: info.name,
+              access: info.access,
             }
           )
         }

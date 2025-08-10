@@ -403,7 +403,7 @@ export class RecordingService {
     path: string,
     access: string,
     data: Blob,
-    onFinished: () => void,
+    onFinished: (status?: string) => void,
   ) {
     const xhrCallback = {
       onProgress: () => {},

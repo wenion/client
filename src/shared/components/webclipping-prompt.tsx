@@ -8,6 +8,7 @@ export type ConfirmModalProps = {
   message: {
     name: string;
     access: string;
+    information?: string;
   };
   confirmAction?: string;
   rowOfTextArea?: number;
@@ -136,6 +137,12 @@ export async function webClippingPrompt({
             </Select>
           </div>
         </div>
+
+      {message.information && (
+        <div className='flex justify-between items-center px-1'>
+          <p>{message.information}</p>
+        </div>
+      )}
       </ModalDialog>,
       container,
     );
